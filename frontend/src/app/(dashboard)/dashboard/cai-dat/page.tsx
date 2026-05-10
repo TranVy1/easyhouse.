@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -47,12 +47,7 @@ export default function CaiDatPage() {
     }
   }, []);
 
-  // Apply settings whenever fontSettings changes
-  useEffect(() => {
-    applyFontSettings();
-  }, [fontSettings]);
-
-  const applyFontSettings = () => {
+  const applyFontSettings = useCallback(() => {
     // Áp dụng font family cho toàn bộ document
     document.documentElement.style.setProperty('--font-family', fontSettings.fontFamily);
     document.body.style.fontFamily = fontSettings.fontFamily;
@@ -98,7 +93,12 @@ export default function CaiDatPage() {
         element.style.lineHeight = lineHeightMap[fontSettings.lineHeight];
       }
     });
-  };
+  }, [fontSettings]);
+
+  // Apply settings whenever fontSettings changes
+  useEffect(() => {
+    applyFontSettings();
+  }, [applyFontSettings]);
 
   const [uiSettings, setUiSettings] = useState({
     theme: 'light',

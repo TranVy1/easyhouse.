@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
@@ -47,7 +47,7 @@ import { saveAs } from 'file-saver';
 
 export default function HopDongPage() {
   const router = useRouter();
-  const cache = useCache<{
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hopDongList: HopDong[];
     phongList: Phong[];
     khachThueList: KhachThue[];
@@ -69,17 +69,13 @@ export default function HopDongPage() {
     document.title = 'Quản lý Hợp đồng';
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       // Thử load từ cache trước (nếu không force refresh)
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setHopDongList(cachedData.hopDongList || []);
           setPhongList(cachedData.phongList || []);
@@ -115,7 +111,7 @@ export default function HopDongPage() {
       setToaNhaList(toaNhas);
 
       // Lưu vào cache
-      cache.setCache({
+      setCache({
         hopDongList: hopDongs,
         phongList: phongs,
         khachThueList: khachThues,
@@ -127,12 +123,16 @@ export default function HopDongPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchData(true); // Force refresh
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
@@ -248,7 +248,7 @@ export default function HopDongPage() {
       
       if (response.ok) {
         // Xóa cache
-        cache.clearCache();
+                  clearCache();
         setHopDongList(prev => prev.filter(hopDong => hopDong._id !== id));
         toast.success('Đã xóa hợp đồng thành công');
       } else {
@@ -831,7 +831,7 @@ export default function HopDongPage() {
         if (response.ok) {
           const result = await response.json();
           // Xóa cache
-          cache.clearCache();
+          clearCache();
           // Cập nhật state trực tiếp thay vì reload
           setHopDongList(prev => prev.map(hd => 
             hd._id === hopDong._id ? result.data : hd
@@ -866,7 +866,7 @@ export default function HopDongPage() {
         if (response.ok) {
           const result = await response.json();
           // Xóa cache
-          cache.clearCache();
+                    clearCache();
           // Cập nhật state trực tiếp thay vì reload
           setHopDongList(prev => prev.map(hd => 
             hd._id === hopDong._id ? result.data : hd
@@ -909,11 +909,11 @@ export default function HopDongPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Button size="sm" onClick={() => router.push('/dashboard/hop-dong/them-moi')} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 sm:mr-2" />

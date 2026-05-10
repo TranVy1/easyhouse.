@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,7 +129,7 @@ export default function ThemMoiHoaDonPage() {
     }
   };
 
-  const fetchLatestElectricityReading = async (hopDongId: string, thang: number, nam: number) => {
+  const fetchLatestElectricityReading = useCallback(async (hopDongId: string, thang: number, nam: number) => {
     try {
       const response = await fetch(`/api/hoa-don/latest-reading?hopDong=${hopDongId}&thang=${thang}&nam=${nam}`);
       if (response.ok) {
@@ -147,7 +147,7 @@ export default function ThemMoiHoaDonPage() {
     } catch (error) {
       console.error('Error fetching latest electricity reading:', error);
     }
-  };
+  }, []);
 
   // Auto-fill form data when contract is selected
   useEffect(() => {
@@ -169,16 +169,16 @@ export default function ThemMoiHoaDonPage() {
         fetchLatestElectricityReading(formData.hopDong, formData.thang, formData.nam);
       }
     }
-  }, [formData.hopDong, hopDongList, formData.thang, formData.nam]);
+  }, [formData.hopDong, hopDongList, formData.thang, formData.nam, fetchLatestElectricityReading]);
 
   // Tự động cập nhật chỉ số khi thay đổi tháng/năm
   useEffect(() => {
     if (formData.hopDong && (formData.thang || formData.nam)) {
       fetchLatestElectricityReading(formData.hopDong, formData.thang, formData.nam);
     }
-  }, [formData.thang, formData.nam]);
+  }, [formData.hopDong, formData.thang, formData.nam, fetchLatestElectricityReading]);
 
-  const calculateTotal = () => {
+  const calculateTotal = useCallback(() => {
     const totalPhiDichVu = formData.phiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
     
     const soDien = formData.chiSoDienCuoiKy - formData.chiSoDienBanDau;
@@ -203,11 +203,21 @@ export default function ThemMoiHoaDonPage() {
       tongTien: total,
       conLai: conLai
     }));
-  };
+  }, [
+    formData.tienPhong,
+    formData.chiSoDienCuoiKy,
+    formData.chiSoDienBanDau,
+    formData.chiSoNuocCuoiKy,
+    formData.chiSoNuocBanDau,
+    formData.daThanhToan,
+    formData.phiDichVu,
+    formData.hopDong,
+    hopDongList,
+  ]);
 
   useEffect(() => {
     calculateTotal();
-  }, [formData.tienPhong, formData.chiSoDienBanDau, formData.chiSoDienCuoiKy, formData.chiSoNuocBanDau, formData.chiSoNuocCuoiKy, formData.phiDichVu, formData.daThanhToan, formData.hopDong, hopDongList]);
+  }, [calculateTotal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

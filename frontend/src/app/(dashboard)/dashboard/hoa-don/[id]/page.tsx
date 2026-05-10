@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,14 +91,7 @@ export default function ChinhSuaHoaDonPage() {
 
   const [newPhiDichVu, setNewPhiDichVu] = useState({ ten: '', gia: 0 });
 
-  useEffect(() => {
-    if (hoaDonId) {
-      fetchData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoaDonId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Fetch hóa đơn chi tiết theo ID
       const hoaDonResponse = await fetch(`/api/hoa-don?id=${hoaDonId}`);
@@ -171,9 +164,15 @@ export default function ChinhSuaHoaDonPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [hoaDonId, router]);
 
-  const calculateTotal = () => {
+  useEffect(() => {
+    if (hoaDonId) {
+      fetchData();
+    }
+  }, [hoaDonId, fetchData]);
+
+  const calculateTotal = useCallback(() => {
     const totalPhiDichVu = formData.phiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
     
     // Tính tiền điện nước từ chỉ số
@@ -200,11 +199,21 @@ export default function ChinhSuaHoaDonPage() {
       tongTien: total,
       conLai: conLai
     }));
-  };
+  }, [
+    formData.tienPhong,
+    formData.chiSoDienBanDau,
+    formData.chiSoDienCuoiKy,
+    formData.chiSoNuocBanDau,
+    formData.chiSoNuocCuoiKy,
+    formData.phiDichVu,
+    formData.daThanhToan,
+    formData.hopDong,
+    hopDongList,
+  ]);
 
   useEffect(() => {
     calculateTotal();
-  }, [formData.tienPhong, formData.chiSoDienBanDau, formData.chiSoDienCuoiKy, formData.chiSoNuocBanDau, formData.chiSoNuocCuoiKy, formData.phiDichVu, formData.daThanhToan, formData.hopDong, hopDongList]);
+  }, [calculateTotal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

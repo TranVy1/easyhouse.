@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,7 +48,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 export default function KhachThuePage() {
-  const cache = useCache<{ khachThueList: KhachThue[] }>({ key: 'khach-thue-data', duration: 300000 });
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ khachThueList: KhachThue[] }>({ key: 'khach-thue-data', duration: 300000 });
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,17 +62,13 @@ export default function KhachThuePage() {
     document.title = 'Quản lý Khách thuê';
   }, []);
 
-  useEffect(() => {
-    fetchKhachThue();
-  }, []);
-
-  const fetchKhachThue = async (forceRefresh = false) => {
+  const fetchKhachThue = useCallback(async (forceRefresh = false, trangThai = '') => {
     try {
       setLoading(true);
       
       // Thử load từ cache trước
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setKhachThueList(cachedData.khachThueList || []);
           setLoading(false);
@@ -81,7 +77,7 @@ export default function KhachThuePage() {
       }
       
       const params = new URLSearchParams();
-      if (selectedTrangThai && selectedTrangThai !== 'all') params.append('trangThai', selectedTrangThai);
+      if (trangThai && trangThai !== 'all') params.append('trangThai', trangThai);
       
       const response = await fetch(`/api/khach-thue?${params.toString()}&limit=100`);
       let khachThueData: KhachThue[] = [];
@@ -95,28 +91,25 @@ export default function KhachThuePage() {
       
       // Lưu cache với data mới
       if (khachThueData.length > 0) {
-        cache.setCache({ khachThueList: khachThueData });
+        setCache({ khachThueList: khachThueData });
       }
     } catch (error) {
       console.error('Error fetching khach thue:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
-    await fetchKhachThue(true);
-    cache.setIsRefreshing(false);
-    toast.success('Đã tải dữ liệu mới nhất');
-  };
+  }, [getCache, setCache]);
 
   useEffect(() => {
-    // Khi filter thay đổi, cần force refresh để lấy data mới theo filter
-    if (selectedTrangThai) {
-      fetchKhachThue(true);
-    }
-  }, [selectedTrangThai]);
+    fetchKhachThue(false, selectedTrangThai);
+  }, [fetchKhachThue, selectedTrangThai]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchKhachThue(true, selectedTrangThai);
+    setIsRefreshing(false);
+    toast.success('Đã tải dữ liệu mới nhất');
+  };
 
   const filteredKhachThue = khachThueList.filter(khachThue =>
     (khachThue.hoTen?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -141,7 +134,7 @@ export default function KhachThuePage() {
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            cache.clearCache();
+            clearCache();
             setKhachThueList(prev => prev.filter(khachThue => khachThue._id !== id));
             toast.success('Xóa khách thuê thành công!');
           } else {
@@ -186,11 +179,11 @@ export default function KhachThuePage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -214,7 +207,7 @@ export default function KhachThuePage() {
               khachThue={editingKhachThue}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={(newKhachThue) => {
-                cache.clearCache();
+                  clearCache();
                 setIsDialogOpen(false);
                 if (newKhachThue) {
                   if (editingKhachThue) {
@@ -228,7 +221,7 @@ export default function KhachThuePage() {
                   }
                 } else {
                   // Fallback: refresh data nếu không có dữ liệu trả về
-                  fetchKhachThue();
+                  fetchKhachThue(false, selectedTrangThai);
                 }
                 toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
               }}

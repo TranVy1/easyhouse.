@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
@@ -83,7 +83,7 @@ const formatCurrency = (amount: number) => {
 
 export default function HoaDonPage() {
   const router = useRouter();
-  const cache = useCache<{
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hoaDonList: HoaDon[];
     hopDongList: HopDong[];
     phongList: Phong[];
@@ -109,23 +109,13 @@ export default function HoaDonPage() {
     document.title = 'Quản lý Hóa đơn';
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-
-  // Debug hopDongList state
-  useEffect(() => {
-    console.log('hopDongList state updated:', hopDongList);
-  }, [hopDongList]);
-
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       // Thử load từ cache trước (nếu không force refresh)
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setHoaDonList(cachedData.hoaDonList || []);
           setHopDongList(cachedData.hopDongList || []);
@@ -156,7 +146,7 @@ export default function HoaDonPage() {
         setKhachThueList(khachThues);
         
         // Lưu vào cache
-        cache.setCache({
+        setCache({
           hoaDonList: hoaDons,
           hopDongList: hopDongs,
           phongList: phongs,
@@ -170,12 +160,22 @@ export default function HoaDonPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+
+  // Debug hopDongList state
+  useEffect(() => {
+    console.log('hopDongList state updated:', hopDongList);
+  }, [hopDongList]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchData(true); // Force refresh
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
@@ -225,7 +225,7 @@ export default function HoaDonPage() {
       });
 
       if (response.ok) {
-        cache.clearCache();
+        clearCache();
         setHoaDonList(prev => prev.filter(hoaDon => hoaDon._id !== id));
         toast.success('Hóa đơn đã được xóa thành công');
       } else {
@@ -251,7 +251,7 @@ export default function HoaDonPage() {
       const failedDeletes = results.filter(result => !result.ok);
       
       if (failedDeletes.length === 0) {
-        cache.clearCache();
+        clearCache();
         setHoaDonList(prev => prev.filter(hoaDon => !ids.includes(hoaDon._id!)));
         toast.success(`Đã xóa thành công ${ids.length} hóa đơn`);
       } else {
@@ -593,11 +593,11 @@ export default function HoaDonPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Button size="sm" onClick={() => router.push('/dashboard/hoa-don/them-moi')} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 sm:mr-2" />
@@ -1028,7 +1028,7 @@ export default function HoaDonPage() {
                   setHoaDonList(prev => prev.map(hd => 
                     hd._id === updatedHoaDon._id ? updatedHoaDon : hd
                   ));
-                  cache.clearCache(); // Xóa cache để lần sau load mới
+                  clearCache(); // Xóa cache để lần sau load mới
                 }
               }}
             />

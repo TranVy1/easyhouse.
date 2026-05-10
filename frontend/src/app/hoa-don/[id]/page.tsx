@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,13 +81,7 @@ export default function PublicInvoicePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (hoaDonId) {
-      fetchInvoiceData();
-    }
-  }, [hoaDonId]);
-
-  const fetchInvoiceData = async () => {
+  const fetchInvoiceData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/hoa-don-public/${hoaDonId}`);
@@ -109,7 +103,13 @@ export default function PublicInvoicePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [hoaDonId]);
+
+  useEffect(() => {
+    if (hoaDonId) {
+      fetchInvoiceData();
+    }
+  }, [hoaDonId, fetchInvoiceData]);
 
   const handleScreenshot = async () => {
     if (!hoaDon) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,24 +50,12 @@ export default function XemPhongPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  useEffect(() => {
-    fetchPhong();
-    fetchToaNha();
-    
-    // Check for phong parameter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const phongParam = urlParams.get('phong');
-    if (phongParam) {
-      setSearchTerm(phongParam);
-    }
-  }, []);
-
-  const fetchPhong = async () => {
+  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '') => {
     try {
       const params = new URLSearchParams();
       params.append('limit', '100');
-      if (selectedToaNha && selectedToaNha !== 'all') params.append('toaNha', selectedToaNha);
-      if (selectedTrangThai && selectedTrangThai !== 'all') params.append('trangThai', selectedTrangThai);
+      if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
+      if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
       
       const response = await fetch(`/api/phong-public?${params.toString()}`);
       if (response.ok) {
@@ -82,9 +70,9 @@ export default function XemPhongPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchToaNha = async () => {
+  const fetchToaNha = useCallback(async () => {
     try {
       const response = await fetch('/api/toa-nha-public');
       if (response.ok) {
@@ -96,11 +84,23 @@ export default function XemPhongPage() {
     } catch (error) {
       console.error('Error fetching toa nha:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPhong();
-  }, [selectedToaNha, selectedTrangThai]);
+    fetchToaNha();
+    
+    // Check for phong parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const phongParam = urlParams.get('phong');
+    if (phongParam) {
+      setSearchTerm(phongParam);
+    }
+  }, [fetchPhong, fetchToaNha]);
+
+  useEffect(() => {
+    fetchPhong(selectedToaNha, selectedTrangThai);
+  }, [selectedToaNha, selectedTrangThai, fetchPhong]);
 
   // Auto-open phong details when phong parameter is in URL
   useEffect(() => {
