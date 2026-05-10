@@ -1,0 +1,28 @@
+package com.example.quanlyphongtro.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+@Builder
+public class AuthResponse {
+    private UUID id;
+    private String email;
+    
+    @JsonProperty("hoTen")
+    private String name;
+    
+    @JsonProperty("vaiTro")
+    private String role;
+    
+    @JsonProperty("soDienThoai")
+    private String phone;
+    
+    @JsonProperty("anhDaiDien")
+    private String avatar;
+    
+    private String token;
+}
