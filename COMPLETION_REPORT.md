@@ -221,6 +221,37 @@ private ZonedDateTime capNhatLuc;
 
 ---
 
+## Update kiểm thử ngày 2026-05-10
+
+### Kết quả smoke test GET
+- PASS: /api/toa-nha
+- PASS: /api/phong
+- PASS: /api/khach-thue
+- PASS: /api/hop-dong
+- PASS: /api/hoa-don
+- PASS: /api/su-co
+- PASS: /api/thanh-toan
+- PASS: /api/thong-bao
+- PASS: /api/chi-so-dien-nuoc
+- PASS: /api/dashboard/stats
+
+### Kết quả smoke test POST (module generic)
+- PASS: POST /api/chi-so-dien-nuoc
+- PASS: POST /api/hop-dong
+- PASS: POST /api/hoa-don
+- PASS: POST /api/su-co
+- PASS: POST /api/thanh-toan
+- PASS: POST /api/thong-bao
+
+### Kết quả CRUD thực tế
+- PASS: NhaTro create/update/delete
+- PASS: KhachThue create/get/update/delete (soft delete)
+- BUG FOUND: Phong partial update trả về 400 do dùng @Valid trên endpoint PUT
+- FIXED: Bỏ @Valid tại endpoint PUT /api/phong/{id} để cho phép cập nhật từng phần theo đúng logic service
+- VERIFIED: PUT /api/phong/{id} với payload partial đã trả về success=true
+
+---
+
 ## 📊 PHASE 4 COMPLETION STATUS
 
 Per Backend Coding Plan - Phase 4: Property Management

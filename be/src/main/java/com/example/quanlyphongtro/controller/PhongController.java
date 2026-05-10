@@ -59,7 +59,7 @@ public class PhongController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<PhongResponse> updatePhong(@PathVariable UUID id, @Valid @RequestBody PhongRequest request) {
+    public ApiResponse<PhongResponse> updatePhong(@PathVariable UUID id, @RequestBody PhongRequest request) {
         try {
             Phong phong = phongService.updatePhong(id, request);
             return ApiResponse.success(PhongResponse.fromEntity(phong), "Cập nhật phòng thành công");
