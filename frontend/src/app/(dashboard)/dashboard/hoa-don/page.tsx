@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { HoaDonDataTable } from './table';
-import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +30,6 @@ import {
   Search, 
   Receipt, 
   AlertCircle,
-  Zap,
   Download,
   CreditCard,
   Camera,
@@ -41,8 +39,6 @@ import {
   Calendar,
   Users,
   Home,
-  Edit,
-  Trash2
 } from 'lucide-react';
 import { HoaDon, HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
@@ -99,7 +95,6 @@ export default function HoaDonPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
-  const [isAutoCreating, setIsAutoCreating] = useState(false);
   const [viewingHoaDon, setViewingHoaDon] = useState<HoaDon | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [paymentHoaDon, setPaymentHoaDon] = useState<HoaDon | null>(null);
@@ -534,37 +529,6 @@ export default function HoaDonPage() {
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error('Có lỗi xảy ra khi xuất PDF');
-    }
-  };
-
-  const handleAutoCreateInvoices = async () => {
-    if (!confirm('Bạn có chắc chắn muốn tạo hóa đơn tự động cho tất cả hợp đồng đang hoạt động?')) {
-      return;
-    }
-
-    setIsAutoCreating(true);
-    try {
-      const response = await fetch('/api/auto-invoice', {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        toast.success(`Đã tạo ${result.data.createdInvoices} hóa đơn tự động`);
-        if (result.data.errors.length > 0) {
-          toast.warning(`Một số lỗi xảy ra: ${result.data.errors.length} lỗi`);
-          console.warn('Chi tiết lỗi:', result.data.errors);
-        }
-        fetchData(); // Refresh data
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Có lỗi xảy ra khi tạo hóa đơn tự động');
-      }
-    } catch (error) {
-      console.error('Error auto creating invoices:', error);
-      toast.error('Có lỗi xảy ra khi tạo hóa đơn tự động');
-    } finally {
-      setIsAutoCreating(false);
     }
   };
 
