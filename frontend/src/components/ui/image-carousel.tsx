@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,7 +28,7 @@ interface ImageCarouselProps {
 export function ImageCarousel({ 
   images, 
   trigger,
-  className = '' 
+  className = ''
 }: ImageCarouselProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
@@ -63,7 +64,7 @@ export function ImageCarousel({
   );
 
   return (
-    <>
+    <div className={className}>
       {trigger || defaultTrigger}
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -86,11 +87,13 @@ export function ImageCarousel({
               <CarouselContent>
                 {images.map((image, index) => (
                   <CarouselItem key={index}>
-                    <div className="relative">
-                      <img
+                    <div className="relative h-[500px] w-full overflow-hidden rounded-lg">
+                      <Image
                         src={image}
                         alt={`Ảnh phòng ${index + 1}`}
-                        className="w-full h-[500px] object-cover rounded-lg"
+                        fill
+                        sizes="100vw"
+                        className="object-cover"
                       />
                     </div>
                   </CarouselItem>
@@ -110,6 +113,6 @@ export function ImageCarousel({
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

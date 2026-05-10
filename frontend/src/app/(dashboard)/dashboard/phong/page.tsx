@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,15 +29,12 @@ import {
   Plus, 
   Search, 
   Edit, 
-  Trash2, 
   Home, 
-  MapPin,
   Users,
   Eye,
-  ExternalLink,
   Copy,
   Info,
-  Image,
+  Image as ImageIcon,
   RefreshCw
 } from 'lucide-react';
 import {
@@ -520,12 +518,15 @@ export default function PhongPage() {
 
                     {phong.anhPhong && phong.anhPhong.length > 0 && (
                       <div className="mb-3">
-                        <img 
-                          src={phong.anhPhong[0]} 
-                          alt={phong.maPhong}
-                          className="w-full h-32 object-cover rounded-md"
-                          onClick={() => handleViewImages(phong)}
-                        />
+                        <div className="relative h-32 w-full overflow-hidden rounded-md" onClick={() => handleViewImages(phong)}>
+                          <Image
+                            src={phong.anhPhong[0]}
+                            alt={phong.maPhong}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover"
+                          />
+                        </div>
                         {phong.anhPhong.length > 1 && (
                           <div className="text-xs text-gray-600 mt-1">
                             +{phong.anhPhong.length - 1} ảnh khác
@@ -590,7 +591,7 @@ export default function PhongPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[95vw] md:w-full">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base md:text-lg">
-              <Image className="h-4 w-4 md:h-5 md:w-5" />
+                <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
               Ảnh phòng {viewingPhongName}
             </DialogTitle>
           </DialogHeader>
@@ -602,11 +603,15 @@ export default function PhongPage() {
                   {viewingImages.map((image, index) => (
                     <CarouselItem key={index}>
                       <div className="flex items-center justify-center p-1 md:p-2">
-                        <img
-                          src={image}
-                          alt={`Ảnh ${index + 1} của phòng ${viewingPhongName}`}
-                          className="max-h-[50vh] md:max-h-[60vh] w-auto object-contain rounded-lg"
-                        />
+                        <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden rounded-lg">
+                          <Image
+                            src={image}
+                            alt={`Ảnh ${index + 1} của phòng ${viewingPhongName}`}
+                            fill
+                            sizes="100vw"
+                            className="object-contain"
+                          />
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
@@ -836,7 +841,7 @@ function PhongForm({
             Thông tin
           </TabsTrigger>
           <TabsTrigger value="anh-phong" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-            <Image className="h-3 w-3 md:h-4 md:w-4" />
+            <ImageIcon className="h-3 w-3 md:h-4 md:w-4" />
             Ảnh phòng
           </TabsTrigger>
         </TabsList>

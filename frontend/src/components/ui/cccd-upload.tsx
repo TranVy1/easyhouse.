@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -130,11 +131,13 @@ export function CCCDUpload({
           {anhCCCD.matTruoc ? (
             <Card className="relative group">
               <CardContent className="p-2">
-                <div className="relative aspect-[3/2] rounded-md overflow-hidden bg-gray-100">
-                  <img
+                <div className="relative aspect-[3/2] overflow-hidden rounded-md bg-gray-100">
+                  <Image
                     src={anhCCCD.matTruoc}
                     alt="CCCD mặt trước"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
                   />
                   <Button
                     type="button"
@@ -198,11 +201,13 @@ export function CCCDUpload({
           {anhCCCD.matSau ? (
             <Card className="relative group">
               <CardContent className="p-2">
-                <div className="relative aspect-[3/2] rounded-md overflow-hidden bg-gray-100">
-                  <img
+                <div className="relative aspect-[3/2] overflow-hidden rounded-md bg-gray-100">
+                  <Image
                     src={anhCCCD.matSau}
                     alt="CCCD mặt sau"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
                   />
                   <Button
                     type="button"

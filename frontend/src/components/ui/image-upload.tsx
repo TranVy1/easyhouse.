@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -79,11 +80,13 @@ export function ImageUpload({
       
       <div className="space-y-2">
         {imageUrl ? (
-          <div className="relative">
-            <img 
-              src={imageUrl} 
-              alt="Uploaded image" 
-              className="w-full h-48 object-cover rounded-lg border"
+          <div className="relative h-48 w-full overflow-hidden rounded-lg border">
+            <Image
+              src={imageUrl}
+              alt="Ảnh đã tải lên"
+              fill
+              sizes="100vw"
+              className="object-cover"
             />
             <Button
               type="button"

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -174,11 +175,13 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
         }
         return (
           <div className="flex items-center space-x-2">
-            <div className="relative w-12 h-8 rounded overflow-hidden">
-              <img
+            <div className="relative h-8 w-12 overflow-hidden rounded">
+              <Image
                 src={anhPhong[0]}
                 alt="Ảnh phòng"
-                className="w-full h-full object-cover"
+                fill
+                sizes="48px"
+                className="object-cover"
               />
             </div>
             <div className="flex flex-col space-y-1">

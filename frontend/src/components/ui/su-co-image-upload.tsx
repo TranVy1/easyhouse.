@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -138,11 +139,13 @@ export function SuCoImageUpload({
           {images.map((imageUrl, index) => (
             <Card key={index} className="relative group">
               <CardContent className="p-2">
-                <div className="relative aspect-square rounded-md overflow-hidden bg-gray-100">
-                  <img
+                <div className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
+                  <Image
                     src={imageUrl}
-                    alt={`Sự cố ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    alt={`Ảnh sự cố ${index + 1}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    className="object-cover"
                   />
                   <Button
                     type="button"

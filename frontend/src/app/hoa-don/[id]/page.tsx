@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Download, 
   Camera, 
   Receipt, 
   Calendar,
@@ -15,7 +15,7 @@ import {
   Loader2,
   QrCode
 } from 'lucide-react';
-import { HoaDon, ThanhToan, HopDong, Phong, KhachThue } from '@/types';
+import { HoaDon, ThanhToan, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -453,11 +453,15 @@ export default function PublicInvoicePage() {
                   <div className="space-y-4">
                     {/* QR Code */}
                     <div className="flex justify-center">
-                      <img
-                        src={`https://img.vietqr.io/image/970422-7320012003-compact2.png?amount=${hoaDon.conLai}&addInfo=Thanh%20toan%20${hoaDon.maHoaDon}&accountName=CHU%20TRO`}
-                        alt="VietQR Code"
-                        className="w-full max-w-[280px] border-2 border-gray-200 rounded-lg"
-                      />
+                        <div className="relative h-[280px] w-full max-w-[280px] overflow-hidden rounded-lg border-2 border-gray-200">
+                          <Image
+                            src={`https://img.vietqr.io/image/970422-7320012003-compact2.png?amount=${hoaDon.conLai}&addInfo=Thanh%20toan%20${hoaDon.maHoaDon}&accountName=CHU%20TRO`}
+                            alt={`Mã QR thanh toán hóa đơn ${hoaDon.maHoaDon}`}
+                            fill
+                            sizes="280px"
+                            className="object-contain"
+                          />
+                        </div>
                     </div>
                     
                     {/* Thông tin chuyển khoản */}

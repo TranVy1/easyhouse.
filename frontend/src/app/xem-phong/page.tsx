@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,6 @@ import {
   MapPin, 
   Users, 
   Square, 
-  DollarSign, 
   Phone,
   Eye,
   ArrowLeft,
@@ -249,11 +249,15 @@ export default function XemPhongPage() {
                     <div className="space-y-3 md:space-y-4">
                       {/* Hình lớn */}
                       <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                        <img
-                          src={selectedPhong.anhPhong[selectedImageIndex]}
-                          alt={`Ảnh phòng ${selectedImageIndex + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                            <div className="relative h-full w-full">
+                              <Image
+                                src={selectedPhong.anhPhong[selectedImageIndex]}
+                                alt={`Ảnh phòng ${selectedImageIndex + 1}`}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover"
+                              />
+                            </div>
                       </div>
                       
                       {/* Các hình nhỏ */}
@@ -268,11 +272,15 @@ export default function XemPhongPage() {
                             }`}
                             onClick={() => setSelectedImageIndex(index)}
                           >
-                            <img
-                              src={image}
-                              alt={`Ảnh phòng ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                            <div className="relative h-full w-full">
+                              <Image
+                                src={image}
+                                alt={`Ảnh phòng ${index + 1}`}
+                                fill
+                                sizes="25vw"
+                                className="object-cover"
+                              />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -665,11 +673,15 @@ export default function XemPhongPage() {
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
                 {phong.anhPhong && phong.anhPhong.length > 0 ? (
                   <>
-                    <img
-                      src={phong.anhPhong[0]}
-                      alt={`Phòng ${phong.maPhong}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
+                    <div className="relative h-full w-full group-hover:scale-110 transition-transform duration-700">
+                      <Image
+                        src={phong.anhPhong[0]}
+                        alt={`Phòng ${phong.maPhong}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <ImageCarousel
                       images={phong.anhPhong}
