@@ -93,6 +93,9 @@ type ThanhToanPopulated = Omit<ThanhToan, 'hoaDon'> & {
   hoaDon: string | HoaDon
 }
 
+type HoaDonPhongPopulated = { maPhong?: string }
+type HoaDonKhachThuePopulated = { hoTen?: string }
+
 // Helper functions
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -229,7 +232,7 @@ const createColumns = (props: ThanhToanTableProps): ColumnDef<ThanhToanPopulated
     header: "Phòng",
     cell: ({ row }) => {
       const hoaDonInfo = typeof row.original.hoaDon === 'object' ? row.original.hoaDon : null;
-      const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as any) : null;
+      const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as unknown as HoaDonPhongPopulated) : null;
       return (
         <div className="flex items-center gap-2 min-w-24">
           <Home className="h-4 w-4 text-muted-foreground" />
@@ -245,7 +248,7 @@ const createColumns = (props: ThanhToanTableProps): ColumnDef<ThanhToanPopulated
     header: "Người đại diện",
     cell: ({ row }) => {
       const hoaDonInfo = typeof row.original.hoaDon === 'object' ? row.original.hoaDon : null;
-      const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as any) : null;
+      const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as unknown as HoaDonKhachThuePopulated) : null;
       return (
         <div className="flex items-center gap-2 min-w-32">
           <Users className="h-4 w-4 text-muted-foreground" />

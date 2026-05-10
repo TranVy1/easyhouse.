@@ -580,8 +580,8 @@ function SuCoForm({
   suCo: SuCo | null;
   phongList: Phong[];
   khachThueList: KhachThue[];
-  hopDongList: any[];
-  getKhachThueName: (khachThue: any) => string;
+  hopDongList: HopDong[];
+  getKhachThueName: (khachThue: string | { hoTen: string }) => string;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -598,7 +598,7 @@ function SuCoForm({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPhong, setSelectedPhong] = useState<any>(null);
+  const [selectedPhong, setSelectedPhong] = useState<Phong | null>(null);
   const [images, setImages] = useState<string[]>(suCo?.anhSuCo || []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -747,7 +747,7 @@ function SuCoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="loaiSuCo" className="text-xs md:text-sm">Loại sự cố</Label>
-          <Select value={formData.loaiSuCo} onValueChange={(value) => setFormData(prev => ({ ...prev, loaiSuCo: value as any }))}>
+          <Select value={formData.loaiSuCo} onValueChange={(value) => setFormData(prev => ({ ...prev, loaiSuCo: value as SuCo['loaiSuCo'] }))}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Chọn loại sự cố" />
             </SelectTrigger>
@@ -763,7 +763,7 @@ function SuCoForm({
         
         <div className="space-y-2">
           <Label htmlFor="mucDoUuTien" className="text-xs md:text-sm">Mức độ ưu tiên</Label>
-          <Select value={formData.mucDoUuTien} onValueChange={(value) => setFormData(prev => ({ ...prev, mucDoUuTien: value as any }))}>
+          <Select value={formData.mucDoUuTien} onValueChange={(value) => setFormData(prev => ({ ...prev, mucDoUuTien: value as SuCo['mucDoUuTien'] }))}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Chọn mức độ ưu tiên" />
             </SelectTrigger>
@@ -780,7 +780,7 @@ function SuCoForm({
       {suCo && (
         <div className="space-y-2">
           <Label htmlFor="trangThai" className="text-xs md:text-sm">Trạng thái</Label>
-          <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as any }))}>
+          <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as SuCo['trangThai'] }))}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>

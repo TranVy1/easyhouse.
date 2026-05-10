@@ -59,6 +59,9 @@ type ThanhToanPopulated = Omit<ThanhToan, 'hoaDon'> & {
   hoaDon: string | HoaDon;
 };
 
+type HoaDonPhongPopulated = { maPhong?: string };
+type HoaDonKhachThuePopulated = { hoTen?: string };
+
 export default function ThanhToanPage() {
   const cache = useCache<{ 
     thanhToanList: ThanhToanPopulated[];
@@ -164,7 +167,7 @@ export default function ThanhToanPage() {
     }
   };
 
-  const getHoaDonInfo = (hoaDon: string | any) => {
+  const getHoaDonInfo = (hoaDon: string | HoaDon) => {
     console.log('getHoaDonInfo called with:', hoaDon, 'type:', typeof hoaDon);
     
     // Nếu hoaDon là object (đã được populate), lấy maHoaDon trực tiếp
@@ -423,8 +426,8 @@ export default function ThanhToanPage() {
         <div className="space-y-3">
           {filteredThanhToan.map((thanhToan) => {
             const hoaDonInfo = typeof thanhToan.hoaDon === 'object' ? (thanhToan.hoaDon as HoaDon) : null;
-            const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as any) : null;
-            const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as any) : null;
+            const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as unknown as HoaDonPhongPopulated) : null;
+            const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as unknown as HoaDonKhachThuePopulated) : null;
             
             return (
               <Card key={thanhToan._id} className="p-4">
@@ -663,7 +666,7 @@ function ThanhToanForm({
 
       <div className="space-y-2">
         <Label htmlFor="phuongThuc" className="text-xs md:text-sm">Phương thức thanh toán</Label>
-        <Select value={formData.phuongThuc} onValueChange={(value) => setFormData(prev => ({ ...prev, phuongThuc: value as any }))}>
+        <Select value={formData.phuongThuc} onValueChange={(value) => setFormData(prev => ({ ...prev, phuongThuc: value as ThanhToan['phuongThuc'] }))}>
           <SelectTrigger className="text-sm">
             <SelectValue placeholder="Chọn phương thức" />
           </SelectTrigger>
