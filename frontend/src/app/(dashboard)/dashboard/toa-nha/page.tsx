@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +50,7 @@ import { toast } from 'sonner';
 import { ToaNhaDataTable } from './table';
 
 export default function ToaNhaPage() {
-  const cache = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
+  const { getCache, setCache, clearCache, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,16 +61,12 @@ export default function ToaNhaPage() {
     document.title = 'Quản lý Tòa nhà';
   }, []);
 
-  useEffect(() => {
-    fetchToaNha();
-  }, []);
-
-  const fetchToaNha = async (forceRefresh = false) => {
+  const fetchToaNha = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setToaNhaList(cachedData.toaNhaList || []);
           setLoading(false);
@@ -84,7 +80,7 @@ export default function ToaNhaPage() {
         if (result.success) {
           const toaNhas = result.data;
           setToaNhaList(toaNhas);
-          cache.setCache({ toaNhaList: toaNhas });
+          setCache({ toaNhaList: toaNhas });
         }
       }
     } catch (error) {
@@ -92,12 +88,16 @@ export default function ToaNhaPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchToaNha();
+  }, [fetchToaNha]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchToaNha(true);
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
@@ -121,7 +121,7 @@ export default function ToaNhaPage() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          cache.clearCache();
+          clearCache();
           setToaNhaList(prev => prev.filter(toaNha => toaNha._id !== id));
           toast.success('Xóa tòa nhà thành công!');
         } else {

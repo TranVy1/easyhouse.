@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,7 @@ import { toast } from 'sonner';
 import { useCache } from '@/hooks/use-cache';
 
 export default function ThongBaoPage() {
-  const cache = useCache<{
+  const { getCache, setCache, setIsRefreshing } = useCache<{
     thongBaoList: ThongBao[];
     toaNhaList: ToaNha[];
     phongList: Phong[];
@@ -72,16 +72,12 @@ export default function ThongBaoPage() {
     document.title = 'Quản lý Thông báo';
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setThongBaoList(cachedData.thongBaoList || []);
           setToaNhaList(cachedData.toaNhaList || []);
@@ -116,7 +112,7 @@ export default function ThongBaoPage() {
       const khachThues = khachThueData.success ? khachThueData.data : [];
       setKhachThueList(khachThues);
       
-      cache.setCache({
+      setCache({
         thongBaoList: thongBaos,
         toaNhaList: toaNhas,
         phongList: phongs,
@@ -131,12 +127,16 @@ export default function ThongBaoPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchData(true);
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 

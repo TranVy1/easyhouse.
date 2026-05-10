@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +55,7 @@ import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { SuCoDataTable } from './table';
 
 export default function SuCoPage() {
-  const cache = useCache<{
+  const { getCache, setCache, setIsRefreshing } = useCache<{
     suCoList: SuCo[];
     phongList: Phong[];
     khachThueList: KhachThue[];
@@ -78,16 +78,12 @@ export default function SuCoPage() {
     document.title = 'Quản lý Sự cố';
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setSuCoList(cachedData.suCoList || []);
           setPhongList(cachedData.phongList || []);
@@ -122,7 +118,7 @@ export default function SuCoPage() {
       const hopDongs = hopDongData.success ? hopDongData.data : [];
       setHopDongList(hopDongs);
       
-      cache.setCache({
+      setCache({
         suCoList: suCos,
         phongList: phongs,
         khachThueList: khachThues,
@@ -137,12 +133,16 @@ export default function SuCoPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchData(true);
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 

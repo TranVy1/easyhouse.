@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,7 +63,7 @@ type HoaDonPhongPopulated = { maPhong?: string };
 type HoaDonKhachThuePopulated = { hoTen?: string };
 
 export default function ThanhToanPage() {
-  const cache = useCache<{ 
+  const { getCache, setCache, setIsRefreshing } = useCache<{ 
     thanhToanList: ThanhToanPopulated[];
     hoaDonList: HoaDon[];
   }>({ key: 'thanh-toan-data', duration: 300000 });
@@ -81,16 +81,12 @@ export default function ThanhToanPage() {
     document.title = 'Quản lý Thanh toán';
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setThanhToanList(cachedData.thanhToanList || []);
           setHoaDonList(cachedData.hoaDonList || []);
@@ -111,7 +107,7 @@ export default function ThanhToanPage() {
       const hoaDons = hoaDonData.data || [];
       setHoaDonList(hoaDons);
       
-      cache.setCache({
+      setCache({
         thanhToanList: thanhToans,
         hoaDonList: hoaDons,
       });
@@ -120,12 +116,16 @@ export default function ThanhToanPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getCache, setCache]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchData(true);
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
