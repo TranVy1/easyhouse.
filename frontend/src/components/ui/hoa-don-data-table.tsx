@@ -50,6 +50,9 @@ const getKhachThueName = (khachThueId: string, khachThueList: KhachThue[]) => {
   return khachThue?.hoTen || 'Không xác định';
 };
 
+type PopulatedPhong = { maPhong?: string };
+type PopulatedKhachThue = { hoTen?: string };
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -143,7 +146,7 @@ export function createColumns(
       cell: ({ row }) => {
         const hoaDon = row.original;
         // Ưu tiên lấy từ populated data, nếu không có thì fallback
-        const phongData = hoaDon.phong as any;
+        const phongData = hoaDon.phong as unknown as PopulatedPhong | string;
         const phongName = (phongData && typeof phongData === 'object' && phongData.maPhong) ? 
                          phongData.maPhong :
                          (typeof hoaDon.phong === 'string' ? getPhongName(hoaDon.phong, phongList) : 'N/A');
@@ -163,7 +166,7 @@ export function createColumns(
       cell: ({ row }) => {
         const hoaDon = row.original;
         // Ưu tiên lấy từ populated data, nếu không có thì fallback
-        const khachThueData = hoaDon.khachThue as any;
+        const khachThueData = hoaDon.khachThue as unknown as PopulatedKhachThue | string;
         const khachThueName = (khachThueData && typeof khachThueData === 'object' && khachThueData.hoTen) ? 
                              khachThueData.hoTen :
                              (typeof hoaDon.khachThue === 'string' ? getKhachThueName(hoaDon.khachThue, khachThueList) : 'N/A');

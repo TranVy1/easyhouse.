@@ -83,7 +83,10 @@ export function HopDongDataTable({
     }
   };
 
-  const getPhongName = (phong: any) => {
+  type HopDongPhongInput = string | { maPhong?: string; toaNha?: string | { tenToaNha?: string } };
+  type HopDongKhachThueInput = string | { hoTen?: string };
+
+  const getPhongName = (phong: HopDongPhongInput) => {
     if (typeof phong === 'object' && phong?.maPhong) {
       return phong.maPhong;
     }
@@ -91,7 +94,7 @@ export function HopDongDataTable({
     return phongObj?.maPhong || 'Không xác định';
   };
 
-  const getToaNhaName = (toaNha: any) => {
+  const getToaNhaName = (toaNha: string | { tenToaNha?: string }) => {
     if (typeof toaNha === 'object' && toaNha?.tenToaNha) {
       return toaNha.tenToaNha;
     }
@@ -99,7 +102,7 @@ export function HopDongDataTable({
     return toaNhaObj?.tenToaNha || 'Không xác định';
   };
 
-  const getPhongInfo = (phong: any) => {
+  const getPhongInfo = (phong: HopDongPhongInput) => {
     if (typeof phong === 'object' && phong?.maPhong) {
       return {
         maPhong: phong.maPhong,
@@ -117,7 +120,7 @@ export function HopDongDataTable({
     };
   };
 
-  const getKhachThueName = (khachThue: any) => {
+  const getKhachThueName = (khachThue: HopDongKhachThueInput) => {
     if (typeof khachThue === 'object' && khachThue?.hoTen) {
       return khachThue.hoTen;
     }

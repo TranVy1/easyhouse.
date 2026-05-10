@@ -143,7 +143,7 @@ export const columns = (
     header: "Phòng hiện tại",
     cell: ({ row }) => {
       const khachThue = row.original;
-      const hopDong = (khachThue as any).hopDongHienTai;
+      const hopDong = khachThue.hopDongHienTai;
       
       if (!hopDong || !hopDong.phong) {
         return <div className="text-gray-400">Chưa thuê</div>;
