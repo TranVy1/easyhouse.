@@ -51,7 +51,7 @@ import { toast } from 'sonner';
 import { useCache } from '@/hooks/use-cache';
 
 export default function ThongBaoPage() {
-  const { getCache, setCache, setIsRefreshing } = useCache<{
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     thongBaoList: ThongBao[];
     toaNhaList: ToaNha[];
     phongList: Phong[];
@@ -202,7 +202,7 @@ export default function ThongBaoPage() {
         });
 
         if (response.ok) {
-          cache.clearCache();
+          clearCache();
           setThongBaoList(prev => prev.filter(thongBao => thongBao._id !== id));
           toast.success('Xóa thông báo thành công');
         } else {
@@ -245,11 +245,11 @@ export default function ThongBaoPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -276,7 +276,7 @@ export default function ThongBaoPage() {
               khachThueList={khachThueList}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={() => {
-                cache.clearCache();
+                clearCache();
                 setIsDialogOpen(false);
                 fetchData(true);
               }}

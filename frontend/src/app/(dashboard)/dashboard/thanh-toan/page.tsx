@@ -63,7 +63,7 @@ type HoaDonPhongPopulated = { maPhong?: string };
 type HoaDonKhachThuePopulated = { hoTen?: string };
 
 export default function ThanhToanPage() {
-  const { getCache, setCache, setIsRefreshing } = useCache<{ 
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ 
     thanhToanList: ThanhToanPopulated[];
     hoaDonList: HoaDon[];
   }>({ key: 'thanh-toan-data', duration: 300000 });
@@ -222,7 +222,7 @@ export default function ThanhToanPage() {
       });
 
       if (response.ok) {
-        cache.clearCache();
+        clearCache();
         setThanhToanList(prev => prev.filter(thanhToan => thanhToan._id !== id));
         toast.success('Xóa thanh toán thành công');
       } else{
@@ -265,11 +265,11 @@ export default function ThanhToanPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -294,7 +294,7 @@ export default function ThanhToanPage() {
               hoaDonList={hoaDonList}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={() => {
-                cache.clearCache();
+                clearCache();
                 setIsDialogOpen(false);
                 fetchData(true);
               }}

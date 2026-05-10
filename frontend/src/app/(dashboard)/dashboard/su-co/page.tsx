@@ -55,7 +55,7 @@ import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { SuCoDataTable } from './table';
 
 export default function SuCoPage() {
-  const { getCache, setCache, setIsRefreshing } = useCache<{
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     suCoList: SuCo[];
     phongList: Phong[];
     khachThueList: KhachThue[];
@@ -233,7 +233,7 @@ export default function SuCoPage() {
       const result = await response.json();
 
       if (result.success) {
-        cache.clearCache();
+        clearCache();
         setSuCoList(prev => prev.filter(suCo => suCo._id !== id));
         toast.success('Xóa sự cố thành công');
       } else {
@@ -303,11 +303,11 @@ export default function SuCoPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -335,7 +335,7 @@ export default function SuCoPage() {
               getKhachThueName={getKhachThueName}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={() => {
-                cache.clearCache();
+                clearCache();
                 setIsDialogOpen(false);
                 fetchData(true);
               }}

@@ -76,7 +76,7 @@ interface CreateUserData {
 
 export default function AccountManagementPage() {
   const { data: session } = useSession();
-  const cache = useCache<{ users: User[] }>({ key: 'tai-khoan-data', duration: 300000 });
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ users: User[] }>({ key: 'tai-khoan-data', duration: 300000 });
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,7 +116,7 @@ export default function AccountManagementPage() {
       setLoading(true);
       
       if (!forceRefresh) {
-        const cachedData = cache.getCache();
+        const cachedData = getCache();
         if (cachedData) {
           setUsers(cachedData.users || []);
           setLoading(false);
@@ -128,7 +128,7 @@ export default function AccountManagementPage() {
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
-        cache.setCache({ users: data });
+        setCache({ users: data });
       } else {
         toast.error('Không thể tải danh sách người dùng');
       }
@@ -141,9 +141,9 @@ export default function AccountManagementPage() {
   };
 
   const handleRefresh = async () => {
-    cache.setIsRefreshing(true);
+    setIsRefreshing(true);
     await fetchUsers(true);
-    cache.setIsRefreshing(false);
+    setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
@@ -167,7 +167,7 @@ export default function AccountManagementPage() {
           phone: '',
           role: 'nhanVien'
         });
-        cache.clearCache();
+        clearCache();
         fetchUsers(true);
       } else {
         const error = await response.json();
@@ -195,7 +195,7 @@ export default function AccountManagementPage() {
         toast.success('Cập nhật tài khoản thành công');
         setIsEditDialogOpen(false);
         setSelectedUser(null);
-        cache.clearCache();
+        clearCache();
         fetchUsers(true);
       } else {
         const error = await response.json();
@@ -216,7 +216,7 @@ export default function AccountManagementPage() {
       });
 
       if (response.ok) {
-        cache.clearCache();
+        clearCache();
         toast.success('Xóa tài khoản thành công');
         fetchUsers(true);
       } else{
@@ -309,11 +309,11 @@ export default function AccountManagementPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Button size="sm" onClick={() => setIsCreateDialogOpen(true)} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 sm:mr-2" />
