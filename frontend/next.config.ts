@@ -5,6 +5,18 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.vietqr.io',
+      },
+    ],
+  },
   // Thêm 2 dòng này để tắt ESLint và TypeScript errors khi build
   eslint: {
     ignoreDuringBuilds: true,
