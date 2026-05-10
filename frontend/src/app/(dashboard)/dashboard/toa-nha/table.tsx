@@ -182,7 +182,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
     id: "phongTrong",
     header: () => <div className="text-center">Phòng trống</div>,
     cell: ({ row }) => {
-      const phongTrong = (row.original as any).phongTrong || 0
+      const phongTrong = row.original.phongTrong || 0
       const total = row.original.tongSoPhong
       const percentage = total > 0 ? Math.round((phongTrong / total) * 100) : 0
       return (
@@ -197,7 +197,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
     id: "phongDangThue",
     header: () => <div className="text-center">Đang thuê</div>,
     cell: ({ row }) => {
-      const phongDangThue = (row.original as any).phongDangThue || 0
+      const phongDangThue = row.original.phongDangThue || 0
       const total = row.original.tongSoPhong
       const percentage = total > 0 ? Math.round((phongDangThue / total) * 100) : 0
       return (

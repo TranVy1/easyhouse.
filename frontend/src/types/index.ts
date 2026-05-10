@@ -44,6 +44,8 @@ export interface ToaNha {
   anhToaNha: string[];
   chuSoHuu: string; // ObjectId ref NguoiDung
   tongSoPhong: number;
+  phongTrong?: number;
+  phongDangThue?: number;
   tienNghiChung: string[];
   ngayTao: Date;
   ngayCapNhat: Date;

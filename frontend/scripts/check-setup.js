@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 /**
  * Script kiểm tra cấu hình setup cho dự án Quản lý Phòng Trọ

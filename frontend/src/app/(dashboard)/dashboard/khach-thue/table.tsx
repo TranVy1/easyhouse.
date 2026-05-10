@@ -250,7 +250,7 @@ const createColumns = (props: KhachThueTableProps): ColumnDef<KhachThue>[] => [
     accessorKey: "phongDangThue",
     header: "Phòng đang thuê",
     cell: ({ row }) => {
-      const khachThue = row.original as any;
+      const khachThue = row.original as KhachThue;
       const hopDong = khachThue.hopDongHienTai;
       
       if (!hopDong || !hopDong.phong) {
@@ -289,7 +289,7 @@ const createColumns = (props: KhachThueTableProps): ColumnDef<KhachThue>[] => [
     accessorKey: "matKhau",
     header: "Tài khoản",
     cell: ({ row }) => {
-      const khachThue = row.original as any;
+      const khachThue = row.original as KhachThue;
       const hasPassword = !!khachThue.matKhau;
       
       return (

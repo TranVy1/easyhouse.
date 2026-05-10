@@ -401,13 +401,13 @@ export default function ThemMoiHoaDonPage() {
                             .map((hopDong) => {
                               const phongObj = typeof hopDong.phong === 'object' ? (hopDong.phong as Phong) : null;
                               const phongName = phongObj?.maPhong || getPhongName(hopDong.phong as string, phongList);
-                              const toaNhaName = phongObj?.toaNha && typeof phongObj.toaNha === 'object' 
-                                ? (phongObj.toaNha as any).tenToaNha 
+                              const toaNhaName = phongObj?.toaNha && typeof phongObj.toaNha === 'object'
+                                ? ((phongObj.toaNha as { tenToaNha?: string }).tenToaNha ?? 'N/A')
                                 : 'N/A';
                               const nguoiDaiDienName = getKhachThueName(hopDong.nguoiDaiDien, khachThueList);
                               
                               // Xử lý ngày tháng an toàn
-                              const formatDate = (date: any) => {
+                              const formatDate = (date: string | Date | null | undefined) => {
                                 try {
                                   if (!date) return 'N/A';
                                   const dateObj = new Date(date);

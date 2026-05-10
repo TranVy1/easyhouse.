@@ -314,7 +314,7 @@ export default function XemWebPage() {
                   bảo vệ người dùng khỏi các cuộc tấn công clickjacking.
                 </p>
                 <p>
-                  <strong>Giải pháp:</strong> Nếu trang web bị chặn, sử dụng nút <strong>"Mở trong tab mới"</strong> để 
+                  <strong>Giải pháp:</strong> Nếu trang web bị chặn, sử dụng nút <strong>&quot;Mở trong tab mới&quot;</strong> để 
                   xem trang web trong cửa sổ riêng biệt.
                 </p>
                 <p>

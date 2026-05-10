@@ -7,6 +7,11 @@ import { Home, FileText, AlertCircle, User, LogOut, Menu, X } from 'lucide-react
 import Link from 'next/link';
 import { toast } from 'sonner';
 
+interface KhachThueLocalData {
+  hoTen: string;
+  soDienThoai: string;
+}
+
 export default function KhachThueDashboardLayout({
   children,
 }: {
@@ -14,7 +19,7 @@ export default function KhachThueDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [khachThue, setKhachThue] = useState<any>(null);
+  const [khachThue, setKhachThue] = useState<KhachThueLocalData | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -27,7 +32,7 @@ export default function KhachThueDashboardLayout({
       return;
     }
     
-    setKhachThue(JSON.parse(khachThueData));
+    setKhachThue(JSON.parse(khachThueData) as KhachThueLocalData);
   }, [router]);
 
   const handleLogout = () => {

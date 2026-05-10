@@ -53,6 +53,12 @@ import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
+type PhongTenant = {
+  _id: string;
+  hoTen: string;
+  soDienThoai: string;
+};
+
 export default function PhongPage() {
   const cache = useCache<{
     phongList: Phong[];
@@ -71,7 +77,7 @@ export default function PhongPage() {
   const [viewingImages, setViewingImages] = useState<string[]>([]);
   const [viewingPhongName, setViewingPhongName] = useState('');
   const [isTenantsViewerOpen, setIsTenantsViewerOpen] = useState(false);
-  const [viewingTenants, setViewingTenants] = useState<any[]>([]);
+  const [viewingTenants, setViewingTenants] = useState<PhongTenant[]>([]);
   const [viewingTenantsPhongName, setViewingTenantsPhongName] = useState('');
 
   useEffect(() => {
@@ -212,8 +218,7 @@ export default function PhongPage() {
   };
 
   const handleViewTenants = (phong: Phong) => {
-    const phongData = phong as any;
-    const hopDong = phongData.hopDongHienTai;
+    const hopDong = phong.hopDongHienTai;
     
     if (hopDong && hopDong.khachThueId && hopDong.khachThueId.length > 0) {
       setViewingTenants(hopDong.khachThueId);
@@ -477,8 +482,7 @@ export default function PhongPage() {
 
                     {/* Thông tin người thuê */}
                     {(() => {
-                      const phongData = phong as any;
-                      const hopDong = phongData.hopDongHienTai;
+                      const hopDong = phong.hopDongHienTai;
                       
                       if (hopDong && hopDong.khachThueId && hopDong.khachThueId.length > 0) {
                         const nguoiDaiDien = hopDong.nguoiDaiDien;

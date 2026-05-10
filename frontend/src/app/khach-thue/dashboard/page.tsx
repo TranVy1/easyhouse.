@@ -6,8 +6,50 @@ import { Badge } from '@/components/ui/badge';
 import { Home, FileText, AlertCircle, MapPin, Calendar, DollarSign, Phone, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface TenantProfile {
+  hoTen: string;
+  trangThai: 'dangThue' | 'daTraPhong' | 'chuaThue';
+}
+
+interface TenantBuilding {
+  tenToaNha: string;
+  diaChi?: {
+    duong?: string;
+    phuong?: string;
+  };
+}
+
+interface TenantRoom {
+  maPhong: string;
+  giaThue: number;
+  toaNha: TenantBuilding;
+}
+
+interface TenantContract {
+  maHopDong: string;
+  ngayBatDau: string;
+  ngayKetThuc: string;
+  tienCoc: number;
+  phong: TenantRoom;
+}
+
+interface TenantInvoice {
+  maHoaDon: string;
+  thang: number;
+  nam: number;
+  tongTien: number;
+  trangThai: 'daThanhToan' | 'chuaThanhToan' | 'quaHan' | 'daThanhToanMotPhan';
+}
+
+interface TenantDashboardData {
+  khachThue: TenantProfile;
+  hopDongHienTai?: TenantContract;
+  soHoaDonChuaThanhToan: number;
+  hoaDonGanNhat?: TenantInvoice;
+}
+
 export default function KhachThueDashboardPage() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<TenantDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +69,7 @@ export default function KhachThueDashboardPage() {
 
       const result = await response.json();
       if (result.success) {
-        setDashboardData(result.data);
+        setDashboardData(result.data as TenantDashboardData);
       } else {
         toast.error('Không thể tải thông tin');
       }

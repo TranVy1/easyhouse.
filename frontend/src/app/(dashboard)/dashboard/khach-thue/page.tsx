@@ -406,15 +406,15 @@ export default function KhachThuePage() {
                 </div>
 
                 {/* Room info if available */}
-                {(khachThue as any).hopDongHienTai?.phong && (
+                {khachThue.hopDongHienTai?.phong && (
                   <div className="border-t pt-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Users className="h-3 w-3 text-green-600" />
-                      <span className="font-medium">Phòng: {(khachThue as any).hopDongHienTai.phong.maPhong}</span>
+                      <span className="font-medium">Phòng: {khachThue.hopDongHienTai.phong.maPhong}</span>
                     </div>
-                    {(khachThue as any).hopDongHienTai.phong.toaNha && (
+                    {khachThue.hopDongHienTai.phong.toaNha && (
                       <div className="flex items-center gap-2 text-xs text-gray-500 ml-5">
-                        <span>{(khachThue as any).hopDongHienTai.phong.toaNha.tenToaNha}</span>
+                        <span>{khachThue.hopDongHienTai.phong.toaNha.tenToaNha}</span>
                       </div>
                     )}
                   </div>
@@ -513,10 +513,12 @@ function KhachThueForm({
       const method = khachThue ? 'PUT' : 'POST';
 
       // Chỉ gửi matKhau khi nó được nhập
-      const submitData = { ...formData };
-      if (!submitData.matKhau || submitData.matKhau.trim() === '') {
-        delete (submitData as any).matKhau;
-      }
+      const submitData = formData.matKhau.trim()
+        ? { ...formData }
+        : {
+            ...formData,
+            matKhau: undefined,
+          };
 
       const response = await fetch(url, {
         method,

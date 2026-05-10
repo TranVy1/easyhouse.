@@ -266,7 +266,7 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
     accessorKey: "nguoiThue",
     header: "Người thuê",
     cell: ({ row }) => {
-      const phong = row.original as any;
+      const phong = row.original as Phong;
       const hopDong = phong.hopDongHienTai;
       
       if (!hopDong || !hopDong.khachThueId || hopDong.khachThueId.length === 0) {
