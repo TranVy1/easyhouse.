@@ -77,4 +77,21 @@ public class UploadController {
             return ApiResponse.error("Lỗi xóa file: " + e.getMessage());
         }
     }
+
+    @DeleteMapping
+    public ApiResponse<String> deleteFileByQuery(@RequestParam("publicId") String publicId) {
+        try {
+            log.info("Received delete request by query for file: {}", publicId);
+
+            String result = cloudinaryService.deleteFile(publicId);
+
+            log.info("File deleted successfully by query: {}", publicId);
+
+            return ApiResponse.success(result, "Xóa file thành công");
+
+        } catch (Exception e) {
+            log.error("Error deleting file by query", e);
+            return ApiResponse.error("Lỗi xóa file: " + e.getMessage());
+        }
+    }
 }

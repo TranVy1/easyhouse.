@@ -250,6 +250,11 @@ private ZonedDateTime capNhatLuc;
 - FIXED: Bỏ @Valid tại endpoint PUT /api/phong/{id} để cho phép cập nhật từng phần theo đúng logic service
 - VERIFIED: PUT /api/phong/{id} với payload partial đã trả về success=true
 
+### Kết quả kiểm thử Upload
+- BUG FOUND: DELETE /api/upload/{publicId} lỗi 400 khi public_id chứa ký tự `/` (encoded slash bị Tomcat từ chối)
+- FIXED: Bổ sung endpoint DELETE /api/upload?publicId=... để xóa file an toàn với public_id có thư mục
+- VERIFIED: Upload ảnh thành công và xóa lại thành công với response data=ok
+
 ---
 
 ## 📊 PHASE 4 COMPLETION STATUS
