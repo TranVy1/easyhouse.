@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +52,7 @@ export default function LoginPage() {
         // Redirect tất cả user về dashboard
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch {
       setError('Đã xảy ra lỗi, vui lòng thử lại');
     } finally {
       setIsLoading(false);
@@ -144,9 +144,26 @@ export default function LoginPage() {
                   'Đăng nhập'
                 )}
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => router.push('/dang-ky')}
+              >
+                Tạo tài khoản mới
+              </Button>
             </form>
 
-           
+            <div className="mt-4 text-center">
+              <p className="text-xs md:text-sm text-gray-600">
+                Chưa có tài khoản?{' '}
+                <Link href="/dang-ky" className="font-medium text-blue-600 hover:text-blue-500">
+                  Đăng ký ngay
+                </Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

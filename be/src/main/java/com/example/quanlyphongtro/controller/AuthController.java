@@ -7,10 +7,12 @@ import com.example.quanlyphongtro.dto.RegisterRequest;
 import com.example.quanlyphongtro.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,7 +35,17 @@ public class AuthController {
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
             AuthResponse response = authService.register(request);
-            return ApiResponse.success(response, "Đăng ký thành công");
+            return ApiResponse.success(response, "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/verify-email")
+    public ApiResponse<String> verifyEmail(@RequestParam("token") String token) {
+        try {
+            String message = authService.verifyEmail(token);
+            return ApiResponse.success(message, message);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

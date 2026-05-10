@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, MailCheck, Sparkles } from 'lucide-react';
 
 const registerSchema = z.object({
   ten: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
@@ -42,13 +42,10 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
-
-  const vaiTro = watch('vaiTro');
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
@@ -73,14 +70,14 @@ export default function RegisterPage() {
       const result = await response.json();
 
       if (result.success) {
-        setSuccess('Đăng ký thành công! Vui lòng đăng nhập.');
+        setSuccess('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.');
         setTimeout(() => {
           router.push('/dang-nhap');
-        }, 2000);
+        }, 2500);
       } else {
         setError(result.message || 'Đã xảy ra lỗi, vui lòng thử lại');
       }
-    } catch (error) {
+    } catch {
       setError('Đã xảy ra lỗi, vui lòng thử lại');
     } finally {
       setIsLoading(false);
@@ -88,18 +85,26 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 md:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 md:space-y-8">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(14,165,233,0.2),transparent_42%),radial-gradient(circle_at_85%_20%,rgba(34,197,94,0.22),transparent_44%),radial-gradient(circle_at_55%_80%,rgba(250,204,21,0.14),transparent_38%)]" />
+      <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
+
+      <div className="relative z-10 mx-auto max-w-md w-full space-y-6 md:space-y-8">
         <div className="text-center">
-          <h2 className="mt-4 md:mt-6 text-2xl md:text-3xl font-bold text-gray-900">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+            <Sparkles className="h-3 w-3" />
+            Tài khoản mới
+          </div>
+          <h2 className="mt-2 text-2xl md:text-3xl font-bold text-white">
             Đăng ký tài khoản
           </h2>
-          <p className="mt-2 text-xs md:text-sm text-gray-600">
+          <p className="mt-2 text-xs md:text-sm text-slate-200">
             Quản lý phòng trọ
           </p>
         </div>
         
-        <Card>
+        <Card className="border-white/20 bg-white/95 shadow-2xl backdrop-blur-sm">
           <CardHeader className="p-4 md:p-6">
             <CardTitle className="text-lg md:text-xl">Đăng ký</CardTitle>
             <CardDescription className="text-xs md:text-sm">
@@ -115,7 +120,8 @@ export default function RegisterPage() {
               )}
 
               {success && (
-                <Alert>
+                <Alert className="border-green-300 bg-green-50 text-green-700">
+                  <MailCheck className="h-4 w-4" />
                   <AlertDescription>{success}</AlertDescription>
                 </Alert>
               )}
