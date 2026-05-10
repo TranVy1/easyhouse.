@@ -1,4 +1,3 @@
-import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { NextAuthOptions } from 'next-auth';
 
@@ -62,7 +61,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.phone = user.phone;
         token.avatar = user.avatar;
-        token.accessToken = (user as any).accessToken;
+        token.accessToken = user.accessToken;
       }
       return token;
     },
@@ -72,7 +71,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.phone = token.phone as string;
         session.user.avatar = token.avatar as string;
-        (session as any).accessToken = token.accessToken;
+        session.accessToken = token.accessToken;
       }
       return session;
     }

@@ -166,7 +166,7 @@ export function PhongImageUpload({
               Chưa có ảnh phòng nào
             </p>
             <p className="text-xs text-gray-400 text-center mt-1">
-              Click "Thêm ảnh" để upload ảnh minh họa phòng
+              Click &quot;Thêm ảnh&quot; để upload ảnh minh họa phòng
             </p>
           </CardContent>
         </Card>

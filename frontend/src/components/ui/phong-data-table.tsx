@@ -46,6 +46,14 @@ interface PhongDataTableProps {
   onDelete: (id: string) => void
 }
 
+type PopulatedToaNha = { tenToaNha?: string }
+type PopulatedKhachThue = { _id?: string; hoTen?: string }
+type PopulatedHopDong = {
+  khachThueId?: PopulatedKhachThue[]
+  nguoiDaiDien?: { _id?: string }
+}
+type PhongWithHopDong = Phong & { hopDongHienTai?: PopulatedHopDong }
+
 export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -83,7 +91,7 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
       accessorKey: "toaNha",
       header: "Tòa nhà",
       cell: ({ row }) => {
-        const toaNha = row.getValue("toaNha") as any;
+        const toaNha = row.getValue("toaNha") as string | PopulatedToaNha;
         return <div>{typeof toaNha === 'object' ? toaNha.tenToaNha : 'N/A'}</div>;
       },
     },
@@ -130,8 +138,8 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
       accessorKey: "khachThue",
       header: "Khách thuê hiện tại",
       cell: ({ row }) => {
-        const phong = row.original;
-        const hopDong = (phong as any).hopDongHienTai;
+        const phong = row.original as PhongWithHopDong;
+        const hopDong = phong.hopDongHienTai;
         
         if (!hopDong || !hopDong.khachThueId || hopDong.khachThueId.length === 0) {
           return <div className="text-gray-400">Trống</div>;
@@ -139,8 +147,8 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
         
         return (
           <div className="space-y-1">
-            {hopDong.khachThueId.map((khach: any, index: number) => (
-              <div key={khach._id} className="text-sm">
+            {hopDong.khachThueId.map((khach) => (
+              <div key={khach._id ?? khach.hoTen ?? 'khach'} className="text-sm">
                 <span className="font-medium">{khach.hoTen}</span>
                 {hopDong.nguoiDaiDien && hopDong.nguoiDaiDien._id === khach._id && (
                   <span className="text-xs text-blue-600 ml-1">(Đại diện)</span>

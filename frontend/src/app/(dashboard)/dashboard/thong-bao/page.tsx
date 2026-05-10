@@ -703,7 +703,7 @@ function ThongBaoForm({
 
       <div className="space-y-2">
         <Label htmlFor="loai" className="text-xs md:text-sm">Loại thông báo</Label>
-        <Select value={formData.loai} onValueChange={(value) => setFormData(prev => ({ ...prev, loai: value as any }))}>
+        <Select value={formData.loai} onValueChange={(value) => setFormData(prev => ({ ...prev, loai: value as ThongBao['loai'] }))}>
           <SelectTrigger className="text-sm">
             <SelectValue placeholder="Chọn loại thông báo" />
           </SelectTrigger>

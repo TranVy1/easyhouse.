@@ -166,7 +166,7 @@ export function SuCoImageUpload({
               Chưa có ảnh sự cố nào
             </p>
             <p className="text-xs text-gray-400 text-center mt-1">
-              Click "Thêm ảnh" để upload ảnh minh họa sự cố
+              Click &quot;Thêm ảnh&quot; để upload ảnh minh họa sự cố
             </p>
           </CardContent>
         </Card>
