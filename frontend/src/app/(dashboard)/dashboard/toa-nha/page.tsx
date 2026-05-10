@@ -50,7 +50,7 @@ import { toast } from 'sonner';
 import { ToaNhaDataTable } from './table';
 
 export default function ToaNhaPage() {
-  const { getCache, setCache, clearCache, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -166,11 +166,11 @@ export default function ToaNhaPage() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={cache.isRefreshing}
+            disabled={isRefreshing}
             className="flex-1 sm:flex-none"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${cache.isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline ml-2">{cache.isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline ml-2">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -194,7 +194,7 @@ export default function ToaNhaPage() {
               toaNha={editingToaNha}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={() => {
-                cache.clearCache();
+                clearCache();
                 setIsDialogOpen(false);
                 fetchToaNha(true);
                 toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
