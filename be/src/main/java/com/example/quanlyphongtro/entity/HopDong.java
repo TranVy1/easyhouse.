@@ -26,17 +26,19 @@ public class HopDong {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "ma_hop_dong", nullable = false, unique = true, length = 100)
+    @Column(name = "ma_hop_dong", unique = true, length = 100)
     private String maHopDong;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phong_id", nullable = false)
+    @JoinColumn(name = "phong_id")
     private Phong phong;
 
+    // Người đại diện ký hợp đồng (FK chính)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nguoi_dai_dien_id", nullable = false)
+    @JoinColumn(name = "khach_thue_id")
     private KhachThue nguoiDaiDien;
 
+    // Danh sách tất cả khách thuê (JSON array of UUIDs)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "khach_thue_ids", columnDefinition = "jsonb")
     private List<UUID> khachThueIds;
@@ -47,10 +49,10 @@ public class HopDong {
     @Column(name = "ngay_ket_thuc")
     private LocalDate ngayKetThuc;
 
-    @Column(name = "gia_thue", nullable = false, precision = 15, scale = 2)
+    @Column(name = "gia_thue_hop_dong", precision = 15, scale = 2)
     private BigDecimal giaThue;
 
-    @Column(name = "tien_coc", nullable = false, precision = 15, scale = 2)
+    @Column(name = "tien_coc", precision = 15, scale = 2)
     private BigDecimal tienCoc;
 
     @Column(name = "chu_ky_thanh_toan", length = 50)
@@ -59,6 +61,7 @@ public class HopDong {
     @Column(name = "ngay_thanh_toan")
     private Integer ngayThanhToan;
 
+    // Điều khoản hợp đồng (mapping noi_dung_hop_dong hoặc dieu_khoan)
     @Column(name = "dieu_khoan", columnDefinition = "TEXT")
     private String dieuKhoan;
 
@@ -76,12 +79,13 @@ public class HopDong {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "phi_dich_vu", columnDefinition = "jsonb")
-    private String phiDichVu; // JSON Array of PhiDichVu
+    private String phiDichVu;
 
-    @Column(name = "trang_thai", length = 50)
-    private String trangThai; // hoatDong, hetHan, daHuy
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trang_thai")
+    private TrangThaiHopDong trangThai;
 
-    @Column(name = "file_hop_dong", length = 255)
+    @Column(name = "file_hop_dong")
     private String fileHopDong;
 
     @CreationTimestamp

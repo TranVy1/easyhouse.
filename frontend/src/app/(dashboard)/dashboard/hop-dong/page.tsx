@@ -814,7 +814,24 @@ export default function HopDongPage() {
   };
 
   const handleGiaHan = async (hopDong: HopDong) => {
-    const newEndDate = prompt('Nhập ngày kết thúc mới (YYYY-MM-DD):');
+    const ensureISODate = (dateStr: string) => {
+      if (!dateStr) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+      } catch (e) {}
+      return dateStr;
+    };
+
+    const newEndDate = prompt('Nhập ngày kết thúc mới (YYYY-MM-DD hoặc DD/MM/YYYY):');
     if (newEndDate) {
       setActionLoading(`giahan-${hopDong._id}`);
       try {
@@ -824,7 +841,7 @@ export default function HopDongPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            ngayKetThuc: newEndDate,
+            ngayKetThuc: ensureISODate(newEndDate),
           }),
         });
         
