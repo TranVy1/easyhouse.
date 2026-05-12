@@ -41,7 +41,10 @@ import {
   Search,
   User,
   Users,
+  Copy,
+  ExternalLink,
 } from "lucide-react"
+import { toast } from "sonner"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -315,17 +318,30 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
     },
   },
   {
+    accessorKey: "soNguoiToiDa",
+    header: () => <div className="text-center">Người ở tối đa</div>,
+    cell: ({ row }) => (
+      <div className="text-center">
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          {row.original.soNguoiToiDa || 0}
+        </Badge>
+      </div>
+    ),
+  },
+  {
     accessorKey: "anhPhong",
     header: "Ảnh",
     cell: ({ row }) => {
       const imageCount = row.original.anhPhong?.length || 0
+      const maPhong = row.original.maPhong
       return (
-        <div>
+        <div className="flex items-center gap-2">
           {imageCount > 0 ? (
             <Button
               variant="outline"
               size="sm"
               onClick={() => props.onViewImages?.(row.original)}
+              className="h-8"
             >
               <ImageIcon className="h-4 w-4 mr-1" />
               {imageCount}
@@ -333,6 +349,31 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
           ) : (
             <span className="text-muted-foreground text-sm">-</span>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            title="Sao chép link xem phòng"
+            onClick={() => {
+              const publicUrl = `${window.location.origin}/xem-phong?phong=${maPhong}`;
+              navigator.clipboard.writeText(publicUrl);
+              toast.success(`Đã sao chép link xem phòng ${maPhong}`);
+            }}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+            title="Mở trang xem phòng công khai"
+            onClick={() => {
+              const publicUrl = `${window.location.origin}/xem-phong?phong=${maPhong}`;
+              window.open(publicUrl, '_blank');
+            }}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
         </div>
       )
     },
@@ -364,6 +405,27 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
               Xem ảnh ({row.original.anhPhong.length})
             </DropdownMenuItem>
           )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              const publicUrl = `${window.location.origin}/xem-phong?phong=${row.original.maPhong}`;
+              window.open(publicUrl, '_blank');
+            }}
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Xem trang công khai
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              const publicUrl = `${window.location.origin}/xem-phong?phong=${row.original.maPhong}`;
+              navigator.clipboard.writeText(publicUrl);
+              toast.success(`Đã sao chép link xem phòng ${row.original.maPhong}`);
+            }}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Sao chép link chia sẻ
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => props.onEdit(row.original)}>
             <Edit className="mr-2 h-4 w-4" />
             Chỉnh sửa
@@ -563,7 +625,17 @@ export function PhongDataTable(props: PhongDataTableProps) {
                         column.toggleVisibility(!!value)
                       }
                     >
-                      {column.id}
+                      {column.id === "maPhong" ? "Mã phòng" :
+                       column.id === "toaNha" ? "Tòa nhà" :
+                       column.id === "tang" ? "Tầng" :
+                       column.id === "dienTich" ? "Diện tích" :
+                       column.id === "giaThue" ? "Giá thuê" :
+                       column.id === "tienCoc" ? "Tiền cọc" :
+                       column.id === "trangThai" ? "Trạng thái" :
+                       column.id === "nguoiThue" ? "Người thuê" :
+                       column.id === "soNguoiToiDa" ? "Số người tối đa" :
+                       column.id === "anhPhong" ? "Ảnh" :
+                       column.id}
                     </DropdownMenuCheckboxItem>
                   )
                 })}

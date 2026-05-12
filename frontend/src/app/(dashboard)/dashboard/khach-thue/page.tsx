@@ -487,8 +487,8 @@ function KhachThueForm({
     gioiTinh: khachThue?.gioiTinh || 'nam',
     queQuan: khachThue?.queQuan || '',
     anhCCCD: {
-      matTruoc: khachThue?.anhCCCD.matTruoc || '',
-      matSau: khachThue?.anhCCCD.matSau || '',
+      matTruoc: khachThue?.anhCCCD?.matTruoc || '',
+      matSau: khachThue?.anhCCCD?.matSau || '',
     },
     ngheNghiep: khachThue?.ngheNghiep || '',
     matKhau: '',
