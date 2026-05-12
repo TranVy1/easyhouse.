@@ -3,6 +3,9 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.PhongResponse;
 import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.TrangThaiHopDong;
+import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.services.PhongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +27,7 @@ import java.util.UUID;
 public class PhongController {
 
     private final PhongService phongService;
+    private final HopDongRepository hopDongRepository;
 
     @GetMapping
     public ApiResponse<List<PhongResponse>> getAll(
@@ -32,7 +36,11 @@ public class PhongController {
         
         List<Phong> list = phongService.getAllPhong(toaNha, trangThai);
         List<PhongResponse> respList = list.stream()
-            .map(PhongResponse::fromEntity)
+            .map(phong -> {
+                HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
+                        phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
+                return PhongResponse.fromEntity(phong, activeContract);
+            })
             .collect(Collectors.toList());
         
         return ApiResponse.success(respList);
@@ -42,7 +50,9 @@ public class PhongController {
     public ApiResponse<PhongResponse> getById(@PathVariable UUID id) {
         try {
             Phong phong = phongService.getPhongById(id);
-            return ApiResponse.success(PhongResponse.fromEntity(phong));
+            HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
+                    phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
+            return ApiResponse.success(PhongResponse.fromEntity(phong, activeContract));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

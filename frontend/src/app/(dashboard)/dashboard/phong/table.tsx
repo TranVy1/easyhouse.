@@ -266,53 +266,17 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
     cell: ({ row }) => getStatusBadge(row.original.trangThai),
   },
   {
-    accessorKey: "nguoiThue",
-    header: "Người thuê",
+    id: "khachThueHienTai",
+    header: "Khách thuê hiện tại",
     cell: ({ row }) => {
-      const phong = row.original as Phong;
-      const hopDong = phong.hopDongHienTai;
-      
-      if (!hopDong || !hopDong.khachThueId || hopDong.khachThueId.length === 0) {
-        return (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span className="text-sm">Chưa cho thuê</span>
-          </div>
-        );
+      const nguoiDaiDien = row.original.hopDongHienTai?.nguoiDaiDien;
+      if (!nguoiDaiDien) {
+        return <span className="text-muted-foreground text-sm">-</span>;
       }
-      
-      const nguoiDaiDien = hopDong.nguoiDaiDien;
-      const soLuongKhachThue = hopDong.khachThueId.length;
-      
       return (
-        <div className="min-w-40">
-          <div className="flex items-center gap-2 mb-1">
-            {soLuongKhachThue > 1 ? (
-              <Users className="h-4 w-4 text-blue-600" />
-            ) : (
-              <User className="h-4 w-4 text-blue-600" />
-            )}
-            <div>
-              <div className="text-sm font-medium">
-                {nguoiDaiDien?.hoTen || 'N/A'}
-              </div>
-              {nguoiDaiDien?.soDienThoai && (
-                <div className="text-xs text-muted-foreground">
-                  {nguoiDaiDien.soDienThoai}
-                </div>
-              )}
-            </div>
-          </div>
-          {soLuongKhachThue > 1 && (
-            <Button
-              variant="link"
-              size="sm"
-              className="text-xs text-blue-600 hover:text-blue-700 h-auto p-0 pl-6"
-              onClick={() => props.onViewTenants?.(row.original)}
-            >
-              +{soLuongKhachThue - 1} người ở cùng
-            </Button>
-          )}
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-medium">{nguoiDaiDien.hoTen}</span>
         </div>
       );
     },
@@ -632,7 +596,7 @@ export function PhongDataTable(props: PhongDataTableProps) {
                        column.id === "giaThue" ? "Giá thuê" :
                        column.id === "tienCoc" ? "Tiền cọc" :
                        column.id === "trangThai" ? "Trạng thái" :
-                       column.id === "nguoiThue" ? "Người thuê" :
+                       column.id === "khachThueHienTai" ? "Khách thuê hiện tại" :
                        column.id === "soNguoiToiDa" ? "Số người tối đa" :
                        column.id === "anhPhong" ? "Ảnh" :
                        column.id}

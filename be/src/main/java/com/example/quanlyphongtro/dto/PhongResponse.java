@@ -1,6 +1,7 @@
 package com.example.quanlyphongtro.dto;
 
 import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.HopDong;
 import lombok.Builder;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,7 +44,13 @@ public class PhongResponse {
     @JsonProperty("ngayCapNhat")
     private LocalDateTime capNhatLuc;
 
+    private HopDongResponse hopDongHienTai;
+
     public static PhongResponse fromEntity(Phong phong) {
+        return fromEntity(phong, null);
+    }
+
+    public static PhongResponse fromEntity(Phong phong, HopDong activeContract) {
         if (phong == null) return null;
         
         NhaTroResponse nhaTroResp = null;
@@ -93,6 +100,7 @@ public class PhongResponse {
             .tienNghi(phong.getTienNghi())
             .taoLuc(taoLucLocal)
             .capNhatLuc(capNhatLucLocal)
+            .hopDongHienTai(activeContract != null ? HopDongResponse.fromEntity(activeContract, null) : null)
             .build();
     }
 }

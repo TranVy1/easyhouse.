@@ -142,8 +142,8 @@ export default function ThemMoiHopDongPage() {
       setFormData(prev => ({
         ...prev,
         phong: phongId,
-        giaThue: selectedPhong.giaThue,
-        tienCoc: selectedPhong.tienCoc,
+        giaThue: selectedPhong.giaThue || 0,
+        tienCoc: selectedPhong.tienCoc || 0,
       }));
     }
     setOpenPhong(false);
@@ -199,6 +199,31 @@ export default function ThemMoiHopDongPage() {
     
     setSubmitting(true);
     
+    const ensureISODate = (dateStr: string) => {
+      if (!dateStr) return '';
+      // Nếu đã đúng định dạng YYYY-MM-DD thì giữ nguyên
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+      
+      // Nếu là định dạng DD/MM/YYYY
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Fallback: Thử parse qua Date object
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString().split('T')[0];
+        }
+      } catch (e) {}
+      
+      return dateStr;
+    };
+
     try {
       const response = await fetch('/api/hop-dong', {
         method: 'POST',
@@ -207,8 +232,8 @@ export default function ThemMoiHopDongPage() {
         },
         body: JSON.stringify({
           ...formData,
-          ngayBatDau: new Date(formData.ngayBatDau).toISOString(),
-          ngayKetThuc: new Date(formData.ngayKetThuc).toISOString(),
+          ngayBatDau: ensureISODate(formData.ngayBatDau),
+          ngayKetThuc: ensureISODate(formData.ngayKetThuc),
         }),
       });
 

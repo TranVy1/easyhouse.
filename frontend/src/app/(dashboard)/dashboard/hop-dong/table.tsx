@@ -20,7 +20,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import {
+import { 
+  ArrowLeft,
+  Save,
+  Loader2,
+  X,
+  Plus,
+  Check,
+  ChevronsUpDown,
   Edit,
   Trash2,
   Download,
@@ -38,9 +45,9 @@ import {
   ChevronsRight,
   CircleCheck,
   Loader,
-  Plus,
   Search,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -273,28 +280,37 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
     cell: ({ row }) => getStatusBadge(row.original.trangThai),
   },
   {
-    accessorKey: "ngayBatDau",
-    header: "Ngày bắt đầu",
+    id: "thoiHan",
+    header: "Thời hạn",
     cell: ({ row }) => (
-      <div className="text-sm">
-        {new Date(row.original.ngayBatDau).toLocaleDateString('vi-VN')}
+      <div className="min-w-32 text-sm">
+        {new Date(row.original.ngayBatDau).toLocaleDateString('vi-VN')} - {new Date(row.original.ngayKetThuc).toLocaleDateString('vi-VN')}
       </div>
     ),
   },
   {
-    accessorKey: "ngayKetThuc",
-    header: "Ngày kết thúc",
+    id: "canhBao",
+    header: "Cảnh báo",
     cell: ({ row }) => {
       const isExpiring = isExpiringSoon(row.original.ngayKetThuc)
+      const status = row.original.trangThai
+
+      if (status === 'daHuy') return <Badge variant="secondary">Đã hủy</Badge>
+      if (status === 'hetHan') return <Badge variant="destructive">Đã hết hạn</Badge>
+      
+      if (isExpiring) {
+        return (
+          <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 gap-1">
+            <Calendar className="h-3 w-3" />
+            Sắp hết hạn
+          </Badge>
+        )
+      }
+
       return (
-        <div className="text-sm">
-          <div className={isExpiring ? 'text-orange-600 font-medium' : ''}>
-            {new Date(row.original.ngayKetThuc).toLocaleDateString('vi-VN')}
-          </div>
-          {isExpiring && (
-            <div className="text-xs text-orange-600">Sắp hết hạn</div>
-          )}
-        </div>
+        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">
+          Bình thường
+        </Badge>
       )
     },
   },
