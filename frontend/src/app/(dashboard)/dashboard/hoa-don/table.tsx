@@ -278,17 +278,48 @@ const createColumns = (props: HoaDonTableProps): ColumnDef<HoaDon>[] => [
     header: "Trạng thái",
     cell: ({ row }) => getStatusBadge(row.original.trangThai),
   },
+ {
+  accessorKey: "chiSoDienNuoc",
+  header: "Chỉ số (Điện/Nước)",
+  cell: ({ row }) => (
+    <div className="text-sm">
+      <div className="flex items-center gap-1">
+        <span className="text-muted-foreground" style={{ fontSize: "14px", color:"black"}}>⚡Điện:</span>
+        <span>{row.original.chiSoDienCuoiKy || 0}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="text-muted-foreground" style={{ fontSize: "14px", color:"black" }}>💧Nước:</span>
+        <span>{row.original.chiSoNuocCuoiKy || 0}</span>
+      </div>
+    </div>
+  ),
+},
+  {
+    accessorKey: "daThanhToan",
+    header: () => <div className="text-right">Đã trả</div>,
+    cell: ({ row }) => (
+      <div className="text-right text-green-600 font-medium">
+        {formatCurrency(row.original.daThanhToan)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "conLai",
+    header: () => <div className="text-right">Còn lại</div>,
+    cell: ({ row }) => (
+      <div className="text-right">
+        <div className={row.original.conLai > 0 ? "text-red-600 font-bold" : "text-green-600"}>
+          {formatCurrency(row.original.conLai)}
+        </div>
+      </div>
+    ),
+  },
   {
     accessorKey: "tongTien",
     header: () => <div className="text-right">Tổng tiền</div>,
     cell: ({ row }) => (
       <div className="text-right">
-        <div className="font-medium">{formatCurrency(row.original.tongTien)}</div>
-        {row.original.conLai > 0 && (
-          <div className="text-xs text-orange-600">
-            Còn {formatCurrency(row.original.conLai)}
-          </div>
-        )}
+        <div className="font-semibold">{formatCurrency(row.original.tongTien)}</div>
       </div>
     ),
   },

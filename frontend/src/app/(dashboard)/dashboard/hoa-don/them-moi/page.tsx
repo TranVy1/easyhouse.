@@ -149,6 +149,16 @@ export default function ThemMoiHoaDonPage() {
     }
   }, []);
 
+  // Helper: trích xuất UUID string từ object hoặc string
+  const extractId = (value: unknown): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && value !== null && '_id' in value) {
+      return (value as { _id: string })._id;
+    }
+    return '';
+  };
+
   // Auto-fill form data when contract is selected
   useEffect(() => {
     if (formData.hopDong) {
@@ -156,10 +166,14 @@ export default function ThemMoiHoaDonPage() {
       if (selectedHopDong) {
         console.log('Auto-filling form data from contract:', selectedHopDong);
         
+        // Trích xuất UUID string từ object (phong có thể là {_id, maPhong, ...})
+        const phongId = extractId(selectedHopDong.phong);
+        const khachThueId = extractId(selectedHopDong.nguoiDaiDien);
+        
         setFormData(prev => ({
           ...prev,
-          phong: selectedHopDong.phong as string,
-          khachThue: selectedHopDong.nguoiDaiDien as string,
+          phong: phongId,
+          khachThue: khachThueId,
           tienPhong: selectedHopDong.giaThue,
           phiDichVu: selectedHopDong.phiDichVu || [],
           chiSoDienBanDau: 0,
@@ -246,9 +260,12 @@ export default function ThemMoiHoaDonPage() {
     setSubmitting(true);
     
     try {
-      // Chuẩn bị dữ liệu gửi, loại bỏ maHoaDon nếu trống để backend tự sinh
+      // Đảm bảo các trường ID luôn là UUID string, không phải object
       const requestData = {
         ...formData,
+        hopDong: extractId(formData.hopDong) || formData.hopDong,
+        phong: extractId(formData.phong) || formData.phong,
+        khachThue: extractId(formData.khachThue) || formData.khachThue,
         // Nếu maHoaDon trống, không gửi để backend tự sinh
         ...(formData.maHoaDon.trim() ? {} : { maHoaDon: undefined }),
       };

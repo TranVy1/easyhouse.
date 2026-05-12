@@ -451,11 +451,11 @@ export default function PublicInvoicePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* QR Code */}
+          
                     <div className="flex justify-center">
                         <div className="relative h-[280px] w-full max-w-[280px] overflow-hidden rounded-lg border-2 border-gray-200">
                           <Image
-                            src={`https://img.vietqr.io/image/970422-7320012003-compact2.png?amount=${hoaDon.conLai}&addInfo=Thanh%20toan%20${hoaDon.maHoaDon}&accountName=CHU%20TRO`}
+                            src={`https://img.vietqr.io/image/970407-19040069770013-compact2.png?amount=${hoaDon.conLai}&addInfo=Thanh%20toan%20${hoaDon.maHoaDon}&accountName=Do%20Chi%20Cong`}
                             alt={`Mã QR thanh toán hóa đơn ${hoaDon.maHoaDon}`}
                             fill
                             sizes="280px"
@@ -464,19 +464,18 @@ export default function PublicInvoicePage() {
                         </div>
                     </div>
                     
-                    {/* Thông tin chuyển khoản */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                       <div className="text-sm">
                         <div className="text-gray-600">Ngân hàng</div>
-                        <div className="font-semibold">MB Bank (Quân đội)</div>
+                        <div className="font-semibold">Techcombank - Ngân hàng Kỹ Thương Việt Nam</div>
                       </div>
                       <div className="text-sm">
                         <div className="text-gray-600">Số tài khoản</div>
-                        <div className="font-semibold font-mono">7320012003</div>
+                        <div className="font-semibold font-mono">19040069770013</div>
                       </div>
                       <div className="text-sm">
                         <div className="text-gray-600">Chủ tài khoản</div>
-                        <div className="font-semibold">CHU TRO</div>
+                        <div className="font-semibold">Do Chi Cong</div>
                       </div>
                       <div className="text-sm">
                         <div className="text-gray-600">Số tiền</div>
@@ -500,7 +499,6 @@ export default function PublicInvoicePage() {
               </Card>
             )}
 
-            {/* Lịch sử thanh toán */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -557,7 +555,6 @@ export default function PublicInvoicePage() {
           </div>
         </div>
 
-        {/* Footer note */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>Vui lòng thanh toán đúng số tiền và nội dung để được xác nhận tự động</p>
         </div>
