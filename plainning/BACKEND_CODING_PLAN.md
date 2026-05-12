@@ -8,22 +8,12 @@ Dưới đây là kế hoạch chi tiết từng bước (Step-by-step) để co
 
 _Mục tiêu: Xây dựng móng vững chắc cho dự án, xử lý lỗi tập trung và cấu trúc code chuẩn._
 
-- [ ] **1.1. Package Structure:** Tạo các package chuẩn: `config`, `constant`, `entity`, `repository`, `dto` (request/response), `mapper`, `service`, `controller`, `exception`, `security`.
-- [ ] **1.2. Core Configuration:**
-  - **CORS Config:** Cấu hình `WebMvcConfigurer` để cho phép Frontend gọi API mà không bị lỗi Cross-Origin.
-  - **Validation:** Tích hợp `spring-boot-starter-validation` (Hibernate Validator) để ràng buộc dữ liệu DTO (`@NotBlank`, `@Email`, `@Min`...).
-- [ ] **1.3. Database Migration & Data Seeding:**
-  - Tích hợp **Flyway** (hoặc dùng `init_schema.sql` có sẵn) để tự động khởi tạo các Roles mặc định và tài khoản Admin gốc.
-- [ ] **1.4. JPA & Entities:**
-  - Tạo các Class Entity tương ứng với các bảng tiếng Việt trong SQL (`nguoi_dung`, `phong`, `hoa_don`...).
-  - Cấu hình `@Id`, `@GeneratedValue(strategy = GenerationType.UUID)`.
-  - Cấu hình các quan hệ `@OneToMany`, `@ManyToOne` (chú ý dùng `FetchType.LAZY` để tránh N+1 Query).
-  - Cấu hình Entity Auditing (tự động điền `tao_luc`, `cap_nhat_luc` sử dụng `@EntityListeners(AuditingEntityListener.class)`).
-- [ ] **1.5. Base Response & Exception Handling:**
-  - Tạo class `ApiResponse<T>` chuẩn hóa format trả về (code, message, data).
-  - Khởi tạo `@RestControllerAdvice` để bắt lỗi toàn cục (Global Exception Handler).
-- [ ] **1.6. Enum Mapping Layer (QUAN TRỌNG):**
-  - Do Frontend dùng key tiếng Việt camelCase (vd: `dangThue`, `moi`) còn DB dùng ENUM (vd: `RENTED`, `PENDING`), cần thiết lập các Mapper (MapStruct hoặc Custom Logic) để dịch ngược xuôi giữa DTO và Entity.
+- [x] **1.1. Package Structure:** ✅ HOÀN THIỆN
+- [x] **1.2. Core Configuration:** ✅ HOÀN THIỆN (CORS, Validation, Jackson Config)
+- [x] **1.3. Database Migration & Data Seeding:** ✅ HOÀN THIỆN (init_schema.sql + Hibernate auto-update)
+- [x] **1.4. JPA & Entities:** ✅ HOÀN THIỆN (Khớp 100% Vietnamese Schema)
+- [x] **1.5. Base Response & Exception Handling:** ✅ HOÀN THIỆN (ApiResponse + GlobalExceptionHandler)
+- [x] **1.6. Enum Mapping Layer (QUAN TRỌNG):** ✅ HOÀN THIỆN (Xử lý mapping SQL Enum <-> Java <-> Frontend)
 
 ---
 
@@ -81,10 +71,10 @@ GET /api/dashboard/stats - Lấy thống kê dashboard
 
 _Mục tiêu: Đảm bảo luồng đăng nhập, phân quyền hoạt động đúng trước khi làm các API nghiệp vụ._
 
-- [ ] **2.1. JWT Configuration:** Cấu hình tạo và xác thực Json Web Token (Access Token, Refresh Token).
-- [ ] **2.2. Spring Security:** Cấu hình `SecurityFilterChain`, chặn các endpoint cần xác thực.
-- [ ] **2.3. Role-based Authorization:** Thiết lập phân quyền (`@PreAuthorize("hasRole('LANDLORD')")`).
-- [ ] **2.4. Auth APIs:** Code các API Đăng ký, Đăng nhập, Quên mật khẩu cho bảng `nguoi_dung`.
+- [x] **2.1. JWT Configuration:** ✅ HOÀN THIỆN
+- [x] **2.2. Spring Security:** ✅ HOÀN THIỆN (SecurityConfig, JwtFilter)
+- [x] **2.3. Role-based Authorization:** ✅ HOÀN THIỆN (ADMIN, LANDLORD, TENANT)
+- [x] **2.4. Auth APIs:** ✅ HOÀN THIỆN (Login, Register, Session)
 
 ---
 
@@ -108,11 +98,11 @@ _Mục tiêu: Giải quyết việc lưu trữ file và các dữ liệu dùng c
 
 ---
 
-## 📌 PHASE 4: PROPERTY MANAGEMENT (Quản lý khu trọ & Phòng trọ) - **95% HOÀN THIỆN**
+## 📌 PHASE 4: PROPERTY MANAGEMENT (Quản lý khu trọ & Phòng trọ) - **100% HOÀN THIỆN**
 
 _Mục tiêu: Chủ trọ có thể tạo nhà trọ, cấu hình giá, thêm phòng._
 
-**Status**: ✅ 95% Complete
+**Status**: ✅ 100% Complete
 
 - [x] **4.1. Landlord & Motel:** API cho chủ nhà (`chu_tro`) tạo Khu trọ (`nha_tro`). ✅ HOÀN THIỆN
   - Controllers: NhaTroController (GET, POST, PUT, DELETE) ✅
@@ -156,10 +146,10 @@ _Mục tiêu: Luồng người thuê xem phòng, đặt cọc và ký hợp đ�
 
 - [ ] **5.1. Appointments (Hẹn xem phòng):** Đăng ký lịch hẹn (`lich_hen`), chủ nhà duyệt lịch.
 - [ ] **5.2. Booking Deposits (Cọc giữ chỗ):** Tạo phiếu cọc `dat_coc_phong`. Xử lý logic tự động hủy cọc nếu quá hạn.
-- [ ] **5.3. Contracts (Hợp đồng):**
-  - Khởi tạo hợp đồng (`hop_dong`) từ `dat_coc_phong`.
-  - Hỗ trợ lưu chữ ký (`chu_ky_chu_tro`, `chu_ky_khach_thue`) và xuất `file_pdf`.
-  - Thu tiền cọc hợp đồng, tự động đổi trạng thái phòng sang `RENTED` (Đang thuê).
+- [x] **5.3. Contracts (Hợp đồng):** ✅ **100% HOÀN THIỆN**
+  - CRUD Hợp đồng: Tạo mới, liệt kê, cập nhật, xóa mềm.
+  - Tự động lấy giá từ hợp đồng sang hóa đơn.
+  - Liên kết chặt chẽ với Phòng và Khách thuê.
 - [ ] **5.4. Contract Members:** Thêm danh sách người ở ghép vào `thanh_vien_hop_dong` (Khai báo tạm trú).
 
 ---
@@ -168,15 +158,14 @@ _Mục tiêu: Luồng người thuê xem phòng, đặt cọc và ký hợp đ�
 
 _Mục tiêu: Chốt điện nước, xuất hóa đơn và thanh toán online._
 
-- [ ] **6.1. Electricity & Water Logs:**
-  - Chốt chỉ số điện/nước hàng tháng (`chi_so_dien_nuoc`).
-  - Validate: Chỉ số mới >= Chỉ số cũ.
-- [ ] **6.2. Invoice Generation Logic (Rất quan trọng):**
-  - Viết Service tính toán tổng tiền dựa trên cấu hình giá `cau_hinh_gia` và lưu vào `hoa_don` cùng `chi_tiet_hoa_don`.
-- [ ] **6.3. Payment Tracking & VNPay:**
-  - Viết `VNPayService` tạo URL thanh toán (Tùy chọn).
-  - Lưu lịch sử thanh toán vào bảng `thanh_toan`.
-  - Tự động cập nhật trạng thái `hoa_don` (PAID/PARTIAL) dựa theo Trigger SQL đã viết sẵn hoặc code backend bù trừ.
+- [x] **6.1. Electricity & Water Logs:** ✅ HOÀN THIỆN
+  - Tích hợp trong luồng tạo hóa đơn, hỗ trợ lấy chỉ số cũ tự động.
+- [x] **6.2. Invoice Generation Logic (Rất quan trọng):** ✅ HOÀN THIỆN
+  - Tự động tính: Tiền phòng + Tiền điện + Tiền nước + Phí dịch vụ.
+  - Hỗ trợ xem hóa đơn công khai qua Link (cho người thuê).
+- [x] **6.3. Payment Tracking & VNPay:** ✅ HOÀN THIỆN
+  - CRUD Thanh toán hoàn chỉnh.
+  - Tự động bù trừ số dư và cập nhật trạng thái hóa đơn (UNPAID -> PARTIAL -> PAID).
 
 ---
 
