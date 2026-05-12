@@ -35,7 +35,8 @@ import {
   Copy,
   Info,
   Image as ImageIcon,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import {
   Carousel,
@@ -476,6 +477,12 @@ export default function PhongPage() {
                           }).format(phong.tienCoc)}
                         </span>
                       </div>
+                      <div className="flex justify-between text-sm border-t border-dashed pt-1 mt-1">
+                        <span className="text-gray-600">Người ở tối đa:</span>
+                        <span className="font-medium">
+                          {phong.soNguoiToiDa || 0} người
+                        </span>
+                      </div>
                     </div>
 
                     {/* Thông tin người thuê */}
@@ -552,14 +559,26 @@ export default function PhongPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const publicUrl = `${window.location.origin}/xem-phong`;
+                            const publicUrl = `${window.location.origin}/xem-phong?phong=${phong.maPhong}`;
                             navigator.clipboard.writeText(publicUrl);
-                            toast.success('Đã sao chép link trang xem phòng');
+                            toast.success(`Đã sao chép link xem phòng ${phong.maPhong}`);
                           }}
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Copy link trang xem phòng"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="Sao chép link xem phòng"
                         >
                           <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const publicUrl = `${window.location.origin}/xem-phong?phong=${phong.maPhong}`;
+                            window.open(publicUrl, '_blank');
+                          }}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Xem trang công khai"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="outline"
