@@ -621,15 +621,16 @@ function ThanhToanForm({
       if (response.ok) {
         const result = await response.json();
         console.log('Success:', result);
+        toast.success(result.message || (thanhToan ? 'Cập nhật thanh toán thành công' : 'Thêm thanh toán thành công'));
         onSuccess();
       } else {
         const errorData = await response.json();
         console.error('Error:', errorData);
-        alert('Có lỗi xảy ra: ' + (errorData.message || 'Không thể lưu dữ liệu'));
+        toast.error('Có lỗi xảy ra: ' + (errorData.message || 'Không thể lưu dữ liệu'));
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Có lỗi xảy ra khi gửi dữ liệu');
+      toast.error('Có lỗi xảy ra khi gửi dữ liệu');
     }
   };
 

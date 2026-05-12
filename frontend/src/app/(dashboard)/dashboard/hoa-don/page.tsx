@@ -1044,7 +1044,7 @@ function PaymentForm({
       
       console.log('Submitting payment:', requestData);
       
-      const response = await fetch('/api/thanh-toan', {
+      const response = await fetch(`/api/hoa-don/${hoaDon._id}/thanh-toan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1057,7 +1057,7 @@ function PaymentForm({
         // Xóa cache và trả về dữ liệu hóa đơn đã cập nhật
         sessionStorage.removeItem('hoa-don-data');
         toast.success(result.message || 'Thanh toán đã được tạo thành công');
-        onSuccess(result.data?.hoaDon); // Truyền hóa đơn đã cập nhật
+        onSuccess(result.data); // result.data chính là HoaDonResponse mới
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || 'Có lỗi xảy ra');
