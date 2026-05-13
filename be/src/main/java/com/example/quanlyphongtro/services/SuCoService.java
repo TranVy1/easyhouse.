@@ -111,11 +111,16 @@ public class SuCoService {
         }
 
         // Update các trường text
-        if (request.getTieuDe() != null) suCo.setTieuDe(request.getTieuDe());
-        if (request.getMoTa() != null) suCo.setMoTa(request.getMoTa());
-        if (request.getGhiChuChuNha() != null) suCo.setGhiChuChuNha(request.getGhiChuChuNha());
-        if (request.getChiPhiSuaChua() != null) suCo.setChiPhiSuaChua(request.getChiPhiSuaChua());
-        if (request.getNguoiPhuTrach() != null) suCo.setNguoiPhuTrach(request.getNguoiPhuTrach());
+        if (request.getTieuDe() != null)
+            suCo.setTieuDe(request.getTieuDe());
+        if (request.getMoTa() != null)
+            suCo.setMoTa(request.getMoTa());
+        if (request.getGhiChuChuNha() != null)
+            suCo.setGhiChuChuNha(request.getGhiChuChuNha());
+        if (request.getChiPhiSuaChua() != null)
+            suCo.setChiPhiSuaChua(request.getChiPhiSuaChua());
+        if (request.getNguoiPhuTrach() != null)
+            suCo.setNguoiPhuTrach(request.getNguoiPhuTrach());
 
         // Update loại sự cố
         if (request.getLoaiSuCo() != null) {

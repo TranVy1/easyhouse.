@@ -28,9 +28,9 @@ public class SuCoResponse {
 
     private String tieuDe;
     private String moTa;
-    private String loaiSuCo;       // dien_nuoc, noi_that, ve_sinh, an_ninh, khac
-    private String mucDoUuTien;    // thap, trung_binh, cao, khan_cap
-    private String trangThai;      // PENDING, IN_PROGRESS, RESOLVED, CANCELLED
+    private String loaiSuCo; // dien_nuoc, noi_that, ve_sinh, an_ninh, khac
+    private String mucDoUuTien; // thap, trung_binh, cao, khan_cap
+    private String trangThai; // PENDING, IN_PROGRESS, RESOLVED, CANCELLED
     private String ghiChuChuNha;
     private BigDecimal chiPhiSuaChua;
     private UUID nguoiPhuTrach;
@@ -90,11 +90,14 @@ public class SuCoResponse {
 
         // Convert timestamps
         LocalDateTime taoLucLocal = suCo.getTaoLuc() != null
-                ? suCo.getTaoLuc().toLocalDateTime() : null;
+                ? suCo.getTaoLuc().toLocalDateTime()
+                : null;
         LocalDateTime capNhatLucLocal = suCo.getCapNhatLuc() != null
-                ? suCo.getCapNhatLuc().toLocalDateTime() : null;
+                ? suCo.getCapNhatLuc().toLocalDateTime()
+                : null;
         LocalDateTime giaiQuyetLucLocal = suCo.getGiaiQuyetLuc() != null
-                ? suCo.getGiaiQuyetLuc().toLocalDateTime() : null;
+                ? suCo.getGiaiQuyetLuc().toLocalDateTime()
+                : null;
 
         return SuCoResponse.builder()
                 .id(suCo.getId())
