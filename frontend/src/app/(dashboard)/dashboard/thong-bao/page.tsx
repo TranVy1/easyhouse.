@@ -257,7 +257,7 @@ export default function ThongBaoPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        cache.clearCache();
+        clearCache();
         await fetchData(true, false);
         toast.success(result.message || 'Gửi thông báo thành công');
       } else {
@@ -280,7 +280,7 @@ export default function ThongBaoPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        cache.clearCache();
+        clearCache();
         setThongBaoList(prev => prev.map(item => (
           item._id === thongBao._id ? result.data : item
         )));
