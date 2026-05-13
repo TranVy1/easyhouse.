@@ -194,21 +194,25 @@ export interface ThanhToan {
 
 export interface SuCo {
   _id?: string;
-  phong: string; // ObjectId ref Phong
+  phong: string | { _id: string; maPhong: string }; // ObjectId or embedded
   khachThue: string; // ObjectId ref KhachThue
+  nguoiBaoCao?: { _id: string; hoTen: string; soDienThoai?: string }; // embedded from API
   tieuDe: string;
   moTa: string;
-  anhSuCo: string[];
-  loaiSuCo: 'dienNuoc' | 'noiThat' | 'vesinh' | 'anNinh' | 'khac';
-  mucDoUuTien: 'thap' | 'trungBinh' | 'cao' | 'khancap';
-  trangThai: 'moi' | 'dangXuLy' | 'daXong' | 'daHuy';
-  nguoiXuLy?: string; // ObjectId ref NguoiDung
+  anhSuCo?: string[];
+  // DB enum: dien_nuoc, noi_that, ve_sinh, an_ninh, khac
+  loaiSuCo: 'dien_nuoc' | 'noi_that' | 've_sinh' | 'an_ninh' | 'khac';
+  // DB enum: thap, trung_binh, cao, khan_cap
+  mucDoUuTien: 'thap' | 'trung_binh' | 'cao' | 'khan_cap';
+  // DB enum: PENDING, IN_PROGRESS, RESOLVED, CANCELLED
+  trangThai: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'CANCELLED';
+  nguoiPhuTrach?: string;
   ghiChuXuLy?: string;
+  ghiChuChuNha?: string;
+  chiPhiSuaChua?: number;
   ngayBaoCao: Date;
-  ngayXuLy?: Date;
   ngayHoanThanh?: Date;
-  ngayTao: Date;
-  ngayCapNhat: Date;
+  ngayCapNhat?: Date;
 }
 
 export interface ThongBao {
