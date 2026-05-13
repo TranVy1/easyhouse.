@@ -11,6 +11,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -34,6 +35,7 @@ public class SuCoResponse {
     private String ghiChuChuNha;
     private BigDecimal chiPhiSuaChua;
     private UUID nguoiPhuTrach;
+    private List<String> anhSuCo;
 
     @JsonProperty("ghiChuXuLy")
     private String ghiChuChuNhaAlias;
@@ -112,6 +114,7 @@ public class SuCoResponse {
                 .ghiChuChuNhaAlias(suCo.getGhiChuChuNha())
                 .chiPhiSuaChua(suCo.getChiPhiSuaChua())
                 .nguoiPhuTrach(suCo.getNguoiPhuTrach())
+                .anhSuCo(suCo.getAnhSuCo())
                 .taoLuc(taoLucLocal)
                 .giaiQuyetLuc(giaiQuyetLucLocal)
                 .capNhatLuc(capNhatLucLocal)

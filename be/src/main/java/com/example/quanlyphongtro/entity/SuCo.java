@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "su_co")
@@ -56,6 +60,11 @@ public class SuCo {
 
     @Column(name = "chi_phi_sua_chua", precision = 15, scale = 2)
     private BigDecimal chiPhiSuaChua;
+
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "anh_su_co", columnDefinition = "jsonb")
+    private List<String> anhSuCo = new ArrayList<>();
 
     @Column(name = "ghi_chu_chu_nha", columnDefinition = "TEXT")
     private String ghiChuChuNha;

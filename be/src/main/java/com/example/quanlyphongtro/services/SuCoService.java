@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -82,6 +83,7 @@ public class SuCoService {
                 .ghiChuChuNha(request.getGhiChuChuNha())
                 .chiPhiSuaChua(request.getChiPhiSuaChua())
                 .nguoiPhuTrach(request.getNguoiPhuTrach())
+                .anhSuCo(request.getAnhSuCo() != null ? request.getAnhSuCo() : new ArrayList<>())
                 .build();
 
         suCo = suCoRepository.save(suCo);
@@ -121,6 +123,8 @@ public class SuCoService {
             suCo.setChiPhiSuaChua(request.getChiPhiSuaChua());
         if (request.getNguoiPhuTrach() != null)
             suCo.setNguoiPhuTrach(request.getNguoiPhuTrach());
+        if (request.getAnhSuCo() != null)
+            suCo.setAnhSuCo(request.getAnhSuCo());
 
         // Update loại sự cố
         if (request.getLoaiSuCo() != null) {

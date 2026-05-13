@@ -530,6 +530,32 @@ export default function SuCoPage() {
                     <p className="text-xs text-gray-600 line-clamp-2">{suCo.moTa}</p>
                   </div>
 
+                  {/* Images */}
+                  {suCo.anhSuCo && suCo.anhSuCo.length > 0 && (
+                    <div className="pt-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 gap-1 text-xs w-full">
+                            <Eye className="h-3 w-3" />
+                            Xem {suCo.anhSuCo.length} ảnh đính kèm
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl w-[95vw]">
+                          <DialogHeader>
+                            <DialogTitle>Ảnh sự cố đính kèm</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4 mt-4 max-h-[60vh] overflow-y-auto p-1">
+                            {suCo.anhSuCo.map((img, i) => (
+                              <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                                <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+
                   {/* Action buttons */}
                   <div className="flex justify-between items-center pt-2 border-t">
                     <div className="flex gap-2">
@@ -626,6 +652,7 @@ function SuCoForm({
         uuTien: formData.uuTien,
         trangThai: suCo ? formData.trangThai : undefined,
         ghiChuChuNha: formData.ghiChuChuNha,
+        anhSuCo: images,
       };
 
       const url = suCo ? `/api/su-co/${suCo._id}` : '/api/su-co';
@@ -692,7 +719,7 @@ function SuCoForm({
               <SelectValue placeholder="Chọn phòng" />
             </SelectTrigger>
             <SelectContent>
-              {phongList.map((phong) => (
+              {phongList.filter(p => p.trangThai === 'dangThue' || p._id === formData.phongId).map((phong) => (
                 <SelectItem key={phong._id} value={phong._id!} className="text-sm">
                   {phong.maPhong}
                 </SelectItem>

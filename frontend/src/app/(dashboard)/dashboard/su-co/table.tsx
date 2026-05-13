@@ -62,6 +62,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -287,6 +294,37 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
     accessorKey: "loaiSuCo",
     header: "Loại",
     cell: ({ row }) => getTypeBadge(row.original.loaiSuCo),
+  },
+  {
+    accessorKey: "anhSuCo",
+    header: "Ảnh",
+    cell: ({ row }) => {
+      const images = row.original.anhSuCo || []
+      if (images.length === 0) return <span className="text-muted-foreground text-xs">Không có</span>
+      
+      return (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1">
+              <Eye className="h-3 w-3" />
+              <span>{images.length}</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Ảnh sự cố đính kèm</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+              {images.map((img, i) => (
+                <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                  <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )
+    },
   },
   {
     accessorKey: "mucDoUuTien",

@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.dto;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 public class SuCoRequest {
@@ -16,4 +17,5 @@ public class SuCoRequest {
     private String ghiChuChuNha;
     private BigDecimal chiPhiSuaChua;
     private UUID nguoiPhuTrach;
+    private List<String> anhSuCo;
 }
