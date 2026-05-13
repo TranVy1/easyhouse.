@@ -40,7 +40,6 @@ import {
   Calendar,
   Users,
   Eye,
-  Filter,
   Send,
   Building2,
   Home,
@@ -49,6 +48,16 @@ import {
 import { ThongBao, ToaNha, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { useCache } from '@/hooks/use-cache';
+
+const getId = (value: unknown): string | undefined => {
+  if (!value) return undefined;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && '_id' in value) {
+    const id = (value as { _id?: unknown })._id;
+    return typeof id === 'string' ? id : undefined;
+  }
+  return undefined;
+};
 
 export default function ThongBaoPage() {
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
@@ -72,9 +81,11 @@ export default function ThongBaoPage() {
     document.title = 'Quản lý Thông báo';
   }, []);
 
-  const fetchData = useCallback(async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false, showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       
       if (!forceRefresh) {
         const cachedData = getCache();
@@ -135,7 +146,7 @@ export default function ThongBaoPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchData(true);
+    await fetchData(true, false);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
@@ -171,6 +182,26 @@ export default function ThongBaoPage() {
     return toaNha?.tenToaNha || 'Không xác định';
   };
 
+  const getToaNhaNameForThongBao = (thongBao: ThongBao) => {
+    if (thongBao.toaNha) {
+      return getToaNhaName(thongBao.toaNha);
+    }
+
+    const phongIds = thongBao.phong || [];
+    if (phongIds.length === 0) {
+      return 'Tất cả tòa nhà';
+    }
+
+    const toaNhaNames = phongIds
+      .map(id => phongList.find(phong => phong._id === id))
+      .map(phong => getId(phong?.toaNha))
+      .filter((id): id is string => Boolean(id))
+      .filter((id, index, ids) => ids.indexOf(id) === index)
+      .map(getToaNhaName);
+
+    return toaNhaNames.length > 0 ? toaNhaNames.join(', ') : 'Không xác định';
+  };
+
   const getPhongNames = (phongIds: string[]) => {
     if (phongIds.length === 0) return 'Tất cả phòng';
     const phongNames = phongIds.map(id => {
@@ -197,16 +228,17 @@ export default function ThongBaoPage() {
   const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
       try {
-        const response = await fetch(`/api/thong-bao?id=${id}`, {
+        const response = await fetch(`/api/thong-bao/${id}`, {
           method: 'DELETE',
         });
+        const result = await response.json();
 
-        if (response.ok) {
+        if (response.ok && result.success) {
           clearCache();
           setThongBaoList(prev => prev.filter(thongBao => thongBao._id !== id));
           toast.success('Xóa thông báo thành công');
         } else {
-          toast.error('Có lỗi xảy ra khi xóa thông báo');
+          toast.error(result.message || 'Có lỗi xảy ra khi xóa thông báo');
         }
       } catch (error) {
         console.error('Error deleting thong bao:', error);
@@ -215,9 +247,51 @@ export default function ThongBaoPage() {
     }
   };
 
-  const handleSend = (thongBao: ThongBao) => {
-    // Implement send logic
-    console.log('Sending notification:', thongBao._id);
+  const handleSend = async (thongBao: ThongBao) => {
+    if (!thongBao._id) return;
+
+    try {
+      const response = await fetch(`/api/thong-bao/${thongBao._id}/send`, {
+        method: 'POST',
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        cache.clearCache();
+        await fetchData(true, false);
+        toast.success(result.message || 'Gửi thông báo thành công');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi gửi thông báo');
+      }
+    } catch (error) {
+      console.error('Error sending thong bao:', error);
+      toast.error('Có lỗi xảy ra khi gửi thông báo');
+    }
+  };
+
+  const handleToggleRead = async (thongBao: ThongBao) => {
+    if (!thongBao._id) return;
+
+    const daDoc = !(thongBao.daDoc?.length > 0);
+    try {
+      const response = await fetch(`/api/thong-bao/${thongBao._id}/da-doc?daDoc=${daDoc}`, {
+        method: 'PATCH',
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        cache.clearCache();
+        setThongBaoList(prev => prev.map(item => (
+          item._id === thongBao._id ? result.data : item
+        )));
+        toast.success(daDoc ? 'Đã đánh dấu đã đọc' : 'Đã đánh dấu chưa đọc');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi cập nhật trạng thái đọc');
+      }
+    } catch (error) {
+      console.error('Error updating read status:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái đọc');
+    }
   };
 
   if (loading) {
@@ -278,7 +352,7 @@ export default function ThongBaoPage() {
               onSuccess={() => {
                 clearCache();
                 setIsDialogOpen(false);
-                fetchData(true);
+                fetchData(true, false);
               }}
             />
           </DialogContent>
@@ -414,7 +488,7 @@ export default function ThongBaoPage() {
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">
-                          {getToaNhaName(thongBao.toaNha)}
+                          {getToaNhaNameForThongBao(thongBao)}
                         </span>
                       </div>
                     </TableCell>
@@ -433,7 +507,11 @@ export default function ThongBaoPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleRead(thongBao)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -528,10 +606,10 @@ export default function ThongBaoPage() {
 
                   {/* Recipients info */}
                   <div className="space-y-1 text-xs border-t pt-2">
-                    {thongBao.toaNha && (
+                    {(thongBao.toaNha || (thongBao.phong && thongBao.phong.length > 0)) && (
                       <div className="flex items-center gap-2 text-gray-500">
                         <Building2 className="h-3 w-3" />
-                        <span>{getToaNhaName(thongBao.toaNha)}</span>
+                        <span>{getToaNhaNameForThongBao(thongBao)}</span>
                       </div>
                     )}
                     {thongBao.phong && thongBao.phong.length > 0 && (
@@ -555,6 +633,15 @@ export default function ThongBaoPage() {
 
                   {/* Action buttons */}
                   <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleToggleRead(thongBao)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1" />
+                      {thongBao.daDoc.length > 0 ? 'Chưa đọc' : 'Đã đọc'}
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -622,24 +709,49 @@ function ThongBaoForm({
     loai: thongBao?.loai || 'chung',
     nguoiNhan: thongBao?.nguoiNhan || [],
     phong: thongBao?.phong || [],
-    toaNha: thongBao?.toaNha || '',
+    toaNha: thongBao?.toaNha || 'all',
   });
+
+  const filteredPhongList = formData.toaNha === 'all'
+    ? phongList
+    : phongList.filter((phong) => getId(phong.toaNha) === formData.toaNha);
+
+  const handleToaNhaChange = (value: string) => {
+    setFormData(prev => {
+      const nextPhong = value === 'all'
+        ? prev.phong
+        : prev.phong.filter(phongId => {
+            const phong = phongList.find(item => item._id === phongId);
+            return getId(phong?.toaNha) === value;
+          });
+
+      return {
+        ...prev,
+        toaNha: value,
+        phong: nextPhong,
+      };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       const url = thongBao 
-        ? `/api/thong-bao?id=${thongBao._id}` 
+        ? `/api/thong-bao/${thongBao._id}` 
         : '/api/thong-bao';
       const method = thongBao ? 'PUT' : 'POST';
+      const payload = {
+        ...formData,
+        toaNha: formData.toaNha === 'all' ? undefined : formData.toaNha,
+      };
 
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -719,7 +831,7 @@ function ThongBaoForm({
 
       <div className="space-y-2">
         <Label htmlFor="toaNha" className="text-xs md:text-sm">Tòa nhà</Label>
-        <Select value={formData.toaNha} onValueChange={(value) => setFormData(prev => ({ ...prev, toaNha: value }))}>
+        <Select value={formData.toaNha} onValueChange={handleToaNhaChange}>
           <SelectTrigger className="text-sm">
             <SelectValue placeholder="Chọn tòa nhà (tùy chọn)" />
           </SelectTrigger>
@@ -737,7 +849,12 @@ function ThongBaoForm({
       <div className="space-y-2">
         <Label className="text-xs md:text-sm">Phòng (tùy chọn)</Label>
         <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-          {phongList.map((phong) => (
+          {filteredPhongList.length === 0 && (
+            <p className="col-span-2 text-xs text-gray-500">
+              Không có phòng trong tòa nhà đã chọn
+            </p>
+          )}
+          {filteredPhongList.map((phong) => (
             <div key={phong._id} className="flex items-center space-x-2">
               <input
                 type="checkbox"
