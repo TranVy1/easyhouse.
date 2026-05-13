@@ -31,12 +31,12 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Bell, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Bell,
   Calendar,
   Users,
   Eye,
@@ -66,7 +66,7 @@ export default function ThongBaoPage() {
     phongList: Phong[];
     khachThueList: KhachThue[];
   }>({ key: 'thong-bao-data', duration: 300000 });
-  
+
   const [thongBaoList, setThongBaoList] = useState<ThongBao[]>([]);
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [phongList, setPhongList] = useState<Phong[]>([]);
@@ -86,7 +86,7 @@ export default function ThongBaoPage() {
       if (showLoading) {
         setLoading(true);
       }
-      
+
       if (!forceRefresh) {
         const cachedData = getCache();
         if (cachedData) {
@@ -98,7 +98,7 @@ export default function ThongBaoPage() {
           return;
         }
       }
-      
+
       // Fetch thông báo từ API
       const thongBaoResponse = await fetch('/api/thong-bao');
       const thongBaoData = thongBaoResponse.ok ? await thongBaoResponse.json() : { data: [] };
@@ -122,7 +122,7 @@ export default function ThongBaoPage() {
       const khachThueData = khachThueResponse.ok ? await khachThueResponse.json() : { data: [] };
       const khachThues = khachThueData.success ? khachThueData.data : [];
       setKhachThueList(khachThues);
-      
+
       setCache({
         thongBaoList: thongBaos,
         toaNhaList: toaNhas,
@@ -153,9 +153,9 @@ export default function ThongBaoPage() {
 
   const filteredThongBao = thongBaoList.filter(thongBao => {
     const matchesSearch = thongBao.tieuDe.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         thongBao.noiDung.toLowerCase().includes(searchTerm.toLowerCase());
+      thongBao.noiDung.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || thongBao.loai === typeFilter;
-    
+
     return matchesSearch && matchesType;
   });
 
@@ -315,7 +315,7 @@ export default function ThongBaoPage() {
           <p className="text-xs md:text-sm text-gray-600">Gửi và quản lý thông báo đến khách thuê</p>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
@@ -333,30 +333,30 @@ export default function ThongBaoPage() {
                 <span className="sm:hidden">Tạo</span>
               </Button>
             </DialogTrigger>
-          <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingThongBao ? 'Chỉnh sửa thông báo' : 'Tạo thông báo mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingThongBao ? 'Cập nhật thông tin thông báo' : 'Nhập thông tin thông báo mới'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <ThongBaoForm 
-              thongBao={editingThongBao}
-              toaNhaList={toaNhaList}
-              phongList={phongList}
-              khachThueList={khachThueList}
-              onClose={() => setIsDialogOpen(false)}
-              onSuccess={() => {
-                clearCache();
-                setIsDialogOpen(false);
-                fetchData(true, false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+            <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingThongBao ? 'Chỉnh sửa thông báo' : 'Tạo thông báo mới'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingThongBao ? 'Cập nhật thông tin thông báo' : 'Nhập thông tin thông báo mới'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <ThongBaoForm
+                thongBao={editingThongBao}
+                toaNhaList={toaNhaList}
+                phongList={phongList}
+                khachThueList={khachThueList}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={() => {
+                  clearCache();
+                  setIsDialogOpen(false);
+                  fetchData(true, false);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -514,22 +514,22 @@ export default function ThongBaoPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleSend(thongBao)}
                         >
                           <Send className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleEdit(thongBao)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDelete(thongBao._id!)}
                           className="text-red-600 hover:text-red-700"
@@ -552,7 +552,7 @@ export default function ThongBaoPage() {
           <h2 className="text-lg font-semibold">Danh sách thông báo</h2>
           <span className="text-sm text-gray-500">{filteredThongBao.length} thông báo</span>
         </div>
-        
+
         {/* Mobile Filters */}
         <div className="space-y-2 mb-4">
           <div className="relative">
@@ -688,14 +688,14 @@ export default function ThongBaoPage() {
 }
 
 // Form component for adding/editing thong bao
-function ThongBaoForm({ 
-  thongBao, 
+function ThongBaoForm({
+  thongBao,
   toaNhaList,
   phongList,
   khachThueList,
-  onClose, 
-  onSuccess 
-}: { 
+  onClose,
+  onSuccess
+}: {
   thongBao: ThongBao | null;
   toaNhaList: ToaNha[];
   phongList: Phong[];
@@ -721,9 +721,9 @@ function ThongBaoForm({
       const nextPhong = value === 'all'
         ? prev.phong
         : prev.phong.filter(phongId => {
-            const phong = phongList.find(item => item._id === phongId);
-            return getId(phong?.toaNha) === value;
-          });
+          const phong = phongList.find(item => item._id === phongId);
+          return getId(phong?.toaNha) === value;
+        });
 
       return {
         ...prev,
@@ -735,10 +735,10 @@ function ThongBaoForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      const url = thongBao 
-        ? `/api/thong-bao/${thongBao._id}` 
+      const url = thongBao
+        ? `/api/thong-bao/${thongBao._id}`
         : '/api/thong-bao';
       const method = thongBao ? 'PUT' : 'POST';
       const payload = {
@@ -771,7 +771,7 @@ function ThongBaoForm({
   const handleNguoiNhanChange = (khachThueId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      nguoiNhan: checked 
+      nguoiNhan: checked
         ? [...prev.nguoiNhan, khachThueId]
         : prev.nguoiNhan.filter(id => id !== khachThueId)
     }));
@@ -780,7 +780,7 @@ function ThongBaoForm({
   const handlePhongChange = (phongId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      phong: checked 
+      phong: checked
         ? [...prev.phong, phongId]
         : prev.phong.filter(id => id !== phongId)
     }));
