@@ -53,3 +53,7 @@ be/src/main/resources/application-prod.properties
 # Tạm thời bỏ qua các file application.properties nếu chứa thông tin nhạy cảm
 # Bỏ comment dòng dưới nếu application.properties có chứa mật khẩu database thực tế
 be/src/main/resources/application.properties
+
+# Documentation/Reports
+*.md
+
