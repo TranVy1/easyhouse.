@@ -32,6 +32,19 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { 
   Plus, 
   Search, 
@@ -42,8 +55,12 @@ import {
   Users,
   Eye,
   RefreshCw,
-  Copy
+  Copy,
+  Check,
+  ChevronsUpDown
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 import { ToaNha } from '@/types';
 import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { toast } from 'sonner';
@@ -191,6 +208,7 @@ export default function ToaNhaPage() {
             </DialogHeader>
             
             <ToaNhaForm 
+              key={editingToaNha?._id || 'new'}
               toaNha={editingToaNha}
               onClose={() => setIsDialogOpen(false)}
               onSuccess={() => {
@@ -417,6 +435,90 @@ function ToaNhaForm({
     tienNghiChung: toaNha?.tienNghiChung || [],
   });
 
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  
+  const [provinceCode, setProvinceCode] = useState<string>('');
+  const [districtCode, setDistrictCode] = useState<string>('');
+
+  const [openProvince, setOpenProvince] = useState(false);
+  const [openDistrict, setOpenDistrict] = useState(false);
+  const [openWard, setOpenWard] = useState(false);
+
+  useEffect(() => {
+    fetch('https://provinces.open-api.vn/api/p/')
+      .then(res => res.json())
+      .then(data => {
+        setProvinces(data);
+        if (formData.thanhPho) {
+          const p = data.find((x: any) => x.name === formData.thanhPho);
+          if (p) setProvinceCode(String(p.code));
+        }
+      })
+      .catch(err => console.error("Error fetching provinces:", err));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (provinceCode) {
+      fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+        .then(res => res.json())
+        .then(data => {
+          setDistricts(data.districts || []);
+          if (formData.quan && data.districts) {
+            const d = data.districts.find((x: any) => x.name === formData.quan);
+            if (d) setDistrictCode(String(d.code));
+          }
+        })
+        .catch(err => console.error("Error fetching districts:", err));
+    } else {
+      setDistricts([]);
+      setDistrictCode('');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provinceCode]);
+
+  useEffect(() => {
+    if (districtCode) {
+      fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+        .then(res => res.json())
+        .then(data => {
+          setWards(data.wards || []);
+        })
+        .catch(err => console.error("Error fetching wards:", err));
+    } else {
+      setWards([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [districtCode]);
+
+  const handleProvinceChange = (codeStr: string) => {
+    const p = provinces.find(x => String(x.code) === codeStr);
+    setProvinceCode(codeStr);
+    setFormData(prev => ({ 
+      ...prev, 
+      thanhPho: p?.name || '',
+      quan: '', 
+      phuong: ''
+    }));
+    setDistrictCode('');
+  };
+
+  const handleDistrictChange = (codeStr: string) => {
+    const d = districts.find(x => String(x.code) === codeStr);
+    setDistrictCode(codeStr);
+    setFormData(prev => ({ 
+      ...prev, 
+      quan: d?.name || '',
+      phuong: '' 
+    }));
+  };
+
+  const handleWardChange = (name: string) => {
+    setFormData(prev => ({ ...prev, phuong: name }));
+  };
+
   const tienNghiOptions = [
     { value: 'wifi', label: 'WiFi' },
     { value: 'camera', label: 'Camera an ninh' },
@@ -495,63 +597,173 @@ function ToaNhaForm({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="thanhPho" className="text-sm">Tỉnh / Thành phố</Label>
+        <Popover open={openProvince} onOpenChange={setOpenProvince}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openProvince}
+              className="w-full justify-between text-sm font-normal bg-white"
+            >
+              {provinceCode
+                ? provinces.find((p) => String(p.code) === provinceCode)?.name
+                : "Chọn Tỉnh/Thành phố"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
+            <Command>
+              <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="text-sm" />
+              <CommandList className="max-h-[260px]">
+                <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                <CommandGroup>
+                  {provinces.map((p) => (
+                    <CommandItem
+                      key={p.code}
+                      value={p.name}
+                      onSelect={() => {
+                        handleProvinceChange(String(p.code));
+                        setOpenProvince(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          provinceCode === String(p.code) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {p.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
-          <Label htmlFor="soNha" className="text-sm">Số nhà</Label>
-          <Input
-            id="soNha"
-            value={formData.soNha}
-            onChange={(e) => setFormData(prev => ({ ...prev, soNha: e.target.value }))}
-            required
-            className="text-sm"
-          />
+          <Label htmlFor="quan" className="text-sm">Quận / Huyện</Label>
+          <Popover open={openDistrict} onOpenChange={setOpenDistrict}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openDistrict}
+                className="w-full justify-between text-sm font-normal bg-white"
+                disabled={!provinceCode}
+              >
+                {districtCode
+                  ? districts.find((d) => String(d.code) === districtCode)?.name
+                  : "Chọn Quận/Huyện"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
+              <Command>
+                <CommandInput placeholder="Tìm Quận/Huyện..." className="text-sm" />
+                <CommandList className="max-h-[260px]">
+                  <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                  <CommandGroup>
+                    {districts.map((d) => (
+                      <CommandItem
+                        key={d.code}
+                        value={d.name}
+                        onSelect={() => {
+                          handleDistrictChange(String(d.code));
+                          setOpenDistrict(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            districtCode === String(d.code) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {d.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
         
+        <div className="space-y-2">
+          <Label htmlFor="phuong" className="text-sm">Phường / Xã</Label>
+          <Popover open={openWard} onOpenChange={setOpenWard}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openWard}
+                className="w-full justify-between text-sm font-normal bg-white"
+                disabled={!districtCode}
+              >
+                {formData.phuong || "Chọn Phường/Xã"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
+              <Command>
+                <CommandInput placeholder="Tìm Phường/Xã..." className="text-sm" />
+                <CommandList className="max-h-[260px]">
+                  <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                  <CommandGroup>
+                    {wards.map((w) => (
+                      <CommandItem
+                        key={w.code}
+                        value={w.name}
+                        onSelect={() => {
+                          handleWardChange(w.name);
+                          setOpenWard(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            formData.phuong === w.name ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {w.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="duong" className="text-sm">Tên đường</Label>
           <Input
             id="duong"
             value={formData.duong}
             onChange={(e) => setFormData(prev => ({ ...prev, duong: e.target.value }))}
-            required
-            className="text-sm"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="phuong" className="text-sm">Phường/Xã</Label>
-          <Input
-            id="phuong"
-            value={formData.phuong}
-            onChange={(e) => setFormData(prev => ({ ...prev, phuong: e.target.value }))}
+            placeholder="Ví dụ: Nguyễn Trãi"
             required
             className="text-sm"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="quan" className="text-sm">Quận/Huyện</Label>
+          <Label htmlFor="soNha" className="text-sm">Số nhà</Label>
           <Input
-            id="quan"
-            value={formData.quan}
-            onChange={(e) => setFormData(prev => ({ ...prev, quan: e.target.value }))}
+            id="soNha"
+            value={formData.soNha}
+            onChange={(e) => setFormData(prev => ({ ...prev, soNha: e.target.value }))}
+            placeholder="Ví dụ: 19"
             required
             className="text-sm"
           />
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="thanhPho" className="text-sm">Thành phố</Label>
-        <Input
-          id="thanhPho"
-          value={formData.thanhPho}
-          onChange={(e) => setFormData(prev => ({ ...prev, thanhPho: e.target.value }))}
-          required
-          className="text-sm"
-        />
       </div>
 
       <div className="space-y-2">

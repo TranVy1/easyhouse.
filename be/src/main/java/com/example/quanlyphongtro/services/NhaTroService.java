@@ -64,18 +64,19 @@ public class NhaTroService {
             nhaTro.setTen(request.getTenToaNha());
         if (request.getMoTa() != null)
             nhaTro.setMoTa(request.getMoTa());
-        // if (request.getTienNghiChung() != null)
-        // nhaTro.setTienNghiChung(request.getTienNghiChung());
+        if (request.getTienNghiChung() != null) {
+            nhaTro.setTienNghiChung(String.join(",", request.getTienNghiChung()));
+        }
 
         if (request.getDiaChi() != null) {
-            String diaChi = "";
-            if (request.getDiaChi().getSoNha() != null && !request.getDiaChi().getSoNha().isEmpty()) {
-                diaChi += request.getDiaChi().getSoNha() + " ";
-            }
-            if (request.getDiaChi().getDuong() != null && !request.getDiaChi().getDuong().isEmpty()) {
-                diaChi += request.getDiaChi().getDuong();
-            }
-            nhaTro.setDiaChi(diaChi.trim());
+            String soNha = request.getDiaChi().getSoNha() != null ? request.getDiaChi().getSoNha() : "";
+            String duong = request.getDiaChi().getDuong() != null ? request.getDiaChi().getDuong() : "";
+            
+            // Concatenate for the single dia_chi field in DB
+            String fullDiaChi = (soNha + " " + duong).trim();
+            nhaTro.setDiaChi(fullDiaChi);
+            
+            // Map location fields to DB columns
             nhaTro.setXa(request.getDiaChi().getPhuong());
             nhaTro.setHuyen(request.getDiaChi().getQuan());
             nhaTro.setTinh(request.getDiaChi().getThanhPho());

@@ -42,6 +42,9 @@ public class NhaTro {
     @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String moTa;
 
+    @Column(name = "tien_nghi_chung", columnDefinition = "TEXT")
+    private String tienNghiChung;
+
     @CreationTimestamp
     @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;

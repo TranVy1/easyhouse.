@@ -59,23 +59,58 @@ public class NhaTroResponse {
                 ? nhaTro.getCapNhatLuc().toLocalDateTime()
                 : null;
 
+        // Split dia_chi into soNha and duong for the form
+        String fullDiaChi = nhaTro.getDiaChi() != null ? nhaTro.getDiaChi() : "";
+        String soNha = "";
+        String duong = fullDiaChi;
+
+        if (!fullDiaChi.isEmpty()) {
+            int firstSpaceIndex = fullDiaChi.indexOf(" ");
+            if (firstSpaceIndex > 0) {
+                soNha = fullDiaChi.substring(0, firstSpaceIndex);
+                duong = fullDiaChi.substring(firstSpaceIndex + 1);
+            }
+        }
+
         return NhaTroResponse.builder()
                 .id(nhaTro.getId())
                 .tenToaNha(nhaTro.getTen())
                 .diaChi(DiaChiResponse.builder()
-                        .soNha("")
-                        .duong(nhaTro.getDiaChi() != null ? nhaTro.getDiaChi() : "")
+                        .soNha(soNha)
+                        .duong(duong)
                         .phuong(nhaTro.getXa() != null ? nhaTro.getXa() : "")
                         .quan(nhaTro.getHuyen() != null ? nhaTro.getHuyen() : "")
                         .thanhPho(nhaTro.getTinh() != null ? nhaTro.getTinh() : "")
                         .build())
                 .moTa(nhaTro.getMoTa())
-                // .tienNghiChung(nhaTro.getTienNghiChung())
+                .tienNghiChung(parseTienNghi(nhaTro.getTienNghiChung()))
                 .tongSoPhong(tongSoPhong)
                 .phongTrong(phongTrong)
                 .phongDangThue(phongDangThue)
                 .taoLuc(taoLucLocal)
                 .capNhatLuc(capNhatLucLocal)
                 .build();
+    }
+
+    private static List<String> parseTienNghi(String tienNghiStr) {
+        if (tienNghiStr == null || tienNghiStr.isEmpty()) {
+            return List.of();
+        }
+        // Handle JSON array format ["wifi", "camera"]
+        if (tienNghiStr.startsWith("[") && tienNghiStr.endsWith("]")) {
+            String cleaned = tienNghiStr.substring(1, tienNghiStr.length() - 1);
+            if (cleaned.isEmpty()) return List.of();
+            return List.of(cleaned.split(","))
+                    .stream()
+                    .map(s -> s.trim().replaceAll("^\"|\"$", "")) // Remove quotes
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        // Handle comma-separated format
+        return List.of(tienNghiStr.split(","))
+                .stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(java.util.stream.Collectors.toList());
     }
 }
