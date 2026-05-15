@@ -28,7 +28,6 @@ public class CloudinaryService {
                     "resource_type", "auto"
                 )
             );
-
             log.info("File uploaded successfully: {}", uploadResult.get("secure_url"));
             return uploadResult;
 

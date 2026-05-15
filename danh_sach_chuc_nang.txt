@@ -1,52 +1,118 @@
-# DANH SÁCH CHỨC NĂNG HỆ THỐNG QUẢN LÝ PHÒNG TRỌ (QUY LÝ PHÒNG TRỌ)
+1. Hệ thống Xác thực & Quản lý tài khoản
 
-Dưới đây là danh sách các chức năng hiện có và đang được triển khai trong project dựa trên cấu trúc Frontend và kế hoạch Backend:
+(Authentication & Account Management)
 
-## 1. Hệ thống Xác thực & Tài khoản (Authentication & Account)
-- [x] Đăng ký tài khoản mới (Chủ trọ/Người thuê).
-- [x] Đăng nhập hệ thống (Sử dụng NextAuth & JWT).
-- [x] Xác thực tài khoản qua Email.
-- [x] Quản lý hồ sơ cá nhân (Cập nhật thông tin, ảnh đại diện).
-- [x] Phân quyền người dùng (ADMIN, LANDLORD, TENANT).
+Hệ thống cung cấp các chức năng xác thực và quản lý người dùng nhằm đảm bảo tính bảo mật và phân quyền rõ ràng:
 
-## 2. Quản lý Tài sản (Property Management)
-- [x] **Quản lý Tòa nhà/Khu trọ:** Thêm, sửa, xóa và liệt kê các tòa nhà/khu trọ.
-- [x] **Quản lý Phòng trọ:**
-    - Quản lý danh sách phòng theo từng tòa nhà.
-    - Cấu hình tiện ích phòng (Wifi, Điều hòa, Nội thất...).
-    - Cập nhật trạng thái phòng (Trống, Đang thuê, Đang sửa chữa).
-    - Phân trang và bộ lọc tìm kiếm phòng nâng cao.
+Đăng ký tài khoản mới (Chủ trọ / Người thuê).
+Đăng nhập hệ thống (sử dụng NextAuth kết hợp JWT).
+Xác thực tài khoản thông qua Email.
+Quản lý hồ sơ cá nhân:
+Cập nhật thông tin cá nhân
+Thay đổi ảnh đại diện
+Phân quyền người dùng theo vai trò:
+ADMIN
+LANDLORD (Chủ trọ)
+TENANT (Người thuê)
+2. Quản lý Tài sản
 
-## 3. Quản lý Khách thuê & Hợp đồng (Tenants & Contracts)
-- [x] **Quản lý Khách thuê:** Lưu trữ thông tin chi tiết (CCCD, SĐT, Địa chỉ thường trú, nghề nghiệp...).
-- [x] **Quản lý Hợp đồng:**
-    - Lập hợp đồng thuê phòng mới.
-    - Quản lý tiền cọc, giá thuê, ngày bắt đầu/kết thúc.
-    - Quản lý thành viên ở ghép trong phòng.
-    - Tự động hóa việc lấy dữ liệu từ hợp đồng sang hóa đơn.
+(Property Management)
 
-## 4. Hệ thống Hóa đơn & Tài chính (Billing & Finance)
-- [x] **Ghi chỉ số Điện/Nước:** Ghi nhận số cũ/mới định kỳ hàng tháng.
-- [x] **Quản lý Hóa đơn:**
-    - Tự động tính tổng tiền (Tiền phòng + Điện + Nước + Phí dịch vụ).
-    - Xuất hóa đơn và gửi link xem hóa đơn online cho khách.
-    - Quản lý trạng thái hóa đơn (Chưa thanh toán, Đã thanh toán, Quá hạn).
-- [x] **Quản lý Thanh toán:**
-    - Ghi nhận lịch sử thanh toán tiền mặt hoặc chuyển khoản.
-    - Tích hợp thanh toán online (VNPay - đang hoàn thiện).
+Chức năng hỗ trợ quản lý toàn bộ hệ thống phòng trọ theo cấu trúc phân cấp:
 
-## 5. Vận hành & Tương tác (Operations & Interaction)
-- [ ] **Quản lý Sự cố:** Tiếp nhận và xử lý báo cáo hư hỏng từ người thuê (Đang triển khai).
-- [ ] **Hệ thống Thông báo:** Gửi thông báo tự động nhắc nợ, lịch hẹn (Đang triển khai).
-- [ ] **Lịch hẹn xem phòng:** Khách thuê đăng ký và chủ nhà duyệt lịch hẹn.
+2.1. Quản lý Tòa nhà / Khu trọ
+Thêm mới tòa nhà/khu trọ
+Chỉnh sửa thông tin
+Xóa tòa nhà/khu trọ
+Hiển thị danh sách và tìm kiếm
+2.2. Quản lý Phòng trọ
+Quản lý danh sách phòng theo từng tòa nhà
+Cấu hình tiện ích phòng:
+Wifi
+Điều hòa
+Nội thất
+Cập nhật trạng thái phòng:
+Trống
+Đang thuê
+Đang sửa chữa
+Hỗ trợ phân trang và tìm kiếm nâng cao
+3. Quản lý Khách thuê & Hợp đồng
 
-## 6. Thống kê & Báo cáo (Dashboard & Reports)
-- [x] **Dashboard:** Tổng quan số lượng phòng, khách thuê, doanh thu tạm tính.
-- [ ] **Báo cáo chuyên sâu:** Thống kê doanh thu theo tháng/năm, báo cáo công nợ, tỷ lệ lấp đầy.
+(Tenants & Contracts Management)
 
-## 7. Tiện ích Hệ thống (System Utilities)
-- [x] **Quản lý Media:** Upload và lưu trữ ảnh (CCCD, ảnh phòng) qua Cloudinary.
-- [x] **Cài đặt hệ thống:** Cấu hình giá dịch vụ chung, thông tin chủ trọ.
+3.1. Quản lý Khách thuê
+Lưu trữ thông tin chi tiết:
+CCCD
+Số điện thoại
+Địa chỉ thường trú
+Nghề nghiệp
+3.2. Quản lý Hợp đồng
+Tạo mới hợp đồng thuê phòng
+Quản lý các thông tin:
+Tiền cọc
+Giá thuê
+Thời gian thuê (ngày bắt đầu / kết thúc)
+Quản lý danh sách người ở ghép
+Tự động liên kết dữ liệu hợp đồng với hệ thống hóa đơn
+4. Hệ thống Hóa đơn & Tài chính
 
----
-*Ghi chú: [x] Đã hoàn thiện | [ ] Đang phát triển/Lên kế hoạch*
+(Billing & Finance System)
+
+4.1. Ghi chỉ số Điện/Nước
+Nhập chỉ số cũ và chỉ số mới theo tháng
+Lưu trữ lịch sử sử dụng
+4.2. Quản lý Hóa đơn
+Tự động tính tổng tiền:
+Tiền phòng
+Tiền điện
+Tiền nước
+Phí dịch vụ
+Xuất hóa đơn
+Gửi link hóa đơn online cho khách thuê
+Quản lý trạng thái:
+Chưa thanh toán
+Đã thanh toán
+Quá hạn
+4.3. Quản lý Thanh toán
+Ghi nhận lịch sử thanh toán:
+Tiền mặt
+Chuyển khoản
+Tích hợp thanh toán online (VNPay – đang triển khai)
+5. Vận hành & Tương tác
+
+(Operations & Interaction)
+
+Các chức năng hỗ trợ giao tiếp và vận hành hệ thống:
+
+Quản lý sự cố (đang phát triển):
+Người thuê báo lỗi/hư hỏng
+Chủ trọ tiếp nhận và xử lý
+Hệ thống thông báo (đang phát triển):
+Nhắc nhở thanh toán
+Thông báo hệ thống
+Lịch hẹn xem phòng:
+Người thuê đăng ký
+Chủ trọ duyệt lịch
+6. Thống kê & Báo cáo
+
+(Dashboard & Reports)
+
+6.1. Dashboard
+Tổng quan:
+Số lượng phòng
+Số lượng khách thuê
+Doanh thu tạm tính
+6.2. Báo cáo nâng cao (đang phát triển)
+Thống kê doanh thu theo tháng/năm
+Báo cáo công nợ
+Tỷ lệ lấp đầy phòng
+7. Tiện ích Hệ thống
+
+(System Utilities)
+
+Quản lý Media:
+Upload và lưu trữ hình ảnh (CCCD, phòng trọ)
+Sử dụng Cloudinary
+Cài đặt hệ thống:
+Cấu hình giá dịch vụ
+Thông tin chủ trọ
