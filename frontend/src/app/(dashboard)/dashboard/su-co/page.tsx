@@ -485,7 +485,7 @@ export default function SuCoPage() {
         <div className="space-y-3">
           {filteredSuCo.map((suCo) => {
             const phongInfo = typeof suCo.phong === 'object' ? suCo.phong : phongList.find(p => p._id === suCo.phong);
-            const khachThueInfo = typeof suCo.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao : khachThueList.find(k => k._id === suCo.nguoiBaoCao);
+            const khachThueInfo = typeof suCo.khachThue === 'object' ? suCo.khachThue : khachThueList.find(k => k._id === suCo.khachThue);
             
             return (
               <Card key={suCo._id} className="p-4">
@@ -658,17 +658,20 @@ function SuCoForm({
     
     // Tìm thông tin phòng được chọn
     const phong = phongList.find(p => p._id === phongId);
-    setSelectedPhong(phong);
+    setSelectedPhong(phong || null);
     
     if (phong) {
       // Tìm hợp đồng đang hoạt động cho phòng này
       const hopDongHoatDong = hopDongList.find(hd => 
-        hd.phong._id === phongId && hd.trangThai === 'hoatDong'
+        (typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong) === phongId && hd.trangThai === 'hoatDong'
       );
       
       if (hopDongHoatDong && hopDongHoatDong.nguoiDaiDien) {
         // Lấy người đại diện làm khách thuê chính
-        setFormData(prev => ({ ...prev, khachThue: hopDongHoatDong.nguoiDaiDien._id || hopDongHoatDong.nguoiDaiDien }));
+        const nguoiDaiDienId = typeof hopDongHoatDong.nguoiDaiDien === 'object' 
+          ? (hopDongHoatDong.nguoiDaiDien as any)._id 
+          : hopDongHoatDong.nguoiDaiDien;
+        setFormData(prev => ({ ...prev, khachThue: nguoiDaiDienId }));
       } else {
         // Nếu không tìm thấy hợp đồng hoạt động, reset khách thuê
         setFormData(prev => ({ ...prev, khachThue: '' }));

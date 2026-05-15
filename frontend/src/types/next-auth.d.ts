@@ -1,32 +1,36 @@
+import 'next-auth';
+import { DefaultSession } from 'next-auth';
+
 declare module 'next-auth' {
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
   interface Session {
-    accessToken?: string;
     user: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-      phone: string;
+      /** The user's postal address. */
+      id?: string;
+      role?: string;
+      phone?: string;
       avatar?: string;
-    };
+    } & DefaultSession['user'];
+    accessToken?: unknown;
   }
 
   interface User {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    phone: string;
+    id?: string;
+    role?: string;
+    phone?: string;
     avatar?: string;
-    accessToken?: string;
+    accessToken?: unknown;
   }
 }
 
 declare module 'next-auth/jwt' {
+  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT {
-    role: string;
-    phone: string;
+    role?: string;
+    phone?: string;
     avatar?: string;
-    accessToken?: string;
+    accessToken?: unknown;
   }
 }
