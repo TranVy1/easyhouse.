@@ -21,4 +21,7 @@ public interface KhachThueRepository extends JpaRepository<KhachThue, UUID> {
 
     @Query("SELECT kt FROM KhachThue kt LEFT JOIN FETCH kt.nguoiDung WHERE kt.id = :id AND kt.xoaLuc IS NULL")
     Optional<KhachThue> findByIdWithNguoiDung(UUID id);
+
+    @Query("SELECT kt FROM KhachThue kt LEFT JOIN FETCH kt.nguoiDung WHERE kt.id IN :ids AND kt.xoaLuc IS NULL")
+    List<KhachThue> findAllByIdInWithNguoiDung(List<UUID> ids);
 }

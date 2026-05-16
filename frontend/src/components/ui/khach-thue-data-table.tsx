@@ -151,9 +151,13 @@ export const columns = (
       
       return (
         <div className="text-sm">
-          <div className="font-medium">{hopDong.phong.maPhong}</div>
-          <div className="text-gray-500 text-xs">
+          <div className="font-medium text-blue-600">
             {hopDong.phong.toaNha?.tenToaNha || 'N/A'}
+          </div>
+          <div className="text-gray-600 text-xs flex items-center gap-1">
+            <span>Tầng {hopDong.phong.tang || '?' }</span>
+            <span>•</span>
+            <span className="font-semibold text-gray-900">{hopDong.phong.maPhong}</span>
           </div>
         </div>
       );

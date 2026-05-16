@@ -266,20 +266,14 @@ const createColumns = (props: KhachThueTableProps): ColumnDef<KhachThue>[] => [
       const toaNha = phong.toaNha;
       
       return (
-        <div className="min-w-32">
-          <div className="flex items-center gap-2 mb-1">
-            <Home className="h-4 w-4 text-green-600" />
-            <div>
-              <div className="text-sm font-medium">
-                {phong.maPhong}
-              </div>
-              {toaNha && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Building2 className="h-3 w-3" />
-                  {toaNha.tenToaNha}
-                </div>
-              )}
-            </div>
+        <div className="text-sm">
+          <div className="font-medium text-blue-600">
+            {toaNha?.tenToaNha || 'N/A'}
+          </div>
+          <div className="text-gray-600 text-xs flex items-center gap-1">
+            <span>Tầng {phong.tang || '?' }</span>
+            <span>•</span>
+            <span className="font-semibold text-gray-900">{phong.maPhong}</span>
           </div>
         </div>
       );

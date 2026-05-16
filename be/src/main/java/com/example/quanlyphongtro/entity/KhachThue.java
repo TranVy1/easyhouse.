@@ -42,6 +42,12 @@ public class KhachThue {
     @Column(name = "nghe_nghiep", length = 255)
     private String ngheNghiep;
 
+    @Column(name = "anh_cccd_truoc", columnDefinition = "TEXT")
+    private String anhCccdTruoc;
+
+    @Column(name = "anh_cccd_sau", columnDefinition = "TEXT")
+    private String anhCccdSau;
+
     @CreationTimestamp
     @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;

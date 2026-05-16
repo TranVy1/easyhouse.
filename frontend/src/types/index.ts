@@ -101,6 +101,7 @@ export interface KhachThue {
     phong: {
       _id: string;
       maPhong: string;
+      tang?: number;
       toaNha: {
         _id: string;
         tenToaNha: string;

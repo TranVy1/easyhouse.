@@ -31,6 +31,43 @@ public class KhachThueResponse {
     @JsonProperty("queQuan")
     private String diaChiThuongTru;
     private String ngheNghiep;
+    private AnhCCCDResponse anhCCCD;
+
+    @JsonProperty("hopDongHienTai")
+    private CurrentContractResponse hopDongHienTai;
+
+    @Data
+    @Builder
+    public static class CurrentContractResponse {
+        @JsonProperty("_id")
+        private UUID id;
+        private PhongInfo phong;
+    }
+
+    @Data
+    @Builder
+    public static class PhongInfo {
+        @JsonProperty("_id")
+        private UUID id;
+        private String maPhong;
+        private Integer tang;
+        private ToaNhaInfo toaNha;
+    }
+
+    @Data
+    @Builder
+    public static class ToaNhaInfo {
+        @JsonProperty("_id")
+        private UUID id;
+        private String tenToaNha;
+    }
+
+    @Data
+    @Builder
+    public static class AnhCCCDResponse {
+        private String matTruoc;
+        private String matSau;
+    }
 
     // Trạng thái (tính toán từ hợp đồng)
     private String trangThai;
@@ -65,6 +102,10 @@ public class KhachThueResponse {
                 .ngaySinh(khachThue.getNgaySinh())
                 .diaChiThuongTru(khachThue.getDiaChiThuongTru())
                 .ngheNghiep(khachThue.getNgheNghiep())
+                .anhCCCD(AnhCCCDResponse.builder()
+                        .matTruoc(khachThue.getAnhCccdTruoc())
+                        .matSau(khachThue.getAnhCccdSau())
+                        .build())
                 // TODO: Tính trangThai từ hợp đồng
                 .trangThai("chuaThue")
                 .taoLuc(taoLucLocal)

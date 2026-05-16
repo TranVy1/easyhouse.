@@ -51,6 +51,10 @@ public class PhongResponse {
     }
 
     public static PhongResponse fromEntity(Phong phong, HopDong activeContract) {
+        return fromEntity(phong, activeContract, null);
+    }
+
+    public static PhongResponse fromEntity(Phong phong, HopDong activeContract, List<com.example.quanlyphongtro.entity.KhachThue> tenants) {
         if (phong == null) return null;
         
         NhaTroResponse nhaTroResp = null;
@@ -100,7 +104,7 @@ public class PhongResponse {
             .tienNghi(phong.getTienNghi())
             .taoLuc(taoLucLocal)
             .capNhatLuc(capNhatLucLocal)
-            .hopDongHienTai(activeContract != null ? HopDongResponse.fromEntity(activeContract, null) : null)
+            .hopDongHienTai(activeContract != null ? HopDongResponse.fromEntity(activeContract, tenants) : null)
             .build();
     }
 }

@@ -28,6 +28,7 @@ public class PhongController {
 
     private final PhongService phongService;
     private final HopDongRepository hopDongRepository;
+    private final com.example.quanlyphongtro.repository.KhachThueRepository khachThueRepository;
 
     @GetMapping
     public ApiResponse<List<PhongResponse>> getAll(
@@ -39,7 +40,13 @@ public class PhongController {
             .map(phong -> {
                 HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
                         phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
-                return PhongResponse.fromEntity(phong, activeContract);
+                
+                List<com.example.quanlyphongtro.entity.KhachThue> tenants = null;
+                if (activeContract != null && activeContract.getKhachThueIds() != null && !activeContract.getKhachThueIds().isEmpty()) {
+                    tenants = khachThueRepository.findAllByIdInWithNguoiDung(activeContract.getKhachThueIds());
+                }
+                
+                return PhongResponse.fromEntity(phong, activeContract, tenants);
             })
             .collect(Collectors.toList());
         
@@ -52,7 +59,13 @@ public class PhongController {
             Phong phong = phongService.getPhongById(id);
             HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
                     phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
-            return ApiResponse.success(PhongResponse.fromEntity(phong, activeContract));
+            
+            List<com.example.quanlyphongtro.entity.KhachThue> tenants = null;
+            if (activeContract != null && activeContract.getKhachThueIds() != null && !activeContract.getKhachThueIds().isEmpty()) {
+                tenants = khachThueRepository.findAllByIdInWithNguoiDung(activeContract.getKhachThueIds());
+            }
+            
+            return ApiResponse.success(PhongResponse.fromEntity(phong, activeContract, tenants));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

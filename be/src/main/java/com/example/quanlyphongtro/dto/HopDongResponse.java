@@ -24,8 +24,10 @@ public class HopDongResponse {
     private UUID id;
     private String maHopDong;
     private PhongResponse phong;
+    @JsonProperty("khachThueId")
     private List<KhachThueResponse> khachThue;
-    private List<UUID> khachThueId;
+    @JsonProperty("khachThueIds")
+    private List<UUID> khachThueIds;
     private KhachThueResponse nguoiDaiDien;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
@@ -77,7 +79,7 @@ public class HopDongResponse {
                 .maHopDong(hopDong.getMaHopDong())
                 .phong(PhongResponse.fromEntity(hopDong.getPhong()))
                 .khachThue(khachThueList)
-                .khachThueId(hopDong.getKhachThueIds())
+                .khachThueIds(hopDong.getKhachThueIds())
                 .nguoiDaiDien(KhachThueResponse.fromEntity(hopDong.getNguoiDaiDien()))
                 .ngayBatDau(hopDong.getNgayBatDau())
                 .ngayKetThuc(hopDong.getNgayKetThuc())

@@ -1,6 +1,7 @@
 package com.example.quanlyphongtro.dto;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -12,9 +13,11 @@ public class KhachThueRequest {
     private String soDienThoai;
     private String gioiTinh;
     private String matKhau;
+    @JsonProperty("cccd")
     private String soCccd;
     private String lienHeKhanCap;
     private LocalDate ngaySinh;
+    @JsonProperty("queQuan")
     private String diaChiThuongTru;
     private String ngheNghiep;
 
