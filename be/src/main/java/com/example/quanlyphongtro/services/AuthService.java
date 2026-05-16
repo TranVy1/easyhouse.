@@ -49,7 +49,7 @@ public class AuthService {
                 .email(request.getEmail().toLowerCase())
                 .matKhau(passwordEncoder.encode(request.getMatKhau()))
                 .soDienThoai(request.getSoDienThoai())
-            .trangThai(TrangThaiNguoiDung.INACTIVE)
+                .trangThai(TrangThaiNguoiDung.INACTIVE)
                 .build();
 
         // Gán vai trò (Mặc định hoặc theo request)
@@ -118,6 +118,32 @@ public class AuthService {
         return "Xác thực email thành công. Bạn có thể đăng nhập ngay.";
     }
 
+    public void forgotPassword(String email) {
+        NguoiDung user = nguoiDungRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email này."));
+
+        // Tạo mật khẩu ngẫu nhiên 8 ký tự
+        String newPassword = generateRandomPassword(8);
+        user.setMatKhau(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        try {
+            emailService.sendNewPassword(user.getEmail(), user.getHoTen(), newPassword);
+        } catch (MailException e) {
+            throw new RuntimeException("Không thể gửi email chứa mật khẩu mới: " + e.getMessage());
+        }
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
     private void sendVerificationEmail(NguoiDung user, String rawPassword) {
         emailVerificationTokenRepository.deleteByNguoiDungId(user.getId());
 
@@ -137,8 +163,7 @@ public class AuthService {
                     user.getHoTen(),
                     user.getEmail(),
                     rawPassword,
-                    verifyUrl
-            );
+                    verifyUrl);
         } catch (MailException e) {
             throw new RuntimeException("Không thể gửi email xác thực. Vui lòng kiểm tra cấu hình SMTP và thử lại.");
         }

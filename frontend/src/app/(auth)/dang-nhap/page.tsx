@@ -14,6 +14,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
+
 const loginSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
   matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
@@ -23,8 +34,11 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotPassLoading, setIsForgotPassLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPassEmail, setForgotPassEmail] = useState('');
+  const [isForgotPassOpen, setIsForgotPassOpen] = useState(false);
   const router = useRouter();
 
   const {
@@ -49,13 +63,42 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Email hoặc mật khẩu không đúng');
       } else {
-        // Redirect tất cả user về dashboard
         router.push('/dashboard');
       }
     } catch {
       setError('Đã xảy ra lỗi, vui lòng thử lại');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPassEmail) {
+      toast.error('Vui lòng nhập email');
+      return;
+    }
+
+    setIsForgotPassLoading(true);
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotPassEmail }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Mật khẩu mới đã được gửi vào email của bạn');
+        setIsForgotPassOpen(false);
+        setForgotPassEmail('');
+      } else {
+        toast.error(data.message || 'Đã có lỗi xảy ra');
+      }
+    } catch {
+      toast.error('Đã có lỗi xảy ra, vui lòng thử lại sau');
+    } finally {
+      setIsForgotPassLoading(false);
     }
   };
 
@@ -68,7 +111,6 @@ export default function LoginPage() {
 
       <div className="w-full max-w-[450px] z-10">
         <div className="text-center mb-8">
-         
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Chào mừng bạn đến với EasyHouse!</h1>
         </div>
 
@@ -109,7 +151,47 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
                   <Label htmlFor="matKhau" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mật khẩu</Label>
-                  <Link href="#" className="text-xs font-medium text-blue-600 hover:text-blue-500">Quên mật khẩu?</Link>
+                  
+                  <Dialog open={isForgotPassOpen} onOpenChange={setIsForgotPassOpen}>
+                    <DialogTrigger asChild>
+                      <button type="button" className="text-xs font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        Quên mật khẩu?
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Quên mật khẩu</DialogTitle>
+                        <DialogDescription>
+                          Nhập email của bạn để nhận mật khẩu mới.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleForgotPassSubmit} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="forgot-email">Email tài khoản</Label>
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="your-email@example.com"
+                            value={forgotPassEmail}
+                            onChange={(e) => setForgotPassEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit" disabled={isForgotPassLoading} className="w-full">
+                            {isForgotPassLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Đang xử lý...
+                              </>
+                            ) : (
+                              'Gửi mật khẩu mới'
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <div className="relative">
                   <Input
@@ -124,11 +206,7 @@ export default function LoginPage() {
                     className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.matKhau && (

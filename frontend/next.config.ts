@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
         destination: 'http://localhost:8080/api/auth/register'
       },
       {
+        source: '/api/auth/forgot-password',
+        destination: 'http://localhost:8080/api/auth/forgot-password'
+      },
+      {
         source: '/api/phong',
         destination: 'http://localhost:8080/api/phong'
       },

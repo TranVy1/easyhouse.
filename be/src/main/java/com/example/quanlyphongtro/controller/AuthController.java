@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.AuthResponse;
 import com.example.quanlyphongtro.dto.LoginRequest;
+import com.example.quanlyphongtro.dto.ForgotPasswordRequest;
 import com.example.quanlyphongtro.dto.RegisterRequest;
 import com.example.quanlyphongtro.services.AuthService;
 import jakarta.validation.Valid;
@@ -46,6 +47,16 @@ public class AuthController {
         try {
             String message = authService.verifyEmail(token);
             return ApiResponse.success(message, message);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request.getEmail());
+            return ApiResponse.success(null, "Mật khẩu mới đã được gửi vào email của bạn.");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
