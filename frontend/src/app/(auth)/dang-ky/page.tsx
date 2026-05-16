@@ -20,7 +20,7 @@ const registerSchema = z.object({
   matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   xacNhanMatKhau: z.string(),
   soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
-  vaiTro: z.enum(['chuNha', 'nhanVien'], {
+  vaiTro: z.enum(['chuNha', 'nhanVien', 'TENANT'], {
     error: 'Vui lòng chọn vai trò',
   }),
 }).refine((data) => data.matKhau === data.xacNhanMatKhau, {
@@ -45,6 +45,9 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      vaiTro: 'TENANT',
+    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -85,188 +88,181 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 py-6 md:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(14,165,233,0.2),transparent_42%),radial-gradient(circle_at_85%_20%,rgba(34,197,94,0.22),transparent_44%),radial-gradient(circle_at_55%_80%,rgba(250,204,21,0.14),transparent_38%)]" />
-      <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl" />
-      <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-slate-950 px-4 py-12 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-emerald-500/5 blur-[120px]" />
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-md w-full space-y-6 md:space-y-8">
-        <div className="text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-            <Sparkles className="h-3 w-3" />
-            Tài khoản mới
+      <div className="w-full max-w-[650px] z-10">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6 border border-blue-100 dark:border-blue-800">
+            <Sparkles className="h-3.5 w-3.5" />
+            Khởi đầu mới cùng EasyHouse
           </div>
-          <h2 className="mt-2 text-2xl md:text-3xl font-bold text-white">
-            Đăng ký tài khoản
-          </h2>
-          <p className="mt-2 text-xs md:text-sm text-slate-200">
-            Quản lý phòng trọ
-          </p>
-        </div>
+          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Tham gia EasyHouse</h1>
         
-        <Card className="border-white/20 bg-white/95 shadow-2xl backdrop-blur-sm">
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-lg md:text-xl">Đăng ký</CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Tạo tài khoản mới để sử dụng hệ thống
-            </CardDescription>
+        </div>
+
+        <Card className="border-none shadow-2xl shadow-slate-200/60 dark:shadow-none dark:bg-slate-900/50 dark:backdrop-blur-xl overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-indigo-600" />
+          <CardHeader className="space-y-3 p-8 pb-2 text-center">
+            <div className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
+                Đăng Ký
+              </CardTitle>
+              <CardDescription className="text-base font-medium text-slate-500 dark:text-slate-400">
+                Tạo tài khoản mới trên EasyHouse
+              </CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 md:space-y-4">
+          <CardContent className="p-8 pt-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                  <AlertDescription className="text-red-800 dark:text-red-400 font-medium">{error}</AlertDescription>
                 </Alert>
               )}
 
               {success && (
-                <Alert className="border-green-300 bg-green-50 text-green-700">
-                  <MailCheck className="h-4 w-4" />
-                  <AlertDescription>{success}</AlertDescription>
+                <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400">
+                  <MailCheck className="h-5 w-5 mr-3" />
+                  <AlertDescription className="font-medium">{success}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="ten" className="text-xs md:text-sm">Họ và tên</Label>
-                <Input
-                  id="ten"
-                  placeholder="Nhập họ và tên"
-                  {...register('ten')}
-                  className={`text-sm ${errors.ten ? 'border-red-500' : ''}`}
-                />
-                {errors.ten && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.ten.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs md:text-sm">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Nhập email"
-                  {...register('email')}
-                  className={`text-sm ${errors.email ? 'border-red-500' : ''}`}
-                />
-                {errors.email && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.email.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="soDienThoai" className="text-xs md:text-sm">Số điện thoại</Label>
-                <Input
-                  id="soDienThoai"
-                  placeholder="Nhập số điện thoại"
-                  {...register('soDienThoai')}
-                  className={`text-sm ${errors.soDienThoai ? 'border-red-500' : ''}`}
-                />
-                {errors.soDienThoai && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.soDienThoai.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="vaiTro" className="text-xs md:text-sm">Vai trò</Label>
-                <Select onValueChange={(value) => setValue('vaiTro', value as 'chuNha' | 'nhanVien')}>
-                  <SelectTrigger className={`text-sm ${errors.vaiTro ? 'border-red-500' : ''}`}>
-                    <SelectValue placeholder="Chọn vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="chuNha" className="text-sm">Chủ nhà</SelectItem>
-                    <SelectItem value="nhanVien" className="text-sm">Nhân viên</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.vaiTro && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.vaiTro.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="matKhau" className="text-xs md:text-sm">Mật khẩu</Label>
-                <div className="relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Họ tên */}
+                <div className="space-y-2">
+                  <Label htmlFor="ten" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Họ và tên</Label>
                   <Input
-                    id="matKhau"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Nhập mật khẩu"
-                    {...register('matKhau')}
-                    className={`text-sm ${errors.matKhau ? 'border-red-500 pr-10' : 'pr-10'}`}
+                    id="ten"
+                    placeholder="Nguyễn Văn A"
+                    {...register('ten')}
+                    className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.ten ? 'border-red-500' : ''}`}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                    ) : (
-                      <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                    )}
-                  </Button>
+                  {errors.ten && (
+                    <p className="text-xs text-red-500 font-medium ml-1">{errors.ten.message}</p>
+                  )}
                 </div>
-                {errors.matKhau && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.matKhau.message}</p>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="xacNhanMatKhau" className="text-xs md:text-sm">Xác nhận mật khẩu</Label>
-                <div className="relative">
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email</Label>
                   <Input
-                    id="xacNhanMatKhau"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Nhập lại mật khẩu"
-                    {...register('xacNhanMatKhau')}
-                    className={`text-sm ${errors.xacNhanMatKhau ? 'border-red-500 pr-10' : 'pr-10'}`}
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    {...register('email')}
+                    className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                    ) : (
-                      <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                    )}
-                  </Button>
+                  {errors.email && (
+                    <p className="text-xs text-red-500 font-medium ml-1">{errors.email.message}</p>
+                  )}
                 </div>
-                {errors.xacNhanMatKhau && (
-                  <p className="text-xs md:text-sm text-red-500">{errors.xacNhanMatKhau.message}</p>
-                )}
+
+                {/* Số điện thoại */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="soDienThoai" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Số điện thoại</Label>
+                  <Input
+                    id="soDienThoai"
+                    placeholder="0912345678"
+                    {...register('soDienThoai')}
+                    className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.soDienThoai ? 'border-red-500' : ''}`}
+                  />
+                  {errors.soDienThoai && (
+                    <p className="text-xs text-red-500 font-medium ml-1">{errors.soDienThoai.message}</p>
+                  )}
+                </div>
+
+                {/* Mật khẩu */}
+                <div className="space-y-2">
+                  <Label htmlFor="matKhau" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Mật khẩu</Label>
+                  <div className="relative">
+                    <Input
+                      id="matKhau"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      {...register('matKhau')}
+                      className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {errors.matKhau && (
+                    <p className="text-xs text-red-500 font-medium ml-1">{errors.matKhau.message}</p>
+                  )}
+                </div>
+
+                {/* Xác nhận mật khẩu */}
+                <div className="space-y-2">
+                  <Label htmlFor="xacNhanMatKhau" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Xác nhận mật khẩu</Label>
+                  <div className="relative">
+                    <Input
+                      id="xacNhanMatKhau"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      {...register('xacNhanMatKhau')}
+                      className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.xacNhanMatKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {errors.xacNhanMatKhau && (
+                    <p className="text-xs text-red-500 font-medium ml-1">{errors.xacNhanMatKhau.message}</p>
+                  )}
+                </div>
               </div>
 
-              <Button
-                type="submit"
-                size="sm"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang đăng ký...
-                  </>
-                ) : (
-                  'Đăng ký'
-                )}
-              </Button>
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-bold bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Đang xử lý đăng ký...
+                    </>
+                  ) : (
+                    'Tạo tài khoản ngay'
+                  )}
+                </Button>
+              </div>
             </form>
 
-            <div className="mt-4 md:mt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">
-                Đã có tài khoản?{' '}
-                <Link href="/dang-nhap" className="font-medium text-blue-600 hover:text-blue-500">
-                  Đăng nhập ngay
-                </Link>
-              </p>
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200 dark:border-slate-800"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-[#0f172a] px-4 text-slate-500 dark:text-slate-400 font-medium">Bạn đã có tài khoản?</span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Link href="/dang-nhap" className="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-500 transition-colors">
+                Quay lại đăng nhập
+              </Link>
             </div>
           </CardContent>
         </Card>
+
+        <p className="mt-8 text-center text-xs text-slate-400">
+          Bằng cách đăng ký, bạn đồng ý với Điều khoản & Chính sách bảo mật của chúng tôi.
+        </p>
       </div>
     </div>
   );

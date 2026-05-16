@@ -45,6 +45,12 @@ public class NguoiDung {
     @Column(name = "gioi_tinh", length = 10)
     private String gioiTinh;
 
+    @Column(name = "que_quan", length = 255)
+    private String queQuan;
+
+    @Column(name = "dia_chi", columnDefinition = "TEXT")
+    private String diaChi;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai")
     private TrangThaiNguoiDung trangThai = TrangThaiNguoiDung.ACTIVE;

@@ -172,199 +172,203 @@ export default function CaiDatPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 pb-10">
       {/* Header */}
-      <div>
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Cài đặt giao diện</h1>
-        <p className="text-xs md:text-sm text-gray-600">Tùy chỉnh font chữ và giao diện hiển thị</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900">Cài đặt hệ thống</h1>
+          <p className="text-xs md:text-sm text-slate-600">Tùy chỉnh font chữ, màu sắc và mật độ hiển thị</p>
+        </div>
+        <div className="p-2 bg-slate-100 rounded-full">
+          <Settings className="h-6 w-6 text-slate-500 animate-spin-slow" />
+        </div>
       </div>
 
-      {/* Font Settings */}
-          <Card>
-            <CardHeader className="p-4 md:p-6">
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <Type className="h-4 w-4 md:h-5 md:w-5" />
-            Cài đặt Font chữ
-          </CardTitle>
-              <CardDescription className="text-xs md:text-sm">
-            Tùy chỉnh font chữ và kích thước hiển thị cho giao diện
-              </CardDescription>
-            </CardHeader>
-        <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {/* Font Family */}
-                <div className="space-y-2">
-              <Label htmlFor="fontFamily" className="text-xs md:text-sm">Font chữ</Label>
-              <Select 
-                value={fontSettings.fontFamily} 
-                onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontFamily: value }))}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Inter" className="text-sm">Inter</SelectItem>
-                  <SelectItem value="Roboto" className="text-sm">Roboto</SelectItem>
-                  <SelectItem value="Open Sans" className="text-sm">Open Sans</SelectItem>
-                  <SelectItem value="Lato" className="text-sm">Lato</SelectItem>
-                  <SelectItem value="Montserrat" className="text-sm">Montserrat</SelectItem>
-                  <SelectItem value="Poppins" className="text-sm">Poppins</SelectItem>
-                  <SelectItem value="Source Sans Pro" className="text-sm">Source Sans Pro</SelectItem>
-                  <SelectItem value="Nunito" className="text-sm">Nunito</SelectItem>
-                </SelectContent>
-              </Select>
+      <div className="grid grid-cols-1 gap-6">
+        {/* Font Settings */}
+        <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+            <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-800">
+              <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                <Type className="h-5 w-5" />
+              </div>
+              Cấu hình Font chữ
+            </CardTitle>
+            <CardDescription>
+              Tùy chỉnh kiểu chữ và kích thước để tối ưu trải nghiệm đọc
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 md:p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Font Family */}
+              <div className="space-y-3">
+                <Label htmlFor="fontFamily" className="text-sm font-semibold text-slate-700">Font chữ hệ thống</Label>
+                <Select 
+                  value={fontSettings.fontFamily} 
+                  onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontFamily: value }))}
+                >
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito'].map(font => (
+                      <SelectItem key={font} value={font}>{font}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-            {/* Font Size */}
-                <div className="space-y-2">
-              <Label htmlFor="fontSize" className="text-xs md:text-sm">Cỡ chữ</Label>
-              <Select 
-                value={fontSettings.fontSize} 
-                onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontSize: value }))}
-              >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                  <SelectItem value="small" className="text-sm">Nhỏ</SelectItem>
-                  <SelectItem value="medium" className="text-sm">Trung bình</SelectItem>
-                  <SelectItem value="large" className="text-sm">Lớn</SelectItem>
-                  <SelectItem value="extra-large" className="text-sm">Rất lớn</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Font Size */}
+              <div className="space-y-3">
+                <Label htmlFor="fontSize" className="text-sm font-semibold text-slate-700">Kích thước hiển thị</Label>
+                <Select 
+                  value={fontSettings.fontSize} 
+                  onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontSize: value }))}
+                >
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Nhỏ (14px)</SelectItem>
+                    <SelectItem value="medium">Bình thường (16px)</SelectItem>
+                    <SelectItem value="large">Lớn (18px)</SelectItem>
+                    <SelectItem value="extra-large">Rất lớn (20px)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {/* Line Height */}
-              <div className="space-y-2">
-              <Label htmlFor="lineHeight" className="text-xs md:text-sm">Khoảng cách dòng</Label>
-              <Select 
-                value={fontSettings.lineHeight} 
-                onValueChange={(value) => setFontSettings(prev => ({ ...prev, lineHeight: value }))}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tight" className="text-sm">Chặt</SelectItem>
-                  <SelectItem value="normal" className="text-sm">Bình thường</SelectItem>
-                  <SelectItem value="relaxed" className="text-sm">Thoải mái</SelectItem>
-                  <SelectItem value="loose" className="text-sm">Rộng rãi</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Line Height */}
+              <div className="space-y-3">
+                <Label htmlFor="lineHeight" className="text-sm font-semibold text-slate-700">Khoảng cách dòng</Label>
+                <Select 
+                  value={fontSettings.lineHeight} 
+                  onValueChange={(value) => setFontSettings(prev => ({ ...prev, lineHeight: value }))}
+                >
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tight">Chặt chẽ</SelectItem>
+                    <SelectItem value="normal">Mặc định</SelectItem>
+                    <SelectItem value="relaxed">Thoải mái</SelectItem>
+                    <SelectItem value="loose">Rộng rãi</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-            {/* Font Weight */}
-              <div className="space-y-2">
-              <Label htmlFor="fontWeight" className="text-xs md:text-sm">Độ đậm chữ</Label>
-              <Select 
-                value={fontSettings.fontWeight} 
-                onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontWeight: value }))}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light" className="text-sm">Nhạt</SelectItem>
-                  <SelectItem value="normal" className="text-sm">Bình thường</SelectItem>
-                  <SelectItem value="medium" className="text-sm">Vừa</SelectItem>
-                  <SelectItem value="semibold" className="text-sm">Đậm vừa</SelectItem>
-                  <SelectItem value="bold" className="text-sm">Đậm</SelectItem>
-                </SelectContent>
-              </Select>
-                </div>
+              {/* Font Weight */}
+              <div className="space-y-3">
+                <Label htmlFor="fontWeight" className="text-sm font-semibold text-slate-700">Độ đậm của chữ</Label>
+                <Select 
+                  value={fontSettings.fontWeight} 
+                  onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontWeight: value }))}
+                >
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Mỏng</SelectItem>
+                    <SelectItem value="normal">Bình thường</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="semibold">Đậm vừa</SelectItem>
+                    <SelectItem value="bold">Rất đậm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Preview Section */}
+            <div className="space-y-3 pt-4">
+              <Label className="text-sm font-semibold text-slate-700">Bản xem trước trực tiếp</Label>
+              <div className="p-6 md:p-8 rounded-2xl bg-slate-900 text-slate-100 shadow-inner border border-slate-800">
+                <p 
+                  style={{
+                    fontFamily: fontSettings.fontFamily,
+                    fontSize: fontSettings.fontSize === 'small' ? '14px' : 
+                             fontSettings.fontSize === 'medium' ? '16px' :
+                             fontSettings.fontSize === 'large' ? '18px' : '20px',
+                    lineHeight: fontSettings.lineHeight === 'tight' ? '1.2' :
+                               fontSettings.lineHeight === 'normal' ? '1.5' :
+                               fontSettings.lineHeight === 'relaxed' ? '1.75' : '2',
+                    fontWeight: fontSettings.fontWeight === 'light' ? '300' :
+                               fontSettings.fontWeight === 'normal' ? '400' :
+                               fontSettings.fontWeight === 'medium' ? '500' :
+                               fontSettings.fontWeight === 'semibold' ? '600' : '700'
+                  }}
+                  className="transition-all duration-300"
+                >
+                  "Giao diện người dùng tuyệt vời không chỉ ở vẻ ngoài, mà còn ở cách nó hoạt động và cảm giác mà nó mang lại." 
+                  Hệ thống quản lý phòng trọ chuyên nghiệp - Nâng tầm trải nghiệm quản lý của bạn.
+                </p>
+              </div>
+            </div>
+
+            <Button onClick={handleSaveFontSettings} size="lg" className="w-full h-12 shadow-lg shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 transition-all">
+              <Save className="h-5 w-5 mr-2" />
+              Lưu thay đổi kiểu chữ
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* UI Settings */}
+        <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+            <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-800">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                <Monitor className="h-5 w-5" />
+              </div>
+              Giao diện & Trải nghiệm
+            </CardTitle>
+            <CardDescription>
+              Tùy chỉnh chủ đề và mật độ hiển thị của các thành phần UI
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 md:p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <Label htmlFor="theme" className="text-sm font-semibold text-slate-700">Chế độ hiển thị (Theme)</Label>
+                <Select value={uiSettings.theme} onValueChange={handleThemeChange}>
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-purple-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">🌞 Chế độ Sáng</SelectItem>
+                    <SelectItem value="dark">🌙 Chế độ Tối</SelectItem>
+                    <SelectItem value="auto">🖥️ Theo hệ thống</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-          {/* Preview */}
-              <div className="space-y-2">
-            <Label className="text-xs md:text-sm">Xem trước</Label>
-            <div className="p-3 md:p-4 border rounded-lg bg-gray-50">
-              <p 
-                className="text-gray-900 text-xs md:text-sm"
-                style={{
-                  fontFamily: fontSettings.fontFamily,
-                  fontSize: fontSettings.fontSize === 'small' ? '14px' : 
-                           fontSettings.fontSize === 'medium' ? '16px' :
-                           fontSettings.fontSize === 'large' ? '18px' : '20px',
-                  lineHeight: fontSettings.lineHeight === 'tight' ? '1.2' :
-                             fontSettings.lineHeight === 'normal' ? '1.5' :
-                             fontSettings.lineHeight === 'relaxed' ? '1.75' : '2',
-                  fontWeight: fontSettings.fontWeight === 'light' ? '300' :
-                             fontSettings.fontWeight === 'normal' ? '400' :
-                             fontSettings.fontWeight === 'medium' ? '500' :
-                             fontSettings.fontWeight === 'semibold' ? '600' : '700'
-                }}
-              >
-                Đây là văn bản mẫu để bạn có thể xem trước cách hiển thị font chữ và cỡ chữ đã chọn. 
-                Hệ thống quản lý phòng trọ của chúng tôi cung cấp giao diện thân thiện và dễ sử dụng.
-              </p>
-                </div>
+              <div className="space-y-3">
+                <Label htmlFor="density" className="text-sm font-semibold text-slate-700">Mật độ hiển thị (Density)</Label>
+                <Select value={uiSettings.density} onValueChange={handleDensityChange}>
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-purple-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compact">Chặt chẽ (Gọn gàng)</SelectItem>
+                    <SelectItem value="comfortable">Thoải mái (Mặc định)</SelectItem>
+                    <SelectItem value="spacious">Rộng rãi (Nhiều khoảng trắng)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
 
-          <Button onClick={handleSaveFontSettings} size="sm" className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-            Lưu cài đặt font chữ
-              </Button>
-            </CardContent>
-          </Card>
-
-      {/* UI Settings */}
-          <Card>
-            <CardHeader className="p-4 md:p-6">
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <Monitor className="h-4 w-4 md:h-5 md:w-5" />
-            Cài đặt giao diện
-          </CardTitle>
-              <CardDescription className="text-xs md:text-sm">
-            Tùy chỉnh giao diện và kích thước hiển thị
-              </CardDescription>
-            </CardHeader>
-        <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-2">
-              <Label htmlFor="theme" className="text-xs md:text-sm">Chủ đề giao diện</Label>
-              <Select value={uiSettings.theme} onValueChange={handleThemeChange}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light" className="text-sm">Sáng</SelectItem>
-                  <SelectItem value="dark" className="text-sm">Tối</SelectItem>
-                  <SelectItem value="auto" className="text-sm">Tự động</SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
-
-              <div className="space-y-2">
-              <Label htmlFor="density" className="text-xs md:text-sm">Mật độ hiển thị</Label>
-              <Select value={uiSettings.density} onValueChange={handleDensityChange}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="compact" className="text-sm">Chật</SelectItem>
-                  <SelectItem value="comfortable" className="text-sm">Thoải mái</SelectItem>
-                  <SelectItem value="spacious" className="text-sm">Rộng rãi</SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
-              </div>
-
-          <Button 
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {
-              localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
-              alert('Đã lưu cài đặt giao diện thành công!');
-            }}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Lưu cài đặt giao diện
-              </Button>
-            </CardContent>
-          </Card>
+            <Button 
+              variant="outline"
+              size="lg"
+              className="w-full h-12 border-slate-200 hover:bg-slate-50 text-slate-700 transition-all font-semibold"
+              onClick={() => {
+                localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
+                alert('Đã lưu cài đặt giao diện thành công!');
+              }}
+            >
+              <Save className="h-5 w-5 mr-2" />
+              Lưu cài đặt giao diện
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

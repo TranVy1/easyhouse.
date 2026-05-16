@@ -157,7 +157,7 @@ public class AuthService {
                 .role(primaryRole)
                 .phone(user.getSoDienThoai())
                 .avatar(user.getAnhDaiDien())
-                .token("dummy-jwt-token-for-now")
+                .token(user.getEmail())
                 .build();
     }
 }
