@@ -613,7 +613,7 @@ function SuCoForm({
 }) {
   const [formData, setFormData] = useState({
     phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong || ''),
-    khachThueId: suCo?.khachThue || '',
+    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : suCo?.khachThue) || '',
     tieuDe: suCo?.tieuDe || '',
     moTa: suCo?.moTa || '',
     loaiSuCo: suCo?.loaiSuCo || 'dien_nuoc',

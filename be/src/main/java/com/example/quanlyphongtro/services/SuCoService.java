@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class SuCoService {
     private final SuCoRepository suCoRepository;
     private final PhongRepository phongRepository;
     private final KhachThueRepository khachThueRepository;
+    private final com.example.quanlyphongtro.repository.HopDongRepository hopDongRepository;
 
     public List<SuCoResponse> getAllSuCo() {
         return suCoRepository.findAllWithDetails().stream()
@@ -51,6 +53,12 @@ public class SuCoService {
         if (request.getKhachThueId() != null) {
             khachThue = khachThueRepository.findById(request.getKhachThueId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
+        } else if (phong != null) {
+            // Tự động tìm khách thuê từ hợp đồng đang active của phòng
+            Optional<HopDong> activeHopDong = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(phong.getId(), TrangThaiHopDong.ACTIVE);
+            if (activeHopDong.isPresent()) {
+                khachThue = activeHopDong.get().getNguoiDaiDien();
+            }
         }
 
         // Parse enums
@@ -99,14 +107,28 @@ public class SuCoService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sự cố với id: " + id));
 
         // Update phòng nếu có
+        boolean phongChanged = false;
         if (request.getPhongId() != null) {
+            phongChanged = suCo.getPhong() == null || !suCo.getPhong().getId().equals(request.getPhongId());
             Phong phong = phongRepository.findById(request.getPhongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
             suCo.setPhong(phong);
+            
+            // Nếu đổi phòng hoặc chưa có khách thuê, tự động lấy khách thuê của phòng mới
+            if (phongChanged || suCo.getKhachThue() == null) {
+                Optional<HopDong> activeHopDong = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(phong.getId(), TrangThaiHopDong.ACTIVE);
+                if (activeHopDong.isPresent()) {
+                    suCo.setKhachThue(activeHopDong.get().getNguoiDaiDien());
+                } else {
+                    suCo.setKhachThue(null);
+                }
+            }
         }
 
-        // Update khách thuê nếu có
-        if (request.getKhachThueId() != null) {
+        // Update khách thuê nếu có (ghi đè logic tự động nếu client truyền lên explicitly)
+        // Nhưng nếu phongChanged mà client vẫn gửi khachThueId cũ thì có thể bị sai lệch. 
+        // Ta chỉ ghi đè nếu client gửi một khachThueId khác với khách thuê cũ, hoặc cố tình set.
+        if (request.getKhachThueId() != null && !phongChanged) {
             KhachThue khachThue = khachThueRepository.findById(request.getKhachThueId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
             suCo.setKhachThue(khachThue);
