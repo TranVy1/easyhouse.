@@ -693,18 +693,6 @@ function SuCoForm({
     
     if (phong) {
       // Tìm hợp đồng đang hoạt động cho phòng này
-<<<<<<< HEAD
-      const hopDongHoatDong = hopDongList.find(hd => 
-        (typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong) === phongId && hd.trangThai === 'hoatDong'
-      );
-      
-      if (hopDongHoatDong && hopDongHoatDong.nguoiDaiDien) {
-        // Lấy người đại diện làm khách thuê chính
-        const nguoiDaiDienId = typeof hopDongHoatDong.nguoiDaiDien === 'object' 
-          ? (hopDongHoatDong.nguoiDaiDien as any)._id 
-          : hopDongHoatDong.nguoiDaiDien;
-        setFormData(prev => ({ ...prev, khachThue: nguoiDaiDienId }));
-=======
       const hopDongHoatDong = hopDongList.find(hd => {
         const hdPhongId = typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong;
         return hdPhongId === phongId && hd.trangThai === 'hoatDong';
@@ -715,7 +703,6 @@ function SuCoForm({
           ? (hopDongHoatDong.nguoiDaiDien as any)._id 
           : hopDongHoatDong.nguoiDaiDien;
         setFormData(prev => ({ ...prev, khachThueId: nguoiDaiDienId }));
->>>>>>> su-co-v1
       } else {
         setFormData(prev => ({ ...prev, khachThueId: '' }));
       }
