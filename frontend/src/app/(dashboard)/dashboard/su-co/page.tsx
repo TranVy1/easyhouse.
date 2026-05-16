@@ -60,7 +60,7 @@ export default function SuCoPage() {
     phongList: Phong[];
     khachThueList: KhachThue[];
     hopDongList: HopDong[];
-  }>({ key: 'su-co-data', duration: 300000 });
+  }>({ key: 'su-co-data', duration: 0 }); // Không cache dữ liệu sự cố để đảm bảo cập nhật liên tục
   
   const [suCoList, setSuCoList] = useState<SuCo[]>([]);
   const [phongList, setPhongList] = useState<Phong[]>([]);
@@ -267,6 +267,7 @@ export default function SuCoPage() {
           }
           return suCo;
         }));
+        clearCache(); // Xóa cache để đảm bảo dữ liệu đồng bộ
         toast.success('Cập nhật trạng thái thành công');
       } else {
         console.error('Error updating status:', result.message);
