@@ -147,8 +147,8 @@ export default function SuCoPage() {
   };
 
   const filteredSuCo = suCoList.filter(suCo => {
-    const matchesSearch = suCo.tieuDe.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         suCo.moTa.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = suCo.tieuDe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         suCo.moTa?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || suCo.trangThai === statusFilter;
     const matchesType = typeFilter === 'all' || suCo.loaiSuCo === typeFilter;
     const matchesPriority = priorityFilter === 'all' || suCo.mucDoUuTien === priorityFilter;
@@ -158,13 +158,13 @@ export default function SuCoPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'moi':
+      case 'PENDING':
         return <Badge variant="destructive">Mới</Badge>;
-      case 'dangXuLy':
+      case 'IN_PROGRESS':
         return <Badge variant="secondary">Đang xử lý</Badge>;
-      case 'daXong':
+      case 'RESOLVED':
         return <Badge variant="default">Đã xong</Badge>;
-      case 'daHuy':
+      case 'CANCELLED':
         return <Badge variant="outline">Đã hủy</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
@@ -173,13 +173,13 @@ export default function SuCoPage() {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
-      case 'dienNuoc':
+      case 'dien_nuoc':
         return <Badge variant="secondary">Điện nước</Badge>;
-      case 'noiThat':
+      case 'noi_that':
         return <Badge variant="outline">Nội thất</Badge>;
-      case 'vesinh':
+      case 've_sinh':
         return <Badge variant="outline">Vệ sinh</Badge>;
-      case 'anNinh':
+      case 'an_ninh':
         return <Badge variant="outline">An ninh</Badge>;
       case 'khac':
         return <Badge variant="outline">Khác</Badge>;
@@ -192,11 +192,11 @@ export default function SuCoPage() {
     switch (priority) {
       case 'thap':
         return <Badge variant="outline">Thấp</Badge>;
-      case 'trungBinh':
+      case 'trung_binh':
         return <Badge variant="secondary">Trung bình</Badge>;
       case 'cao':
         return <Badge variant="destructive">Cao</Badge>;
-      case 'khancap':
+      case 'khan_cap':
         return <Badge variant="destructive">Khẩn cấp</Badge>;
       default:
         return <Badge variant="outline">{priority}</Badge>;
@@ -362,7 +362,7 @@ export default function SuCoPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Mới</p>
               <p className="text-base md:text-2xl font-bold text-red-600">
-                {suCoList.filter(s => s.trangThai === 'moi').length}
+                {suCoList.filter(s => s.trangThai === 'PENDING').length}
               </p>
             </div>
             <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
@@ -374,7 +374,7 @@ export default function SuCoPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang xử lý</p>
               <p className="text-base md:text-2xl font-bold text-orange-600">
-                {suCoList.filter(s => s.trangThai === 'dangXuLy').length}
+                {suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length}
               </p>
             </div>
             <Clock className="h-3 w-3 md:h-4 md:w-4 text-orange-600" />
@@ -386,7 +386,7 @@ export default function SuCoPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Đã xong</p>
               <p className="text-base md:text-2xl font-bold text-green-600">
-                {suCoList.filter(s => s.trangThai === 'daXong').length}
+                {suCoList.filter(s => s.trangThai === 'RESOLVED').length}
               </p>
             </div>
             <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
@@ -447,10 +447,10 @@ export default function SuCoPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
-                <SelectItem value="moi" className="text-sm">Mới</SelectItem>
-                <SelectItem value="dangXuLy" className="text-sm">Đang xử lý</SelectItem>
-                <SelectItem value="daXong" className="text-sm">Đã xong</SelectItem>
-                <SelectItem value="daHuy" className="text-sm">Đã hủy</SelectItem>
+                <SelectItem value="PENDING" className="text-sm">Mới</SelectItem>
+                <SelectItem value="IN_PROGRESS" className="text-sm">Đang xử lý</SelectItem>
+                <SelectItem value="RESOLVED" className="text-sm">Đã xong</SelectItem>
+                <SelectItem value="CANCELLED" className="text-sm">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -459,10 +459,10 @@ export default function SuCoPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
-                <SelectItem value="dienNuoc" className="text-sm">Điện nước</SelectItem>
-                <SelectItem value="noiThat" className="text-sm">Nội thất</SelectItem>
-                <SelectItem value="vesinh" className="text-sm">Vệ sinh</SelectItem>
-                <SelectItem value="anNinh" className="text-sm">An ninh</SelectItem>
+                <SelectItem value="dien_nuoc" className="text-sm">Điện nước</SelectItem>
+                <SelectItem value="noi_that" className="text-sm">Nội thất</SelectItem>
+                <SelectItem value="ve_sinh" className="text-sm">Vệ sinh</SelectItem>
+                <SelectItem value="an_ninh" className="text-sm">An ninh</SelectItem>
                 <SelectItem value="khac" className="text-sm">Khác</SelectItem>
               </SelectContent>
             </Select>
@@ -473,9 +473,9 @@ export default function SuCoPage() {
               <SelectContent>
                 <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
                 <SelectItem value="thap" className="text-sm">Thấp</SelectItem>
-                <SelectItem value="trungBinh" className="text-sm">Trung bình</SelectItem>
+                <SelectItem value="trung_binh" className="text-sm">Trung bình</SelectItem>
                 <SelectItem value="cao" className="text-sm">Cao</SelectItem>
-                <SelectItem value="khancap" className="text-sm">Khẩn cấp</SelectItem>
+                <SelectItem value="khan_cap" className="text-sm">Khẩn cấp</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -529,6 +529,32 @@ export default function SuCoPage() {
                   <div className="border-t pt-2">
                     <p className="text-xs text-gray-600 line-clamp-2">{suCo.moTa}</p>
                   </div>
+
+                  {/* Images */}
+                  {suCo.anhSuCo && suCo.anhSuCo.length > 0 && (
+                    <div className="pt-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 gap-1 text-xs w-full">
+                            <Eye className="h-3 w-3" />
+                            Xem {suCo.anhSuCo.length} ảnh đính kèm
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl w-[95vw]">
+                          <DialogHeader>
+                            <DialogTitle>Ảnh sự cố đính kèm</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4 mt-4 max-h-[60vh] overflow-y-auto p-1">
+                            {suCo.anhSuCo.map((img, i) => (
+                              <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                                <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
 
                   {/* Action buttons */}
                   <div className="flex justify-between items-center pt-2 border-t">
@@ -586,15 +612,14 @@ function SuCoForm({
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
-    phong: suCo?.phong || '',
-    khachThue: suCo?.khachThue || '',
+    phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong || ''),
+    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : suCo?.khachThue) || '',
     tieuDe: suCo?.tieuDe || '',
     moTa: suCo?.moTa || '',
-    loaiSuCo: suCo?.loaiSuCo || 'dienNuoc',
-    mucDoUuTien: suCo?.mucDoUuTien || 'trungBinh',
-    trangThai: suCo?.trangThai || 'moi',
-    ghiChuXuLy: suCo?.ghiChuXuLy || '',
-    anhSuCo: [],
+    loaiSuCo: suCo?.loaiSuCo || 'dien_nuoc',
+    uuTien: suCo?.mucDoUuTien || 'trung_binh',
+    trangThai: suCo?.trangThai || 'PENDING',
+    ghiChuChuNha: suCo?.ghiChuXuLy || suCo?.ghiChuChuNha || '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -605,23 +630,29 @@ function SuCoForm({
     e.preventDefault();
     
     // Validation: phải chọn phòng và có khách thuê
-    if (!formData.phong) {
+    if (!formData.phongId) {
       toast.error('Vui lòng chọn phòng');
       return;
     }
     
-    if (!formData.khachThue) {
+    if (!formData.khachThueId) {
       toast.error('Không tìm thấy khách thuê cho phòng này. Vui lòng kiểm tra hợp đồng.');
       return;
     }
     
     setIsSubmitting(true);
     try {
-      // Prepare data for API
+      // Prepare data for API - match SuCoRequest DTO
       const submitData = {
-        ...formData,
+        phongId: formData.phongId,
+        khachThueId: formData.khachThueId,
+        tieuDe: formData.tieuDe,
+        moTa: formData.moTa,
+        loaiSuCo: formData.loaiSuCo,
+        uuTien: formData.uuTien,
+        trangThai: suCo ? formData.trangThai : undefined,
+        ghiChuChuNha: formData.ghiChuChuNha,
         anhSuCo: images,
-        ngayBaoCao: suCo ? suCo.ngayBaoCao : new Date().toISOString(),
       };
 
       const url = suCo ? `/api/su-co/${suCo._id}` : '/api/su-co';
@@ -654,7 +685,7 @@ function SuCoForm({
 
 
   const handlePhongChange = async (phongId: string) => {
-    setFormData(prev => ({ ...prev, phong: phongId }));
+    setFormData(prev => ({ ...prev, phongId: phongId }));
     
     // Tìm thông tin phòng được chọn
     const phong = phongList.find(p => p._id === phongId);
@@ -662,6 +693,7 @@ function SuCoForm({
     
     if (phong) {
       // Tìm hợp đồng đang hoạt động cho phòng này
+<<<<<<< HEAD
       const hopDongHoatDong = hopDongList.find(hd => 
         (typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong) === phongId && hd.trangThai === 'hoatDong'
       );
@@ -672,9 +704,20 @@ function SuCoForm({
           ? (hopDongHoatDong.nguoiDaiDien as any)._id 
           : hopDongHoatDong.nguoiDaiDien;
         setFormData(prev => ({ ...prev, khachThue: nguoiDaiDienId }));
+=======
+      const hopDongHoatDong = hopDongList.find(hd => {
+        const hdPhongId = typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong;
+        return hdPhongId === phongId && hd.trangThai === 'hoatDong';
+      });
+      
+      if (hopDongHoatDong && hopDongHoatDong.nguoiDaiDien) {
+        const nguoiDaiDienId = typeof hopDongHoatDong.nguoiDaiDien === 'object' 
+          ? (hopDongHoatDong.nguoiDaiDien as any)._id 
+          : hopDongHoatDong.nguoiDaiDien;
+        setFormData(prev => ({ ...prev, khachThueId: nguoiDaiDienId }));
+>>>>>>> su-co-v1
       } else {
-        // Nếu không tìm thấy hợp đồng hoạt động, reset khách thuê
-        setFormData(prev => ({ ...prev, khachThue: '' }));
+        setFormData(prev => ({ ...prev, khachThueId: '' }));
       }
     }
   };
@@ -684,12 +727,12 @@ function SuCoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="phong" className="text-xs md:text-sm">Phòng</Label>
-          <Select value={formData.phong} onValueChange={handlePhongChange}>
+          <Select value={formData.phongId as string} onValueChange={handlePhongChange}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Chọn phòng" />
             </SelectTrigger>
             <SelectContent>
-              {phongList.map((phong) => (
+              {phongList.filter(p => p.trangThai === 'dangThue' || p._id === formData.phongId).map((phong) => (
                 <SelectItem key={phong._id} value={phong._id!} className="text-sm">
                   {phong.maPhong}
                 </SelectItem>
@@ -700,10 +743,10 @@ function SuCoForm({
         
         <div className="space-y-2">
           <Label htmlFor="khachThue" className="text-xs md:text-sm">Khách thuê</Label>
-          {formData.khachThue ? (
+          {formData.khachThueId ? (
             <div className="p-3 bg-gray-50 rounded-md border">
               <div className="text-sm font-medium">
-                {getKhachThueName(formData.khachThue)}
+                {getKhachThueName(formData.khachThueId)}
               </div>
               <div className="text-xs text-gray-500">
                 {selectedPhong && `Phòng ${selectedPhong.maPhong}`}
@@ -755,26 +798,26 @@ function SuCoForm({
               <SelectValue placeholder="Chọn loại sự cố" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="dienNuoc" className="text-sm">Điện nước</SelectItem>
-              <SelectItem value="noiThat" className="text-sm">Nội thất</SelectItem>
-              <SelectItem value="vesinh" className="text-sm">Vệ sinh</SelectItem>
-              <SelectItem value="anNinh" className="text-sm">An ninh</SelectItem>
+              <SelectItem value="dien_nuoc" className="text-sm">Điện nước</SelectItem>
+              <SelectItem value="noi_that" className="text-sm">Nội thất</SelectItem>
+              <SelectItem value="ve_sinh" className="text-sm">Vệ sinh</SelectItem>
+              <SelectItem value="an_ninh" className="text-sm">An ninh</SelectItem>
               <SelectItem value="khac" className="text-sm">Khác</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="mucDoUuTien" className="text-xs md:text-sm">Mức độ ưu tiên</Label>
-          <Select value={formData.mucDoUuTien} onValueChange={(value) => setFormData(prev => ({ ...prev, mucDoUuTien: value as SuCo['mucDoUuTien'] }))}>
+          <Label htmlFor="uuTien" className="text-xs md:text-sm">Mức độ ưu tiên</Label>
+          <Select value={formData.uuTien} onValueChange={(value) => setFormData(prev => ({ ...prev, uuTien: value as SuCo['mucDoUuTien'] }))}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Chọn mức độ ưu tiên" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="thap" className="text-sm">Thấp</SelectItem>
-              <SelectItem value="trungBinh" className="text-sm">Trung bình</SelectItem>
+              <SelectItem value="trung_binh" className="text-sm">Trung bình</SelectItem>
               <SelectItem value="cao" className="text-sm">Cao</SelectItem>
-              <SelectItem value="khancap" className="text-sm">Khẩn cấp</SelectItem>
+              <SelectItem value="khan_cap" className="text-sm">Khẩn cấp</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -788,22 +831,22 @@ function SuCoForm({
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="moi" className="text-sm">Mới</SelectItem>
-              <SelectItem value="dangXuLy" className="text-sm">Đang xử lý</SelectItem>
-              <SelectItem value="daXong" className="text-sm">Đã xong</SelectItem>
-              <SelectItem value="daHuy" className="text-sm">Đã hủy</SelectItem>
+              <SelectItem value="PENDING" className="text-sm">Mới</SelectItem>
+              <SelectItem value="IN_PROGRESS" className="text-sm">Đang xử lý</SelectItem>
+              <SelectItem value="RESOLVED" className="text-sm">Đã xong</SelectItem>
+              <SelectItem value="CANCELLED" className="text-sm">Đã hủy</SelectItem>
             </SelectContent>
           </Select>
         </div>
       )}
 
-      {suCo && (formData.trangThai === 'dangXuLy' || formData.trangThai === 'daXong') && (
+      {suCo && (formData.trangThai === 'IN_PROGRESS' || formData.trangThai === 'RESOLVED') && (
         <div className="space-y-2">
-          <Label htmlFor="ghiChuXuLy" className="text-xs md:text-sm">Ghi chú xử lý</Label>
+          <Label htmlFor="ghiChuChuNha" className="text-xs md:text-sm">Ghi chú xử lý</Label>
           <Textarea
-            id="ghiChuXuLy"
-            value={formData.ghiChuXuLy}
-            onChange={(e) => setFormData(prev => ({ ...prev, ghiChuXuLy: e.target.value }))}
+            id="ghiChuChuNha"
+            value={formData.ghiChuChuNha}
+            onChange={(e) => setFormData(prev => ({ ...prev, ghiChuChuNha: e.target.value }))}
             rows={3}
             placeholder="Ghi chú về quá trình xử lý..."
             className="text-sm"

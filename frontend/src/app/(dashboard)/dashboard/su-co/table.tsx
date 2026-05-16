@@ -62,6 +62,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -91,28 +98,28 @@ import type { SuCo, Phong, KhachThue } from '@/types'
 // Helper functions
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case 'moi':
+    case 'PENDING':
       return (
         <Badge variant="destructive" className="gap-1">
           <AlertCircle className="h-3 w-3" />
           Mới
         </Badge>
       )
-    case 'dangXuLy':
+    case 'IN_PROGRESS':
       return (
         <Badge variant="secondary" className="gap-1">
           <Clock className="h-3 w-3" />
           Đang xử lý
         </Badge>
       )
-    case 'daXong':
+    case 'RESOLVED':
       return (
         <Badge variant="default" className="gap-1">
           <CheckCircle2 className="h-3 w-3" />
           Đã xong
         </Badge>
       )
-    case 'daHuy':
+    case 'CANCELLED':
       return (
         <Badge variant="outline" className="gap-1">
           <XCircle className="h-3 w-3" />
@@ -126,13 +133,13 @@ const getStatusBadge = (status: string) => {
 
 const getTypeBadge = (type: string) => {
   switch (type) {
-    case 'dienNuoc':
+    case 'dien_nuoc':
       return <Badge variant="secondary">Điện nước</Badge>
-    case 'noiThat':
+    case 'noi_that':
       return <Badge variant="outline">Nội thất</Badge>
-    case 'vesinh':
+    case 've_sinh':
       return <Badge variant="outline">Vệ sinh</Badge>
-    case 'anNinh':
+    case 'an_ninh':
       return <Badge variant="outline">An ninh</Badge>
     case 'khac':
       return <Badge variant="outline">Khác</Badge>
@@ -145,11 +152,11 @@ const getPriorityBadge = (priority: string) => {
   switch (priority) {
     case 'thap':
       return <Badge variant="outline" className="border-gray-400 text-gray-700">Thấp</Badge>
-    case 'trungBinh':
+    case 'trung_binh':
       return <Badge variant="secondary">Trung bình</Badge>
     case 'cao':
       return <Badge variant="destructive">Cao</Badge>
-    case 'khancap':
+    case 'khan_cap':
       return (
         <Badge variant="destructive" className="bg-red-600">
           <AlertCircle className="h-3 w-3 mr-1" />
@@ -268,15 +275,15 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
     accessorKey: "khachThue",
     header: "Khách thuê",
     cell: ({ row }) => {
-      const khachThue = row.original.khachThue
+      const nguoiBaoCao = row.original.nguoiBaoCao
       return (
         <div className="min-w-32">
           <div className="font-medium">
-            {getKhachThueName(khachThue, props.khachThueList)}
+            {nguoiBaoCao?.hoTen || getKhachThueName(row.original.khachThue, props.khachThueList)}
           </div>
-          {typeof khachThue === 'object' && khachThue?.soDienThoai && (
+          {nguoiBaoCao?.soDienThoai && (
             <div className="text-xs text-muted-foreground">
-              {khachThue.soDienThoai}
+              {nguoiBaoCao.soDienThoai}
             </div>
           )}
         </div>
@@ -287,6 +294,37 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
     accessorKey: "loaiSuCo",
     header: "Loại",
     cell: ({ row }) => getTypeBadge(row.original.loaiSuCo),
+  },
+  {
+    accessorKey: "anhSuCo",
+    header: "Ảnh",
+    cell: ({ row }) => {
+      const images = row.original.anhSuCo || []
+      if (images.length === 0) return <span className="text-muted-foreground text-xs">Không có</span>
+      
+      return (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1">
+              <Eye className="h-3 w-3" />
+              <span>{images.length}</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Ảnh sự cố đính kèm</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+              {images.map((img, i) => (
+                <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                  <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )
+    },
   },
   {
     accessorKey: "mucDoUuTien",
@@ -301,7 +339,7 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
       return (
         <div className="flex items-center gap-2">
           {getStatusBadge(suCo.trangThai)}
-          {suCo.trangThai === 'moi' && (
+          {suCo.trangThai === 'PENDING' && (
             <Select
               value={suCo.trangThai}
               onValueChange={(value) => props.onStatusChange(suCo._id!, value)}
@@ -310,12 +348,12 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dangXuLy">Xử lý</SelectItem>
-                <SelectItem value="daHuy">Hủy</SelectItem>
+                <SelectItem value="IN_PROGRESS">Xử lý</SelectItem>
+                <SelectItem value="CANCELLED">Hủy</SelectItem>
               </SelectContent>
             </Select>
           )}
-          {suCo.trangThai === 'dangXuLy' && (
+          {suCo.trangThai === 'IN_PROGRESS' && (
             <Select
               value={suCo.trangThai}
               onValueChange={(value) => props.onStatusChange(suCo._id!, value)}
@@ -324,8 +362,8 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daXong">Hoàn thành</SelectItem>
-                <SelectItem value="daHuy">Hủy</SelectItem>
+                <SelectItem value="RESOLVED">Hoàn thành</SelectItem>
+                <SelectItem value="CANCELLED">Hủy</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -516,10 +554,10 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="moi">Mới</SelectItem>
-              <SelectItem value="dangXuLy">Đang xử lý</SelectItem>
-              <SelectItem value="daXong">Đã xong</SelectItem>
-              <SelectItem value="daHuy">Đã hủy</SelectItem>
+              <SelectItem value="PENDING">Mới</SelectItem>
+              <SelectItem value="IN_PROGRESS">Đang xử lý</SelectItem>
+              <SelectItem value="RESOLVED">Đã xong</SelectItem>
+              <SelectItem value="CANCELLED">Đã hủy</SelectItem>
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={onTypeChange}>
@@ -528,10 +566,10 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="dienNuoc">Điện nước</SelectItem>
-              <SelectItem value="noiThat">Nội thất</SelectItem>
-              <SelectItem value="vesinh">Vệ sinh</SelectItem>
-              <SelectItem value="anNinh">An ninh</SelectItem>
+              <SelectItem value="dien_nuoc">Điện nước</SelectItem>
+              <SelectItem value="noi_that">Nội thất</SelectItem>
+              <SelectItem value="ve_sinh">Vệ sinh</SelectItem>
+              <SelectItem value="an_ninh">An ninh</SelectItem>
               <SelectItem value="khac">Khác</SelectItem>
             </SelectContent>
           </Select>
@@ -542,9 +580,9 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="thap">Thấp</SelectItem>
-              <SelectItem value="trungBinh">Trung bình</SelectItem>
+              <SelectItem value="trung_binh">Trung bình</SelectItem>
               <SelectItem value="cao">Cao</SelectItem>
-              <SelectItem value="khancap">Khẩn cấp</SelectItem>
+              <SelectItem value="khan_cap">Khẩn cấp</SelectItem>
             </SelectContent>
           </Select>
         </div>
