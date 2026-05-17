@@ -125,7 +125,7 @@ public class AuthService {
         // Tạo mật khẩu ngẫu nhiên 8 ký tự
         String newPassword = generateRandomPassword(8);
         user.setMatKhau(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        nguoiDungRepository.save(user);
 
         try {
             emailService.sendNewPassword(user.getEmail(), user.getHoTen(), newPassword);
