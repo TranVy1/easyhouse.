@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s      # Mặc định quét dữ liệu mỗi 15 giây
+  evaluation_interval: 15s  # Đánh giá các rule (như alert) mỗi 15 giây
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+# Cấu hình các Job để thu thập Metrics
+scrape_configs:
+  # 1. Thu thập metrics của chính Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. Thu thập metrics của Server (thông qua Node Exporter)
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node_exporter:9100']
+
+  # 3. Thu thập metrics của các Docker Container (thông qua cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # 4. Thu thập metrics từ Spring Boot App (Actuator)
+  - job_name: 'spring_boot_app'
+    metrics_path: '/api/actuator/prometheus' # Endpoint của Spring Boot Actuator
+    scrape_interval: 5s
+    static_configs:
+      # LƯU Ý: host.docker.internal dùng để container gọi ra localhost của máy host
+      # Đối với VPS Linux, hãy dùng IP mạng LAN của VPS (vd: 172.17.0.1) thay vì host.docker.internal
+      - targets: ['host.docker.internal:8080']
