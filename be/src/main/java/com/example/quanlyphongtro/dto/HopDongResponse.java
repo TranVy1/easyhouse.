@@ -33,6 +33,9 @@ public class HopDongResponse {
     private LocalDate ngayKetThuc;
     private BigDecimal giaThue;
     private BigDecimal tienCoc;
+    private String trangThaiCoc;
+    private BigDecimal soTienHoanCoc;
+    private ZonedDateTime ngayHoanCoc;
     private String chuKyThanhToan;
     private Integer ngayThanhToan;
     private String dieuKhoan;
@@ -42,6 +45,10 @@ public class HopDongResponse {
     private Integer chiSoNuocBanDau;
     private Object phiDichVu;
     private String trangThai;
+    private String fileHopDong;
+    private String filePdf;
+    private String chuKyChuTro;
+    private String chuKyKhachThue;
     private ZonedDateTime ngayTao;
 
     public static HopDongResponse fromEntity(HopDong hopDong, List<KhachThue> allTenants) {
@@ -85,6 +92,9 @@ public class HopDongResponse {
                 .ngayKetThuc(hopDong.getNgayKetThuc())
                 .giaThue(hopDong.getGiaThue())
                 .tienCoc(hopDong.getTienCoc())
+                .trangThaiCoc(hopDong.getTrangThaiCoc() != null ? hopDong.getTrangThaiCoc().name() : null)
+                .soTienHoanCoc(hopDong.getSoTienHoanCoc())
+                .ngayHoanCoc(hopDong.getNgayHoanCoc())
                 .chuKyThanhToan(hopDong.getChuKyThanhToan())
                 .ngayThanhToan(hopDong.getNgayThanhToan())
                 .dieuKhoan(hopDong.getDieuKhoan())
@@ -94,6 +104,10 @@ public class HopDongResponse {
                 .chiSoNuocBanDau(hopDong.getChiSoNuocBanDau())
                 .phiDichVu(parsedPhiDichVu)
                 .trangThai(statusFrontend)
+                .fileHopDong(hopDong.getFileHopDong())
+                .filePdf(hopDong.getFilePdf())
+                .chuKyChuTro(hopDong.getChuKyChuTro())
+                .chuKyKhachThue(hopDong.getChuKyKhachThue())
                 .ngayTao(hopDong.getTaoLuc())
                 .build();
     }

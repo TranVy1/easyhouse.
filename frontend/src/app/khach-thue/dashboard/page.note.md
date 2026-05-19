@@ -1,0 +1,24 @@
+# Khach thue dashboard page note
+
+- Route: `/khach-thue/dashboard`
+- Frontend:
+  - `frontend/src/app/khach-thue/dashboard/page.tsx`
+  - `frontend/src/app/khach-thue/dashboard/layout.tsx`
+- Router links: layout redirects to `/khach-thue/dang-nhap` when no local token.
+- API:
+  - `GET /api/auth/khach-thue/me`
+  - Authorization: `Bearer ${localStorage.khachThueToken}`
+- Backend:
+  - `AuthController.khachThueMe`
+  - `AuthService.getKhachThueDashboard`
+- DB:
+  - `khach_thue`
+  - `hop_dong`
+  - `phong`
+  - `hoa_don`
+- Logic:
+  - Reads localStorage tenant token/data.
+  - Shows tenant room/contract/billing dashboard.
+- Can luu y:
+  - Security model independent from NextAuth.
+  - Current backend token is demo user UUID; upgrade to JWT/expiry/revoke before final.

@@ -1,0 +1,24 @@
+# Upload components note
+
+- Components:
+  - `frontend/src/components/ui/image-upload.tsx`
+  - `frontend/src/components/ui/cccd-upload.tsx`
+  - `frontend/src/components/ui/phong-image-upload.tsx`
+  - `frontend/src/components/ui/su-co-image-upload.tsx`
+- API:
+  - `POST /api/upload` multipart `FormData` key `file`
+  - `DELETE /api/upload/{publicId}`
+  - `DELETE /api/upload?publicId={id}`
+- Backend:
+  - `UploadController`
+  - `CloudinaryService`
+- DB:
+  - No direct runtime table for media.
+  - URLs are stored inside caller tables: `phong.anh_phong`, `khach_thue.anh_cccd_truoc/sau`, `su_co.anh_su_co`, maybe user avatar.
+- Logic:
+  - Backend validates non-empty, max 10MB, image/application content type.
+  - Backend response data includes `url`, `secure_url`, `public_id`, `format`, `bytes`.
+  - Components differ: some read `result.data.url`, some read `result.data.secure_url`.
+- Can luu y:
+  - Pick one canonical URL field, recommended `secure_url`.
+  - Docker dev uses placeholder Cloudinary env, so real upload needs secrets.

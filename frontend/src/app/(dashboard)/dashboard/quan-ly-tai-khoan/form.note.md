@@ -1,0 +1,27 @@
+# Quan ly tai khoan form note
+
+- Route: `/dashboard/quan-ly-tai-khoan`
+- Frontend:
+  - `frontend/src/app/(dashboard)/dashboard/quan-ly-tai-khoan/page.tsx`
+  - `frontend/src/app/(dashboard)/dashboard/quan-ly-tai-khoan/table.tsx`
+- Router links: only visible in sidebar when `session.user.role === 'admin'`.
+- Create fields: `name`, `email`, `password`, `phone`, `role`.
+- Edit fields: `name`, `phone`, `role`, `isActive`.
+- API:
+  - `GET /api/admin/users`
+  - `POST /api/admin/users`
+  - `PUT /api/admin/users/{id}`
+  - `DELETE /api/admin/users/{id}`
+- Backend:
+  - `AdminUserController`
+  - `UserService`
+- DB:
+  - `nguoi_dung`
+  - `vai_tro`
+  - `nguoi_dung_vai_tro`
+- Logic:
+  - Uses cache key `tai-khoan-data`.
+  - Role-gated in UI by session role.
+  - Search/filter client-side.
+- Can luu y:
+  - Backend CRUD exists; add real RBAC before production/demo defense.

@@ -4,6 +4,7 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +18,9 @@ public class HopDongRequest {
     private LocalDate ngayKetThuc;
     private BigDecimal giaThue;
     private BigDecimal tienCoc;
+    private String trangThaiCoc;
+    private BigDecimal soTienHoanCoc;
+    private ZonedDateTime ngayHoanCoc;
     private String chuKyThanhToan;
     private Integer ngayThanhToan;
     private String dieuKhoan;
@@ -26,6 +30,10 @@ public class HopDongRequest {
     private Integer chiSoNuocBanDau;
     private List<PhiDichVuRequest> phiDichVu;
     private String trangThai;
+    private String fileHopDong;
+    private String filePdf;
+    private String chuKyChuTro;
+    private String chuKyKhachThue;
 
     @Data
     public static class PhiDichVuRequest {

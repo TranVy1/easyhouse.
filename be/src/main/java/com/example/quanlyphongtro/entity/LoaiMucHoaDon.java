@@ -5,5 +5,8 @@ public enum LoaiMucHoaDon {
     ELECTRICITY,
     WATER,
     SERVICE,
+    INTERNET,
+    GARBAGE,
+    PARKING,
     OTHER
 }

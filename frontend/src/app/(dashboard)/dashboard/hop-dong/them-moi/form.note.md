@@ -1,0 +1,28 @@
+# Them moi hop dong form note
+
+- Route: `/dashboard/hop-dong/them-moi`
+- Frontend: `frontend/src/app/(dashboard)/dashboard/hop-dong/them-moi/page.tsx`
+- Router links: cancel/success -> `/dashboard/hop-dong`.
+- Form fields: `maHopDong`, `phong`, `khachThueId[]`, `nguoiDaiDien`, `ngayBatDau`, `ngayKetThuc`, `giaThue`, `tienCoc`, `chuKyThanhToan`, `ngayThanhToan`, `dieuKhoan`, `giaDien`, `giaNuoc`, `chiSoDienBanDau`, `chiSoNuocBanDau`, `phiDichVu[]`, `trangThai`.
+- API:
+  - `GET /api/phong?limit=100`
+  - `GET /api/khach-thue?limit=100`
+  - `POST /api/hop-dong`
+- Backend:
+  - `HopDongController.create`
+  - `HopDongService.create`
+  - `HopDongRequest`
+- DB:
+  - `hop_dong`
+  - `phong`
+  - `khach_thue`
+- Query:
+  - Frontend filters rooms where status `trong` or `daDat`.
+- Logic:
+  - Selecting room auto-fills `giaThue`, `tienCoc`.
+  - Multi-select tenants, one representative.
+  - Quick duration computes end date by month.
+  - Service fees stored as jsonb string in `hop_dong.phi_dich_vu`.
+  - Date normalized to `YYYY-MM-DD` before submit.
+- Can luu y:
+  - `daDat` currently persists same as available.

@@ -23,6 +23,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
     // Tìm theo hợp đồng
     List<HoaDon> findByHopDongIdAndXoaLucIsNull(UUID hopDongId);
 
+    List<HoaDon> findByKhachThueIdAndXoaLucIsNullOrderByThangHoaDonDesc(UUID khachThueId);
+
     // Tìm hóa đơn gần nhất theo hợp đồng (để lấy chỉ số điện nước cuối kỳ)
     @Query("SELECT h FROM HoaDon h WHERE h.hopDong.id = :hopDongId AND h.xoaLuc IS NULL ORDER BY h.thangHoaDon DESC")
     List<HoaDon> findLatestByHopDong(@Param("hopDongId") UUID hopDongId);

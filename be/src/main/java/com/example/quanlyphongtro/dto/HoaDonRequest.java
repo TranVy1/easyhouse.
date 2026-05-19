@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,11 @@ public class HoaDonRequest {
     private BigDecimal conLai;
     private String trangThai; // chuaThanhToan, daThanhToanMotPhan, daThanhToan, quaHan
     private LocalDate hanThanhToan;
+    private LocalDate ngayPhatHanh;
+    private ZonedDateTime ngayGui;
+    private Boolean daGui;
+    private BigDecimal tienGiam;
+    private BigDecimal phiPhatSinh;
     private String ghiChu;
 
     @Data

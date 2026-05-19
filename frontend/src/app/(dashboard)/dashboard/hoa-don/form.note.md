@@ -1,0 +1,32 @@
+# Hoa don list/payment note
+
+- Route: `/dashboard/hoa-don`
+- Frontend:
+  - `frontend/src/app/(dashboard)/dashboard/hoa-don/page.tsx`
+  - `frontend/src/app/(dashboard)/dashboard/hoa-don/table.tsx`
+- Router links: create -> `/dashboard/hoa-don/them-moi`; edit/detail -> `/dashboard/hoa-don/{id}`.
+- API:
+  - `GET /api/hoa-don`
+  - `GET /api/hoa-don/form-data`
+  - `DELETE /api/hoa-don?id={id}`
+  - `POST /api/hoa-don/{id}/thanh-toan`
+- Backend:
+  - `HoaDonController`
+  - `HoaDonService`
+- DB:
+  - `hoa_don`
+  - `chi_tiet_hoa_don`
+  - `thanh_toan`
+  - `hop_dong`
+  - `phong`
+  - `khach_thue`
+- Query:
+  - List all invoices, then frontend filters by status/month/year.
+  - `form-data` returns `hopDongList`, `phongList`, `khachThueList`.
+- Logic:
+  - Invoice detail modal is read-only.
+  - Payment modal posts `soTien`, `phuongThuc`, optional transfer info.
+  - Backend inserts `thanh_toan`, increments `hoa_don.da_tra`, updates status.
+- Can luu y:
+  - Delete query `?id=` exists in backend as compatibility endpoint.
+  - `quaHan` now maps to DB `OVERDUE`.

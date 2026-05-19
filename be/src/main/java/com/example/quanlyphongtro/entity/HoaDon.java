@@ -32,6 +32,9 @@ public class HoaDon {
     @JoinColumn(name = "khach_thue_id")
     private KhachThue khachThue;
 
+    @Column(name = "ma_hoa_don", unique = true, length = 100)
+    private String maHoaDon;
+
     @Column(name = "thang_hoa_don", nullable = false)
     private LocalDate thangHoaDon;
 
@@ -49,6 +52,24 @@ public class HoaDon {
 
     @Column(name = "han_tra", nullable = false)
     private LocalDate hanTra;
+
+    @Column(name = "ngay_phat_hanh")
+    private LocalDate ngayPhatHanh;
+
+    @Column(name = "ngay_gui")
+    private ZonedDateTime ngayGui;
+
+    @Column(name = "da_gui")
+    @Builder.Default
+    private Boolean daGui = false;
+
+    @Column(name = "tien_giam", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal tienGiam = BigDecimal.ZERO;
+
+    @Column(name = "phi_phat_sinh", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal phiPhatSinh = BigDecimal.ZERO;
 
     @Column(name = "ghi_chu", columnDefinition = "TEXT")
     private String ghiChu;

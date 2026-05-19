@@ -39,6 +39,11 @@ public class HoaDonResponse {
     private BigDecimal conLai;
     private String trangThai;
     private LocalDate hanThanhToan;
+    private LocalDate ngayPhatHanh;
+    private ZonedDateTime ngayGui;
+    private Boolean daGui;
+    private BigDecimal tienGiam;
+    private BigDecimal phiPhatSinh;
     private String ghiChu;
     private ZonedDateTime ngayTao;
     private ZonedDateTime ngayCapNhat;
@@ -53,6 +58,7 @@ public class HoaDonResponse {
                 case UNPAID: statusFrontend = "chuaThanhToan"; break;
                 case PARTIAL: statusFrontend = "daThanhToanMotPhan"; break;
                 case PAID: statusFrontend = "daThanhToan"; break;
+                case OVERDUE: statusFrontend = "quaHan"; break;
             }
         }
 
@@ -104,6 +110,9 @@ public class HoaDonResponse {
                         }
                         break;
                     case SERVICE:
+                    case INTERNET:
+                    case GARBAGE:
+                    case PARKING:
                     case OTHER:
                         Map<String, Object> phi = new HashMap<>();
                         phi.put("ten", ct.getMoTa() != null ? ct.getMoTa() : "Dịch vụ");
@@ -118,9 +127,11 @@ public class HoaDonResponse {
         BigDecimal tongTien = hoaDon.getTongTien() != null ? hoaDon.getTongTien() : BigDecimal.ZERO;
         BigDecimal conLai = tongTien.subtract(daTra);
 
-        // Tạo mã hóa đơn dựa trên ID nếu chưa có
-        maHoaDon = "HD" + String.format("%04d%02d", nam, thang)
-                + hoaDon.getId().toString().substring(0, 3).toUpperCase();
+        maHoaDon = hoaDon.getMaHoaDon();
+        if (maHoaDon == null || maHoaDon.isBlank()) {
+            maHoaDon = "HD" + String.format("%04d%02d", nam, thang)
+                    + hoaDon.getId().toString().substring(0, 3).toUpperCase();
+        }
 
         // Phong response
         Object phongObj = hoaDon.getPhong() != null ? PhongResponse.fromEntity(hoaDon.getPhong()) : null;
@@ -154,6 +165,11 @@ public class HoaDonResponse {
                 .conLai(conLai)
                 .trangThai(statusFrontend)
                 .hanThanhToan(hoaDon.getHanTra())
+                .ngayPhatHanh(hoaDon.getNgayPhatHanh())
+                .ngayGui(hoaDon.getNgayGui())
+                .daGui(hoaDon.getDaGui())
+                .tienGiam(hoaDon.getTienGiam())
+                .phiPhatSinh(hoaDon.getPhiPhatSinh())
                 .ghiChu(hoaDon.getGhiChu())
                 .ngayTao(hoaDon.getTaoLuc())
                 .ngayCapNhat(hoaDon.getCapNhatLuc())

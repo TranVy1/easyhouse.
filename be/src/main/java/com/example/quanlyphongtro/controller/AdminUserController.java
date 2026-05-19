@@ -1,0 +1,63 @@
+package com.example.quanlyphongtro.controller;
+
+import com.example.quanlyphongtro.dto.AdminUserRequest;
+import com.example.quanlyphongtro.dto.ApiResponse;
+import com.example.quanlyphongtro.dto.UserResponse;
+import com.example.quanlyphongtro.services.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/admin/users")
+@RequiredArgsConstructor
+public class AdminUserController {
+
+    private final UserService userService;
+
+    @GetMapping
+    public ApiResponse<List<UserResponse>> getAll() {
+        try {
+            return ApiResponse.success(userService.getAllUsers());
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping
+    public ApiResponse<UserResponse> create(@RequestBody AdminUserRequest request) {
+        try {
+            return ApiResponse.success(userService.createUser(request), "Tao tai khoan thanh cong");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<UserResponse> update(@PathVariable UUID id, @RequestBody AdminUserRequest request) {
+        try {
+            return ApiResponse.success(userService.updateUser(id, request), "Cap nhat tai khoan thanh cong");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable UUID id) {
+        try {
+            userService.deleteUser(id);
+            return ApiResponse.success(null, "Xoa tai khoan thanh cong");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+}

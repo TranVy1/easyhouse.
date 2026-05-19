@@ -1,0 +1,29 @@
+# Toa nha form note
+
+- Route: `/dashboard/toa-nha`
+- Frontend:
+  - `frontend/src/app/(dashboard)/dashboard/toa-nha/page.tsx`
+  - `frontend/src/app/(dashboard)/dashboard/toa-nha/table.tsx`
+- Router links: sidebar -> `/dashboard/toa-nha`.
+- Form fields: `tenToaNha`, `soNha`, `duong`, `phuong`, `quan`, `thanhPho`, `moTa`, `tienNghiChung`.
+- API:
+  - `GET /api/toa-nha`
+  - `POST /api/toa-nha`
+  - `PUT /api/toa-nha/{id}`
+  - `DELETE /api/toa-nha/{id}`
+  - external address API: `https://provinces.open-api.vn/api/...`
+- Backend:
+  - `NhaTroController`
+  - `NhaTroService`
+  - `NhaTroRequest`, `NhaTroResponse`
+- DB:
+  - `nha_tro`
+  - `phong` for building room counts
+- Query:
+  - No backend filter; fetch all then table handles search/sort/pagination.
+- Logic:
+  - Province/district/ward selectors fill `diaChi`.
+  - `tienNghiChung` stored as text/list mapping by service.
+  - Response maps backend `nha_tro` to frontend `ToaNha`.
+- Can luu y:
+  - Runtime `nha_tro` has flat columns `dia_chi`, `tinh`, `huyen`, `xa`; frontend sends nested `diaChi`.

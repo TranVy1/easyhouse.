@@ -15,8 +15,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
           // Gọi API Login của Spring Boot Backend
-          const res = await fetch('http://localhost:8080/api/auth/login', {
+          const res = await fetch(`${backendUrl}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -1,0 +1,35 @@
+# Thong bao form note
+
+- Route: `/dashboard/thong-bao`
+- Frontend: `frontend/src/app/(dashboard)/dashboard/thong-bao/page.tsx`
+- Router links: sidebar -> `/dashboard/thong-bao`.
+- Form fields: `tieuDe`, `noiDung`, `loai`, `nguoiNhan[]`, `phong[]`, `toaNha`.
+- API:
+  - `GET /api/thong-bao`
+  - `GET /api/toa-nha`
+  - `GET /api/phong`
+  - `GET /api/khach-thue`
+  - `POST /api/thong-bao`
+  - `PUT /api/thong-bao/{id}`
+  - `DELETE /api/thong-bao/{id}`
+  - `POST /api/thong-bao/{id}/send`
+  - `PATCH /api/thong-bao/{id}/da-doc?daDoc={true|false}`
+- Backend:
+  - `ThongBaoController`
+  - `ThongBaoService`
+  - `ThongBaoRequest`, `ThongBaoResponse`
+- DB:
+  - `thong_bao`
+  - `nguoi_dung`
+  - `phong` ids in jsonb
+  - `nha_tro` via `toa_nha_id`
+- Query:
+  - Full list then frontend filters type/read/target.
+  - When building selected, room target list filters by building.
+- Logic:
+  - `toaNha = all` becomes `undefined` before submit.
+  - Select recipients and rooms via checkbox lists.
+  - Send action calls backend after create/update.
+  - Read state is boolean in runtime entity, while frontend type has `daDoc: string[]`.
+- Can luu y:
+  - Recipient model mismatch needs decision before tenant notification feature.

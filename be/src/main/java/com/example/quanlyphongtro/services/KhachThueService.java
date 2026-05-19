@@ -8,6 +8,7 @@ import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.VaiTroRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class KhachThueService {
     private final NguoiDungRepository nguoiDungRepository;
     private final VaiTroRepository vaiTroRepository;
     private final HopDongRepository hopDongRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<KhachThueResponse> getAllKhachThue(String trangThai) {
         List<KhachThue> list = khachThueRepository.findAllWithNguoiDung();
@@ -141,7 +143,7 @@ public class KhachThueService {
                     .email(request.getEmail())
                     .soDienThoai(request.getSoDienThoai())
                     .gioiTinh(request.getGioiTinh())
-                    .matKhau(request.getMatKhau() != null ? request.getMatKhau() : "default123") // TODO: hash password
+                    .matKhau(passwordEncoder.encode(request.getMatKhau() != null ? request.getMatKhau() : "default123"))
                     .trangThai(TrangThaiNguoiDung.ACTIVE)
                     .vaiTros(vaiTros)
                     .build();

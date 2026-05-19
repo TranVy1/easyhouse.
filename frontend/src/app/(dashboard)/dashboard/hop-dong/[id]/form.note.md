@@ -1,0 +1,24 @@
+# Sua hop dong form note
+
+- Route: `/dashboard/hop-dong/[id]`
+- Frontend: `frontend/src/app/(dashboard)/dashboard/hop-dong/[id]/page.tsx`
+- Router links: cancel/success -> `/dashboard/hop-dong`.
+- API:
+  - `GET /api/hop-dong/{id}`
+  - `GET /api/phong?limit=100`
+  - `GET /api/khach-thue?limit=100`
+  - `PUT /api/hop-dong/{id}`
+- Backend:
+  - `HopDongController.getById`
+  - `HopDongController.update`
+  - `HopDongService`
+- DB:
+  - `hop_dong`
+  - `phong`
+  - `khach_thue`
+- Logic:
+  - Loads existing contract into same shape as create form.
+  - Extracts ids from nested `phong`/`nguoiDaiDien` objects.
+  - Updates pricing, dates, service fees, status.
+- Can luu y:
+  - Check list/object ID extraction whenever backend response shape changes.

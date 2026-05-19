@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: easyhouse-postgres
+    environment:
+      POSTGRES_DB: easyhouse
+      POSTGRES_USER: easyhouse
+      POSTGRES_PASSWORD: easyhouse
+    ports:
+      - "54323:5432"
+    volumes:
+      - easyhouse_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U easyhouse -d easyhouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.dev
+    container_name: easyhouse-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/easyhouse
+      SPRING_DATASOURCE_USERNAME: easyhouse
+      SPRING_DATASOURCE_PASSWORD: easyhouse
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATASOURCE_HIKARI_DATA_SOURCE_PROPERTIES_STRINGTYPE: unspecified
+      APP_FRONTEND_BASE_URL: http://localhost:3000
+      CLOUDINARY_CLOUD_NAME: your-cloud-name
+      CLOUDINARY_API_KEY: your-api-key
+      CLOUDINARY_API_SECRET: your-api-secret
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./be:/app
+      - easyhouse_maven_cache:/root/.m2
+    command: mvn spring-boot:run
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: easyhouse-frontend
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: http://backend:8080
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: easyhouse-docker-dev-secret-change-me
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - easyhouse_node_modules:/app/node_modules
+    command: npm run dev -- --hostname 0.0.0.0
+
+volumes:
+  easyhouse_postgres_data:
+  easyhouse_maven_cache:
+  easyhouse_node_modules:

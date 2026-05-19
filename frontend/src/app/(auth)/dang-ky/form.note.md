@@ -1,0 +1,25 @@
+# Dang ky form note
+
+- Route: `/dang-ky`
+- Frontend: `frontend/src/app/(auth)/dang-ky/page.tsx`
+- Router links: success delay -> `/dang-nhap`
+- Form fields: `ten`, `email`, `soDienThoai`, `matKhau`, `xacNhanMatKhau`, `vaiTro`.
+- Validation: zod; email format, password min 6, phone 10-11 digits, confirm password match.
+- API:
+  - `POST /api/auth/register`
+  - body `{ ten, email, matKhau, soDienThoai, vaiTro }`
+- Backend:
+  - `AuthController.register`
+  - `RegisterRequest` maps JSON `ten` to backend `hoTen`
+  - `AuthService`
+- DB:
+  - `nguoi_dung`
+  - `vai_tro`
+  - `nguoi_dung_vai_tro`
+  - `email_verification_token`
+- Logic:
+  - Default role is `TENANT`.
+  - Backend creates inactive user and verification token.
+  - UI asks user to check email before login.
+- Can luu y:
+  - Role list mixes `chuNha`, `nhanVien`, `TENANT`; backend expected roles need review.

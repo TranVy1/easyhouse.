@@ -6,6 +6,7 @@ import com.example.quanlyphongtro.entity.KhachThue;
 import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.TrangThaiHopDong;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
+import com.example.quanlyphongtro.entity.TrangThaiCocHopDong;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
@@ -49,6 +50,15 @@ public class HopDongService {
         }
     }
 
+    private TrangThaiCocHopDong mapTrangThaiCoc(String frontendStatus) {
+        if (frontendStatus == null || frontendStatus.isBlank()) return TrangThaiCocHopDong.KEPT;
+        try {
+            return TrangThaiCocHopDong.valueOf(frontendStatus);
+        } catch (IllegalArgumentException e) {
+            return TrangThaiCocHopDong.KEPT;
+        }
+    }
+
     // ========== READ ==========
     public List<HopDong> getAll() {
         return hopDongRepository.findAll();
@@ -81,6 +91,9 @@ public class HopDongService {
                 .ngayKetThuc(request.getNgayKetThuc())
                 .giaThue(request.getGiaThue())
                 .tienCoc(request.getTienCoc())
+                .trangThaiCoc(mapTrangThaiCoc(request.getTrangThaiCoc()))
+                .soTienHoanCoc(request.getSoTienHoanCoc())
+                .ngayHoanCoc(request.getNgayHoanCoc())
                 .chuKyThanhToan(request.getChuKyThanhToan())
                 .ngayThanhToan(request.getNgayThanhToan())
                 .dieuKhoan(request.getDieuKhoan())
@@ -90,6 +103,10 @@ public class HopDongService {
                 .chiSoNuocBanDau(request.getChiSoNuocBanDau())
                 .phiDichVu(toJson(request.getPhiDichVu()))
                 .trangThai(mapTrangThai(request.getTrangThai()))
+                .fileHopDong(request.getFileHopDong())
+                .filePdf(request.getFilePdf())
+                .chuKyChuTro(request.getChuKyChuTro())
+                .chuKyKhachThue(request.getChuKyKhachThue())
                 .build();
 
         HopDong saved = hopDongRepository.save(hopDong);
@@ -127,6 +144,9 @@ public class HopDongService {
         if (request.getNgayKetThuc() != null) hopDong.setNgayKetThuc(request.getNgayKetThuc());
         if (request.getGiaThue() != null) hopDong.setGiaThue(request.getGiaThue());
         if (request.getTienCoc() != null) hopDong.setTienCoc(request.getTienCoc());
+        if (request.getTrangThaiCoc() != null) hopDong.setTrangThaiCoc(mapTrangThaiCoc(request.getTrangThaiCoc()));
+        if (request.getSoTienHoanCoc() != null) hopDong.setSoTienHoanCoc(request.getSoTienHoanCoc());
+        if (request.getNgayHoanCoc() != null) hopDong.setNgayHoanCoc(request.getNgayHoanCoc());
         if (request.getChuKyThanhToan() != null) hopDong.setChuKyThanhToan(request.getChuKyThanhToan());
         if (request.getNgayThanhToan() != null) hopDong.setNgayThanhToan(request.getNgayThanhToan());
         if (request.getDieuKhoan() != null) hopDong.setDieuKhoan(request.getDieuKhoan());
@@ -135,6 +155,10 @@ public class HopDongService {
         if (request.getChiSoDienBanDau() != null) hopDong.setChiSoDienBanDau(request.getChiSoDienBanDau());
         if (request.getChiSoNuocBanDau() != null) hopDong.setChiSoNuocBanDau(request.getChiSoNuocBanDau());
         if (request.getPhiDichVu() != null) hopDong.setPhiDichVu(toJson(request.getPhiDichVu()));
+        if (request.getFileHopDong() != null) hopDong.setFileHopDong(request.getFileHopDong());
+        if (request.getFilePdf() != null) hopDong.setFilePdf(request.getFilePdf());
+        if (request.getChuKyChuTro() != null) hopDong.setChuKyChuTro(request.getChuKyChuTro());
+        if (request.getChuKyKhachThue() != null) hopDong.setChuKyKhachThue(request.getChuKyKhachThue());
         if (request.getTrangThai() != null) {
             TrangThaiHopDong newStatus = mapTrangThai(request.getTrangThai());
             hopDong.setTrangThai(newStatus);

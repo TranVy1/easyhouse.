@@ -1,0 +1,21 @@
+# Dashboard stats page note
+
+- Route: `/dashboard`
+- Frontend: `frontend/src/app/(dashboard)/dashboard/page.tsx`
+- Layout/auth: `frontend/src/app/(dashboard)/layout.tsx` requires NextAuth session.
+- Router links: sidebar links to dashboard modules.
+- API:
+  - `GET /api/dashboard/stats`
+- Backend:
+  - `DashboardController.getStats`
+  - `DashboardService`
+- DB:
+  - `phong`
+  - `hoa_don`
+  - `su_co`
+  - `hop_dong`
+- Logic:
+  - Shows totals: rooms, empty/rented/maintenance, monthly/yearly revenue, due invoices, open incidents, expiring contracts.
+  - Currency formatting on frontend.
+- Can luu y:
+  - Stats correctness depends on status enum mapping in service.

@@ -94,7 +94,7 @@ export default function ChinhSuaHoaDonPage() {
   const fetchData = useCallback(async () => {
     try {
       // Fetch hóa đơn chi tiết theo ID
-      const hoaDonResponse = await fetch(`/api/hoa-don?id=${hoaDonId}`);
+      const hoaDonResponse = await fetch(`/api/hoa-don/${hoaDonId}`);
       if (hoaDonResponse.ok) {
         const hoaDonData = await hoaDonResponse.json();
         const hoaDonItem = hoaDonData.data;
@@ -220,14 +220,11 @@ export default function ChinhSuaHoaDonPage() {
     setSubmitting(true);
     
     try {
-      const requestData = {
-        ...formData,
-        id: hoaDonId
-      };
+      const requestData = { ...formData };
       
       console.log('Submitting form data for update:', requestData);
       
-      const response = await fetch('/api/hoa-don', {
+      const response = await fetch(`/api/hoa-don/${hoaDonId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

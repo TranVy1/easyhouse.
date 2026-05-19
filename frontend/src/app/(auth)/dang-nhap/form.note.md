@@ -1,0 +1,26 @@
+# Dang nhap form note
+
+- Route: `/dang-nhap`
+- Frontend: `frontend/src/app/(auth)/dang-nhap/page.tsx`
+- Router links: success -> `/dashboard`; link register likely `/dang-ky`
+- Form fields: `email`, `matKhau`; forgot password email in dialog.
+- Validation: zod email format, password min 6.
+- API:
+  - `signIn('credentials')` -> NextAuth authorize in `frontend/src/lib/auth.ts`
+  - backend call: `POST /api/auth/login`
+  - forgot: `POST /api/auth/forgot-password` body `{ email }`
+- Backend:
+  - `AuthController.login`
+  - `AuthController.forgotPassword`
+  - `AuthService`, `EmailService`
+- DB:
+  - `nguoi_dung`
+  - `vai_tro`
+  - `nguoi_dung_vai_tro`
+- Logic:
+  - NextAuth stores backend `token` as `session.accessToken`.
+  - On login ok, push `/dashboard`.
+  - On forgot password ok, backend sends new password/reset email flow.
+- Can luu y:
+  - Login endpoint is direct from `frontend/src/lib/auth.ts`, using `BACKEND_URL`.
+  - Error message is generic; backend timeout not deeply handled.

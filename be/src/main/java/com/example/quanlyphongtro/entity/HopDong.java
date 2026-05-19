@@ -55,6 +55,18 @@ public class HopDong {
     @Column(name = "tien_coc", precision = 15, scale = 2)
     private BigDecimal tienCoc;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trang_thai_coc", columnDefinition = "trang_thai_coc_hop_dong")
+    @Builder.Default
+    private TrangThaiCocHopDong trangThaiCoc = TrangThaiCocHopDong.KEPT;
+
+    @Column(name = "so_tien_hoan_coc", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal soTienHoanCoc = BigDecimal.ZERO;
+
+    @Column(name = "ngay_hoan_coc")
+    private ZonedDateTime ngayHoanCoc;
+
     @Column(name = "chu_ky_thanh_toan", length = 50)
     private String chuKyThanhToan;
 
@@ -87,6 +99,15 @@ public class HopDong {
 
     @Column(name = "file_hop_dong")
     private String fileHopDong;
+
+    @Column(name = "file_pdf", columnDefinition = "TEXT")
+    private String filePdf;
+
+    @Column(name = "chu_ky_chu_tro", columnDefinition = "TEXT")
+    private String chuKyChuTro;
+
+    @Column(name = "chu_ky_khach_thue", columnDefinition = "TEXT")
+    private String chuKyKhachThue;
 
     @CreationTimestamp
     @Column(name = "tao_luc", updatable = false)

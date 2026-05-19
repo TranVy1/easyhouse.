@@ -30,8 +30,15 @@ public class HoaDonService {
             case "daThanhToan": return TrangThaiHoaDon.PAID;
             case "daThanhToanMotPhan": return TrangThaiHoaDon.PARTIAL;
             case "chuaThanhToan": return TrangThaiHoaDon.UNPAID;
+            case "quaHan": return TrangThaiHoaDon.OVERDUE;
             default: return TrangThaiHoaDon.UNPAID;
         }
+    }
+
+    private String generateMaHoaDon(LocalDate thangHoaDon) {
+        return "HD" + thangHoaDon.getYear()
+                + String.format("%02d", thangHoaDon.getMonthValue())
+                + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
 
     // ========== GET ALL ==========
@@ -102,11 +109,19 @@ public class HoaDonService {
                 .phong(phong)
                 .hopDong(hopDong)
                 .khachThue(khachThue)
+                .maHoaDon(request.getMaHoaDon() != null && !request.getMaHoaDon().isBlank()
+                        ? request.getMaHoaDon().trim()
+                        : generateMaHoaDon(thangHoaDon))
                 .thangHoaDon(thangHoaDon)
                 .tongTien(tongTien)
                 .daTra(daTra)
                 .trangThai(trangThai)
                 .hanTra(hanTra)
+                .ngayPhatHanh(request.getNgayPhatHanh() != null ? request.getNgayPhatHanh() : LocalDate.now())
+                .ngayGui(request.getNgayGui())
+                .daGui(request.getDaGui() != null ? request.getDaGui() : false)
+                .tienGiam(request.getTienGiam() != null ? request.getTienGiam() : BigDecimal.ZERO)
+                .phiPhatSinh(request.getPhiPhatSinh() != null ? request.getPhiPhatSinh() : BigDecimal.ZERO)
                 .ghiChu(request.getGhiChu())
                 .build();
 
@@ -213,6 +228,12 @@ public class HoaDonService {
         if (request.getTongTien() != null) hoaDon.setTongTien(request.getTongTien());
         if (request.getDaThanhToan() != null) hoaDon.setDaTra(request.getDaThanhToan());
         if (request.getHanThanhToan() != null) hoaDon.setHanTra(request.getHanThanhToan());
+        if (request.getMaHoaDon() != null && !request.getMaHoaDon().isBlank()) hoaDon.setMaHoaDon(request.getMaHoaDon().trim());
+        if (request.getNgayPhatHanh() != null) hoaDon.setNgayPhatHanh(request.getNgayPhatHanh());
+        if (request.getNgayGui() != null) hoaDon.setNgayGui(request.getNgayGui());
+        if (request.getDaGui() != null) hoaDon.setDaGui(request.getDaGui());
+        if (request.getTienGiam() != null) hoaDon.setTienGiam(request.getTienGiam());
+        if (request.getPhiPhatSinh() != null) hoaDon.setPhiPhatSinh(request.getPhiPhatSinh());
         if (request.getGhiChu() != null) hoaDon.setGhiChu(request.getGhiChu());
 
         // Cập nhật trạng thái tự động

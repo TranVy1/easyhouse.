@@ -120,6 +120,9 @@ export interface HopDong {
   ngayKetThuc: Date;
   giaThue: number;
   tienCoc: number;
+  trangThaiCoc?: 'KEPT' | 'REFUNDED' | 'DEDUCTED';
+  soTienHoanCoc?: number;
+  ngayHoanCoc?: Date;
   chuKyThanhToan: 'thang' | 'quy' | 'nam';
   ngayThanhToan: number;
   dieuKhoan: string;
@@ -130,6 +133,9 @@ export interface HopDong {
   phiDichVu: PhiDichVu[];
   trangThai: 'hoatDong' | 'hetHan' | 'daHuy';
   fileHopDong?: string;
+  filePdf?: string;
+  chuKyChuTro?: string;
+  chuKyKhachThue?: string;
   ngayTao: Date;
   ngayCapNhat: Date;
 }
@@ -175,6 +181,11 @@ export interface HoaDon {
   conLai: number;
   trangThai: 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan';
   hanThanhToan: Date;
+  ngayPhatHanh?: Date;
+  ngayGui?: Date;
+  daGui?: boolean;
+  tienGiam?: number;
+  phiPhatSinh?: number;
   ghiChu?: string;
   ngayTao: Date;
   ngayCapNhat: Date;

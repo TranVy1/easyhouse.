@@ -1,0 +1,23 @@
+# Sua hoa don form note
+
+- Route: `/dashboard/hoa-don/[id]`
+- Frontend: `frontend/src/app/(dashboard)/dashboard/hoa-don/[id]/page.tsx`
+- Router links: cancel/success -> `/dashboard/hoa-don`.
+- API:
+  - `GET /api/hoa-don/{id}`
+  - `PUT /api/hoa-don/{id}`
+  - `GET /api/hoa-don/form-data`
+- Backend:
+  - `HoaDonController.getById(@PathVariable id)`
+  - `HoaDonController.update(@PathVariable id)`
+- DB:
+  - `hoa_don`
+  - `chi_tiet_hoa_don`
+  - related `hop_dong`, `phong`, `khach_thue`
+- Logic:
+  - Loads invoice and lookup lists.
+  - Recomputes total from rent/electric/water/service.
+  - Update replaces invoice detail rows when `tienPhong` is provided.
+- Can luu y:
+  - Endpoint mismatch fixed 2026-05-19.
+  - Keep ID extraction for nested `hopDong`, `phong`, `khachThue` values.

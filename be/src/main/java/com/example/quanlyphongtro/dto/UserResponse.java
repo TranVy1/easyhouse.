@@ -22,6 +22,8 @@ public class UserResponse {
     private String address;
     private String avatar;
     private String role;
+    private Boolean isActive;
+    private String trangThai;
     private ZonedDateTime createdAt;
     private ZonedDateTime lastLogin;
 }

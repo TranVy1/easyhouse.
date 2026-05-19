@@ -126,7 +126,12 @@ export default function AccountManagementPage() {
       
       const response = await fetch('/api/admin/users');
       if (response.ok) {
-        const data = await response.json();
+        const payload = await response.json();
+        if (payload.success === false) {
+          toast.error(payload.message || 'Không thể tải danh sách người dùng');
+          return;
+        }
+        const data = Array.isArray(payload) ? payload : payload.data || [];
         setUsers(data);
         setCache({ users: data });
       } else {
@@ -158,6 +163,11 @@ export default function AccountManagementPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (result.success === false) {
+          toast.error(result.message || 'Tạo tài khoản thất bại');
+          return;
+        }
         toast.success('Tạo tài khoản thành công');
         setIsCreateDialogOpen(false);
         setCreateUserData({
@@ -192,6 +202,11 @@ export default function AccountManagementPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (result.success === false) {
+          toast.error(result.message || 'Cập nhật tài khoản thất bại');
+          return;
+        }
         toast.success('Cập nhật tài khoản thành công');
         setIsEditDialogOpen(false);
         setSelectedUser(null);
@@ -216,6 +231,11 @@ export default function AccountManagementPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (result.success === false) {
+          toast.error(result.message || 'Xóa tài khoản thất bại');
+          return;
+        }
         clearCache();
         toast.success('Xóa tài khoản thành công');
         fetchUsers(true);

@@ -1,0 +1,31 @@
+# Thanh toan form note
+
+- Route: `/dashboard/thanh-toan`
+- Frontend:
+  - `frontend/src/app/(dashboard)/dashboard/thanh-toan/page.tsx`
+  - `frontend/src/app/(dashboard)/dashboard/thanh-toan/table.tsx`
+- Router links: sidebar -> `/dashboard/thanh-toan`.
+- Form fields: `hoaDon`, `soTien`, `phuongThuc`, `nganHang`, `soGiaoDich`, `ngayThanhToan`, `ghiChu`, `anhBienLai`.
+- API:
+  - `GET /api/thanh-toan`
+  - `GET /api/hoa-don`
+  - `POST /api/thanh-toan`
+  - `PUT /api/thanh-toan/{id}`
+  - `DELETE /api/thanh-toan/{id}`
+- Backend:
+  - `ThanhToanController`
+  - `ThanhToanService`
+  - `HoaDonController` for invoice dropdown
+- DB:
+  - `thanh_toan`
+  - `hoa_don`
+  - `nguoi_dung` via `nguoi_thanh_toan`
+- Query:
+  - Full list then frontend filters by payment method/date.
+- Logic:
+  - Form sends `hoaDonId`, amount, method, optional transfer data.
+  - Backend stores `phuong_thuc_thanh_toan`, `ma_tham_chieu`, status.
+  - Payment records here are separate CRUD from invoice quick payment.
+- Can luu y:
+  - Need verify whether creating payment here also updates invoice `da_tra`.
+  - Dead `/api/test-payment` call/rewrite removed 2026-05-19.

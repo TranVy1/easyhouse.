@@ -1,0 +1,25 @@
+# Public hoa don detail note
+
+- Route: `/hoa-don/[id]`
+- Frontend: `frontend/src/app/hoa-don/[id]/page.tsx`
+- Router links: public direct invoice URL.
+- API:
+  - `GET /api/hoa-don-public/{id}`
+- Backend:
+  - `HoaDonPublicController.getById`
+  - maps invoice, room, tenant, payment info for public view.
+- DB:
+  - `hoa_don`
+  - `chi_tiet_hoa_don`
+  - `phong`
+  - `khach_thue`
+  - `hop_dong`
+  - `thanh_toan`
+- Query:
+  - Path param invoice UUID.
+- Logic:
+  - Read-only invoice detail.
+  - Currency/date formatting client-side.
+  - Payment list state exists in UI.
+- Can luu y:
+  - Public endpoint should avoid leaking unrelated tenant/user fields.
