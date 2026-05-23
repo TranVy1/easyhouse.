@@ -7,7 +7,6 @@ import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -21,198 +20,112 @@ public class ThanhToanService {
     private final ThanhToanRepository thanhToanRepository;
     private final HoaDonRepository hoaDonRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
+    private final MediaService mediaService;
 
-    // ========== GET ALL ==========
     public List<ThanhToanResponse> getAll() {
         List<ThanhToan> list = thanhToanRepository.findAll();
-        // Sắp xếp theo ngày thanh toán mới nhất
         list.sort((a, b) -> {
             if (a.getNgayThanhToan() == null) return 1;
             if (b.getNgayThanhToan() == null) return -1;
             return b.getNgayThanhToan().compareTo(a.getNgayThanhToan());
         });
-
-        List<ThanhToanResponse> responses = new ArrayList<>();
+        List<ThanhToanResponse> res = new ArrayList<>();
         for (ThanhToan tt : list) {
-            List<ChiTietHoaDon> chiTiet = tt.getHoaDon() != null
-                    ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
-                    : Collections.emptyList();
-            responses.add(ThanhToanResponse.fromEntity(tt, chiTiet));
+            List<ChiTietHoaDon> ct = tt.getHoaDon() != null ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId()) : Collections.emptyList();
+            res.add(toResponse(tt, ct));
         }
-        return responses;
+        return res;
     }
 
-    // ========== GET BY ID ==========
     public ThanhToanResponse getById(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
-        List<ChiTietHoaDon> chiTiet = tt.getHoaDon() != null
-                ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
-                : Collections.emptyList();
-        return ThanhToanResponse.fromEntity(tt, chiTiet);
+        List<ChiTietHoaDon> ct = tt.getHoaDon() != null ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId()) : Collections.emptyList();
+        return toResponse(tt, ct);
     }
 
-    // ========== GET BY HOA DON ==========
     public List<ThanhToanResponse> getByHoaDon(UUID hoaDonId) {
-        List<ThanhToan> list = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId);
-        List<ThanhToanResponse> responses = new ArrayList<>();
-        for (ThanhToan tt : list) {
-            List<ChiTietHoaDon> chiTiet = chiTietHoaDonRepository.findByHoaDonId(hoaDonId);
-            responses.add(ThanhToanResponse.fromEntity(tt, chiTiet));
-        }
-        return responses;
+        return thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
+                .map(tt -> toResponse(tt, chiTietHoaDonRepository.findByHoaDonId(hoaDonId)))
+                .toList();
     }
 
-    // ========== CREATE ==========
     @Transactional
-    public ThanhToanResponse create(ThanhToanRequest request) {
-        // Lookup hóa đơn
-        HoaDon hoaDon = null;
-        if (request.getHoaDonId() != null) {
-            hoaDon = hoaDonRepository.findById(request.getHoaDonId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+    public ThanhToanResponse create(ThanhToanRequest req) {
+        HoaDon hoaDon = req.getHoaDonId() != null ? hoaDonRepository.findById(req.getHoaDonId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn")) : null;
+
+        String maThamChieu = req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null;
+
+        PhuongThucThanhToan pttt = parsePhuongThuc(req.getPhuongThuc());
+
+        ZonedDateTime ngayTT = ZonedDateTime.now();
+        if (req.getNgayThanhToan() != null && !req.getNgayThanhToan().isEmpty()) {
+            try { ngayTT = LocalDate.parse(req.getNgayThanhToan()).atStartOfDay(ZoneId.systemDefault()); } catch (Exception ignored) {}
         }
 
-        // Xác định mã tham chiếu
-        String maThamChieu = null;
-        if (request.getThongTinChuyenKhoan() != null) {
-            maThamChieu = request.getThongTinChuyenKhoan().getSoGiaoDich();
-        }
-
-        // Parse ngày thanh toán
-        ZonedDateTime ngayThanhToan = ZonedDateTime.now();
-        if (request.getNgayThanhToan() != null && !request.getNgayThanhToan().isEmpty()) {
-            try {
-                LocalDate date = LocalDate.parse(request.getNgayThanhToan());
-                ngayThanhToan = date.atStartOfDay(ZoneId.systemDefault());
-            } catch (Exception e) {
-                // Giữ nguyên ZonedDateTime.now()
-            }
-        }
-
-        ThanhToan thanhToan = ThanhToan.builder()
-                .hoaDon(hoaDon)
-                .soTien(request.getSoTien())
-                .phuongThuc(request.getPhuongThuc())
+        ThanhToan tt = ThanhToan.builder()
+                .hoaDon(hoaDon).soTien(req.getSoTien())
+                .phuongThucThanhToan(pttt)
                 .maThamChieu(maThamChieu)
-                .ngayThanhToan(ngayThanhToan)
-                .ghiChu(request.getGhiChu())
-                .trangThai("SUCCESS")
+                .ngayThanhToan(ngayTT).ghiChu(req.getGhiChu())
+                .trangThai(TrangThaiThanhToan.SUCCESS)
                 .build();
+        ThanhToan saved = thanhToanRepository.save(tt);
+        mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
 
-        ThanhToan saved = thanhToanRepository.save(thanhToan);
-
-        // Cập nhật số tiền đã trả trên hóa đơn
-        if (hoaDon != null && request.getSoTien() != null) {
-            BigDecimal daTra = (hoaDon.getDaTra() != null ? hoaDon.getDaTra() : BigDecimal.ZERO)
-                    .add(request.getSoTien());
+        if (hoaDon != null && req.getSoTien() != null) {
+            BigDecimal daTra = (hoaDon.getDaTra() != null ? hoaDon.getDaTra() : BigDecimal.ZERO).add(req.getSoTien());
             hoaDon.setDaTra(daTra);
-
-            if (daTra.compareTo(hoaDon.getTongTien()) >= 0) {
-                hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
-            } else if (daTra.compareTo(BigDecimal.ZERO) > 0) {
-                hoaDon.setTrangThai(TrangThaiHoaDon.PARTIAL);
-            }
+            hoaDon.setTrangThai(resolveInvoiceStatus(daTra, hoaDon.getTongTien()));
             hoaDonRepository.save(hoaDon);
         }
 
-        List<ChiTietHoaDon> chiTiet = hoaDon != null
-                ? chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId())
-                : Collections.emptyList();
-        return ThanhToanResponse.fromEntity(saved, chiTiet);
+        List<ChiTietHoaDon> ct = hoaDon != null ? chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()) : Collections.emptyList();
+        return toResponse(saved, ct);
     }
 
-    // ========== UPDATE ==========
-    @Transactional
-    public ThanhToanResponse update(UUID id, ThanhToanRequest request) {
-        ThanhToan thanhToan = thanhToanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
-
-        // Lưu lại số tiền cũ để tính lại
-        BigDecimal soTienCu = thanhToan.getSoTien();
-        HoaDon hoaDonCu = thanhToan.getHoaDon();
-
-        // Cập nhật hóa đơn nếu thay đổi
-        if (request.getHoaDonId() != null) {
-            HoaDon hoaDon = hoaDonRepository.findById(request.getHoaDonId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-            thanhToan.setHoaDon(hoaDon);
-        }
-
-        if (request.getSoTien() != null) thanhToan.setSoTien(request.getSoTien());
-        if (request.getPhuongThuc() != null) thanhToan.setPhuongThuc(request.getPhuongThuc());
-        if (request.getGhiChu() != null) thanhToan.setGhiChu(request.getGhiChu());
-
-        // Cập nhật mã tham chiếu
-        if (request.getThongTinChuyenKhoan() != null) {
-            thanhToan.setMaThamChieu(request.getThongTinChuyenKhoan().getSoGiaoDich());
-        }
-
-        // Parse ngày thanh toán
-        if (request.getNgayThanhToan() != null && !request.getNgayThanhToan().isEmpty()) {
-            try {
-                LocalDate date = LocalDate.parse(request.getNgayThanhToan());
-                thanhToan.setNgayThanhToan(date.atStartOfDay(ZoneId.systemDefault()));
-            } catch (Exception e) {
-                // Giữ nguyên
-            }
-        }
-
-        ThanhToan saved = thanhToanRepository.save(thanhToan);
-
-        // Tính lại số tiền đã trả trên hóa đơn cũ (nếu thay đổi hóa đơn)
-        if (hoaDonCu != null) {
-            recalculateHoaDonPayment(hoaDonCu.getId());
-        }
-
-        // Tính lại số tiền trên hóa đơn mới (nếu khác hóa đơn cũ)
-        if (saved.getHoaDon() != null) {
-            recalculateHoaDonPayment(saved.getHoaDon().getId());
-        }
-
-        List<ChiTietHoaDon> chiTiet = saved.getHoaDon() != null
-                ? chiTietHoaDonRepository.findByHoaDonId(saved.getHoaDon().getId())
-                : Collections.emptyList();
-        return ThanhToanResponse.fromEntity(saved, chiTiet);
-    }
-
-    // ========== DELETE ==========
     @Transactional
     public void delete(UUID id) {
-        ThanhToan thanhToan = thanhToanRepository.findById(id)
+        ThanhToan tt = thanhToanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
-
-        UUID hoaDonId = thanhToan.getHoaDon() != null ? thanhToan.getHoaDon().getId() : null;
-
-        thanhToanRepository.delete(thanhToan);
-
-        // Tính lại số tiền đã trả trên hóa đơn
-        if (hoaDonId != null) {
-            recalculateHoaDonPayment(hoaDonId);
-        }
+        UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
+        thanhToanRepository.delete(tt);
+        if (hdId != null) recalculate(hdId);
     }
 
-    // ========== HELPER: Tính lại tổng đã trả từ tất cả thanh toán ==========
-    private void recalculateHoaDonPayment(UUID hoaDonId) {
-        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
-        if (hoaDon == null) return;
+    private void recalculate(UUID hoaDonId) {
+        HoaDon hd = hoaDonRepository.findById(hoaDonId).orElse(null);
+        if (hd == null) return;
+        BigDecimal total = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
+                .map(ThanhToan::getSoTien).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        hd.setDaTra(total);
+        if (total.compareTo(BigDecimal.ZERO) == 0) hd.setTrangThai(TrangThaiHoaDon.UNPAID);
+        else if (total.compareTo(hd.getTongTien()) >= 0) hd.setTrangThai(resolveInvoiceStatus(total, hd.getTongTien()));
+        else hd.setTrangThai(TrangThaiHoaDon.PARTIAL);
+        hoaDonRepository.save(hd);
+    }
 
-        List<ThanhToan> payments = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId);
-        BigDecimal totalPaid = payments.stream()
-                .map(ThanhToan::getSoTien)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private PhuongThucThanhToan parsePhuongThuc(String value) {
+        if (value == null || value.isBlank()) return PhuongThucThanhToan.CASH;
+        return switch (value) {
+            case "tienMat" -> PhuongThucThanhToan.CASH;
+            case "chuyenKhoan" -> PhuongThucThanhToan.BANK_TRANSFER;
+            case "viDienTu" -> PhuongThucThanhToan.OTHER;
+            default -> {
+                try { yield PhuongThucThanhToan.valueOf(value.toUpperCase()); } catch (Exception e) { yield PhuongThucThanhToan.CASH; }
+            }
+        };
+    }
 
-        hoaDon.setDaTra(totalPaid);
+    private TrangThaiHoaDon resolveInvoiceStatus(BigDecimal paid, BigDecimal total) {
+        if (total != null && paid.compareTo(total) > 0) return TrangThaiHoaDon.OVERPAID;
+        return TrangThaiHoaDon.PAID;
+    }
 
-        if (totalPaid.compareTo(BigDecimal.ZERO) == 0) {
-            hoaDon.setTrangThai(TrangThaiHoaDon.UNPAID);
-        } else if (totalPaid.compareTo(hoaDon.getTongTien()) >= 0) {
-            hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
-        } else {
-            hoaDon.setTrangThai(TrangThaiHoaDon.PARTIAL);
-        }
-
-        hoaDonRepository.save(hoaDon);
+    private ThanhToanResponse toResponse(ThanhToan thanhToan, List<ChiTietHoaDon> chiTietList) {
+        ThanhToanResponse response = ThanhToanResponse.fromEntity(thanhToan, chiTietList);
+        response.setAnhBienLai(mediaService.firstUrl(LoaiDoiTuongMedia.PAYMENT, thanhToan.getId(), MediaService.PAYMENT_RECEIPT));
+        return response;
     }
 }

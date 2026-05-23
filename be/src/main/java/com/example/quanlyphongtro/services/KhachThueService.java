@@ -3,15 +3,10 @@ package com.example.quanlyphongtro.services;
 import com.example.quanlyphongtro.dto.KhachThueRequest;
 import com.example.quanlyphongtro.dto.KhachThueResponse;
 import com.example.quanlyphongtro.entity.*;
-import com.example.quanlyphongtro.repository.HopDongRepository;
-import com.example.quanlyphongtro.repository.KhachThueRepository;
-import com.example.quanlyphongtro.repository.NguoiDungRepository;
-import com.example.quanlyphongtro.repository.VaiTroRepository;
+import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,205 +16,147 @@ import java.util.stream.Collectors;
 public class KhachThueService {
 
     private final KhachThueRepository khachThueRepository;
-    private final NguoiDungRepository nguoiDungRepository;
-    private final VaiTroRepository vaiTroRepository;
     private final HopDongRepository hopDongRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PhongRepository phongRepository;
+    private final NguoiDungRepository nguoiDungRepository;
+    private final MediaService mediaService;
 
     public List<KhachThueResponse> getAllKhachThue(String trangThai) {
-        List<KhachThue> list = khachThueRepository.findAllWithNguoiDung();
-        
-        // Lấy tất cả hợp đồng đang hoạt động để map thông tin phòng
-        List<HopDong> activeContracts = hopDongRepository.findAllActiveWithPhongAndToaNha();
-        
-        // Map tenantId -> HopDong
+        List<KhachThue> list = khachThueRepository.findByXoaLucIsNullOrderByTaoLucDesc();
+        List<HopDong> activeContracts = hopDongRepository.findAllActive();
         Map<UUID, HopDong> tenantContractMap = new HashMap<>();
         for (HopDong hd : activeContracts) {
-            if (hd.getKhachThueIds() != null) {
-                for (UUID tenantId : hd.getKhachThueIds()) {
-                    tenantContractMap.put(tenantId, hd);
-                }
-            }
-            // Cũng map cho người đại diện
-            if (hd.getNguoiDaiDien() != null) {
-                tenantContractMap.put(hd.getNguoiDaiDien().getId(), hd);
+            if (hd.getKhachThue() != null) {
+                tenantContractMap.put(hd.getKhachThue().getId(), hd);
             }
         }
-
-        return list.stream()
-                .map(kt -> {
-                    KhachThueResponse res = KhachThueResponse.fromEntity(kt);
-                    HopDong hd = tenantContractMap.get(kt.getId());
-                    if (hd != null) {
-                        mapContractInfo(res, hd);
-                    }
-                    return res;
-                })
-                .collect(Collectors.toList());
+        return list.stream().map(kt -> {
+            KhachThueResponse res = KhachThueResponse.fromEntity(kt);
+            mapMedia(res, kt.getId());
+            HopDong hd = tenantContractMap.get(kt.getId());
+            if (hd != null) mapContractInfo(res, hd);
+            return res;
+        }).collect(Collectors.toList());
     }
 
     public KhachThueResponse getKhachThueById(UUID id) {
-        KhachThue khachThue = khachThueRepository.findByIdWithNguoiDung(id)
+        KhachThue kt = khachThueRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
-        
-        KhachThueResponse res = KhachThueResponse.fromEntity(khachThue);
-        
-        // Tìm hợp đồng đang hoạt động của khách này
-        // (native query hoặc lọc từ list active - ở đây làm đơn giản cho single record)
-        List<HopDong> activeContracts = hopDongRepository.findAllActiveWithPhongAndToaNha();
-        activeContracts.stream()
-                .filter(hd -> (hd.getKhachThueIds() != null && hd.getKhachThueIds().contains(id)) 
-                           || (hd.getNguoiDaiDien() != null && hd.getNguoiDaiDien().getId().equals(id)))
+        KhachThueResponse res = KhachThueResponse.fromEntity(kt);
+        mapMedia(res, kt.getId());
+        hopDongRepository.findAllActive().stream()
+                .filter(hd -> hd.getKhachThue() != null && hd.getKhachThue().getId().equals(id))
                 .findFirst()
                 .ifPresent(hd -> mapContractInfo(res, hd));
-
         return res;
     }
 
     private void mapContractInfo(KhachThueResponse res, HopDong hd) {
         res.setTrangThai("dangThue");
-        
-        KhachThueResponse.CurrentContractResponse contractRes = KhachThueResponse.CurrentContractResponse.builder()
-                .id(hd.getId())
-                .build();
-                
+        KhachThueResponse.CurrentContractResponse cr = KhachThueResponse.CurrentContractResponse.builder().id(hd.getId()).build();
         if (hd.getPhong() != null) {
             Phong p = hd.getPhong();
-            KhachThueResponse.PhongInfo phongInfo = KhachThueResponse.PhongInfo.builder()
-                    .id(p.getId())
-                    .maPhong(p.getTen())
-                    .tang(p.getTang())
-                    .build();
-            
+            KhachThueResponse.PhongInfo pi = KhachThueResponse.PhongInfo.builder()
+                    .id(p.getId()).maPhong(p.getTen()).tang(p.getTang()).build();
             if (p.getNhaTro() != null) {
-                NhaTro tn = p.getNhaTro();
-                phongInfo.setToaNha(KhachThueResponse.ToaNhaInfo.builder()
-                        .id(tn.getId())
-                        .tenToaNha(tn.getTen())
-                        .build());
+                pi.setToaNha(KhachThueResponse.ToaNhaInfo.builder()
+                        .id(p.getNhaTro().getId()).tenToaNha(p.getNhaTro().getTen()).build());
             }
-            contractRes.setPhong(phongInfo);
+            cr.setPhong(pi);
         }
-        res.setHopDongHienTai(contractRes);
+        res.setHopDongHienTai(cr);
     }
 
     @Transactional
-    public KhachThueResponse createKhachThue(KhachThueRequest request) {
-        // Kiểm tra CCCD đã tồn tại
-        if (khachThueRepository.findBySoCccd(request.getSoCccd()).isPresent()) {
-            throw new RuntimeException("Số CCCD đã tồn tại trong hệ thống");
-        }
-
-        NguoiDung nguoiDung;
-
-        // Nếu có nguoiDungId -> link với tài khoản đã có
-        if (request.getNguoiDungId() != null) {
-            nguoiDung = nguoiDungRepository.findById(request.getNguoiDungId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-
-            // Kiểm tra người dùng đã là khách thuê chưa
-            if (khachThueRepository.findByNguoiDungId(request.getNguoiDungId()).isPresent()) {
-                throw new RuntimeException("Người dùng này đã là khách thuê");
-            }
-        } else {
-            // Tạo mới NguoiDung
-            if (request.getEmail() != null && nguoiDungRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email đã tồn tại trong hệ thống");
-            }
-            
-            if (request.getSoDienThoai() != null && nguoiDungRepository.existsBySoDienThoai(request.getSoDienThoai())) {
-                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
-            }
-
-            // Lấy vai trò TENANT
-            VaiTro tenantRole = vaiTroRepository.findByTen("TENANT")
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò TENANT"));
-
-            Set<VaiTro> vaiTros = new HashSet<>();
-            vaiTros.add(tenantRole);
-
-            nguoiDung = NguoiDung.builder()
-                    .hoTen(request.getHoTen())
-                    .email(request.getEmail())
-                    .soDienThoai(request.getSoDienThoai())
-                    .gioiTinh(request.getGioiTinh())
-                    .matKhau(passwordEncoder.encode(request.getMatKhau() != null ? request.getMatKhau() : "default123"))
-                    .trangThai(TrangThaiNguoiDung.ACTIVE)
-                    .vaiTros(vaiTros)
-                    .build();
-
-            nguoiDung = nguoiDungRepository.save(nguoiDung);
-        }
-
-        // Tạo KhachThue
-        KhachThue khachThue = KhachThue.builder()
-                .nguoiDung(nguoiDung)
-                .soCccd(request.getSoCccd())
-                .lienHeKhanCap(request.getLienHeKhanCap())
-                .ngaySinh(request.getNgaySinh())
-                .diaChiThuongTru(request.getDiaChiThuongTru())
-                .ngheNghiep(request.getNgheNghiep())
-                .anhCccdTruoc(request.getAnhCCCD() != null ? request.getAnhCCCD().getMatTruoc() : null)
-                .anhCccdSau(request.getAnhCCCD() != null ? request.getAnhCCCD().getMatSau() : null)
+    public KhachThueResponse createKhachThue(KhachThueRequest req) {
+        KhachThue kt = KhachThue.builder()
+                .hoTen(req.getHoTen())
+                .soDienThoai(req.getSoDienThoai())
+                .email(req.getEmail())
+                .soCccd(firstNonBlank(req.getSoCccd(), req.getCccd()))
+                .ngaySinh(req.getNgaySinh())
+                .gioiTinh(req.getGioiTinh())
+                .diaChi(req.getDiaChi())
+                .queQuan(req.getQueQuan())
+                .ngheNghiep(req.getNgheNghiep())
+                .ghiChu(req.getGhiChu())
+                .dangHoatDong(true)
                 .build();
-
-        khachThue = khachThueRepository.save(khachThue);
-
-        // Reload để có đầy đủ thông tin
-        khachThue = khachThueRepository.findByIdWithNguoiDung(khachThue.getId()).orElse(khachThue);
-
-        return KhachThueResponse.fromEntity(khachThue);
+        if (req.getNguoiDungId() != null) {
+            NguoiDung nd = nguoiDungRepository.findById(req.getNguoiDungId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+            kt.setNguoiDung(nd);
+        }
+        
+        // Temporary: Set chuTro to the first admin user since auth is not fully implemented
+        NguoiDung defaultUser = nguoiDungRepository.findById(UUID.fromString("22222222-2222-2222-2222-222222222221"))
+                .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản admin mặc định."));
+        kt.setChuTro(defaultUser);
+        
+        KhachThue saved = khachThueRepository.save(kt);
+        saveCccdMedia(saved.getId(), req.getAnhCCCD());
+        KhachThueResponse response = KhachThueResponse.fromEntity(saved);
+        mapMedia(response, saved.getId());
+        return response;
     }
 
     @Transactional
-    public KhachThueResponse updateKhachThue(UUID id, KhachThueRequest request) {
-        KhachThue khachThue = khachThueRepository.findByIdWithNguoiDung(id)
+    public KhachThueResponse updateKhachThue(UUID id, KhachThueRequest req) {
+        KhachThue kt = khachThueRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
-
-        NguoiDung nguoiDung = khachThue.getNguoiDung();
-
-        // Cập nhật thông tin NguoiDung
-        if (nguoiDung != null) {
-            if (request.getHoTen() != null) nguoiDung.setHoTen(request.getHoTen());
-            if (request.getSoDienThoai() != null && !request.getSoDienThoai().equals(nguoiDung.getSoDienThoai())) {
-                if (nguoiDungRepository.existsBySoDienThoai(request.getSoDienThoai())) {
-                    throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
-                }
-                nguoiDung.setSoDienThoai(request.getSoDienThoai());
-            }
-            if (request.getGioiTinh() != null) nguoiDung.setGioiTinh(request.getGioiTinh());
-            // Email thường không cho đổi, nhưng nếu cần:
-            // if (request.getEmail() != null) nguoiDung.setEmail(request.getEmail());
-            nguoiDungRepository.save(nguoiDung);
-        }
-
-        // Cập nhật thông tin KhachThue
-        if (request.getSoCccd() != null && !request.getSoCccd().equals(khachThue.getSoCccd())) {
-            if (khachThueRepository.findBySoCccd(request.getSoCccd()).isPresent()) {
-                throw new RuntimeException("Số CCCD đã tồn tại trong hệ thống");
-            }
-            khachThue.setSoCccd(request.getSoCccd());
-        }
-        if (request.getLienHeKhanCap() != null) khachThue.setLienHeKhanCap(request.getLienHeKhanCap());
-        if (request.getNgaySinh() != null) khachThue.setNgaySinh(request.getNgaySinh());
-        if (request.getDiaChiThuongTru() != null) khachThue.setDiaChiThuongTru(request.getDiaChiThuongTru());
-        if (request.getNgheNghiep() != null) khachThue.setNgheNghiep(request.getNgheNghiep());
-        if (request.getAnhCCCD() != null) {
-            if (request.getAnhCCCD().getMatTruoc() != null) khachThue.setAnhCccdTruoc(request.getAnhCCCD().getMatTruoc());
-            if (request.getAnhCCCD().getMatSau() != null) khachThue.setAnhCccdSau(request.getAnhCCCD().getMatSau());
-        }
-
-        khachThue = khachThueRepository.save(khachThue);
-        return KhachThueResponse.fromEntity(khachThue);
+        if (req.getHoTen() != null) kt.setHoTen(req.getHoTen());
+        if (req.getSoDienThoai() != null) kt.setSoDienThoai(req.getSoDienThoai());
+        if (req.getEmail() != null) kt.setEmail(req.getEmail());
+        String soCccd = firstNonBlank(req.getSoCccd(), req.getCccd());
+        if (soCccd != null) kt.setSoCccd(soCccd);
+        if (req.getNgaySinh() != null) kt.setNgaySinh(req.getNgaySinh());
+        if (req.getGioiTinh() != null) kt.setGioiTinh(req.getGioiTinh());
+        if (req.getDiaChi() != null) kt.setDiaChi(req.getDiaChi());
+        if (req.getQueQuan() != null) kt.setQueQuan(req.getQueQuan());
+        if (req.getNgheNghiep() != null) kt.setNgheNghiep(req.getNgheNghiep());
+        if (req.getGhiChu() != null) kt.setGhiChu(req.getGhiChu());
+        KhachThue saved = khachThueRepository.save(kt);
+        saveCccdMedia(saved.getId(), req.getAnhCCCD());
+        KhachThueResponse response = KhachThueResponse.fromEntity(saved);
+        mapMedia(response, saved.getId());
+        return response;
     }
 
     @Transactional
     public void deleteKhachThue(UUID id) {
-        KhachThue khachThue = khachThueRepository.findById(id)
+        KhachThue kt = khachThueRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
+        kt.setXoaLuc(java.time.ZonedDateTime.now());
+        khachThueRepository.save(kt);
+    }
 
-        // Soft delete - chỉ đánh dấu xoaLuc
-        khachThue.setXoaLuc(java.time.ZonedDateTime.now());
-        khachThueRepository.save(khachThue);
+    private String firstNonBlank(String primary, String fallback) {
+        if (primary != null && !primary.isBlank()) return primary;
+        if (fallback != null && !fallback.isBlank()) return fallback;
+        return null;
+    }
+
+    private void mapMedia(KhachThueResponse response, UUID khachThueId) {
+        response.setAnhCCCD(KhachThueResponse.AnhCCCDResponse.builder()
+                .matTruoc(mediaService.firstUrl(LoaiDoiTuongMedia.TENANT, khachThueId, MediaService.CCCD_FRONT))
+                .matSau(mediaService.firstUrl(LoaiDoiTuongMedia.TENANT, khachThueId, MediaService.CCCD_BACK))
+                .build());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void saveCccdMedia(UUID khachThueId, Object anhCCCD) {
+        if (!(anhCCCD instanceof Map<?, ?> map)) return;
+        Object matTruoc = firstPresent(map, "matTruoc", "front", "anhCccdTruoc", "anh_cccd_truoc");
+        Object matSau = firstPresent(map, "matSau", "back", "anhCccdSau", "anh_cccd_sau");
+        mediaService.replaceUrl(LoaiDoiTuongMedia.TENANT, khachThueId, matTruoc != null ? matTruoc.toString() : "", MediaService.CCCD_FRONT);
+        mediaService.replaceUrl(LoaiDoiTuongMedia.TENANT, khachThueId, matSau != null ? matSau.toString() : "", MediaService.CCCD_BACK);
+    }
+
+    private Object firstPresent(Map<?, ?> map, String... keys) {
+        for (String key : keys) {
+            Object value = map.get(key);
+            if (value != null && !value.toString().isBlank()) return value;
+        }
+        return null;
     }
 }

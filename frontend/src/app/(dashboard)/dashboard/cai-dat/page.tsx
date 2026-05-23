@@ -297,7 +297,7 @@ export default function CaiDatPage() {
                   }}
                   className="transition-all duration-300"
                 >
-                  "Giao diện người dùng tuyệt vời không chỉ ở vẻ ngoài, mà còn ở cách nó hoạt động và cảm giác mà nó mang lại." 
+                  &quot;Giao diện người dùng tuyệt vời không chỉ ở vẻ ngoài, mà còn ở cách nó hoạt động và cảm giác mà nó mang lại.&quot; 
                   Hệ thống quản lý phòng trọ chuyên nghiệp - Nâng tầm trải nghiệm quản lý của bạn.
                 </p>
               </div>

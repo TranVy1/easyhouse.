@@ -2,8 +2,13 @@ package com.example.quanlyphongtro.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class AdminUserRequest {
+    private UUID authUserId;
+    private UUID supabaseUserId;
+
     private String name;
     private String email;
     private String password;

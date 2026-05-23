@@ -1,24 +1,15 @@
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
+import com.example.quanlyphongtro.dto.PhongRequest;
 import com.example.quanlyphongtro.dto.PhongResponse;
 import com.example.quanlyphongtro.entity.Phong;
-import com.example.quanlyphongtro.entity.HopDong;
-import com.example.quanlyphongtro.entity.TrangThaiHopDong;
-import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.services.PhongService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.example.quanlyphongtro.dto.PhongRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,29 +18,15 @@ import java.util.UUID;
 public class PhongController {
 
     private final PhongService phongService;
-    private final HopDongRepository hopDongRepository;
-    private final com.example.quanlyphongtro.repository.KhachThueRepository khachThueRepository;
 
     @GetMapping
     public ApiResponse<List<PhongResponse>> getAll(
             @RequestParam(required = false) String toaNha,
             @RequestParam(required = false) String trangThai) {
-        
-        List<Phong> list = phongService.getAllPhong(toaNha, trangThai);
-        List<PhongResponse> respList = list.stream()
-            .map(phong -> {
-                HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
-                        phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
-                
-                List<com.example.quanlyphongtro.entity.KhachThue> tenants = null;
-                if (activeContract != null && activeContract.getKhachThueIds() != null && !activeContract.getKhachThueIds().isEmpty()) {
-                    tenants = khachThueRepository.findAllByIdInWithNguoiDung(activeContract.getKhachThueIds());
-                }
-                
-                return PhongResponse.fromEntity(phong, activeContract, tenants);
-            })
-            .collect(Collectors.toList());
-        
+        List<PhongResponse> respList = phongService.getAllPhong(toaNha, trangThai)
+                .stream()
+                .map(phongService::toResponse)
+                .toList();
         return ApiResponse.success(respList);
     }
 
@@ -57,42 +34,32 @@ public class PhongController {
     public ApiResponse<PhongResponse> getById(@PathVariable UUID id) {
         try {
             Phong phong = phongService.getPhongById(id);
-            HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
-                    phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
-            
-            List<com.example.quanlyphongtro.entity.KhachThue> tenants = null;
-            if (activeContract != null && activeContract.getKhachThueIds() != null && !activeContract.getKhachThueIds().isEmpty()) {
-                tenants = khachThueRepository.findAllByIdInWithNguoiDung(activeContract.getKhachThueIds());
-            }
-            
-            return ApiResponse.success(PhongResponse.fromEntity(phong, activeContract, tenants));
+            return ApiResponse.success(phongService.toResponse(phong));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
     @PostMapping
-    public ApiResponse<PhongResponse> createPhong(@Valid @RequestBody PhongRequest request) {
+    public ApiResponse<PhongResponse> create(@Valid @RequestBody PhongRequest request) {
         try {
-            Phong phong = phongService.createPhong(request);
-            return ApiResponse.success(PhongResponse.fromEntity(phong), "Thêm phòng thành công");
+            return ApiResponse.success(phongService.toResponse(phongService.createPhong(request)), "Thêm phòng thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<PhongResponse> updatePhong(@PathVariable UUID id, @RequestBody PhongRequest request) {
+    public ApiResponse<PhongResponse> update(@PathVariable UUID id, @RequestBody PhongRequest request) {
         try {
-            Phong phong = phongService.updatePhong(id, request);
-            return ApiResponse.success(PhongResponse.fromEntity(phong), "Cập nhật phòng thành công");
+            return ApiResponse.success(phongService.toResponse(phongService.updatePhong(id, request)), "Cập nhật phòng thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deletePhong(@PathVariable UUID id) {
+    public ApiResponse<Void> delete(@PathVariable UUID id) {
         try {
             phongService.deletePhong(id);
             return ApiResponse.success(null, "Xóa phòng thành công");

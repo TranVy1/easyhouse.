@@ -256,7 +256,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
   },
   {
     accessorKey: "khachThueId",
-    header: "Khách thuê",
+    header: "Người đại diện / thành viên",
     cell: ({ row }) => {
       const khachThue = row.original.khachThueId[0]
       const count = row.original.khachThueId.length
@@ -267,7 +267,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
           </div>
           {count > 1 && (
             <div className="text-xs text-muted-foreground">
-              +{count - 1} người khác
+              +{count - 1} thành viên ở cùng
             </div>
           )}
         </div>
@@ -350,7 +350,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
             <Download className="mr-2 h-4 w-4" />
             Tải xuống
           </DropdownMenuItem>
-          {row.original.trangThai === 'hoatDong' && (
+          {(row.original.trangThai === 'hoatDong' || row.original.trangThai === 'ACTIVE') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => props.onGiaHan(row.original)}>

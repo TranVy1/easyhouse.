@@ -94,11 +94,14 @@ export default function ChinhSuaHopDongPage() {
           setHopDong(hopDongItem);
           console.log('Hop dong loaded for editing:', hopDongItem);
           
+          const khachThueIds = hopDongItem.khachThueId?.map((kt: string | { _id: string }) => typeof kt === 'object' ? kt._id : kt) || [];
+          const nguoiDaiDienId = typeof hopDongItem.nguoiDaiDien === 'object' ? (hopDongItem.nguoiDaiDien as {_id: string})?._id || '' : hopDongItem.nguoiDaiDien || '';
+
           setFormData({
             maHopDong: hopDongItem.maHopDong || '',
             phong: typeof hopDongItem.phong === 'object' ? (hopDongItem.phong as {_id: string})?._id || '' : hopDongItem.phong || '',
-            khachThueId: hopDongItem.khachThueId?.map((kt: string | { _id: string }) => typeof kt === 'object' ? kt._id : kt) || [],
-            nguoiDaiDien: typeof hopDongItem.nguoiDaiDien === 'object' ? (hopDongItem.nguoiDaiDien as {_id: string})?._id || '' : hopDongItem.nguoiDaiDien || '',
+            khachThueId: khachThueIds.filter((id: string) => id !== nguoiDaiDienId),
+            nguoiDaiDien: nguoiDaiDienId,
             ngayBatDau: hopDongItem.ngayBatDau ? hopDongItem.ngayBatDau.toString().split('T')[0] : new Date().toISOString().split('T')[0],
             ngayKetThuc: hopDongItem.ngayKetThuc ? hopDongItem.ngayKetThuc.toString().split('T')[0] : '',
             giaThue: hopDongItem.giaThue || 0,
@@ -166,6 +169,7 @@ export default function ChinhSuaHopDongPage() {
   };
 
   const toggleKhachThue = (khachThueId: string) => {
+    if (khachThueId === formData.nguoiDaiDien) return;
     setFormData(prev => ({
       ...prev,
       khachThueId: prev.khachThueId.includes(khachThueId)
@@ -241,6 +245,11 @@ export default function ChinhSuaHopDongPage() {
     };
 
     try {
+      if (!formData.nguoiDaiDien) {
+        toast.error('Vui lòng chọn người đại diện hợp đồng');
+        return;
+      }
+      const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
       const response = await fetch(`/api/hop-dong/${hopDongId}`, {
         method: 'PUT',
         headers: {
@@ -248,6 +257,7 @@ export default function ChinhSuaHopDongPage() {
         },
         body: JSON.stringify({
           ...formData,
+          khachThueId: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
         }),
@@ -403,7 +413,6 @@ export default function ChinhSuaHopDongPage() {
                       aria-expanded={openNguoiDaiDien}
                       className="w-full justify-between text-sm"
                       size="sm"
-                      disabled={formData.khachThueId.length === 0}
                     >
                       {formData.nguoiDaiDien
                         ? khachThueList.find((k) => k._id === formData.nguoiDaiDien)?.hoTen
@@ -417,13 +426,16 @@ export default function ChinhSuaHopDongPage() {
                       <CommandEmpty>Không tìm thấy.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
                         {khachThueList
-                          .filter(k => formData.khachThueId.includes(k._id!))
                           .map((khachThue) => (
                             <CommandItem
                               key={khachThue._id}
                               value={khachThue.hoTen}
                               onSelect={() => {
-                                setFormData(prev => ({ ...prev, nguoiDaiDien: khachThue._id! }));
+                                setFormData(prev => ({
+                                  ...prev,
+                                  nguoiDaiDien: khachThue._id!,
+                                  khachThueId: prev.khachThueId.filter(id => id !== khachThue._id),
+                                }));
                                 setOpenNguoiDaiDien(false);
                               }}
                             >
@@ -444,7 +456,10 @@ export default function ChinhSuaHopDongPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs md:text-sm">Khách thuê</Label>
+              <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                Người đại diện là người đứng tên hợp đồng. Danh sách bên dưới chỉ là bạn cùng phòng và được lưu vào thành viên hợp đồng.
+              </div>
+              <Label className="text-xs md:text-sm">Bạn cùng phòng / thành viên ở cùng</Label>
               <Popover open={openKhachThue} onOpenChange={setOpenKhachThue}>
                 <PopoverTrigger asChild>
                   <Button
@@ -456,7 +471,7 @@ export default function ChinhSuaHopDongPage() {
                   >
                     <div className="flex flex-wrap gap-1 text-xs md:text-sm">
                       {formData.khachThueId.length === 0 ? (
-                        <span className="text-muted-foreground">Chọn khách thuê...</span>
+                        <span className="text-muted-foreground">Chọn thêm người ở cùng...</span>
                       ) : (
                         formData.khachThueId.map((id) => {
                           const khachThue = khachThueList.find(k => k._id === id);
@@ -473,10 +488,10 @@ export default function ChinhSuaHopDongPage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[90vw] md:w-full p-0">
                   <Command>
-                    <CommandInput placeholder="Tìm kiếm khách thuê..." className="text-sm" />
+                    <CommandInput placeholder="Tìm khách thuê để thêm vào phòng..." className="text-sm" />
                     <CommandEmpty className="text-sm">Không tìm thấy khách thuê.</CommandEmpty>
                     <CommandGroup className="max-h-64 overflow-auto">
-                      {khachThueList.map((khachThue) => (
+                      {khachThueList.filter(khachThue => khachThue._id !== formData.nguoiDaiDien).map((khachThue) => (
                         <CommandItem
                           key={khachThue._id}
                           value={khachThue.hoTen}
@@ -503,7 +518,7 @@ export default function ChinhSuaHopDongPage() {
                 </PopoverContent>
               </Popover>
               <p className="text-xs text-muted-foreground">
-                Đã chọn {formData.khachThueId.length} khách thuê
+                Đã chọn {formData.khachThueId.length} người ở cùng. Tổng người trong hợp đồng: {formData.nguoiDaiDien ? formData.khachThueId.length + 1 : formData.khachThueId.length}.
               </p>
             </div>
 

@@ -790,7 +790,7 @@ export default function HopDongPage() {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `Trạng thái: ${hopDong.trangThai === 'hoatDong' ? 'Hoạt động' : hopDong.trangThai === 'hetHan' ? 'Hết hạn' : 'Đã hủy'}`,
+                  text: `Trạng thái: ${(hopDong.trangThai === 'hoatDong' || hopDong.trangThai === 'ACTIVE') ? 'Hoạt động' : (hopDong.trangThai === 'hetHan' || hopDong.trangThai === 'EXPIRED') ? 'Hết hạn' : 'Đã hủy'}`,
                   size: 16,
                 }),
               ],
@@ -1134,7 +1134,7 @@ export default function HopDongPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Hoạt động</p>
               <p className="text-base md:text-2xl font-bold text-green-600">
-                {hopDongList.filter(h => h.trangThai === 'hoatDong').length}
+                {hopDongList.filter(h => h.trangThai === 'hoatDong' || h.trangThai === 'ACTIVE').length}
               </p>
             </div>
             <FileText className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
@@ -1277,7 +1277,7 @@ export default function HopDongPage() {
                             return <Badge variant="outline" className="text-xs">{hopDong.trangThai}</Badge>;
                         }
                       })()}
-                      {isExpiring && hopDong.trangThai === 'hoatDong' && (
+                      {isExpiring && (hopDong.trangThai === 'hoatDong' || hopDong.trangThai === 'ACTIVE') && (
                         <Badge variant="outline" className="text-xs text-orange-600 border-orange-600">
                           Sắp hết hạn
                         </Badge>

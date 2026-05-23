@@ -10,10 +10,15 @@ import java.util.UUID;
 
 @Repository
 public interface PhongRepository extends JpaRepository<Phong, UUID> {
-    List<Phong> findByNhaTroId(UUID nhaTroId);
+    List<Phong> findByNhaTroIdAndXoaLucIsNull(UUID nhaTroId);
+    List<Phong> findByXoaLucIsNull();
+    List<Phong> findByTrangThaiAndXoaLucIsNull(TrangThaiPhong trangThai);
+    List<Phong> findByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
     List<Phong> findByTrangThai(TrangThaiPhong trangThai);
     List<Phong> findByNhaTroIdAndTrangThai(UUID nhaTroId, TrangThaiPhong trangThai);
+    List<Phong> findByNhaTroIdAndTangAndXoaLucIsNull(UUID nhaTroId, Integer tang);
+    List<Phong> findByNhaTroIdAndKhuVucAndXoaLucIsNull(UUID nhaTroId, String khuVuc);
     long countByTrangThai(TrangThaiPhong trangThai);
-    long countByNhaTroId(UUID nhaTroId);
-    long countByNhaTroIdAndTrangThai(UUID nhaTroId, TrangThaiPhong trangThai);
+    long countByNhaTroIdAndXoaLucIsNull(UUID nhaTroId);
+    long countByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
 }

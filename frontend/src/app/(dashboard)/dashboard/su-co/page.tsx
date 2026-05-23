@@ -49,7 +49,12 @@ import {
   Wrench
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { SuCo, Phong, KhachThue, HopDong } from '@/types';
+import { SuCo, Phong,  KhachThue, 
+  HopDong, 
+  LoaiSuCo, 
+  UuTien, 
+  TrangThaiSuCo 
+} from '@/types';
 import { SuCoImageUpload } from '@/components/ui/su-co-image-upload';
 import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { SuCoDataTable } from './table';
@@ -612,9 +617,18 @@ function SuCoForm({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [formData, setFormData] = useState({
-    phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong || ''),
-    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : suCo?.khachThue) || '',
+  const [formData, setFormData] = useState<{
+    phongId: string | undefined;
+    khachThueId: string;
+    tieuDe: string;
+    moTa: string;
+    loaiSuCo: LoaiSuCo;
+    uuTien: UuTien;
+    trangThai: TrangThaiSuCo;
+    ghiChuChuNha: string;
+  }>({
+    phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong as string || undefined),
+    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : (typeof suCo?.khachThue === 'object' ? (suCo?.khachThue as any)._id : suCo?.khachThue)) as string || '',
     tieuDe: suCo?.tieuDe || '',
     moTa: suCo?.moTa || '',
     loaiSuCo: suCo?.loaiSuCo || 'dien_nuoc',
@@ -695,15 +709,15 @@ function SuCoForm({
     if (phong) {
       // Tìm hợp đồng đang hoạt động cho phòng này
       const hopDongHoatDong = hopDongList.find(hd => {
-        const hdPhongId = typeof hd.phong === 'object' ? (hd.phong as any)._id : hd.phong;
-        return hdPhongId === phongId && hd.trangThai === 'hoatDong';
+        const hdPhongId = typeof hd.phong === 'object' ? (hd.phong as { _id?: string })._id : hd.phong;
+        return hdPhongId === phongId && (hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE');
       });
       
       if (hopDongHoatDong && hopDongHoatDong.nguoiDaiDien) {
         const nguoiDaiDienId = typeof hopDongHoatDong.nguoiDaiDien === 'object' 
-          ? (hopDongHoatDong.nguoiDaiDien as any)._id 
+          ? (hopDongHoatDong.nguoiDaiDien as { _id?: string })._id 
           : hopDongHoatDong.nguoiDaiDien;
-        setFormData(prev => ({ ...prev, khachThueId: nguoiDaiDienId }));
+        setFormData(prev => ({ ...prev, khachThueId: nguoiDaiDienId || '' }));
       } else {
         setFormData(prev => ({ ...prev, khachThueId: '' }));
       }
@@ -720,7 +734,7 @@ function SuCoForm({
               <SelectValue placeholder="Chọn phòng" />
             </SelectTrigger>
             <SelectContent>
-              {phongList.filter(p => p.trangThai === 'dangThue' || p._id === formData.phongId).map((phong) => (
+              {phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED' || p._id === formData.phongId).map((phong) => (
                 <SelectItem key={phong._id} value={phong._id!} className="text-sm">
                   {phong.maPhong}
                 </SelectItem>

@@ -1,8 +1,3 @@
 package com.example.quanlyphongtro.entity;
 
-public enum TrangThaiHoaDon {
-    UNPAID,
-    PARTIAL,
-    PAID,
-    OVERDUE
-}
+public enum TrangThaiHoaDon { DRAFT, UNPAID, PARTIAL, PAID, OVERPAID, OVERDUE, CANCELLED }

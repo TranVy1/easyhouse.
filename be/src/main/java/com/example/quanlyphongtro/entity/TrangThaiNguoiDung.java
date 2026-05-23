@@ -1,7 +1,3 @@
 package com.example.quanlyphongtro.entity;
 
-public enum TrangThaiNguoiDung {
-    ACTIVE,
-    INACTIVE,
-    BANNED
-}
+public enum TrangThaiNguoiDung { ACTIVE, INACTIVE, BANNED }

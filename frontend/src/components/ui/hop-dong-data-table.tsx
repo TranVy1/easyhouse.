@@ -104,9 +104,10 @@ export function HopDongDataTable({
 
   const getPhongInfo = (phong: HopDongPhongInput) => {
     if (typeof phong === 'object' && phong?.maPhong) {
+      const toaNha = phong.toaNha;
       return {
         maPhong: phong.maPhong,
-        toaNha: phong.toaNha?.tenToaNha || 'Không xác định'
+        toaNha: typeof toaNha === 'object' ? toaNha.tenToaNha || 'Không xác định' : getToaNhaName(toaNha || '')
       };
     }
     
@@ -179,7 +180,7 @@ export function HopDongDataTable({
       accessorKey: "phong",
       header: "Phòng",
       cell: ({ row }) => {
-        const phong = row.getValue("phong");
+        const phong = row.getValue("phong") as HopDongPhongInput;
         const phongInfo = getPhongInfo(phong);
         return <div>{phongInfo.maPhong}</div>;
       },
@@ -188,7 +189,7 @@ export function HopDongDataTable({
       accessorKey: "toaNha",
       header: "Tòa nhà",
       cell: ({ row }) => {
-        const phong = row.getValue("phong");
+        const phong = row.getValue("phong") as HopDongPhongInput;
         const phongInfo = getPhongInfo(phong);
         return <div className="text-gray-600">{phongInfo.toaNha}</div>;
       },
@@ -197,7 +198,7 @@ export function HopDongDataTable({
       accessorKey: "nguoiDaiDien",
       header: "Khách thuê",
       cell: ({ row }) => {
-        const nguoiDaiDien = row.getValue("nguoiDaiDien");
+        const nguoiDaiDien = row.getValue("nguoiDaiDien") as HopDongKhachThueInput;
         return <div>{getKhachThueName(nguoiDaiDien)}</div>;
       },
     },

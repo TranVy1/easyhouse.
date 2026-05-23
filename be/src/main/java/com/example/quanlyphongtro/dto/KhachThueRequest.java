@@ -1,31 +1,24 @@
 package com.example.quanlyphongtro.dto;
 
 import lombok.Data;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 public class KhachThueRequest {
-    private UUID nguoiDungId;
+    private UUID nguoiDungId;  // Optional link to existing NguoiDung
+    private UUID chuTroId;     // Required: owner
     private String hoTen;
     private String email;
     private String soDienThoai;
-    private String gioiTinh;
-    private String matKhau;
-    @JsonProperty("cccd")
     private String soCccd;
-    private String lienHeKhanCap;
+    private String cccd;
     private LocalDate ngaySinh;
-    @JsonProperty("queQuan")
-    private String diaChiThuongTru;
+    private String gioiTinh;
+    private String diaChi;
+    private String queQuan;
     private String ngheNghiep;
-
-    private AnhCCCDRequest anhCCCD;
-
-    @Data
-    public static class AnhCCCDRequest {
-        private String matTruoc;
-        private String matSau;
-    }
+    private String ghiChu;
+    private Object anhCCCD;
+    private String matKhau;
 }

@@ -6,8 +6,13 @@ import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.UUID;
+
 @Data
 public class RegisterRequest {
+    private UUID authUserId;
+    private UUID supabaseUserId;
+
     @NotBlank(message = "Họ tên không được để trống")
     @JsonProperty("ten")
     private String hoTen;

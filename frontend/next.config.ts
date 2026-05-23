@@ -117,6 +117,14 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/su-co/:path*`
       },
       {
+        source: '/api/cau-hinh-gia',
+        destination: `${backendUrl}/api/cau-hinh-gia`
+      },
+      {
+        source: '/api/cau-hinh-gia/:path*',
+        destination: `${backendUrl}/api/cau-hinh-gia/:path*`
+      },
+      {
         source: '/api/admin/:path*',
         destination: `${backendUrl}/api/admin/:path*`
       },

@@ -1,24 +1,29 @@
 package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.HopDongRequest;
+import com.example.quanlyphongtro.dto.HopDongResponse;
+import com.example.quanlyphongtro.dto.KhachThueResponse;
 import com.example.quanlyphongtro.entity.HopDong;
 import com.example.quanlyphongtro.entity.KhachThue;
 import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.TrangThaiCocHopDong;
 import com.example.quanlyphongtro.entity.TrangThaiHopDong;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
-import com.example.quanlyphongtro.entity.TrangThaiCocHopDong;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.quanlyphongtro.repository.ThanhVienHopDongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,166 +32,250 @@ public class HopDongService {
     private final HopDongRepository hopDongRepository;
     private final PhongRepository phongRepository;
     private final KhachThueRepository khachThueRepository;
+    private final ThanhVienHopDongRepository thanhVienHopDongRepository;
 
-    private String toJson(Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            return "[]";
-        }
+    public List<HopDongResponse> getAll() {
+        return hopDongRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    private TrangThaiHopDong mapTrangThai(String frontendStatus) {
-        if (frontendStatus == null) return TrangThaiHopDong.ACTIVE;
-        switch (frontendStatus) {
-            case "hoatDong":
-                return TrangThaiHopDong.ACTIVE;
-            case "hetHan":
-                return TrangThaiHopDong.EXPIRED;
-            case "daHuy":
-                return TrangThaiHopDong.TERMINATED;
-            default:
-                return TrangThaiHopDong.ACTIVE;
-        }
+    public HopDongResponse getById(UUID id) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        return toResponse(hd);
     }
 
-    private TrangThaiCocHopDong mapTrangThaiCoc(String frontendStatus) {
-        if (frontendStatus == null || frontendStatus.isBlank()) return TrangThaiCocHopDong.KEPT;
-        try {
-            return TrangThaiCocHopDong.valueOf(frontendStatus);
-        } catch (IllegalArgumentException e) {
-            return TrangThaiCocHopDong.KEPT;
-        }
-    }
-
-    // ========== READ ==========
-    public List<HopDong> getAll() {
-        return hopDongRepository.findAll();
-    }
-
-    public HopDong getById(UUID id) {
-        return hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-    }
-
-    public List<KhachThue> getAllKhachThue() {
-        return khachThueRepository.findAll();
-    }
-
-    // ========== CREATE ==========
     @Transactional
-    public HopDong create(HopDongRequest request) {
-        Phong phong = phongRepository.findById(request.getPhong())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+    public HopDongResponse create(HopDongRequest req) {
+        UUID phongId = coalesce(req.getPhongId(), req.getPhong());
+        UUID khachThueId = resolveRepresentativeId(req);
+        if (khachThueId == null) {
+            throw new RuntimeException("Vui long chon nguoi dai dien hop dong");
+        }
 
-        KhachThue nguoiDaiDien = khachThueRepository.findById(request.getNguoiDaiDien())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người đại diện"));
+        Phong phong = phongRepository.findById(phongId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
 
-        HopDong hopDong = HopDong.builder()
-                .maHopDong(request.getMaHopDong())
+        hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(phongId, TrangThaiHopDong.ACTIVE)
+                .ifPresent(existing -> {
+                    throw new RuntimeException("Phong nay da co hop dong dang hoat dong");
+                });
+
+        KhachThue kt = khachThueRepository.findById(khachThueId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+
+        HopDong hd = HopDong.builder()
+                .maHopDong(req.getMaHopDong())
                 .phong(phong)
-                .nguoiDaiDien(nguoiDaiDien)
-                .khachThueIds(request.getKhachThueId())
-                .ngayBatDau(request.getNgayBatDau())
-                .ngayKetThuc(request.getNgayKetThuc())
-                .giaThue(request.getGiaThue())
-                .tienCoc(request.getTienCoc())
-                .trangThaiCoc(mapTrangThaiCoc(request.getTrangThaiCoc()))
-                .soTienHoanCoc(request.getSoTienHoanCoc())
-                .ngayHoanCoc(request.getNgayHoanCoc())
-                .chuKyThanhToan(request.getChuKyThanhToan())
-                .ngayThanhToan(request.getNgayThanhToan())
-                .dieuKhoan(request.getDieuKhoan())
-                .giaDien(request.getGiaDien())
-                .giaNuoc(request.getGiaNuoc())
-                .chiSoDienBanDau(request.getChiSoDienBanDau())
-                .chiSoNuocBanDau(request.getChiSoNuocBanDau())
-                .phiDichVu(toJson(request.getPhiDichVu()))
-                .trangThai(mapTrangThai(request.getTrangThai()))
-                .fileHopDong(request.getFileHopDong())
-                .filePdf(request.getFilePdf())
-                .chuKyChuTro(request.getChuKyChuTro())
-                .chuKyKhachThue(request.getChuKyKhachThue())
+                .khachThue(kt)
+                .ngayBatDau(req.getNgayBatDau())
+                .ngayKetThuc(req.getNgayKetThuc())
+                .giaThueHopDong(req.getGiaThueHopDong() != null ? req.getGiaThueHopDong() : req.getGiaThue())
+                .tienCoc(req.getTienCoc())
+                .trangThaiCoc(parseCocStatus(req.getTrangThaiCoc()))
+                .trangThai(parseStatus(req.getTrangThai()))
+                .chuKyThanhToan(parseChuKy(req.getChuKyThanhToan()))
+                .ngayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang() : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5))
+                .tuDongGiaHan(req.getTuDongGiaHan() != null ? req.getTuDongGiaHan() : false)
+                .chiSoDienBanDau(req.getChiSoDienBanDau())
+                .chiSoNuocBanDau(req.getChiSoNuocBanDau())
+                .noiDungHopDong(req.getNoiDungHopDong() != null ? req.getNoiDungHopDong() : req.getDieuKhoan())
+                .filePdf(req.getFilePdf())
+                .ghiChu(req.getGhiChu())
                 .build();
 
-        HopDong saved = hopDongRepository.save(hopDong);
-
-        // Cập nhật trạng thái phòng -> Đang thuê
+        HopDong saved = hopDongRepository.save(hd);
+        replaceThanhVien(saved, req);
         phong.setTrangThai(TrangThaiPhong.RENTED);
         phongRepository.save(phong);
-
-        return saved;
+        return toResponse(saved);
     }
 
-    // ========== UPDATE ==========
     @Transactional
-    public HopDong update(UUID id, HopDongRequest request) {
-        HopDong hopDong = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+    public HopDongResponse update(UUID id, HopDongRequest req) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
 
-        // Cập nhật phòng nếu thay đổi
-        if (request.getPhong() != null) {
-            Phong phong = phongRepository.findById(request.getPhong())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
-            hopDong.setPhong(phong);
+        UUID phongId = coalesce(req.getPhongId(), req.getPhong());
+        UUID khachThueId = resolveRepresentativeId(req);
+        if (phongId != null) {
+            hd.setPhong(phongRepository.findById(phongId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay phong")));
         }
-
-        // Cập nhật người đại diện nếu thay đổi
-        if (request.getNguoiDaiDien() != null) {
-            KhachThue nguoiDaiDien = khachThueRepository.findById(request.getNguoiDaiDien())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người đại diện"));
-            hopDong.setNguoiDaiDien(nguoiDaiDien);
+        if (khachThueId != null) {
+            hd.setKhachThue(khachThueRepository.findById(khachThueId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue")));
         }
-
-        if (request.getMaHopDong() != null) hopDong.setMaHopDong(request.getMaHopDong());
-        if (request.getKhachThueId() != null) hopDong.setKhachThueIds(request.getKhachThueId());
-        if (request.getNgayBatDau() != null) hopDong.setNgayBatDau(request.getNgayBatDau());
-        if (request.getNgayKetThuc() != null) hopDong.setNgayKetThuc(request.getNgayKetThuc());
-        if (request.getGiaThue() != null) hopDong.setGiaThue(request.getGiaThue());
-        if (request.getTienCoc() != null) hopDong.setTienCoc(request.getTienCoc());
-        if (request.getTrangThaiCoc() != null) hopDong.setTrangThaiCoc(mapTrangThaiCoc(request.getTrangThaiCoc()));
-        if (request.getSoTienHoanCoc() != null) hopDong.setSoTienHoanCoc(request.getSoTienHoanCoc());
-        if (request.getNgayHoanCoc() != null) hopDong.setNgayHoanCoc(request.getNgayHoanCoc());
-        if (request.getChuKyThanhToan() != null) hopDong.setChuKyThanhToan(request.getChuKyThanhToan());
-        if (request.getNgayThanhToan() != null) hopDong.setNgayThanhToan(request.getNgayThanhToan());
-        if (request.getDieuKhoan() != null) hopDong.setDieuKhoan(request.getDieuKhoan());
-        if (request.getGiaDien() != null) hopDong.setGiaDien(request.getGiaDien());
-        if (request.getGiaNuoc() != null) hopDong.setGiaNuoc(request.getGiaNuoc());
-        if (request.getChiSoDienBanDau() != null) hopDong.setChiSoDienBanDau(request.getChiSoDienBanDau());
-        if (request.getChiSoNuocBanDau() != null) hopDong.setChiSoNuocBanDau(request.getChiSoNuocBanDau());
-        if (request.getPhiDichVu() != null) hopDong.setPhiDichVu(toJson(request.getPhiDichVu()));
-        if (request.getFileHopDong() != null) hopDong.setFileHopDong(request.getFileHopDong());
-        if (request.getFilePdf() != null) hopDong.setFilePdf(request.getFilePdf());
-        if (request.getChuKyChuTro() != null) hopDong.setChuKyChuTro(request.getChuKyChuTro());
-        if (request.getChuKyKhachThue() != null) hopDong.setChuKyKhachThue(request.getChuKyKhachThue());
-        if (request.getTrangThai() != null) {
-            TrangThaiHopDong newStatus = mapTrangThai(request.getTrangThai());
-            hopDong.setTrangThai(newStatus);
-
-            // Nếu hủy hợp đồng, trả phòng về trạng thái trống
-            if (newStatus == TrangThaiHopDong.TERMINATED) {
-                Phong phong = hopDong.getPhong();
+        if (req.getMaHopDong() != null) hd.setMaHopDong(req.getMaHopDong());
+        if (req.getNgayBatDau() != null) hd.setNgayBatDau(req.getNgayBatDau());
+        if (req.getNgayKetThuc() != null) hd.setNgayKetThuc(req.getNgayKetThuc());
+        if (req.getGiaThueHopDong() != null || req.getGiaThue() != null)
+            hd.setGiaThueHopDong(req.getGiaThueHopDong() != null ? req.getGiaThueHopDong() : req.getGiaThue());
+        if (req.getTienCoc() != null) hd.setTienCoc(req.getTienCoc());
+        if (req.getTrangThaiCoc() != null) hd.setTrangThaiCoc(parseCocStatus(req.getTrangThaiCoc()));
+        if (req.getChuKyThanhToan() != null) hd.setChuKyThanhToan(parseChuKy(req.getChuKyThanhToan()));
+        if (req.getNgayThanhToanHangThang() != null || req.getNgayThanhToan() != null)
+            hd.setNgayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang() : req.getNgayThanhToan());
+        if (req.getTuDongGiaHan() != null) hd.setTuDongGiaHan(req.getTuDongGiaHan());
+        if (req.getChiSoDienBanDau() != null) hd.setChiSoDienBanDau(req.getChiSoDienBanDau());
+        if (req.getChiSoNuocBanDau() != null) hd.setChiSoNuocBanDau(req.getChiSoNuocBanDau());
+        if (req.getNoiDungHopDong() != null || req.getDieuKhoan() != null)
+            hd.setNoiDungHopDong(req.getNoiDungHopDong() != null ? req.getNoiDungHopDong() : req.getDieuKhoan());
+        if (req.getFilePdf() != null) hd.setFilePdf(req.getFilePdf());
+        if (req.getGhiChu() != null) hd.setGhiChu(req.getGhiChu());
+        if (req.getTrangThai() != null) {
+            TrangThaiHopDong newStatus = parseStatus(req.getTrangThai());
+            hd.setTrangThai(newStatus);
+            if (newStatus == TrangThaiHopDong.TERMINATED || newStatus == TrangThaiHopDong.CANCELLED) {
+                Phong phong = hd.getPhong();
                 phong.setTrangThai(TrangThaiPhong.AVAILABLE);
                 phongRepository.save(phong);
             }
         }
-
-        return hopDongRepository.save(hopDong);
+        HopDong saved = hopDongRepository.save(hd);
+        if (req.hasMemberPayload()) {
+            replaceThanhVien(saved, req);
+        }
+        return toResponse(saved);
     }
 
-    // ========== DELETE ==========
     @Transactional
     public void delete(UUID id) {
-        HopDong hopDong = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-
-        // Trả phòng về trạng thái trống nếu hợp đồng đang hoạt động
-        if (hopDong.getTrangThai() == TrangThaiHopDong.ACTIVE) {
-            Phong phong = hopDong.getPhong();
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        if (hd.getTrangThai() == TrangThaiHopDong.ACTIVE) {
+            Phong phong = hd.getPhong();
             phong.setTrangThai(TrangThaiPhong.AVAILABLE);
             phongRepository.save(phong);
         }
+        hd.setXoaLuc(java.time.ZonedDateTime.now());
+        hopDongRepository.save(hd);
+    }
 
-        hopDongRepository.delete(hopDong);
+    private TrangThaiHopDong parseStatus(String s) {
+        if (s == null) return TrangThaiHopDong.ACTIVE;
+        return switch (s) {
+            case "hoatDong" -> TrangThaiHopDong.ACTIVE;
+            case "hetHan" -> TrangThaiHopDong.EXPIRED;
+            case "daHuy" -> TrangThaiHopDong.CANCELLED;
+            default -> {
+                try { yield TrangThaiHopDong.valueOf(s.toUpperCase()); } catch (Exception e) { yield TrangThaiHopDong.ACTIVE; }
+            }
+        };
+    }
+
+    private TrangThaiCocHopDong parseCocStatus(String s) {
+        if (s == null) return TrangThaiCocHopDong.NOT_PAID;
+        try { return TrangThaiCocHopDong.valueOf(s.toUpperCase()); } catch (Exception e) { return TrangThaiCocHopDong.NOT_PAID; }
+    }
+
+    private String parseChuKy(String value) {
+        if (value == null || value.isBlank()) return "MONTHLY";
+        return switch (value) {
+            case "thang" -> "MONTHLY";
+            case "quy" -> "QUARTERLY";
+            case "nam" -> "YEARLY";
+            default -> value.toUpperCase();
+        };
+    }
+
+    private UUID coalesce(UUID first, UUID second) {
+        return first != null ? first : second;
+    }
+
+    private UUID resolveRepresentativeId(HopDongRequest req) {
+        if (req.getNguoiDaiDien() != null) return req.getNguoiDaiDien();
+        if (req.getKhachThueId() != null) return req.getKhachThueId();
+        if (req.getKhachThueIds() != null && !req.getKhachThueIds().isEmpty()) return req.getKhachThueIds().get(0);
+        return null;
+    }
+
+    @Transactional
+    private void replaceThanhVien(HopDong hopDong, HopDongRequest req) {
+        if (hopDong == null || hopDong.getId() == null) return;
+
+        UUID representativeId = hopDong.getKhachThue() != null ? hopDong.getKhachThue().getId() : resolveRepresentativeId(req);
+        Set<UUID> memberIds = new LinkedHashSet<>();
+        if (representativeId != null) memberIds.add(representativeId);
+        if (req.getKhachThueIds() != null) memberIds.addAll(req.getKhachThueIds());
+        if (req.getThanhVien() != null) {
+            req.getThanhVien().stream()
+                    .map(HopDongRequest.ThanhVienRequest::getKhachThueId)
+                    .filter(id -> id != null)
+                    .forEach(memberIds::add);
+        }
+
+        thanhVienHopDongRepository.deleteByHopDongId(hopDong.getId());
+        LocalDate defaultNgayVao = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
+
+        for (UUID memberId : memberIds) {
+            KhachThue kt = khachThueRepository.findById(memberId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay thanh vien hop dong"));
+            thanhVienHopDongRepository.save(com.example.quanlyphongtro.entity.ThanhVienHopDong.builder()
+                    .hopDong(hopDong)
+                    .khachThue(kt)
+                    .hoTen(kt.getHoTen())
+                    .soCccd(kt.getSoCccd())
+                    .soDienThoai(kt.getSoDienThoai())
+                    .ngayVao(defaultNgayVao)
+                    .dangO(true)
+                    .laNguoiDaiDien(memberId.equals(representativeId))
+                    .build());
+        }
+    }
+
+    private HopDongResponse toResponse(HopDong hopDong) {
+        HopDongResponse response = HopDongResponse.fromEntity(hopDong);
+        List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members =
+                thanhVienHopDongRepository.findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
+
+        if (members.isEmpty() && hopDong.getKhachThue() != null) {
+            response.setKhachThueId(List.of(KhachThueResponse.fromEntity(hopDong.getKhachThue())));
+            response.setNguoiDaiDien(KhachThueResponse.fromEntity(hopDong.getKhachThue()));
+            response.setKhachThueDaiDienId(hopDong.getKhachThue().getId());
+            response.setThanhVien(List.of());
+            return response;
+        }
+
+        List<KhachThueResponse> tenants = new ArrayList<>();
+        List<HopDongResponse.ThanhVienHopDongResponse> memberResponses = new ArrayList<>();
+        KhachThueResponse representative = null;
+        UUID representativeId = null;
+
+        for (com.example.quanlyphongtro.entity.ThanhVienHopDong member : members) {
+            if (member.getKhachThue() != null) {
+                KhachThueResponse tenant = KhachThueResponse.fromEntity(member.getKhachThue());
+                tenants.add(tenant);
+                if (Boolean.TRUE.equals(member.getLaNguoiDaiDien())) {
+                    representative = tenant;
+                    representativeId = member.getKhachThue().getId();
+                }
+            }
+            memberResponses.add(HopDongResponse.ThanhVienHopDongResponse.builder()
+                    .id(member.getId())
+                    .hopDongId(hopDong.getId())
+                    .khachThueId(member.getKhachThue() != null ? member.getKhachThue().getId() : null)
+                    .hoTen(member.getHoTen())
+                    .soCccd(member.getSoCccd())
+                    .soDienThoai(member.getSoDienThoai())
+                    .ngayVao(member.getNgayVao())
+                    .ngayRoi(member.getNgayRoi())
+                    .dangO(member.getDangO())
+                    .laNguoiDaiDien(member.getLaNguoiDaiDien())
+                    .ghiChu(member.getGhiChu())
+                    .build());
+        }
+
+        if (representative == null && hopDong.getKhachThue() != null) {
+            representative = KhachThueResponse.fromEntity(hopDong.getKhachThue());
+            representativeId = hopDong.getKhachThue().getId();
+        }
+
+        response.setKhachThueId(tenants);
+        response.setNguoiDaiDien(representative);
+        response.setKhachThueDaiDienId(representativeId);
+        response.setThanhVien(memberResponses);
+        return response;
     }
 }

@@ -3,7 +3,9 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.HoaDonRequest;
 import com.example.quanlyphongtro.dto.HoaDonResponse;
+import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.services.HoaDonService;
+import com.example.quanlyphongtro.services.ThanhToanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,8 @@ import java.util.UUID;
 public class HoaDonController {
 
     private final HoaDonService hoaDonService;
+    private final ThanhToanService thanhToanService;
 
-    // ========== GET ALL ==========
     @GetMapping
     public ApiResponse<List<HoaDonResponse>> getAll() {
         try {
@@ -29,7 +31,6 @@ public class HoaDonController {
         }
     }
 
-    // ========== GET BY ID ==========
     @GetMapping("/{id}")
     public ApiResponse<HoaDonResponse> getById(@PathVariable UUID id) {
         try {
@@ -39,33 +40,24 @@ public class HoaDonController {
         }
     }
 
-    // ========== CREATE ==========
     @PostMapping
     public ApiResponse<HoaDonResponse> create(@RequestBody HoaDonRequest request) {
         try {
-            return ApiResponse.success(
-                    hoaDonService.create(request),
-                    "Tạo hóa đơn thành công"
-            );
+            return ApiResponse.success(hoaDonService.create(request), "Tạo hóa đơn thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
-    // ========== UPDATE ==========
     @PutMapping("/{id}")
     public ApiResponse<HoaDonResponse> update(@PathVariable UUID id, @RequestBody HoaDonRequest request) {
         try {
-            return ApiResponse.success(
-                    hoaDonService.update(id, request),
-                    "Cập nhật hóa đơn thành công"
-            );
+            return ApiResponse.success(hoaDonService.update(id, request), "Cập nhật hóa đơn thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
-    // ========== DELETE ==========
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         try {
@@ -76,7 +68,6 @@ public class HoaDonController {
         }
     }
 
-    // ========== DELETE by query param (frontend uses ?id=xxx) ==========
     @DeleteMapping
     public ApiResponse<Void> deleteByParam(@RequestParam UUID id) {
         try {
@@ -87,7 +78,6 @@ public class HoaDonController {
         }
     }
 
-    // ========== FORM DATA (cho dropdown tạo/sửa hóa đơn) ==========
     @GetMapping("/form-data")
     public ApiResponse<Map<String, Object>> getFormData() {
         try {
@@ -97,7 +87,6 @@ public class HoaDonController {
         }
     }
 
-    // ========== LATEST READING (chỉ số điện nước gần nhất) ==========
     @GetMapping("/latest-reading")
     public ApiResponse<Map<String, Object>> getLatestReading(
             @RequestParam String hopDong,
@@ -111,27 +100,29 @@ public class HoaDonController {
         }
     }
 
-    // ========== THANH TOÁN ==========
     @PostMapping("/{id}/thanh-toan")
     public ApiResponse<HoaDonResponse> thanhToan(
             @PathVariable UUID id,
             @RequestBody Map<String, Object> body) {
         try {
-            BigDecimal soTien = new BigDecimal(body.get("soTien").toString());
-            String phuongThuc = (String) body.get("phuongThuc");
-            String ghiChu = (String) body.get("ghiChu");
+            ThanhToanRequest ttRequest = new ThanhToanRequest();
+            ttRequest.setHoaDonId(id);
+            ttRequest.setSoTien(new BigDecimal(body.get("soTien").toString()));
+            ttRequest.setPhuongThuc((String) body.get("phuongThuc"));
+            ttRequest.setGhiChu((String) body.get("ghiChu"));
+            ttRequest.setAnhBienLai((String) body.get("anhBienLai"));
+            ttRequest.setNgayThanhToan((String) body.get("ngayThanhToan"));
             
-            // Lấy mã tham chiếu từ thongTinChuyenKhoan nếu có
-            String maThamChieu = null;
             if (body.get("thongTinChuyenKhoan") != null) {
                 Map<String, Object> thongTin = (Map<String, Object>) body.get("thongTinChuyenKhoan");
-                maThamChieu = (String) thongTin.get("soGiaoDich");
+                ThanhToanRequest.ThongTinChuyenKhoan thongTinCK = new ThanhToanRequest.ThongTinChuyenKhoan();
+                thongTinCK.setSoGiaoDich((String) thongTin.get("soGiaoDich"));
+                thongTinCK.setNganHang((String) thongTin.get("nganHang"));
+                ttRequest.setThongTinChuyenKhoan(thongTinCK);
             }
 
-            return ApiResponse.success(
-                    hoaDonService.thanhToan(id, soTien, phuongThuc, ghiChu, maThamChieu),
-                    "Thanh toán thành công"
-            );
+            thanhToanService.create(ttRequest);
+            return ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

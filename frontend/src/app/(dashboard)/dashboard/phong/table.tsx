@@ -102,6 +102,7 @@ const formatCurrency = (amount: number) => {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'trong':
+    case 'AVAILABLE':
       return (
         <Badge variant="default" className="gap-1 bg-green-600">
           <CircleCheck className="h-3 w-3" />
@@ -109,6 +110,7 @@ const getStatusBadge = (status: string) => {
         </Badge>
       )
     case 'dangThue':
+    case 'RENTED':
       return (
         <Badge variant="secondary" className="gap-1">
           <Home className="h-3 w-3" />
@@ -116,6 +118,7 @@ const getStatusBadge = (status: string) => {
         </Badge>
       )
     case 'daDat':
+    case 'RESERVED':
       return (
         <Badge variant="outline" className="gap-1 border-orange-600 text-orange-600">
           <AlertCircle className="h-3 w-3" />
@@ -123,6 +126,8 @@ const getStatusBadge = (status: string) => {
         </Badge>
       )
     case 'baoTri':
+    case 'MAINTENANCE':
+    case 'INACTIVE':
       return (
         <Badge variant="destructive" className="gap-1">
           <Ban className="h-3 w-3" />

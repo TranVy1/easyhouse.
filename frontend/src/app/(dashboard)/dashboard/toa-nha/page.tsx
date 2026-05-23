@@ -435,9 +435,9 @@ function ToaNhaForm({
     tienNghiChung: toaNha?.tienNghiChung || [],
   });
 
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [wards, setWards] = useState<any[]>([]);
+  const [provinces, setProvinces] = useState<{code: number, name: string}[]>([]);
+  const [districts, setDistricts] = useState<{code: number, name: string}[]>([]);
+  const [wards, setWards] = useState<{code: number, name: string}[]>([]);
   
   const [provinceCode, setProvinceCode] = useState<string>('');
   const [districtCode, setDistrictCode] = useState<string>('');
@@ -452,8 +452,20 @@ function ToaNhaForm({
       .then(data => {
         setProvinces(data);
         if (formData.thanhPho) {
-          const p = data.find((x: any) => x.name === formData.thanhPho);
-          if (p) setProvinceCode(String(p.code));
+          const normalizeStr = (s: string) => {
+            const normalized = s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+            if (normalized === 'hcm') return 'hồ chí minh';
+            return normalized;
+          };
+          const target = normalizeStr(formData.thanhPho);
+          const p = data.find((x: {name: string, code: number}) => {
+             const name = normalizeStr(x.name);
+             return name === target || name.includes(target) || target.includes(name);
+          });
+          if (p) {
+             setProvinceCode(String(p.code));
+             setFormData(prev => ({ ...prev, thanhPho: p.name }));
+          }
         }
       })
       .catch(err => console.error("Error fetching provinces:", err));
@@ -467,8 +479,16 @@ function ToaNhaForm({
         .then(data => {
           setDistricts(data.districts || []);
           if (formData.quan && data.districts) {
-            const d = data.districts.find((x: any) => x.name === formData.quan);
-            if (d) setDistrictCode(String(d.code));
+            const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+            const target = normalizeStr(formData.quan);
+            const d = data.districts.find((x: {name: string, code: number}) => {
+               const name = normalizeStr(x.name);
+               return name === target || name.includes(target) || target.includes(name);
+            });
+            if (d) {
+               setDistrictCode(String(d.code));
+               setFormData(prev => ({ ...prev, quan: d.name }));
+            }
           }
         })
         .catch(err => console.error("Error fetching districts:", err));
@@ -485,6 +505,17 @@ function ToaNhaForm({
         .then(res => res.json())
         .then(data => {
           setWards(data.wards || []);
+          if (formData.phuong && data.wards) {
+            const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+            const target = normalizeStr(formData.phuong);
+            const w = data.wards.find((x: {name: string, code: number}) => {
+               const name = normalizeStr(x.name);
+               return name === target || name.includes(target) || target.includes(name);
+            });
+            if (w) {
+               setFormData(prev => ({ ...prev, phuong: w.name }));
+            }
+          }
         })
         .catch(err => console.error("Error fetching wards:", err));
     } else {
@@ -609,7 +640,7 @@ function ToaNhaForm({
             >
               {provinceCode
                 ? provinces.find((p) => String(p.code) === provinceCode)?.name
-                : "Chọn Tỉnh/Thành phố"}
+                : (formData.thanhPho || "Chọn Tỉnh/Thành phố")}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -658,7 +689,7 @@ function ToaNhaForm({
               >
                 {districtCode
                   ? districts.find((d) => String(d.code) === districtCode)?.name
-                  : "Chọn Quận/Huyện"}
+                  : (formData.quan || "Chọn Quận/Huyện")}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>

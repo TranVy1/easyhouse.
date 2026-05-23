@@ -31,18 +31,18 @@ public class HoaDonPublicController {
             // Lấy lịch sử thanh toán
             List<ThanhToan> payments = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(id);
             
-            // Map thanh toán sang format frontend mong đợi (optional, if needed)
+            // Map thanh toán sang format frontend mong đợi
             List<Map<String, Object>> thanhToanList = payments.stream().map(p -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("_id", p.getId());
                 map.put("soTien", p.getSoTien());
                 map.put("ngayThanhToan", p.getNgayThanhToan());
-                map.put("phuongThuc", p.getPhuongThuc() != null ? p.getPhuongThuc() : "tienMat");
+                map.put("phuongThuc", p.getPhuongThucThanhToan() != null ? p.getPhuongThucThanhToan().name() : "CASH");
                 map.put("ghiChu", p.getGhiChu());
                 
-                if (p.getMaThamChieu() != null || p.getPhuongThuc() != null) {
+                if (p.getMaThamChieu() != null || p.getPhuongThucThanhToan() != null) {
                     Map<String, Object> thongTin = new HashMap<>();
-                    thongTin.put("nganHang", p.getMaThamChieu()); // Tạm dùng maThamChieu làm tên ngân hàng nếu cần
+                    thongTin.put("nganHang", p.getMaThamChieu()); // Tạm dùng maThamChieu làm tên ngân hàng
                     thongTin.put("soGiaoDich", p.getMaThamChieu());
                     map.put("thongTinChuyenKhoan", thongTin);
                 }

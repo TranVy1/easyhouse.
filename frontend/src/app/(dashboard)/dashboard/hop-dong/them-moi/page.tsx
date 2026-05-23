@@ -111,7 +111,7 @@ export default function ThemMoiHopDongPage() {
         const phongData = await phongResponse.json();
         // Lọc phòng trống và đã đặt
         const availablePhong = (phongData.data || []).filter((phong: Phong) => 
-          phong.trangThai === 'trong' || phong.trangThai === 'daDat'
+          phong.trangThai === 'trong' || phong.trangThai === 'AVAILABLE' || phong.trangThai === 'daDat' || phong.trangThai === 'RESERVED'
         );
         setPhongList(availablePhong);
       }
@@ -150,6 +150,7 @@ export default function ThemMoiHopDongPage() {
   };
 
   const toggleKhachThue = (khachThueId: string) => {
+    if (khachThueId === formData.nguoiDaiDien) return;
     setFormData(prev => ({
       ...prev,
       khachThueId: prev.khachThueId.includes(khachThueId)
@@ -225,6 +226,11 @@ export default function ThemMoiHopDongPage() {
     };
 
     try {
+      if (!formData.nguoiDaiDien) {
+        toast.error('Vui lòng chọn người đại diện hợp đồng');
+        return;
+      }
+      const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
       const response = await fetch('/api/hop-dong', {
         method: 'POST',
         headers: {
@@ -232,6 +238,7 @@ export default function ThemMoiHopDongPage() {
         },
         body: JSON.stringify({
           ...formData,
+          khachThueId: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
         }),
@@ -368,7 +375,6 @@ export default function ThemMoiHopDongPage() {
                       aria-expanded={openNguoiDaiDien}
                       className="w-full justify-between text-sm"
                       size="sm"
-                      disabled={formData.khachThueId.length === 0}
                     >
                       {formData.nguoiDaiDien
                         ? khachThueList.find((k) => k._id === formData.nguoiDaiDien)?.hoTen
@@ -382,13 +388,16 @@ export default function ThemMoiHopDongPage() {
                       <CommandEmpty>Không tìm thấy.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
                         {khachThueList
-                          .filter(k => formData.khachThueId.includes(k._id!))
                           .map((khachThue) => (
                             <CommandItem
                               key={khachThue._id}
                               value={khachThue.hoTen}
                               onSelect={() => {
-                                setFormData(prev => ({ ...prev, nguoiDaiDien: khachThue._id! }));
+                                setFormData(prev => ({
+                                  ...prev,
+                                  nguoiDaiDien: khachThue._id!,
+                                  khachThueId: prev.khachThueId.filter(id => id !== khachThue._id),
+                                }));
                                 setOpenNguoiDaiDien(false);
                               }}
                             >
@@ -409,7 +418,10 @@ export default function ThemMoiHopDongPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs md:text-sm">Khách thuê</Label>
+              <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                Chọn người đại diện đứng tên hợp đồng trước. Danh sách bên dưới chỉ dùng để thêm bạn cùng phòng, không thay thế người đại diện.
+              </div>
+              <Label className="text-xs md:text-sm">Bạn cùng phòng / thành viên ở cùng</Label>
               <Popover open={openKhachThue} onOpenChange={setOpenKhachThue}>
                 <PopoverTrigger asChild>
                   <Button
@@ -421,7 +433,7 @@ export default function ThemMoiHopDongPage() {
                   >
                     <div className="flex flex-wrap gap-1 text-xs md:text-sm">
                       {formData.khachThueId.length === 0 ? (
-                        <span className="text-muted-foreground">Chọn khách thuê...</span>
+                        <span className="text-muted-foreground">Chọn thêm người ở cùng...</span>
                       ) : (
                         formData.khachThueId.map((id) => {
                           const khachThue = khachThueList.find(k => k._id === id);
@@ -438,10 +450,10 @@ export default function ThemMoiHopDongPage() {
                 </PopoverTrigger>
                   <PopoverContent className="w-[90vw] md:w-full p-0">
                     <Command>
-                      <CommandInput placeholder="Tìm kiếm khách thuê..." className="text-sm" />
+                      <CommandInput placeholder="Tìm khách thuê để thêm vào phòng..." className="text-sm" />
                       <CommandEmpty className="text-sm">Không tìm thấy khách thuê.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
-                      {khachThueList.map((khachThue) => (
+                      {khachThueList.filter(khachThue => khachThue._id !== formData.nguoiDaiDien).map((khachThue) => (
                         <CommandItem
                           key={khachThue._id}
                           value={khachThue.hoTen}
@@ -468,7 +480,7 @@ export default function ThemMoiHopDongPage() {
                 </PopoverContent>
               </Popover>
               <p className="text-xs text-muted-foreground">
-                Đã chọn {formData.khachThueId.length} khách thuê
+                Đã chọn {formData.khachThueId.length} người ở cùng. Tổng người trong hợp đồng: {formData.nguoiDaiDien ? formData.khachThueId.length + 1 : formData.khachThueId.length}.
               </p>
             </div>
 

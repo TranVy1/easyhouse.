@@ -1,152 +1,123 @@
-import HopDong from '@/models/HopDong';
-import Phong from '@/models/Phong';
-import KhachThue from '@/models/KhachThue';
+import type {
+  HopDong,
+  KhachThue,
+  Phong,
+  TrangThaiHoaDon,
+  TrangThaiHopDong,
+  TrangThaiPhong,
+} from '@/types';
+import {
+  hoaDonStatusFromDb,
+  hoaDonStatusToDb,
+  hopDongStatusFromDb,
+  hopDongStatusToDb,
+  phongStatusFromDb,
+  phongStatusToDb,
+} from '@/lib/domain-mappers';
 
-/**
- * Tính trạng thái phòng dựa trên hợp đồng
- * @param phongId - ID của phòng
- * @returns Trạng thái phòng: 'trong' | 'daDat' | 'dangThue' | 'baoTri'
- */
-export async function calculatePhongStatus(phongId: string): Promise<'trong' | 'daDat' | 'dangThue' | 'baoTri'> {
-  try {
-    // Tìm hợp đồng đang hoạt động của phòng
-    const hopDongHoatDong = await HopDong.findOne({
-      phong: phongId,
-      trangThai: 'hoatDong',
-      ngayBatDau: { $lte: new Date() },
-      ngayKetThuc: { $gte: new Date() }
-    });
+export {
+  hoaDonStatusFromDb,
+  hoaDonStatusToDb,
+  hopDongStatusFromDb,
+  hopDongStatusToDb,
+  phongStatusFromDb,
+  phongStatusToDb,
+};
 
-    if (hopDongHoatDong) {
-      return 'dangThue';
-    }
+const toDate = (value: string | Date | undefined): Date | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
-    // Kiểm tra có hợp đồng đã đặt nhưng chưa bắt đầu không
-    const hopDongDaDat = await HopDong.findOne({
-      phong: phongId,
-      trangThai: 'hoatDong',
-      ngayBatDau: { $gt: new Date() }
-    });
-
-    if (hopDongDaDat) {
-      return 'daDat';
-    }
-
-    // Mặc định là trống
-    return 'trong';
-  } catch (error) {
-    console.error('Error calculating phong status:', error);
-    return 'trong';
+const getId = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null) {
+    const record = value as { id?: string; _id?: string };
+    return record.id || record._id || '';
   }
+  return '';
+};
+
+export function isHopDongActive(status: TrangThaiHopDong): boolean {
+  return status === 'ACTIVE' || status === 'hoatDong';
 }
 
-/**
- * Tính trạng thái khách thuê dựa trên hợp đồng
- * @param khachThueId - ID của khách thuê
- * @returns Trạng thái khách thuê: 'dangThue' | 'daTraPhong' | 'chuaThue'
- */
-export async function calculateKhachThueStatus(khachThueId: string): Promise<'dangThue' | 'daTraPhong' | 'chuaThue'> {
-  try {
-    // Tìm hợp đồng đang hoạt động của khách thuê
-    const hopDongHoatDong = await HopDong.findOne({
-      $or: [
-        { khachThueId: khachThueId },
-        { nguoiDaiDien: khachThueId }
-      ],
-      trangThai: 'hoatDong',
-      ngayBatDau: { $lte: new Date() },
-      ngayKetThuc: { $gte: new Date() }
-    });
-
-    if (hopDongHoatDong) {
-      return 'dangThue';
-    }
-
-    // Kiểm tra xem khách thuê đã từng có hợp đồng nào chưa
-    const hopDongDaCo = await HopDong.findOne({
-      $or: [
-        { khachThueId: khachThueId },
-        { nguoiDaiDien: khachThueId }
-      ]
-    });
-
-    if (hopDongDaCo) {
-      return 'daTraPhong'; // Đã từng có hợp đồng nhưng hiện tại không hoạt động
-    }
-
-    return 'chuaThue'; // Chưa từng có hợp đồng nào
-  } catch (error) {
-    console.error('Error calculating khach thue status:', error);
-    return 'chuaThue';
-  }
+export function isPhongAvailable(status: TrangThaiPhong): boolean {
+  return status === 'AVAILABLE' || status === 'trong';
 }
 
-/**
- * Cập nhật trạng thái phòng dựa trên hợp đồng
- * @param phongId - ID của phòng
- */
-export async function updatePhongStatus(phongId: string): Promise<void> {
-  try {
-    const newStatus = await calculatePhongStatus(phongId);
-    await Phong.findByIdAndUpdate(phongId, { trangThai: newStatus });
-  } catch (error) {
-    console.error('Error updating phong status:', error);
-  }
+export function isHoaDonPaid(status: TrangThaiHoaDon): boolean {
+  return status === 'PAID' || status === 'OVERPAID' || status === 'daThanhToan' || status === 'thanhToanDu';
 }
 
-/**
- * Cập nhật trạng thái khách thuê dựa trên hợp đồng
- * @param khachThueId - ID của khách thuê
- */
-export async function updateKhachThueStatus(khachThueId: string): Promise<void> {
-  try {
-    const newStatus = await calculateKhachThueStatus(khachThueId);
-    await KhachThue.findByIdAndUpdate(khachThueId, { trangThai: newStatus });
-  } catch (error) {
-    console.error('Error updating khach thue status:', error);
-  }
+export function calculatePhongStatusFromContracts(
+  phongId: string,
+  hopDongList: Pick<HopDong, 'phong' | 'phongId' | 'trangThai' | 'ngayBatDau' | 'ngayKetThuc'>[],
+): TrangThaiPhong {
+  const now = new Date();
+
+  const hasActiveContract = hopDongList.some((hopDong) => {
+    const sameRoom = (hopDong.phongId || getId(hopDong.phong)) === phongId;
+    const start = toDate(hopDong.ngayBatDau);
+    const end = toDate(hopDong.ngayKetThuc);
+    return sameRoom && isHopDongActive(hopDong.trangThai) && (!start || start <= now) && (!end || end >= now);
+  });
+
+  if (hasActiveContract) return 'dangThue';
+
+  const hasReservedContract = hopDongList.some((hopDong) => {
+    const sameRoom = (hopDong.phongId || getId(hopDong.phong)) === phongId;
+    const start = toDate(hopDong.ngayBatDau);
+    return sameRoom && isHopDongActive(hopDong.trangThai) && Boolean(start && start > now);
+  });
+
+  return hasReservedContract ? 'daDat' : 'trong';
 }
 
-/**
- * Cập nhật trạng thái tất cả phòng khi có thay đổi hợp đồng
- * @param phongId - ID của phòng (optional)
- */
-export async function updateAllPhongStatus(phongId?: string): Promise<void> {
-  try {
-    if (phongId) {
-      // Cập nhật trạng thái cho phòng cụ thể
-      await updatePhongStatus(phongId);
-    } else {
-      // Cập nhật trạng thái cho tất cả phòng
-      const allPhong = await Phong.find({}, '_id');
-      await Promise.all(
-        allPhong.map(phong => updatePhongStatus(phong._id.toString()))
-      );
-    }
-  } catch (error) {
-    console.error('Error updating all phong status:', error);
-  }
+export function calculateKhachThueStatusFromContracts(
+  khachThueId: string,
+  hopDongList: Pick<HopDong, 'khachThueId' | 'khachThueDaiDienId' | 'nguoiDaiDien' | 'trangThai' | 'ngayBatDau' | 'ngayKetThuc'>[],
+): KhachThue['trangThai'] {
+  const now = new Date();
+
+  const hasAnyContract = hopDongList.some((hopDong) => {
+    const tenantIds = new Set([
+      ...(hopDong.khachThueId || []),
+      hopDong.khachThueDaiDienId || '',
+      getId(hopDong.nguoiDaiDien),
+    ]);
+    return tenantIds.has(khachThueId);
+  });
+
+  const hasActiveContract = hopDongList.some((hopDong) => {
+    const tenantIds = new Set([
+      ...(hopDong.khachThueId || []),
+      hopDong.khachThueDaiDienId || '',
+      getId(hopDong.nguoiDaiDien),
+    ]);
+    const start = toDate(hopDong.ngayBatDau);
+    const end = toDate(hopDong.ngayKetThuc);
+    return tenantIds.has(khachThueId) && isHopDongActive(hopDong.trangThai) && (!start || start <= now) && (!end || end >= now);
+  });
+
+  if (hasActiveContract) return 'dangThue';
+  return hasAnyContract ? 'daTraPhong' : 'chuaThue';
 }
 
-/**
- * Cập nhật trạng thái tất cả khách thuê khi có thay đổi hợp đồng
- * @param khachThueIds - Danh sách ID khách thuê (optional)
- */
-export async function updateAllKhachThueStatus(khachThueIds?: string[]): Promise<void> {
-  try {
-    if (khachThueIds && khachThueIds.length > 0) {
-      // Cập nhật trạng thái cho khách thuê cụ thể
-      await Promise.all(
-        khachThueIds.map(id => updateKhachThueStatus(id))
-      );
-    } else {
-      // Cập nhật trạng thái cho tất cả khách thuê
-      const allKhachThue = await KhachThue.find({}, '_id');
-      await Promise.all(
-        allKhachThue.map(khach => updateKhachThueStatus(khach._id.toString()))
-      );
-    }
-  } catch (error) {
-    console.error('Error updating all khach thue status:', error);
-  }
+export function withCalculatedPhongStatus(phong: Phong, hopDongList: HopDong[]): Phong {
+  return {
+    ...phong,
+    trangThai:
+      phong.trangThai === 'MAINTENANCE' || phong.trangThai === 'baoTri'
+        ? phong.trangThai
+        : calculatePhongStatusFromContracts(phong.id || phong._id || '', hopDongList),
+  };
+}
+
+export function withCalculatedKhachThueStatus(khachThue: KhachThue, hopDongList: HopDong[]): KhachThue {
+  return {
+    ...khachThue,
+    trangThai: calculateKhachThueStatusFromContracts(khachThue.id || khachThue._id || '', hopDongList),
+  };
 }

@@ -2,57 +2,44 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "nha_tro")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NhaTro {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "chu_tro_id")
-    private UUID chuTroId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chu_tro_id", nullable = false)
+    private NguoiDung chuTro;
 
-    @Column(name = "ten", nullable = false, length = 255)
+    @Column(nullable = false)
     private String ten;
 
-    @Column(name = "dia_chi", columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false)
     private String diaChi;
 
-    @Column(name = "tinh", nullable = false, length = 100)
-    private String tinh;
-
-    @Column(name = "huyen", nullable = false, length = 100)
-    private String huyen;
-
-    @Column(name = "xa", nullable = false, length = 100)
-    private String xa;
-
-    @Column(name = "mo_ta", columnDefinition = "TEXT")
+    private String soNha;
+    private String duong;
+    private String phuong;
+    private String quan;
+    private String thanhPho;
     private String moTa;
-
-    @Column(name = "tien_nghi_chung", columnDefinition = "TEXT")
     private String tienNghiChung;
+    private String noiQuy;
 
-    @CreationTimestamp
-    @Column(name = "tao_luc", updatable = false)
+    @Column(nullable = false)
+    private String trangThai = "ACTIVE";
+
     private ZonedDateTime taoLuc;
-
-    @UpdateTimestamp
-    @Column(name = "cap_nhat_luc")
     private ZonedDateTime capNhatLuc;
-
-    @Column(name = "xoa_luc")
     private ZonedDateTime xoaLuc;
 }

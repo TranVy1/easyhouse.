@@ -2,19 +2,13 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "thong_bao")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,31 +19,33 @@ public class ThongBao {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nguoi_dung_id")
-    private NguoiDung nguoiDung;
+    @JoinColumn(name = "nguoi_gui_id")
+    private NguoiDung nguoiGui;
 
-    @Column(name = "tieu_de", nullable = false, length = 255)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LoaiThongBao loai = LoaiThongBao.SYSTEM;
+
+    @Column(nullable = false)
     private String tieuDe;
 
-    @Column(name = "noi_dung", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String noiDung;
 
-    @Column(name = "loai", length = 50)
-    private String loai;
+    @Enumerated(EnumType.STRING)
+    private LoaiDoiTuongMedia doiTuong;
 
-    @Column(name = "toa_nha_id")
-    private UUID toaNhaId;
+    @Column(name = "doi_tuong_id")
+    private UUID doiTuongId;
 
-    @Builder.Default
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "phong_ids", columnDefinition = "jsonb")
-    private List<UUID> phongIds = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private KenhThongBao kenh = KenhThongBao.IN_APP;
 
-    @Builder.Default
-    @Column(name = "da_doc")
-    private Boolean daDoc = false;
+    @Column(nullable = false)
+    private Boolean guiTatCa = false;
 
-    @CreationTimestamp
-    @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;
+    private ZonedDateTime capNhatLuc;
+    private ZonedDateTime xoaLuc;
 }

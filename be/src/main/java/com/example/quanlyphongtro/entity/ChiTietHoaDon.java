@@ -2,48 +2,51 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "chi_tiet_hoa_don")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ChiTietHoaDon {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hoa_don_id")
+    @JoinColumn(name = "hoa_don_id", nullable = false)
     private HoaDon hoaDon;
 
+    // Optional refs omitted for brevity, you can map them if needed
+    @Column(name = "dich_vu_id")
+    private UUID dichVuId;
+
+    @Column(name = "chi_so_dien_nuoc_id")
+    private UUID chiSoDienNuocId;
+
+    @Column(name = "su_co_id")
+    private UUID suCoId;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "loai", columnDefinition = "loai_muc_hoa_don", nullable = false)
+    @Column(nullable = false)
     private LoaiMucHoaDon loai;
 
-    @Column(name = "mo_ta", length = 255)
+    @Column(nullable = false)
     private String moTa;
 
-    @Column(name = "so_luong", nullable = false, precision = 10, scale = 2)
-    private BigDecimal soLuong;
+    @Column(nullable = false)
+    private BigDecimal soLuong = BigDecimal.ONE;
 
-    @Column(name = "don_gia", nullable = false, precision = 15, scale = 2)
-    private BigDecimal donGia;
+    @Column(nullable = false)
+    private BigDecimal donGia = BigDecimal.ZERO;
 
-    @Column(name = "thanh_tien", nullable = false, precision = 15, scale = 2)
-    private BigDecimal thanhTien;
+    @Column(nullable = false)
+    private BigDecimal thanhTien = BigDecimal.ZERO;
 
-    @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;
-
-    @PrePersist
-    protected void onCreate() {
-        taoLuc = ZonedDateTime.now();
-    }
 }

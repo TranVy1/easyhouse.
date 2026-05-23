@@ -15,4 +15,5 @@ public interface NguoiDungRepository extends JpaRepository<NguoiDung, UUID> {
     List<NguoiDung> findByXoaLucIsNullOrderByTaoLucDesc();
     boolean existsByEmail(String email);
     boolean existsBySoDienThoai(String soDienThoai);
+    Optional<NguoiDung> findBySoCccd(String soCccd);
 }

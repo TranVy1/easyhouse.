@@ -9,7 +9,6 @@ import com.example.quanlyphongtro.repository.PhongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,72 +20,70 @@ public class NhaTroService {
 
     private final NhaTroRepository nhaTroRepository;
     private final PhongRepository phongRepository;
+    private final com.example.quanlyphongtro.repository.NguoiDungRepository nguoiDungRepository;
 
     public List<NhaTroResponse> getAllNhaTro() {
-        return nhaTroRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+                .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public NhaTroResponse getNhaTroById(UUID id) {
-        NhaTro nhaTro = nhaTroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tòa nhà"));
-        return mapToResponse(nhaTro);
+        NhaTro nt = nhaTroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+        return mapToResponse(nt);
     }
 
     @Transactional
     public NhaTroResponse createNhaTro(NhaTroRequest request) {
-        NhaTro nhaTro = new NhaTro();
-        mapRequestToEntity(request, nhaTro);
-        nhaTro = nhaTroRepository.save(nhaTro);
-        return mapToResponse(nhaTro);
+        NhaTro nt = new NhaTro();
+        // Temporary: Set chuTro to the first admin user since auth is not fully implemented
+        com.example.quanlyphongtro.entity.NguoiDung defaultUser = nguoiDungRepository.findById(UUID.fromString("22222222-2222-2222-2222-222222222221"))
+                .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản admin mặc định."));
+        nt.setChuTro(defaultUser);
+        
+        mapRequestToEntity(request, nt);
+        return mapToResponse(nhaTroRepository.save(nt));
     }
 
     @Transactional
     public NhaTroResponse updateNhaTro(UUID id, NhaTroRequest request) {
-        NhaTro nhaTro = nhaTroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tòa nhà"));
-        mapRequestToEntity(request, nhaTro);
-        nhaTro = nhaTroRepository.save(nhaTro);
-        return mapToResponse(nhaTro);
+        NhaTro nt = nhaTroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+        mapRequestToEntity(request, nt);
+        return mapToResponse(nhaTroRepository.save(nt));
     }
 
     @Transactional
     public void deleteNhaTro(UUID id) {
-        if (!nhaTroRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy tòa nhà");
-        }
-        nhaTroRepository.deleteById(id);
+        NhaTro nt = nhaTroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+        nt.setXoaLuc(java.time.ZonedDateTime.now());
+        nhaTroRepository.save(nt);
     }
 
-    private void mapRequestToEntity(NhaTroRequest request, NhaTro nhaTro) {
-        if (request.getTenToaNha() != null)
-            nhaTro.setTen(request.getTenToaNha());
-        if (request.getMoTa() != null)
-            nhaTro.setMoTa(request.getMoTa());
+    private void mapRequestToEntity(NhaTroRequest request, NhaTro nt) {
+        if (request.getTenToaNha() != null) nt.setTen(request.getTenToaNha());
+        if (request.getMoTa() != null) nt.setMoTa(request.getMoTa());
         if (request.getTienNghiChung() != null) {
-            nhaTro.setTienNghiChung(String.join(",", request.getTienNghiChung()));
+            nt.setTienNghiChung(String.join(",", request.getTienNghiChung()));
         }
-
         if (request.getDiaChi() != null) {
             String soNha = request.getDiaChi().getSoNha() != null ? request.getDiaChi().getSoNha() : "";
             String duong = request.getDiaChi().getDuong() != null ? request.getDiaChi().getDuong() : "";
-            
-            // Concatenate for the single dia_chi field in DB
             String fullDiaChi = (soNha + " " + duong).trim();
-            nhaTro.setDiaChi(fullDiaChi);
-            
-            // Map location fields to DB columns
-            nhaTro.setXa(request.getDiaChi().getPhuong());
-            nhaTro.setHuyen(request.getDiaChi().getQuan());
-            nhaTro.setTinh(request.getDiaChi().getThanhPho());
+            nt.setDiaChi(fullDiaChi.isEmpty() ? null : fullDiaChi);
+            nt.setSoNha(request.getDiaChi().getSoNha());
+            nt.setDuong(request.getDiaChi().getDuong());
+            nt.setPhuong(request.getDiaChi().getPhuong());
+            nt.setQuan(request.getDiaChi().getQuan());
+            nt.setThanhPho(request.getDiaChi().getThanhPho());
         }
     }
 
-    private NhaTroResponse mapToResponse(NhaTro nhaTro) {
-        int tongSoPhong = (int) phongRepository.countByNhaTroId(nhaTro.getId());
-        int phongTrong = (int) phongRepository.countByNhaTroIdAndTrangThai(nhaTro.getId(), TrangThaiPhong.AVAILABLE);
-        int phongDangThue = (int) phongRepository.countByNhaTroIdAndTrangThai(nhaTro.getId(), TrangThaiPhong.RENTED);
-        return NhaTroResponse.fromEntity(nhaTro, tongSoPhong, phongTrong, phongDangThue);
+    private NhaTroResponse mapToResponse(NhaTro nt) {
+        int tong = (int) phongRepository.countByNhaTroIdAndXoaLucIsNull(nt.getId());
+        int trong = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.AVAILABLE);
+        int thue = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.RENTED);
+        return NhaTroResponse.fromEntity(nt, tong, trong, thue);
     }
 }

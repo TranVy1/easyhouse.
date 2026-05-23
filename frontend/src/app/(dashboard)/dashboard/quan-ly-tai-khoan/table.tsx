@@ -108,7 +108,7 @@ const getUserName = (user: User) => user.name || user.ten || 'Không có tên'
 const getUserPhone = (user: User) => user.phone || user.soDienThoai || ''
 const getUserRole = (user: User) => user.role || user.vaiTro || 'nhanVien'
 const getUserAvatar = (user: User) => user.avatar || user.anhDaiDien || ''
-const getUserIsActive = (user: User) => user.isActive !== undefined ? user.isActive : (user.trangThai === 'hoatDong')
+const getUserIsActive = (user: User) => user.isActive !== undefined ? user.isActive : (user.trangThai === 'hoatDong' || user.trangThai === 'ACTIVE')
 
 const getInitials = (name: string) => {
   return name

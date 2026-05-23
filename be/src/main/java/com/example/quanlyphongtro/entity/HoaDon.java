@@ -2,95 +2,77 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "hoa_don")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class HoaDon {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phong_id")
-    private Phong phong;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hop_dong_id")
+    @JoinColumn(name = "hop_dong_id", nullable = false)
     private HopDong hopDong;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "khach_thue_id")
+    @JoinColumn(name = "phong_id", nullable = false)
+    private Phong phong;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "khach_thue_id", nullable = false)
     private KhachThue khachThue;
 
-    @Column(name = "ma_hoa_don", unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     private String maHoaDon;
 
-    @Column(name = "thang_hoa_don", nullable = false)
-    private LocalDate thangHoaDon;
+    @Column(nullable = false)
+    private Integer kyNam;
 
-    @Column(name = "tong_tien", nullable = false, precision = 15, scale = 2)
-    private BigDecimal tongTien;
+    @Column(nullable = false)
+    private Integer kyThang;
 
-    @Column(name = "da_tra", nullable = false, precision = 15, scale = 2)
-    @Builder.Default
+    @Column(nullable = false)
+    private LocalDate tuNgay;
+
+    @Column(nullable = false)
+    private LocalDate denNgay;
+
+    @Column(nullable = false)
+    private BigDecimal soDuDauKy = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal tongTienPhatSinh = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal tongTien = BigDecimal.ZERO;
+
+    @Column(nullable = false)
     private BigDecimal daTra = BigDecimal.ZERO;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "trang_thai", columnDefinition = "trang_thai_hoa_don")
-    @Builder.Default
-    private TrangThaiHoaDon trangThai = TrangThaiHoaDon.UNPAID;
+    @Column(insertable = false, updatable = false)
+    private BigDecimal soDuCuoiKy; // STORED GENERATED
 
-    @Column(name = "han_tra", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TrangThaiHoaDon trangThai = TrangThaiHoaDon.DRAFT;
+
+    @Column(nullable = false)
     private LocalDate hanTra;
 
-    @Column(name = "ngay_phat_hanh")
-    private LocalDate ngayPhatHanh;
+    @Column(nullable = false)
+    private ZonedDateTime ngayLapHoaDon;
 
-    @Column(name = "ngay_gui")
-    private ZonedDateTime ngayGui;
-
-    @Column(name = "da_gui")
-    @Builder.Default
-    private Boolean daGui = false;
-
-    @Column(name = "tien_giam", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal tienGiam = BigDecimal.ZERO;
-
-    @Column(name = "phi_phat_sinh", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal phiPhatSinh = BigDecimal.ZERO;
-
-    @Column(name = "ghi_chu", columnDefinition = "TEXT")
     private String ghiChu;
-
-    @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;
-
-    @Column(name = "cap_nhat_luc")
     private ZonedDateTime capNhatLuc;
-
-    @Column(name = "xoa_luc")
     private ZonedDateTime xoaLuc;
-
-    @PrePersist
-    protected void onCreate() {
-        taoLuc = ZonedDateTime.now();
-        capNhatLuc = ZonedDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        capNhatLuc = ZonedDateTime.now();
-    }
 }

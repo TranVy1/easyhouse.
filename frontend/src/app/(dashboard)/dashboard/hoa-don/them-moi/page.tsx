@@ -413,7 +413,7 @@ export default function ThemMoiHoaDonPage() {
                   <div className="space-y-1">
                     <Label htmlFor="hopDong" className="text-xs md:text-sm">Hợp đồng *</Label>
                     <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
-                      {hopDongList.filter(hd => hd.trangThai === 'hoatDong').length} hợp đồng hoạt động
+                      {hopDongList.filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE').length} hợp đồng hoạt động
                     </div>
                     <Select value={formData.hopDong} onValueChange={(value) => setFormData(prev => ({ ...prev, hopDong: value }))}>
                       <SelectTrigger className="h-10 text-sm">

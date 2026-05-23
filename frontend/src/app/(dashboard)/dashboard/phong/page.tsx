@@ -45,7 +45,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Phong, ToaNha } from '@/types';
+import { Phong, ToaNha, TrangThaiPhong } from '@/types';
 import { PhongDataTable } from './table';
 import { PhongImageUpload } from '@/components/ui/phong-image-upload';
 import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
@@ -98,6 +98,9 @@ export default function PhongPage() {
         }
       }
       
+      let phongSuccess = false;
+      let toaNhaSuccess = false;
+
       const params = new URLSearchParams();
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
@@ -110,6 +113,7 @@ export default function PhongPage() {
         if (result.success) {
           phongData = result.data;
           setPhongList(phongData);
+          phongSuccess = true;
         }
       }
       
@@ -117,15 +121,16 @@ export default function PhongPage() {
       const toaNhaResponse = await fetch('/api/toa-nha');
       let toaNhaData: ToaNha[] = [];
       if (toaNhaResponse.ok) {
-        const toaNhaResult = await toaNhaResponse.json();
-        if (toaNhaResult.success) {
-          toaNhaData = toaNhaResult.data;
+        const result = await toaNhaResponse.json();
+        if (result.success) {
+          toaNhaData = result.data;
           setToaNhaList(toaNhaData);
+          toaNhaSuccess = true;
         }
       }
       
-      // Lưu cache với data mới
-      if (phongData.length > 0 || toaNhaData.length > 0) {
+      // Lưu cache với data mới nếu cả 2 thành công
+      if (phongSuccess && toaNhaSuccess) {
         setCache({
           phongList: phongData,
           toaNhaList: toaNhaData,
@@ -278,6 +283,7 @@ export default function PhongPage() {
               </DialogHeader>
               
               <PhongForm 
+                key={editingPhong?._id || 'new'}
                 phong={editingPhong}
                 toaNhaList={toaNhaList}
                 onClose={() => setIsDialogOpen(false)}
@@ -310,7 +316,7 @@ export default function PhongPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Phòng trống</p>
               <p className="text-lg md:text-xl font-bold text-green-600">
-                {phongList.filter(p => p.trangThai === 'trong').length}
+                {phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length}
               </p>
             </div>
             <Users className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
@@ -322,7 +328,7 @@ export default function PhongPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang thuê</p>
               <p className="text-lg md:text-xl font-bold text-blue-600">
-                {phongList.filter(p => p.trangThai === 'dangThue').length}
+                {phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length}
               </p>
             </div>
             <Users className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
@@ -427,20 +433,30 @@ export default function PhongPage() {
             {filteredPhong.map((phong) => {
               const getTrangThaiColor = (trangThai: string) => {
                 switch (trangThai) {
-                  case 'trong': return 'bg-green-100 text-green-800';
-                  case 'daDat': return 'bg-yellow-100 text-yellow-800';
-                  case 'dangThue': return 'bg-blue-100 text-blue-800';
-                  case 'baoTri': return 'bg-red-100 text-red-800';
+                  case 'trong':
+                  case 'AVAILABLE': return 'bg-green-100 text-green-800';
+                  case 'daDat':
+                  case 'RESERVED': return 'bg-yellow-100 text-yellow-800';
+                  case 'dangThue':
+                  case 'RENTED': return 'bg-blue-100 text-blue-800';
+                  case 'baoTri':
+                  case 'MAINTENANCE':
+                  case 'INACTIVE': return 'bg-red-100 text-red-800';
                   default: return 'bg-gray-100 text-gray-800';
                 }
               };
 
               const getTrangThaiText = (trangThai: string) => {
                 switch (trangThai) {
-                  case 'trong': return 'Trống';
-                  case 'daDat': return 'Đã đặt';
-                  case 'dangThue': return 'Đang thuê';
-                  case 'baoTri': return 'Bảo trì';
+                  case 'trong':
+                  case 'AVAILABLE': return 'Trống';
+                  case 'daDat':
+                  case 'RESERVED': return 'Đã đặt';
+                  case 'dangThue':
+                  case 'RENTED': return 'Đang thuê';
+                  case 'baoTri':
+                  case 'MAINTENANCE': return 'Bảo trì';
+                  case 'INACTIVE': return 'Ngưng hoạt động';
                   default: return trangThai;
                 }
               };
@@ -751,6 +767,17 @@ function PhongForm({
     if (phong) {
       const toaNhaId = getToaNhaId(phong.toaNha);
       
+      const mapTrangThai = (tt: string): TrangThaiPhong => {
+         if (!tt) return 'trong';
+         if (tt === 'AVAILABLE') return 'trong';
+         if (tt === 'RESERVED') return 'daDat';
+         if (tt === 'RENTED') return 'dangThue';
+         if (tt === 'MAINTENANCE') return 'baoTri';
+         if (tt === 'INACTIVE') return 'baoTri';
+         if (['trong', 'daDat', 'dangThue', 'baoTri', 'ngungHoatDong'].includes(tt)) return tt as TrangThaiPhong;
+         return 'trong';
+      };
+
       console.log('Editing phong:', phong);
       console.log('toaNha object:', phong.toaNha);
       console.log('toaNha ID:', toaNhaId);
@@ -766,7 +793,7 @@ function PhongForm({
         anhPhong: phong.anhPhong || [],
         tienNghi: phong.tienNghi || [],
         soNguoiToiDa: phong.soNguoiToiDa || 1,
-        trangThai: phong.trangThai || 'trong',
+        trangThai: mapTrangThai(phong.trangThai),
       });
     } else {
       setFormData({
@@ -817,12 +844,25 @@ function PhongForm({
       const url = phong ? `/api/phong/${phong._id}` : '/api/phong';
       const method = phong ? 'PUT' : 'POST';
 
+      const payload = {
+        ten: formData.maPhong,
+        nhaTroId: formData.toaNha,
+        khuVuc: '', // Có thể thêm sau nếu cần
+        tang: formData.tang,
+        dienTich: formData.dienTich,
+        giaHienTai: formData.giaThue,
+        tienCocMacDinh: formData.tienCoc,
+        soNguoiToiDa: formData.soNguoiToiDa,
+        trangThai: formData.trangThai,
+        moTa: formData.moTa
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {

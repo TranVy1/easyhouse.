@@ -1,8 +1,7 @@
 package com.example.quanlyphongtro.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.example.quanlyphongtro.entity.KhachThue;
-import com.example.quanlyphongtro.entity.NguoiDung;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDate;
@@ -16,22 +15,18 @@ public class KhachThueResponse {
     @JsonProperty("_id")
     private UUID id;
 
-    // Thông tin từ NguoiDung
     private String hoTen;
     private String soDienThoai;
     private String email;
     private String gioiTinh;
-    private String anhDaiDien;
-
-    // Thông tin từ KhachThue
-    @JsonProperty("cccd")
     private String soCccd;
-    private String lienHeKhanCap;
     private LocalDate ngaySinh;
-    @JsonProperty("queQuan")
-    private String diaChiThuongTru;
+    private String diaChi;
+    private String queQuan;
     private String ngheNghiep;
+    private String ghiChu;
     private AnhCCCDResponse anhCCCD;
+    private Boolean dangHoatDong;
 
     @JsonProperty("hopDongHienTai")
     private CurrentContractResponse hopDongHienTai;
@@ -69,7 +64,6 @@ public class KhachThueResponse {
         private String matSau;
     }
 
-    // Trạng thái (tính toán từ hợp đồng)
     private String trangThai;
 
     @JsonProperty("ngayTao")
@@ -78,36 +72,27 @@ public class KhachThueResponse {
     @JsonProperty("ngayCapNhat")
     private LocalDateTime capNhatLuc;
 
-    public static KhachThueResponse fromEntity(KhachThue khachThue) {
-        NguoiDung nguoiDung = khachThue.getNguoiDung();
+    public static KhachThueResponse fromEntity(KhachThue kt) {
+        if (kt == null) return null;
 
-        LocalDateTime taoLucLocal = khachThue.getTaoLuc() != null
-                ? khachThue.getTaoLuc().toLocalDateTime()
-                : null;
-        LocalDateTime capNhatLucLocal = khachThue.getCapNhatLuc() != null
-                ? khachThue.getCapNhatLuc().toLocalDateTime()
-                : null;
+        LocalDateTime taoLucLocal = kt.getTaoLuc() != null ? kt.getTaoLuc().toLocalDateTime() : null;
+        LocalDateTime capNhatLucLocal = kt.getCapNhatLuc() != null ? kt.getCapNhatLuc().toLocalDateTime() : null;
 
         return KhachThueResponse.builder()
-                .id(khachThue.getId())
-                // Từ NguoiDung
-                .hoTen(nguoiDung != null ? nguoiDung.getHoTen() : null)
-                .soDienThoai(nguoiDung != null ? nguoiDung.getSoDienThoai() : null)
-                .email(nguoiDung != null ? nguoiDung.getEmail() : null)
-                .gioiTinh(nguoiDung != null ? nguoiDung.getGioiTinh() : null)
-                .anhDaiDien(nguoiDung != null ? nguoiDung.getAnhDaiDien() : null)
-                // Từ KhachThue
-                .soCccd(khachThue.getSoCccd())
-                .lienHeKhanCap(khachThue.getLienHeKhanCap())
-                .ngaySinh(khachThue.getNgaySinh())
-                .diaChiThuongTru(khachThue.getDiaChiThuongTru())
-                .ngheNghiep(khachThue.getNgheNghiep())
-                .anhCCCD(AnhCCCDResponse.builder()
-                        .matTruoc(khachThue.getAnhCccdTruoc())
-                        .matSau(khachThue.getAnhCccdSau())
-                        .build())
-                // TODO: Tính trangThai từ hợp đồng
-                .trangThai("chuaThue")
+                .id(kt.getId())
+                .hoTen(kt.getHoTen())
+                .soDienThoai(kt.getSoDienThoai())
+                .email(kt.getEmail())
+                .gioiTinh(kt.getGioiTinh())
+                .soCccd(kt.getSoCccd())
+                .ngaySinh(kt.getNgaySinh())
+                .diaChi(kt.getDiaChi())
+                .queQuan(kt.getQueQuan())
+                .ngheNghiep(kt.getNgheNghiep())
+                .ghiChu(kt.getGhiChu())
+                .anhCCCD(AnhCCCDResponse.builder().matTruoc("").matSau("").build())
+                .dangHoatDong(kt.getDangHoatDong())
+                .trangThai(Boolean.TRUE.equals(kt.getDangHoatDong()) ? "dangThue" : "chuaThue")
                 .taoLuc(taoLucLocal)
                 .capNhatLuc(capNhatLucLocal)
                 .build();

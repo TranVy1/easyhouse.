@@ -14,21 +14,18 @@ import java.util.UUID;
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
-    // Tìm hóa đơn chưa xóa
     List<HoaDon> findByXoaLucIsNullOrderByTaoLucDesc();
 
-    // Tìm theo phòng
     List<HoaDon> findByPhongIdAndXoaLucIsNull(UUID phongId);
 
-    // Tìm theo hợp đồng
     List<HoaDon> findByHopDongIdAndXoaLucIsNull(UUID hopDongId);
 
-    List<HoaDon> findByKhachThueIdAndXoaLucIsNullOrderByThangHoaDonDesc(UUID khachThueId);
+    List<HoaDon> findByKhachThueIdAndXoaLucIsNullOrderByKyNamDescKyThangDesc(UUID khachThueId);
 
-    // Tìm hóa đơn gần nhất theo hợp đồng (để lấy chỉ số điện nước cuối kỳ)
-    @Query("SELECT h FROM HoaDon h WHERE h.hopDong.id = :hopDongId AND h.xoaLuc IS NULL ORDER BY h.thangHoaDon DESC")
+    @Query("SELECT h FROM HoaDon h WHERE h.hopDong.id = :hopDongId AND h.xoaLuc IS NULL ORDER BY h.kyNam DESC, h.kyThang DESC")
     List<HoaDon> findLatestByHopDong(@Param("hopDongId") UUID hopDongId);
 
-    // Tìm theo trạng thái
     List<HoaDon> findByTrangThaiAndXoaLucIsNull(TrangThaiHoaDon trangThai);
+
+    Optional<HoaDon> findByHopDongIdAndKyNamAndKyThang(UUID hopDongId, Integer kyNam, Integer kyThang);
 }

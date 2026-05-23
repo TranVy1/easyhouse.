@@ -2,21 +2,16 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
+import com.example.quanlyphongtro.entity.converter.LoaiSuCoConverter;
+import com.example.quanlyphongtro.entity.converter.UuTienConverter;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-import java.util.List;
-import java.util.ArrayList;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "su_co")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,56 +22,49 @@ public class SuCo {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phong_id")
+    @JoinColumn(name = "phong_id", nullable = false)
     private Phong phong;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "khach_thue_id")
     private KhachThue khachThue;
 
-    @Column(name = "tieu_de", nullable = false, length = 255)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nguoi_bao_id")
+    private NguoiDung nguoiBao;
+
+    @Column(nullable = false)
     private String tieuDe;
 
-    @Column(name = "mo_ta", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String moTa;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "loai_su_co")
-    private LoaiSuCo loaiSuCo = LoaiSuCo.khac;
+    @Convert(converter = LoaiSuCoConverter.class)
+    @Column(nullable = false)
+    private LoaiSuCo loaiSuCo = LoaiSuCo.KHAC;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "uu_tien")
-    private UuTien uuTien = UuTien.trung_binh;
+    @Convert(converter = UuTienConverter.class)
+    @Column(nullable = false)
+    private UuTien uuTien = UuTien.TRUNG_BINH;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "trang_thai")
+    @Column(nullable = false)
     private TrangThaiSuCo trangThai = TrangThaiSuCo.PENDING;
 
-    @Column(name = "nguoi_phu_trach")
-    private UUID nguoiPhuTrach;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nguoi_phu_trach_id")
+    private NguoiDung nguoiPhuTrach;
 
-    @Column(name = "chi_phi_sua_chua", precision = 15, scale = 2)
-    private BigDecimal chiPhiSuaChua;
+    @Column(nullable = false)
+    private BigDecimal chiPhiSuaChua = BigDecimal.ZERO;
 
-    @Builder.Default
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "anh_su_co", columnDefinition = "jsonb")
-    private List<String> anhSuCo = new ArrayList<>();
+    @Column(nullable = false)
+    private Boolean tinhVaoHoaDon = false;
 
-    @Column(name = "ghi_chu_chu_nha", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String ghiChuChuNha;
 
-    @Column(name = "giai_quyet_luc")
     private ZonedDateTime giaiQuyetLuc;
-
-    @CreationTimestamp
-    @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;
-
-    @UpdateTimestamp
-    @Column(name = "cap_nhat_luc")
     private ZonedDateTime capNhatLuc;
 }

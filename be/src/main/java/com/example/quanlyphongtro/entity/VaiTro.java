@@ -2,15 +2,13 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "vai_tro")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,10 +18,11 @@ public class VaiTro {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String ten;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    private VaiTroHeThong ten;
 
-    @CreationTimestamp
-    @Column(name = "tao_luc", updatable = false)
+    private String moTa;
+
     private ZonedDateTime taoLuc;
 }

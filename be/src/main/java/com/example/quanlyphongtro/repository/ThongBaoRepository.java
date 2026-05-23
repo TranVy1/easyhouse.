@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ThongBaoRepository extends JpaRepository<ThongBao, UUID> {
     List<ThongBao> findAllByOrderByTaoLucDesc();
-    List<ThongBao> findByNguoiDungIdOrderByTaoLucDesc(UUID nguoiDungId);
+    List<ThongBao> findByNguoiGuiIdOrderByTaoLucDesc(UUID nguoiGuiId);
+    List<ThongBao> findByXoaLucIsNullOrderByTaoLucDesc();
 }

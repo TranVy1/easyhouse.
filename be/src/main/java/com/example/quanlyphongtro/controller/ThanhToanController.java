@@ -17,7 +17,6 @@ public class ThanhToanController {
 
     private final ThanhToanService thanhToanService;
 
-    // ========== GET ALL ==========
     @GetMapping
     public ApiResponse<List<ThanhToanResponse>> getAll() {
         try {
@@ -27,7 +26,6 @@ public class ThanhToanController {
         }
     }
 
-    // ========== GET BY ID ==========
     @GetMapping("/{id}")
     public ApiResponse<ThanhToanResponse> getById(@PathVariable UUID id) {
         try {
@@ -37,7 +35,6 @@ public class ThanhToanController {
         }
     }
 
-    // ========== GET BY HOA DON ==========
     @GetMapping("/hoa-don/{hoaDonId}")
     public ApiResponse<List<ThanhToanResponse>> getByHoaDon(@PathVariable UUID hoaDonId) {
         try {
@@ -47,35 +44,15 @@ public class ThanhToanController {
         }
     }
 
-    // ========== CREATE ==========
     @PostMapping
     public ApiResponse<ThanhToanResponse> create(@RequestBody ThanhToanRequest request) {
         try {
-            return ApiResponse.success(
-                    thanhToanService.create(request),
-                    "Tạo thanh toán thành công"
-            );
+            return ApiResponse.success(thanhToanService.create(request), "Tạo thanh toán thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
-    // ========== UPDATE ==========
-    @PutMapping("/{id}")
-    public ApiResponse<ThanhToanResponse> update(
-            @PathVariable UUID id,
-            @RequestBody ThanhToanRequest request) {
-        try {
-            return ApiResponse.success(
-                    thanhToanService.update(id, request),
-                    "Cập nhật thanh toán thành công"
-            );
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
-    }
-
-    // ========== DELETE ==========
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         try {

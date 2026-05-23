@@ -2,121 +2,72 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-import java.util.List;
 
 @Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "hop_dong")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class HopDong {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "ma_hop_dong", unique = true, length = 100)
-    private String maHopDong;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phong_id")
+    @JoinColumn(name = "phong_id", nullable = false)
     private Phong phong;
 
-    // Người đại diện ký hợp đồng (FK chính)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "khach_thue_id")
-    private KhachThue nguoiDaiDien;
+    @JoinColumn(name = "khach_thue_id", nullable = false)
+    private KhachThue khachThue;
 
-    // Danh sách tất cả khách thuê (JSON array of UUIDs)
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "khach_thue_ids", columnDefinition = "jsonb")
-    private List<UUID> khachThueIds;
+    @Column(nullable = false, unique = true)
+    private String maHopDong;
 
-    @Column(name = "ngay_bat_dau", nullable = false)
+    @Column(nullable = false)
     private LocalDate ngayBatDau;
 
-    @Column(name = "ngay_ket_thuc")
+    @Column(nullable = false)
     private LocalDate ngayKetThuc;
 
-    @Column(name = "gia_thue_hop_dong", precision = 15, scale = 2)
-    private BigDecimal giaThue;
+    private LocalDate ngayKetThucThucTe;
 
-    @Column(name = "tien_coc", precision = 15, scale = 2)
-    private BigDecimal tienCoc;
+    @Column(nullable = false)
+    private BigDecimal giaThueHopDong;
+
+    @Column(nullable = false)
+    private BigDecimal tienCoc = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "trang_thai_coc", columnDefinition = "trang_thai_coc_hop_dong")
-    @Builder.Default
-    private TrangThaiCocHopDong trangThaiCoc = TrangThaiCocHopDong.KEPT;
+    @Column(nullable = false)
+    private TrangThaiCocHopDong trangThaiCoc = TrangThaiCocHopDong.NOT_PAID;
 
-    @Column(name = "so_tien_hoan_coc", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal soTienHoanCoc = BigDecimal.ZERO;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TrangThaiHopDong trangThai = TrangThaiHopDong.DRAFT;
 
-    @Column(name = "ngay_hoan_coc")
-    private ZonedDateTime ngayHoanCoc;
+    @Column(nullable = false)
+    private String chuKyThanhToan = "MONTHLY";
 
-    @Column(name = "chu_ky_thanh_toan", length = 50)
-    private String chuKyThanhToan;
+    @Column(nullable = false)
+    private Integer ngayThanhToanHangThang = 5;
 
-    @Column(name = "ngay_thanh_toan")
-    private Integer ngayThanhToan;
+    @Column(nullable = false)
+    private Boolean tuDongGiaHan = false;
 
-    // Điều khoản hợp đồng (mapping noi_dung_hop_dong hoặc dieu_khoan)
-    @Column(name = "dieu_khoan", columnDefinition = "TEXT")
-    private String dieuKhoan;
-
-    @Column(name = "gia_dien", precision = 10, scale = 2)
-    private BigDecimal giaDien;
-
-    @Column(name = "gia_nuoc", precision = 10, scale = 2)
-    private BigDecimal giaNuoc;
-
-    @Column(name = "chi_so_dien_ban_dau")
     private Integer chiSoDienBanDau;
-
-    @Column(name = "chi_so_nuoc_ban_dau")
     private Integer chiSoNuocBanDau;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "phi_dich_vu", columnDefinition = "jsonb")
-    private String phiDichVu;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "trang_thai")
-    private TrangThaiHopDong trangThai;
-
-    @Column(name = "file_hop_dong")
-    private String fileHopDong;
-
-    @Column(name = "file_pdf", columnDefinition = "TEXT")
+    private String noiDungHopDong;
     private String filePdf;
+    private String ghiChu;
 
-    @Column(name = "chu_ky_chu_tro", columnDefinition = "TEXT")
-    private String chuKyChuTro;
-
-    @Column(name = "chu_ky_khach_thue", columnDefinition = "TEXT")
-    private String chuKyKhachThue;
-
-    @CreationTimestamp
-    @Column(name = "tao_luc", updatable = false)
     private ZonedDateTime taoLuc;
-
-    @UpdateTimestamp
-    @Column(name = "cap_nhat_luc")
     private ZonedDateTime capNhatLuc;
-
-    @Column(name = "xoa_luc")
     private ZonedDateTime xoaLuc;
 }
