@@ -1,6 +1,8 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { NextAuthOptions } from 'next-auth';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -15,9 +17,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-          // Gọi API Login của Spring Boot Backend
-          const res = await fetch(`${backendUrl}/api/auth/login`, {
+          const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -26,25 +26,33 @@ export const authOptions: NextAuthOptions = {
             })
           });
 
-          // Giả sử API trả về { success: true, data: { id, hoTen, email, vaiTro, token, ... } }
-          // Nếu Backend chưa có API này, NextAuth sẽ báo lỗi đăng nhập.
           if (res.ok) {
             const result = await res.json();
             if (result.success && result.data) {
               const user = result.data;
               return {
-                id: user.id || user._id || '1',
+                id: user.id || '1',
                 email: user.email,
-                name: user.ten || user.hoTen || user.name || 'User',
-                role: user.vaiTro || user.role || 'ADMIN',
+                name: user.hoTen || user.name || 'User',
+                role: user.vaiTro || user.role || 'LANDLORD',
                 phone: user.soDienThoai || user.phone || '',
                 avatar: user.anhDaiDien || user.avatar || '',
-                accessToken: user.token
+                accessToken: user.token,
+                refreshToken: user.refreshToken || '',
+                emailVerified: user.emailVerified ?? true,
+                // Store token expiry (access token = 1 hour from now)
+                accessTokenExpires: Date.now() + 60 * 60 * 1000,
               };
             }
           }
           
-          return null;
+          // Try to get error message from response
+          try {
+            const err = await res.json();
+            throw new Error(err.message || 'Đăng nhập thất bại');
+          } catch {
+            return null;
+          }
         } catch (error) {
           console.error('Auth error:', error);
           return null;
@@ -54,17 +62,28 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 ngày
+    maxAge: 30 * 24 * 60 * 60, // 30 days – matches refresh token lifetime
   },
   callbacks: {
     async jwt({ token, user }) {
+      // Initial sign-in: copy user data to token
       if (user) {
         token.role = user.role;
         token.phone = user.phone;
         token.avatar = user.avatar;
         token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.emailVerified = user.emailVerified as boolean | undefined;
+        token.accessTokenExpires = user.accessTokenExpires;
       }
-      return token;
+
+      // If access token has NOT expired, return as-is
+      if (typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
+        return token;
+      }
+
+      // Access token has expired – try to refresh
+      return await refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token) {
@@ -72,7 +91,10 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.phone = token.phone as string;
         session.user.avatar = token.avatar as string;
+        session.user.emailVerified = token.emailVerified as boolean;
         session.accessToken = token.accessToken;
+        // Signal to client if token refresh failed
+        session.error = token.error as string | undefined;
       }
       return session;
     }
@@ -84,4 +106,35 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || 'secret-key-qlyphongtro',
 };
 
-// Không export handler ở đây nữa, sẽ tạo route riêng trong app/api/auth/[...nextauth]/route.ts
+/**
+ * Refresh the access token using the stored refresh token.
+ * If refresh fails, force re-login by setting error flag.
+ */
+async function refreshAccessToken(token: Record<string, unknown>) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: token.refreshToken }),
+    });
+
+    const result = await res.json();
+
+    if (res.ok && result.success && result.data) {
+      const data = result.data;
+      return {
+        ...token,
+        accessToken: data.token,
+        refreshToken: data.refreshToken ?? token.refreshToken,
+        accessTokenExpires: Date.now() + 60 * 60 * 1000,
+        error: undefined,
+      };
+    }
+
+    // Refresh failed – force re-login
+    return { ...token, error: 'RefreshAccessTokenError' };
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    return { ...token, error: 'RefreshAccessTokenError' };
+  }
+}

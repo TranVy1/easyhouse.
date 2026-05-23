@@ -20,7 +20,7 @@ const registerSchema = z.object({
   matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   xacNhanMatKhau: z.string(),
   soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
-  vaiTro: z.enum(['chuNha', 'nhanVien', 'TENANT'], {
+  vaiTro: z.enum(['LANDLORD', 'STAFF', 'TENANT'], {
     error: 'Vui lòng chọn vai trò',
   }),
 }).refine((data) => data.matKhau === data.xacNhanMatKhau, {
@@ -46,7 +46,7 @@ export default function RegisterPage() {
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      vaiTro: 'TENANT',
+      vaiTro: 'LANDLORD',
     },
   });
 
@@ -223,6 +223,26 @@ export default function RegisterPage() {
                     <p className="text-xs text-red-500 font-medium ml-1">{errors.xacNhanMatKhau.message}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Vai trò */}
+              <div className="space-y-2">
+                <Label htmlFor="vaiTro" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Bạn là</Label>
+                <Select
+                  defaultValue="LANDLORD"
+                  onValueChange={(value) => setValue('vaiTro', value as 'LANDLORD' | 'STAFF' | 'TENANT')}
+                >
+                  <SelectTrigger className="h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+                    <SelectValue placeholder="Chọn vai trò" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LANDLORD">Chủ trọ</SelectItem>
+                    <SelectItem value="TENANT">Người thuê</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.vaiTro && (
+                  <p className="text-xs text-red-500 font-medium ml-1">{errors.vaiTro.message}</p>
+                )}
               </div>
 
               <div className="pt-4">

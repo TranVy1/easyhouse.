@@ -30,16 +30,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-    async rewrites() {
+  async rewrites() {
     return [
-      {
-        source: '/api/auth/register',
-        destination: `${backendUrl}/api/auth/register`
-      },
-      {
-        source: '/api/auth/forgot-password',
-        destination: `${backendUrl}/api/auth/forgot-password`
-      },
       {
         source: '/api/phong',
         destination: `${backendUrl}/api/phong`

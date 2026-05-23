@@ -16,6 +16,8 @@ import { DynamicBreadcrumb } from '@/components/ui/dynamic-breadcrumb';
 import { PageProgress } from '@/components/ui/page-progress';
 import { ThemeToggle } from '@/components/theme-toggle';
 
+import { signOut } from 'next-auth/react';
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -30,6 +32,11 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
     if (!session) {
       router.push('/dang-nhap');
       return;
+    }
+
+    // If refresh token expired, force re-login
+    if (session.error === 'RefreshAccessTokenError') {
+      signOut({ callbackUrl: '/dang-nhap' });
     }
   }, [session, status, router]);
 

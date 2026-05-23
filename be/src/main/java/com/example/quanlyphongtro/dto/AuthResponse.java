@@ -23,6 +23,13 @@ public class AuthResponse {
     
     @JsonProperty("anhDaiDien")
     private String avatar;
-    
+
+    /** JWT access token (short-lived) */
     private String token;
+
+    /** JWT refresh token (long-lived) */
+    private String refreshToken;
+
+    /** Whether the user has verified their email */
+    private boolean emailVerified;
 }

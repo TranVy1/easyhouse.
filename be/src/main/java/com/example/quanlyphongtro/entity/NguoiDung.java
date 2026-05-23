@@ -41,6 +41,8 @@ public class NguoiDung {
     @Column(nullable = false)
     private TrangThaiNguoiDung trangThai = TrangThaiNguoiDung.ACTIVE;
 
+    private String matKhau;
+
     @Column(nullable = false)
     private Integer soLanDangNhapSai = 0;
 
