@@ -1,6 +1,6 @@
 # AGENTS.md - EasyHouse Agent Guide
 
-Source of truth for Codex and Antigravity work in `D:\SOURCE\easyhouse`.
+Source of truth for Codex and Antigravity work in `d:\DATN_TMDT\qlyphongtro`.
 
 ## First Read
 

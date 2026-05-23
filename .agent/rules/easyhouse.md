@@ -1,6 +1,6 @@
 # EasyHouse Workspace Rule
 
-Apply this rule to all Antigravity work in `D:\SOURCE\easyhouse`.
+Apply this rule to all Antigravity work in `d:\DATN_TMDT\qlyphongtro`.
 
 1. Read `.agents/project-index.md` before edits.
 2. Use repo source over stale docs.

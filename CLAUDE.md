@@ -1,6 +1,6 @@
 # CLAUDE.md - EasyHouse
 
-Read this first when working in `D:\SOURCE\easyhouse`.
+Read this first when working in `d:\DATN_TMDT\qlyphongtro`.
 
 @.agents/project-index.md
 

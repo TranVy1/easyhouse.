@@ -1,6 +1,6 @@
 # GEMINI.md - EasyHouse
 
-Workspace context for Gemini/Antigravity agents in `D:\SOURCE\easyhouse`.
+Workspace context for Gemini/Antigravity agents in `d:\DATN_TMDT\qlyphongtro`.
 
 Read `.agents/project-index.md` before editing. Then inspect only files relevant to current task.
 

@@ -1,6 +1,6 @@
 ---
 name: easyhouse-local
-description: Use when working on the EasyHouse rental management project in D:\SOURCE\easyhouse, including Spring Boot backend, Next.js frontend, PostgreSQL schema, auth, rooms, tenants, contracts, invoices, payments, incidents, notifications, uploads, monitoring, project review, indexing, or agent documentation for Antigravity.
+description: Use when working on the EasyHouse rental management project in d:\DATN_TMDT\qlyphongtro, including Spring Boot backend, Next.js frontend, PostgreSQL schema, auth, rooms, tenants, contracts, invoices, payments, incidents, notifications, uploads, monitoring, project review, indexing, or agent documentation for Antigravity.
 ---
 
 # EasyHouse Local
