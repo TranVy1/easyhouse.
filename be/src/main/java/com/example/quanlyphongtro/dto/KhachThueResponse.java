@@ -19,6 +19,7 @@ public class KhachThueResponse {
     private String soDienThoai;
     private String email;
     private String gioiTinh;
+    @JsonProperty("cccd")
     private String soCccd;
     private LocalDate ngaySinh;
     private String diaChi;

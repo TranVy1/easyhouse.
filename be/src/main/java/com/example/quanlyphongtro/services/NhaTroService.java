@@ -36,11 +36,18 @@ public class NhaTroService {
     @Transactional
     public NhaTroResponse createNhaTro(NhaTroRequest request) {
         NhaTro nt = new NhaTro();
-        // Temporary: Set chuTro to the first admin user since auth is not fully implemented
-        com.example.quanlyphongtro.entity.NguoiDung defaultUser = nguoiDungRepository.findById(UUID.fromString("22222222-2222-2222-2222-222222222221"))
-                .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản admin mặc định."));
-        nt.setChuTro(defaultUser);
-        
+        // Lấy người dùng hiện tại từ SecurityContext
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UUID userId) {
+            com.example.quanlyphongtro.entity.NguoiDung currentUser = nguoiDungRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy người dùng hiện tại trong hệ thống."));
+            nt.setChuTro(currentUser);
+        } else {
+            // Fallback nếu không có auth (vd: đang test không truyền token)
+            com.example.quanlyphongtro.entity.NguoiDung defaultUser = nguoiDungRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không có người dùng nào trong hệ thống để gán làm chủ trọ."));
+            nt.setChuTro(defaultUser);
+        }
         mapRequestToEntity(request, nt);
         return mapToResponse(nhaTroRepository.save(nt));
     }

@@ -36,6 +36,14 @@ Cap nhat theo yeu cau: moi task code xong phai ghi lai tai day de planning luon 
   - `HopDongResponse` tra `khachThueId[]`, `nguoiDaiDien`, `khachThueDaiDienId`, `thanhVien[]`.
   - UI tao/sua hop dong tach ro: nguoi dai dien dung ten hop dong va ban cung phong/thanh vien o cung.
   - Da verify: backend `mvn test` pass, frontend `npx tsc --noEmit` pass.
+- [x] Sua luong dich vu hop dong:
+  - Them entity/repository `DichVuHopDong` map bang SQL `dich_vu_hop_dong`.
+  - Them repository `DichVuRepository` va endpoint `/api/hop-dong/dich-vu?phongId=...` de lay dich vu dang ap dung theo phong/toa nha tu `cau_hinh_gia`.
+  - `HopDongRequest` nhan `phiDichVu[]` co `dichVuId`, `gia`, `soLuong`, `loaiTinhPhi`.
+  - `HopDongService` luu/cap nhat dich vu hop dong, cho phep override don gia/so luong theo tung hop dong.
+  - `HopDongResponse` tra `phiDichVu[]` tu `dich_vu_hop_dong`; table hop dong hien thi so dich vu va tong phi dich vu.
+  - UI tao/sua hop dong tai dich vu theo phong, tick dich vu can ap dung va sua don gia/so luong.
+  - Da verify: backend `mvn test` pass, frontend `npx tsc --noEmit` pass.
 - [x] Hoàn thiện Phase 0 - Nền Tảng Kỹ Thuật:
   - Tách `db.sql` thành các file migration.
   - Fix hết các lỗi TS lint còn sót lại trong component.

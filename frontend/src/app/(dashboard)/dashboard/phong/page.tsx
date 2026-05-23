@@ -25,11 +25,11 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Home, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Home,
   Users,
   Eye,
   Copy,
@@ -63,7 +63,7 @@ export default function PhongPage() {
     phongList: Phong[];
     toaNhaList: ToaNha[];
   }>({ key: 'phong-data', duration: 300000 }); // 5 phút
-  
+
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ export default function PhongPage() {
   const fetchPhong = useCallback(async (forceRefresh = false, toaNhaFilter = '', trangThaiFilter = '') => {
     try {
       setLoading(true);
-      
+
       // Thử load từ cache trước (nếu không force refresh)
       if (!forceRefresh) {
         const cachedData = getCache();
@@ -97,14 +97,14 @@ export default function PhongPage() {
           return;
         }
       }
-      
+
       let phongSuccess = false;
       let toaNhaSuccess = false;
 
       const params = new URLSearchParams();
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
-      
+
       // Fetch phong
       const response = await fetch(`/api/phong?${params.toString()}&limit=100`);
       let phongData: Phong[] = [];
@@ -116,7 +116,7 @@ export default function PhongPage() {
           phongSuccess = true;
         }
       }
-      
+
       // Fetch toa nha
       const toaNhaResponse = await fetch('/api/toa-nha');
       let toaNhaData: ToaNha[] = [];
@@ -128,7 +128,7 @@ export default function PhongPage() {
           toaNhaSuccess = true;
         }
       }
-      
+
       // Lưu cache với data mới nếu cả 2 thành công
       if (phongSuccess && toaNhaSuccess) {
         setCache({
@@ -191,7 +191,7 @@ export default function PhongPage() {
       const response = await fetch(`/api/phong/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -223,7 +223,7 @@ export default function PhongPage() {
 
   const handleViewTenants = (phong: Phong) => {
     const hopDong = phong.hopDongHienTai;
-    
+
     if (hopDong && hopDong.khachThueId && hopDong.khachThueId.length > 0) {
       setViewingTenants(hopDong.khachThueId);
       setViewingTenantsPhongName(phong.maPhong);
@@ -255,7 +255,7 @@ export default function PhongPage() {
           <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả phòng trong hệ thống</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button 
+          <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
@@ -264,7 +264,7 @@ export default function PhongPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Đang tải...' : 'Tải mới'}
           </Button>
-     
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" onClick={() => setEditingPhong(null)} className="w-full sm:w-auto">
@@ -281,8 +281,8 @@ export default function PhongPage() {
                   {editingPhong ? 'Cập nhật thông tin phòng' : 'Nhập thông tin phòng mới'}
                 </DialogDescription>
               </DialogHeader>
-              
-              <PhongForm 
+
+              <PhongForm
                 key={editingPhong?._id || 'new'}
                 phong={editingPhong}
                 toaNhaList={toaNhaList}
@@ -357,7 +357,7 @@ export default function PhongPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <PhongDataTable 
+          <PhongDataTable
             data={filteredPhong}
             toaNhaList={toaNhaList}
             onEdit={handleEdit}
@@ -421,7 +421,7 @@ export default function PhongPage() {
             </Select>
           </div>
         </div>
-        
+
         {filteredPhong.length === 0 ? (
           <Card className="p-6 text-center">
             <Home className="h-10 w-10 mx-auto text-gray-400 mb-3" />
@@ -473,7 +473,7 @@ export default function PhongPage() {
                         {getTrangThaiText(phong.trangThai)}
                       </Badge>
                     </div>
-                    
+
                     <div className="space-y-1.5 mb-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Giá thuê:</span>
@@ -504,11 +504,11 @@ export default function PhongPage() {
                     {/* Thông tin người thuê */}
                     {(() => {
                       const hopDong = phong.hopDongHienTai;
-                      
+
                       if (hopDong && hopDong.khachThueId && hopDong.khachThueId.length > 0) {
                         const nguoiDaiDien = hopDong.nguoiDaiDien;
                         const soLuongKhachThue = hopDong.khachThueId.length;
-                        
+
                         return (
                           <div className="mb-3 p-2 bg-blue-50 rounded-md border border-blue-200">
                             <div className="flex items-center gap-1.5 mb-1">
@@ -626,11 +626,11 @@ export default function PhongPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[95vw] md:w-full">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base md:text-lg">
-                <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
               Ảnh phòng {viewingPhongName}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-hidden">
             {viewingImages.length > 0 && (
               <Carousel className="w-full">
@@ -660,7 +660,7 @@ export default function PhongPage() {
               </Carousel>
             )}
           </div>
-          
+
           <DialogFooter>
             <div className="text-xs md:text-sm text-gray-600">
               {viewingImages.length} ảnh {viewingImages.length > 1 && '- Vuốt để xem thêm'}
@@ -681,7 +681,7 @@ export default function PhongPage() {
               Tổng cộng {viewingTenants.length} người đang thuê phòng này
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3 md:space-y-4 py-2 md:py-4">
             {viewingTenants.map((tenant, index) => (
               <Card key={tenant._id || index} className="overflow-hidden">
@@ -701,7 +701,7 @@ export default function PhongPage() {
                           #{index + 1}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 gap-2">
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-medium text-gray-600">SĐT:</span>
@@ -714,7 +714,7 @@ export default function PhongPage() {
               </Card>
             ))}
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsTenantsViewerOpen(false)} className="text-sm">
               Đóng
@@ -727,12 +727,12 @@ export default function PhongPage() {
 }
 
 // Form component for adding/editing phong
-function PhongForm({ 
-  phong, 
+function PhongForm({
+  phong,
   toaNhaList,
-  onClose, 
-  onSuccess 
-}: { 
+  onClose,
+  onSuccess
+}: {
   phong: Phong | null;
   toaNhaList: ToaNha[];
   onClose: () => void;
@@ -766,22 +766,22 @@ function PhongForm({
   useEffect(() => {
     if (phong) {
       const toaNhaId = getToaNhaId(phong.toaNha);
-      
+
       const mapTrangThai = (tt: string): TrangThaiPhong => {
-         if (!tt) return 'trong';
-         if (tt === 'AVAILABLE') return 'trong';
-         if (tt === 'RESERVED') return 'daDat';
-         if (tt === 'RENTED') return 'dangThue';
-         if (tt === 'MAINTENANCE') return 'baoTri';
-         if (tt === 'INACTIVE') return 'baoTri';
-         if (['trong', 'daDat', 'dangThue', 'baoTri', 'ngungHoatDong'].includes(tt)) return tt as TrangThaiPhong;
-         return 'trong';
+        if (!tt) return 'trong';
+        if (tt === 'AVAILABLE') return 'trong';
+        if (tt === 'RESERVED') return 'daDat';
+        if (tt === 'RENTED') return 'dangThue';
+        if (tt === 'MAINTENANCE') return 'baoTri';
+        if (tt === 'INACTIVE') return 'baoTri';
+        if (['trong', 'daDat', 'dangThue', 'baoTri', 'ngungHoatDong'].includes(tt)) return tt as TrangThaiPhong;
+        return 'trong';
       };
 
       console.log('Editing phong:', phong);
       console.log('toaNha object:', phong.toaNha);
       console.log('toaNha ID:', toaNhaId);
-      
+
       setFormData({
         maPhong: phong.maPhong || '',
         toaNha: toaNhaId,
@@ -854,7 +854,9 @@ function PhongForm({
         tienCocMacDinh: formData.tienCoc,
         soNguoiToiDa: formData.soNguoiToiDa,
         trangThai: formData.trangThai,
-        moTa: formData.moTa
+        moTa: formData.moTa,
+        anhPhong: formData.anhPhong,
+        tienNghi: formData.tienNghi
       };
 
       const response = await fetch(url, {
@@ -882,218 +884,218 @@ function PhongForm({
     }
   };
 
-  const handleTienNghiChange = (tienNghi: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      tienNghi: checked 
-        ? [...prev.tienNghi, tienNghi]
-        : prev.tienNghi.filter(t => t !== tienNghi)
-    }));
-  };
+const handleTienNghiChange = (tienNghi: string, checked: boolean) => {
+  setFormData(prev => ({
+    ...prev,
+    tienNghi: checked
+      ? [...prev.tienNghi, tienNghi]
+      : prev.tienNghi.filter(t => t !== tienNghi)
+  }));
+};
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-      <Tabs defaultValue="thong-tin" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="thong-tin" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-            <Info className="h-3 w-3 md:h-4 md:w-4" />
-            Thông tin
-          </TabsTrigger>
-          <TabsTrigger value="anh-phong" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-            <ImageIcon className="h-3 w-3 md:h-4 md:w-4" />
-            Ảnh phòng
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="thong-tin" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
-          {/* Thông tin cơ bản */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="maPhong" className="text-sm">Mã phòng</Label>
-              <Input
-                id="maPhong"
-                value={formData.maPhong}
-                onChange={(e) => setFormData(prev => ({ ...prev, maPhong: e.target.value.toUpperCase() }))}
-                required
-                className="text-sm"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="toaNha" className="text-sm">Tòa nhà</Label>
-              <Select value={formData.toaNha} onValueChange={(value) => setFormData(prev => ({ ...prev, toaNha: value }))}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Chọn tòa nhà" />
-                </SelectTrigger>
-                <SelectContent>
-                  {toaNhaList.map((toaNha) => (
-                    <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm">
-                      {toaNha.tenToaNha}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+return (
+  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+    <Tabs defaultValue="thong-tin" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="thong-tin" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+          <Info className="h-3 w-3 md:h-4 md:w-4" />
+          Thông tin
+        </TabsTrigger>
+        <TabsTrigger value="anh-phong" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+          <ImageIcon className="h-3 w-3 md:h-4 md:w-4" />
+          Ảnh phòng
+        </TabsTrigger>
+      </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="trangThai" className="text-sm">Trạng thái</Label>
-              <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'trong' | 'daDat' | 'dangThue' | 'baoTri' }))}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trong" className="text-sm">Trống</SelectItem>
-                  <SelectItem value="daDat" className="text-sm">Đã đặt</SelectItem>
-                  <SelectItem value="dangThue" className="text-sm">Đang thuê</SelectItem>
-                  <SelectItem value="baoTri" className="text-sm">Bảo trì</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Thông tin phòng */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="tang" className="text-sm">Tầng</Label>
-              <Input
-                id="tang"
-                type="number"
-                min="0"
-                value={formData.tang}
-                onChange={(e) => setFormData(prev => ({ ...prev, tang: parseInt(e.target.value) || 0 }))}
-                required
-                className="text-sm"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="dienTich" className="text-sm">Diện tích (m²)</Label>
-              <Input
-                id="dienTich"
-                type="number"
-                min="1"
-                value={formData.dienTich}
-                onChange={(e) => setFormData(prev => ({ ...prev, dienTich: parseInt(e.target.value) || 0 }))}
-                required
-                className="text-sm"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="soNguoiToiDa" className="text-sm">Số người tối đa</Label>
-              <Input
-                id="soNguoiToiDa"
-                type="number"
-                min="1"
-                max="10"
-                value={formData.soNguoiToiDa}
-                onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: parseInt(e.target.value) || 1 }))}
-                required
-                className="text-sm"
-              />
-            </div>
-
-            <div className="space-y-2 col-span-2 md:col-span-1">
-              <Label className="text-sm">Preview</Label>
-              <div className="h-10 bg-gray-50 border rounded-md flex items-center justify-center text-xs md:text-sm text-gray-500">
-                Phòng {formData.maPhong || 'XXX'} - Tầng {formData.tang}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="giaThue" className="text-sm">Giá thuê (VNĐ)</Label>
-              <Input
-                id="giaThue"
-                type="number"
-                min="0"
-                value={formData.giaThue}
-                onChange={(e) => setFormData(prev => ({ ...prev, giaThue: parseInt(e.target.value) || 0 }))}
-                required
-                className="text-sm"
-              />
-              <span className="text-xs md:text-sm text-gray-500 font-medium">
-                {formatCurrency(formData.giaThue)}
-              </span>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="tienCoc" className="text-sm">Tiền cọc (VNĐ)</Label>
-              <Input
-                id="tienCoc"
-                type="number"
-                min="0"
-                value={formData.tienCoc}
-                onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: parseInt(e.target.value) || 0 }))}
-                required
-                className="text-sm"
-              />
-              <span className="text-xs md:text-sm text-gray-500 font-medium">
-                {formatCurrency(formData.tienCoc)}
-              </span>
-            </div>
-          </div>
-
+      <TabsContent value="thong-tin" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
+        {/* Thông tin cơ bản */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           <div className="space-y-2">
-            <Label htmlFor="moTa" className="text-sm">Mô tả</Label>
-            <Textarea
-              id="moTa"
-              value={formData.moTa}
-              onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
-              rows={3}
+            <Label htmlFor="maPhong" className="text-sm">Mã phòng</Label>
+            <Input
+              id="maPhong"
+              value={formData.maPhong}
+              onChange={(e) => setFormData(prev => ({ ...prev, maPhong: e.target.value.toUpperCase() }))}
+              required
               className="text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm">Tiện nghi</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-              {tienNghiOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={option.value}
-                    checked={formData.tienNghi.includes(option.value)}
-                    onChange={(e) => handleTienNghiChange(option.value, e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor={option.value} className="text-sm">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            <Label htmlFor="toaNha" className="text-sm">Tòa nhà</Label>
+            <Select value={formData.toaNha} onValueChange={(value) => setFormData(prev => ({ ...prev, toaNha: value }))}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Chọn tòa nhà" />
+              </SelectTrigger>
+              <SelectContent>
+                {toaNhaList.map((toaNha) => (
+                  <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm">
+                    {toaNha.tenToaNha}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="anh-phong" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
-          <div className="space-y-3 md:space-y-4">
-            <div>
-              <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2">Quản lý ảnh phòng</h3>
-              <p className="text-xs md:text-sm text-gray-600">
-                Tải lên tối đa 10 ảnh để khách hàng có thể xem chi tiết phòng
-              </p>
-            </div>
-            
-            <PhongImageUpload
-              images={formData.anhPhong}
-              onImagesChange={(images: string[]) => setFormData(prev => ({ ...prev, anhPhong: images }))}
-              maxImages={10}
-              className="w-full"
+
+          <div className="space-y-2">
+            <Label htmlFor="trangThai" className="text-sm">Trạng thái</Label>
+            <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'trong' | 'daDat' | 'dangThue' | 'baoTri' }))}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Chọn trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="trong" className="text-sm">Trống</SelectItem>
+                <SelectItem value="daDat" className="text-sm">Đã đặt</SelectItem>
+                <SelectItem value="dangThue" className="text-sm">Đang thuê</SelectItem>
+                <SelectItem value="baoTri" className="text-sm">Bảo trì</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Thông tin phòng */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="tang" className="text-sm">Tầng</Label>
+            <Input
+              id="tang"
+              type="number"
+              min="0"
+              value={formData.tang}
+              onChange={(e) => setFormData(prev => ({ ...prev, tang: parseInt(e.target.value) || 0 }))}
+              required
+              className="text-sm"
             />
           </div>
-        </TabsContent>
-      </Tabs>
 
-      <DialogFooter className="gap-2">
-        <Button type="button" variant="outline" onClick={onClose} className="text-sm">
-          Hủy
-        </Button>
-        <Button type="submit" className="text-sm">
-          {phong ? 'Cập nhật' : 'Thêm mới'}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
+          <div className="space-y-2">
+            <Label htmlFor="dienTich" className="text-sm">Diện tích (m²)</Label>
+            <Input
+              id="dienTich"
+              type="number"
+              min="1"
+              value={formData.dienTich}
+              onChange={(e) => setFormData(prev => ({ ...prev, dienTich: parseInt(e.target.value) || 0 }))}
+              required
+              className="text-sm"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="soNguoiToiDa" className="text-sm">Số người tối đa</Label>
+            <Input
+              id="soNguoiToiDa"
+              type="number"
+              min="1"
+              max="10"
+              value={formData.soNguoiToiDa}
+              onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: parseInt(e.target.value) || 1 }))}
+              required
+              className="text-sm"
+            />
+          </div>
+
+          <div className="space-y-2 col-span-2 md:col-span-1">
+            <Label className="text-sm">Preview</Label>
+            <div className="h-10 bg-gray-50 border rounded-md flex items-center justify-center text-xs md:text-sm text-gray-500">
+              Phòng {formData.maPhong || 'XXX'} - Tầng {formData.tang}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="giaThue" className="text-sm">Giá thuê (VNĐ)</Label>
+            <Input
+              id="giaThue"
+              type="number"
+              min="0"
+              value={formData.giaThue}
+              onChange={(e) => setFormData(prev => ({ ...prev, giaThue: parseInt(e.target.value) || 0 }))}
+              required
+              className="text-sm"
+            />
+            <span className="text-xs md:text-sm text-gray-500 font-medium">
+              {formatCurrency(formData.giaThue)}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tienCoc" className="text-sm">Tiền cọc (VNĐ)</Label>
+            <Input
+              id="tienCoc"
+              type="number"
+              min="0"
+              value={formData.tienCoc}
+              onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: parseInt(e.target.value) || 0 }))}
+              required
+              className="text-sm"
+            />
+            <span className="text-xs md:text-sm text-gray-500 font-medium">
+              {formatCurrency(formData.tienCoc)}
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="moTa" className="text-sm">Mô tả</Label>
+          <Textarea
+            id="moTa"
+            value={formData.moTa}
+            onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
+            rows={3}
+            className="text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm">Tiện nghi</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+            {tienNghiOptions.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={option.value}
+                  checked={formData.tienNghi.includes(option.value)}
+                  onChange={(e) => handleTienNghiChange(option.value, e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor={option.value} className="text-sm">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="anh-phong" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
+        <div className="space-y-3 md:space-y-4">
+          <div>
+            <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2">Quản lý ảnh phòng</h3>
+            <p className="text-xs md:text-sm text-gray-600">
+              Tải lên tối đa 10 ảnh để khách hàng có thể xem chi tiết phòng
+            </p>
+          </div>
+
+          <PhongImageUpload
+            images={formData.anhPhong}
+            onImagesChange={(images: string[]) => setFormData(prev => ({ ...prev, anhPhong: images }))}
+            maxImages={10}
+            className="w-full"
+          />
+        </div>
+      </TabsContent>
+    </Tabs>
+
+    <DialogFooter className="gap-2">
+      <Button type="button" variant="outline" onClick={onClose} className="text-sm">
+        Hủy
+      </Button>
+      <Button type="submit" className="text-sm">
+        {phong ? 'Cập nhật' : 'Thêm mới'}
+      </Button>
+    </DialogFooter>
+  </form>
+);
 }

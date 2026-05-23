@@ -26,6 +26,12 @@ public class HopDongController {
         catch (Exception e) { return ApiResponse.error(e.getMessage()); }
     }
 
+    @GetMapping("/dich-vu")
+    public ApiResponse<List<HopDongDichVuOptionResponse>> getDichVuTheoPhong(@RequestParam UUID phongId) {
+        try { return ApiResponse.success(hopDongService.getDichVuTheoPhong(phongId)); }
+        catch (Exception e) { return ApiResponse.error(e.getMessage()); }
+    }
+
     @PostMapping
     public ApiResponse<HopDongResponse> create(@RequestBody HopDongRequest request) {
         try { return ApiResponse.success(hopDongService.create(request), "Tạo hợp đồng thành công"); }

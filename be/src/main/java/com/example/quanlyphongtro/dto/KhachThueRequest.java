@@ -19,6 +19,6 @@ public class KhachThueRequest {
     private String queQuan;
     private String ngheNghiep;
     private String ghiChu;
-    private Object anhCCCD;
+    private java.util.Map<String, String> anhCCCD;
     private String matKhau;
 }

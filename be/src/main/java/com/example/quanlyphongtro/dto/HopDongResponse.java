@@ -25,16 +25,22 @@ public class HopDongResponse {
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
     private LocalDate ngayKetThucThucTe;
+    @JsonProperty("giaThue")
     private BigDecimal giaThueHopDong;
     private BigDecimal tienCoc;
     private String trangThaiCoc;
     private String trangThai;
     private String chuKyThanhToan;
+    @JsonProperty("ngayThanhToan")
     private Integer ngayThanhToanHangThang;
     private Boolean tuDongGiaHan;
     private Integer chiSoDienBanDau;
     private Integer chiSoNuocBanDau;
+    @JsonProperty("dieuKhoan")
     private String noiDungHopDong;
+    private BigDecimal giaDien;
+    private BigDecimal giaNuoc;
+    private List<PhiDichVuResponse> phiDichVu;
     private String filePdf;
     private String ghiChu;
     private ZonedDateTime ngayTao;
@@ -54,6 +60,21 @@ public class HopDongResponse {
         private Boolean dangO;
         private Boolean laNguoiDaiDien;
         private String ghiChu;
+    }
+
+    @Data
+    @Builder
+    public static class PhiDichVuResponse {
+        @JsonProperty("_id")
+        private UUID id;
+        private UUID dichVuId;
+        private String ten;
+        private BigDecimal gia;
+        private BigDecimal soLuong;
+        private String loaiTinhPhi;
+        private String donVi;
+        private LocalDate batDauTu;
+        private LocalDate ketThucLuc;
     }
 
     public static HopDongResponse fromEntity(HopDong hd) {
@@ -84,16 +105,39 @@ public class HopDongResponse {
                 .giaThueHopDong(hd.getGiaThueHopDong())
                 .tienCoc(hd.getTienCoc())
                 .trangThaiCoc(hd.getTrangThaiCoc() != null ? hd.getTrangThaiCoc().name() : null)
-                .trangThai(hd.getTrangThai() != null ? hd.getTrangThai().name() : null)
-                .chuKyThanhToan(hd.getChuKyThanhToan())
+                .trangThai(hd.getTrangThai() != null ? mapTrangThai(hd.getTrangThai().name()) : null)
+                .chuKyThanhToan(mapChuKy(hd.getChuKyThanhToan()))
                 .ngayThanhToanHangThang(hd.getNgayThanhToanHangThang())
                 .tuDongGiaHan(hd.getTuDongGiaHan())
                 .chiSoDienBanDau(hd.getChiSoDienBanDau())
                 .chiSoNuocBanDau(hd.getChiSoNuocBanDau())
-                .noiDungHopDong(hd.getNoiDungHopDong())
+                .noiDungHopDong(hd.getNoiDungHopDong() != null ? hd.getNoiDungHopDong() : "")
+                .giaDien(BigDecimal.ZERO)
+                .giaNuoc(BigDecimal.ZERO)
+                .phiDichVu(List.of())
                 .filePdf(hd.getFilePdf())
                 .ghiChu(hd.getGhiChu())
                 .ngayTao(hd.getTaoLuc())
                 .build();
+    }
+
+    private static String mapTrangThai(String trangThai) {
+        if (trangThai == null) return "hoatDong";
+        return switch (trangThai) {
+            case "ACTIVE" -> "hoatDong";
+            case "EXPIRED" -> "hetHan";
+            case "CANCELLED", "TERMINATED" -> "daHuy";
+            default -> "hoatDong";
+        };
+    }
+
+    private static String mapChuKy(String chuKy) {
+        if (chuKy == null) return "thang";
+        return switch (chuKy) {
+            case "MONTHLY" -> "thang";
+            case "QUARTERLY" -> "quy";
+            case "YEARLY" -> "nam";
+            default -> "thang";
+        };
     }
 }

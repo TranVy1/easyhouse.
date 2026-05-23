@@ -40,6 +40,7 @@ public class HopDongRequest {
     private String dieuKhoan;
     private String filePdf;
     private String ghiChu;
+    private List<PhiDichVuItem> phiDichVu;
 
     @JsonSetter("khachThueId")
     public void setKhachThueId(Object value) {
@@ -74,6 +75,17 @@ public class HopDongRequest {
         private Boolean dangO;
         private Boolean laNguoiDaiDien;
         private String ghiChu;
+    }
+
+    @Data
+    public static class PhiDichVuItem {
+        private UUID dichVuId;
+        private String ten;
+        private BigDecimal gia;
+        private BigDecimal soLuong;
+        private String loaiTinhPhi;
+        private LocalDate batDauTu;
+        private LocalDate ketThucLuc;
     }
 
     private List<UUID> parseUuidList(Object value) {

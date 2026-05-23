@@ -46,4 +46,19 @@ public interface CauHinhGiaRepository extends JpaRepository<CauHinhGia, UUID> {
             @Param("loai") LoaiMucHoaDon loai,
             @Param("ngayApDung") LocalDate ngayApDung
     );
+
+    @Query("""
+            select c
+            from CauHinhGia c
+            where c.nhaTro.id = :nhaTroId
+              and c.dichVuId is not null
+              and c.dangApDung = true
+              and c.hieuLucTu <= :ngayApDung
+              and (c.hieuLucDen is null or c.hieuLucDen >= :ngayApDung)
+            order by c.tenHienThi asc, c.hieuLucTu desc
+            """)
+    List<CauHinhGia> findApplicableServices(
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("ngayApDung") LocalDate ngayApDung
+    );
 }

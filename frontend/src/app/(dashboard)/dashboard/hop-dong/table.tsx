@@ -324,6 +324,22 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
     ),
   },
   {
+    accessorKey: "phiDichVu",
+    header: () => <div className="text-right">Dịch vụ</div>,
+    cell: ({ row }) => {
+      const services = row.original.phiDichVu || [];
+      const total = services.reduce((sum, service) => sum + (Number(service.gia || 0) * Number(service.soLuong || 1)), 0);
+      return (
+        <div className="min-w-32 text-right">
+          <div className="font-medium">{formatCurrency(total)}</div>
+          <div className="text-xs text-muted-foreground">
+            {services.length > 0 ? `${services.length} dịch vụ` : "Chưa chọn"}
+          </div>
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => (
       <DropdownMenu>

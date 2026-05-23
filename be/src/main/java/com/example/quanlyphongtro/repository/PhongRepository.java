@@ -21,4 +21,6 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     long countByTrangThai(TrangThaiPhong trangThai);
     long countByNhaTroIdAndXoaLucIsNull(UUID nhaTroId);
     long countByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
+    boolean existsByNhaTroIdAndTen(UUID nhaTroId, String ten);
+    boolean existsByNhaTroIdAndTenAndIdNot(UUID nhaTroId, String ten, UUID id);
 }

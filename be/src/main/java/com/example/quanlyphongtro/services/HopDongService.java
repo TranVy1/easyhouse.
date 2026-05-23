@@ -2,25 +2,21 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.HopDongRequest;
 import com.example.quanlyphongtro.dto.HopDongResponse;
+import com.example.quanlyphongtro.dto.HopDongDichVuOptionResponse;
 import com.example.quanlyphongtro.dto.KhachThueResponse;
-import com.example.quanlyphongtro.entity.HopDong;
-import com.example.quanlyphongtro.entity.KhachThue;
-import com.example.quanlyphongtro.entity.Phong;
-import com.example.quanlyphongtro.entity.TrangThaiCocHopDong;
-import com.example.quanlyphongtro.entity.TrangThaiHopDong;
-import com.example.quanlyphongtro.entity.TrangThaiPhong;
-import com.example.quanlyphongtro.repository.HopDongRepository;
-import com.example.quanlyphongtro.repository.KhachThueRepository;
-import com.example.quanlyphongtro.repository.PhongRepository;
-import com.example.quanlyphongtro.repository.ThanhVienHopDongRepository;
+import com.example.quanlyphongtro.entity.*;
+import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,13 +29,19 @@ public class HopDongService {
     private final PhongRepository phongRepository;
     private final KhachThueRepository khachThueRepository;
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
+    private final DichVuHopDongRepository dichVuHopDongRepository;
+    private final DichVuRepository dichVuRepository;
+    private final CauHinhGiaRepository cauHinhGiaRepository;
+    private final TienIchService tienIchService;
 
+    @Transactional(readOnly = true)
     public List<HopDongResponse> getAll() {
         return hopDongRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public HopDongResponse getById(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
@@ -65,6 +67,9 @@ public class HopDongService {
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
 
+        List<String> tienIchHienTai = tienIchService.listByPhong(phongId);
+        String snapshotTienIch = String.join(", ", tienIchHienTai);
+
         HopDong hd = HopDong.builder()
                 .maHopDong(req.getMaHopDong())
                 .phong(phong)
@@ -80,6 +85,7 @@ public class HopDongService {
                 .tuDongGiaHan(req.getTuDongGiaHan() != null ? req.getTuDongGiaHan() : false)
                 .chiSoDienBanDau(req.getChiSoDienBanDau())
                 .chiSoNuocBanDau(req.getChiSoNuocBanDau())
+                .tienIchBanGiao(snapshotTienIch)
                 .noiDungHopDong(req.getNoiDungHopDong() != null ? req.getNoiDungHopDong() : req.getDieuKhoan())
                 .filePdf(req.getFilePdf())
                 .ghiChu(req.getGhiChu())
@@ -87,6 +93,7 @@ public class HopDongService {
 
         HopDong saved = hopDongRepository.save(hd);
         replaceThanhVien(saved, req);
+        replaceDichVuHopDong(saved, req);
         phong.setTrangThai(TrangThaiPhong.RENTED);
         phongRepository.save(phong);
         return toResponse(saved);
@@ -137,7 +144,32 @@ public class HopDongService {
         if (req.hasMemberPayload()) {
             replaceThanhVien(saved, req);
         }
+        if (req.getPhiDichVu() != null) {
+            replaceDichVuHopDong(saved, req);
+        }
         return toResponse(saved);
+    }
+
+    public List<HopDongDichVuOptionResponse> getDichVuTheoPhong(UUID phongId) {
+        Phong phong = phongRepository.findById(phongId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        LocalDate today = LocalDate.now();
+        Map<UUID, HopDongDichVuOptionResponse> options = new LinkedHashMap<>();
+
+        for (CauHinhGia config : cauHinhGiaRepository.findApplicableServices(phong.getNhaTro().getId(), today)) {
+            if (config.getDichVuId() == null || options.containsKey(config.getDichVuId())) continue;
+            DichVu dichVu = dichVuRepository.findById(config.getDichVuId()).orElse(null);
+            options.put(config.getDichVuId(), HopDongDichVuOptionResponse.builder()
+                    .dichVuId(config.getDichVuId())
+                    .ten(config.getTenHienThi())
+                    .loaiTinhPhi(config.getLoaiTinhPhi() != null ? config.getLoaiTinhPhi().name() : null)
+                    .donVi(dichVu != null ? dichVu.getDonVi() : null)
+                    .donGiaMacDinh(config.getDonGia())
+                    .batBuoc(dichVu != null && Boolean.TRUE.equals(dichVu.getBatBuoc()))
+                    .build());
+        }
+
+        return new ArrayList<>(options.values());
     }
 
     @Transactional
@@ -225,6 +257,52 @@ public class HopDongService {
         }
     }
 
+    @Transactional
+    private void replaceDichVuHopDong(HopDong hopDong, HopDongRequest req) {
+        if (hopDong == null || hopDong.getId() == null || req.getPhiDichVu() == null) return;
+        dichVuHopDongRepository.deleteByHopDongId(hopDong.getId());
+        LocalDate defaultStart = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
+
+        for (HopDongRequest.PhiDichVuItem item : req.getPhiDichVu()) {
+            DichVu dichVu = resolveDichVu(hopDong, item);
+            if (dichVu == null) continue;
+            LoaiTinhPhi loaiTinhPhi = parseLoaiTinhPhi(item.getLoaiTinhPhi(), dichVu.getLoaiTinhPhi());
+            BigDecimal donGia = item.getGia() != null ? item.getGia() : defaultMoney(dichVu.getDonGiaMacDinh());
+            BigDecimal soLuong = item.getSoLuong() != null ? item.getSoLuong() : BigDecimal.ONE;
+
+            dichVuHopDongRepository.save(DichVuHopDong.builder()
+                    .hopDong(hopDong)
+                    .dichVu(dichVu)
+                    .loaiTinhPhi(loaiTinhPhi)
+                    .donGiaApDung(donGia)
+                    .soLuong(soLuong)
+                    .batDauTu(item.getBatDauTu() != null ? item.getBatDauTu() : defaultStart)
+                    .ketThucLuc(item.getKetThucLuc())
+                    .build());
+        }
+    }
+
+    private DichVu resolveDichVu(HopDong hopDong, HopDongRequest.PhiDichVuItem item) {
+        if (item == null) return null;
+        if (item.getDichVuId() != null) {
+            return dichVuRepository.findById(item.getDichVuId())
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay dich vu hop dong"));
+        }
+        if (item.getTen() == null || item.getTen().isBlank() || hopDong.getPhong() == null || hopDong.getPhong().getNhaTro() == null) {
+            return null;
+        }
+        NguoiDung chuTro = hopDong.getPhong().getNhaTro().getChuTro();
+        if (chuTro == null) return null;
+        return dichVuRepository.findByChuTroIdAndTenDichVuIgnoreCase(chuTro.getId(), item.getTen())
+                .orElseGet(() -> dichVuRepository.save(DichVu.builder()
+                        .chuTro(chuTro)
+                        .tenDichVu(item.getTen())
+                        .loaiTinhPhi(parseLoaiTinhPhi(item.getLoaiTinhPhi(), LoaiTinhPhi.FIXED))
+                        .donGiaMacDinh(item.getGia() != null ? item.getGia() : BigDecimal.ZERO)
+                        .batBuoc(false)
+                        .build()));
+    }
+
     private HopDongResponse toResponse(HopDong hopDong) {
         HopDongResponse response = HopDongResponse.fromEntity(hopDong);
         List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members =
@@ -235,6 +313,7 @@ public class HopDongService {
             response.setNguoiDaiDien(KhachThueResponse.fromEntity(hopDong.getKhachThue()));
             response.setKhachThueDaiDienId(hopDong.getKhachThue().getId());
             response.setThanhVien(List.of());
+            response.setPhiDichVu(mapPhiDichVu(hopDong.getId()));
             return response;
         }
 
@@ -276,6 +355,32 @@ public class HopDongService {
         response.setNguoiDaiDien(representative);
         response.setKhachThueDaiDienId(representativeId);
         response.setThanhVien(memberResponses);
+        response.setPhiDichVu(mapPhiDichVu(hopDong.getId()));
         return response;
+    }
+
+    private List<HopDongResponse.PhiDichVuResponse> mapPhiDichVu(UUID hopDongId) {
+        return dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId).stream()
+                .map(item -> HopDongResponse.PhiDichVuResponse.builder()
+                        .id(item.getId())
+                        .dichVuId(item.getDichVu() != null ? item.getDichVu().getId() : null)
+                        .ten(item.getDichVu() != null ? item.getDichVu().getTenDichVu() : "")
+                        .gia(item.getDonGiaApDung())
+                        .soLuong(item.getSoLuong())
+                        .loaiTinhPhi(item.getLoaiTinhPhi() != null ? item.getLoaiTinhPhi().name() : null)
+                        .donVi(item.getDichVu() != null ? item.getDichVu().getDonVi() : null)
+                        .batDauTu(item.getBatDauTu())
+                        .ketThucLuc(item.getKetThucLuc())
+                        .build())
+                .toList();
+    }
+
+    private LoaiTinhPhi parseLoaiTinhPhi(String value, LoaiTinhPhi fallback) {
+        if (value == null || value.isBlank()) return fallback != null ? fallback : LoaiTinhPhi.FIXED;
+        try { return LoaiTinhPhi.valueOf(value.toUpperCase()); } catch (Exception e) { return fallback != null ? fallback : LoaiTinhPhi.FIXED; }
+    }
+
+    private BigDecimal defaultMoney(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 }

@@ -22,21 +22,23 @@ public class DichVu {
     @JoinColumn(name = "chu_tro_id")
     private NguoiDung chuTro;
 
-    @Column(nullable = false)
+    @Column(name = "ten_dich_vu", nullable = false)
     private String tenDichVu;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "loai_tinh_phi", nullable = false)
     private LoaiTinhPhi loaiTinhPhi = LoaiTinhPhi.FIXED;
 
     private String donVi;
 
-    @Column(nullable = false)
+    @Column(name = "don_gia_mac_dinh", nullable = false)
     private java.math.BigDecimal donGiaMacDinh = java.math.BigDecimal.ZERO;
 
     @Column(nullable = false)
     private Boolean batBuoc = false;
 
+    @Column(name = "tao_luc")
     private ZonedDateTime taoLuc;
+    @Column(name = "cap_nhat_luc")
     private ZonedDateTime capNhatLuc;
 }

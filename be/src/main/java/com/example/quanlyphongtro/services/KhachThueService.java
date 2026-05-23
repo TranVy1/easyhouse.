@@ -88,9 +88,19 @@ public class KhachThueService {
             kt.setNguoiDung(nd);
         }
         
-        // Temporary: Set chuTro to the first admin user since auth is not fully implemented
-        NguoiDung defaultUser = nguoiDungRepository.findById(UUID.fromString("22222222-2222-2222-2222-222222222221"))
-                .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản admin mặc định."));
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null 
+            ? org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal() 
+            : null;
+            
+        NguoiDung defaultUser = null;
+        if (principal instanceof UUID) {
+            defaultUser = nguoiDungRepository.findById((UUID) principal).orElse(null);
+        }
+        
+        if (defaultUser == null) {
+            defaultUser = nguoiDungRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản người dùng nào trong DB"));
+        }
         kt.setChuTro(defaultUser);
         
         KhachThue saved = khachThueRepository.save(kt);
@@ -143,9 +153,8 @@ public class KhachThueService {
                 .build());
     }
 
-    @SuppressWarnings("unchecked")
-    private void saveCccdMedia(UUID khachThueId, Object anhCCCD) {
-        if (!(anhCCCD instanceof Map<?, ?> map)) return;
+    private void saveCccdMedia(UUID khachThueId, Map<String, String> map) {
+        if (map == null || map.isEmpty()) return;
         Object matTruoc = firstPresent(map, "matTruoc", "front", "anhCccdTruoc", "anh_cccd_truoc");
         Object matSau = firstPresent(map, "matSau", "back", "anhCccdSau", "anh_cccd_sau");
         mediaService.replaceUrl(LoaiDoiTuongMedia.TENANT, khachThueId, matTruoc != null ? matTruoc.toString() : "", MediaService.CCCD_FRONT);

@@ -40,6 +40,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+type DichVuOption = {
+  dichVuId: string;
+  ten: string;
+  loaiTinhPhi?: string;
+  donVi?: string;
+  donGiaMacDinh: number;
+  batBuoc?: boolean;
+};
+
 export default function ChinhSuaHopDongPage() {
   const router = useRouter();
   const params = useParams();
@@ -48,6 +57,8 @@ export default function ChinhSuaHopDongPage() {
   const [hopDong, setHopDong] = useState<HopDong | null>(null);
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
+  const [dichVuOptions, setDichVuOptions] = useState<DichVuOption[]>([]);
+  const [globalDichVuList, setGlobalDichVuList] = useState<DichVuOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -67,14 +78,53 @@ export default function ChinhSuaHopDongPage() {
     giaNuoc: 25000,
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
-    phiDichVu: [] as Array<{ten: string, gia: number}>,
+    phiDichVu: [] as Array<{dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string}>,
     trangThai: 'hoatDong' as 'hoatDong' | 'hetHan' | 'daHuy',
   });
 
-  const [newPhiDichVu, setNewPhiDichVu] = useState({ ten: '', gia: 0 });
   const [openPhong, setOpenPhong] = useState(false);
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
+  const [openAddDichVu, setOpenAddDichVu] = useState(false);
+  const [searchDichVu, setSearchDichVu] = useState("");
+
+  const loadDichVuTheoPhong = async (phongId: string, currentPhiDichVu: any[] = []) => {
+    if (!phongId) {
+      setDichVuOptions([]);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`);
+      const result = response.ok ? await response.json() : { data: [] };
+      const options = (result.data || []).map((item: DichVuOption) => ({
+        ...item,
+        dichVuId: String(item.dichVuId),
+        donGiaMacDinh: Number(item.donGiaMacDinh || 0),
+      }));
+      setDichVuOptions(options);
+      
+      if (currentPhiDichVu.length === 0) {
+        setFormData(prev => ({
+          ...prev,
+          phiDichVu: [
+            ...prev.phiDichVu.filter(phi => options.some((option: DichVuOption) => option.dichVuId === phi.dichVuId)),
+            ...options
+              .filter((option: DichVuOption) => option.batBuoc && !prev.phiDichVu.some(phi => phi.dichVuId === option.dichVuId))
+              .map((option: DichVuOption) => ({
+                dichVuId: option.dichVuId,
+                ten: option.ten,
+                gia: option.donGiaMacDinh,
+                soLuong: 1,
+                loaiTinhPhi: option.loaiTinhPhi,
+              })),
+          ],
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading contract services:', error);
+      setDichVuOptions([]);
+    }
+  };
 
   useEffect(() => {
     if (hopDongId) {
@@ -116,6 +166,10 @@ export default function ChinhSuaHopDongPage() {
             phiDichVu: hopDongItem.phiDichVu || [],
             trangThai: hopDongItem.trangThai || 'hoatDong',
           });
+          const phongId = typeof hopDongItem.phong === 'object' ? (hopDongItem.phong as {_id: string})?._id || '' : hopDongItem.phong || '';
+          if (phongId) {
+            loadDichVuTheoPhong(phongId, hopDongItem.phiDichVu || []);
+          }
         } else {
           toast.error('Không tìm thấy hợp đồng');
           router.push('/dashboard/hop-dong');
@@ -140,6 +194,21 @@ export default function ChinhSuaHopDongPage() {
         const khachThueData = await khachThueResponse.json();
         setKhachThueList(khachThueData.data || []);
       }
+
+      // Fetch dich vu data
+      const dichVuResponse = await fetch('/api/dich-vu');
+      if (dichVuResponse.ok) {
+        const dvData = await dichVuResponse.json();
+        const dvOptions = (dvData.data || []).map((dv: any) => ({
+          dichVuId: dv._id,
+          ten: dv.tenDichVu,
+          loaiTinhPhi: dv.loaiTinhPhi,
+          donVi: dv.donVi,
+          donGiaMacDinh: dv.donGiaMacDinh,
+          batBuoc: dv.batBuoc
+        }));
+        setGlobalDichVuList(dvOptions);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Có lỗi xảy ra khi tải dữ liệu');
@@ -161,9 +230,11 @@ export default function ChinhSuaHopDongPage() {
       setFormData(prev => ({
         ...prev,
         phong: phongId,
-        giaThue: selectedPhong.giaThue,
-        tienCoc: selectedPhong.tienCoc,
+        giaThue: selectedPhong.giaThue || 0,
+        tienCoc: selectedPhong.tienCoc || 0,
+        phiDichVu: [],
       }));
+      loadDichVuTheoPhong(phongId, []);
     }
     setOpenPhong(false);
   };
@@ -178,20 +249,30 @@ export default function ChinhSuaHopDongPage() {
     }));
   };
 
-  const addPhiDichVu = () => {
-    if (newPhiDichVu.ten && newPhiDichVu.gia > 0) {
-      setFormData(prev => ({
+  const toggleDichVuHopDong = (option: DichVuOption) => {
+    setFormData(prev => {
+      const exists = prev.phiDichVu.some(phi => phi.dichVuId === option.dichVuId);
+      return {
         ...prev,
-        phiDichVu: [...prev.phiDichVu, { ...newPhiDichVu }]
-      }));
-      setNewPhiDichVu({ ten: '', gia: 0 });
-    }
+        phiDichVu: exists
+          ? prev.phiDichVu.filter(phi => phi.dichVuId !== option.dichVuId)
+          : [...prev.phiDichVu, {
+              dichVuId: option.dichVuId,
+              ten: option.ten,
+              gia: option.donGiaMacDinh,
+              soLuong: 1,
+              loaiTinhPhi: option.loaiTinhPhi,
+            }],
+      };
+    });
   };
 
-  const removePhiDichVu = (index: number) => {
+  const updateDichVuHopDong = (dichVuId: string, field: 'gia' | 'soLuong', value: number) => {
     setFormData(prev => ({
       ...prev,
-      phiDichVu: prev.phiDichVu.filter((_, i) => i !== index)
+      phiDichVu: prev.phiDichVu.map(phi =>
+        phi.dichVuId === dichVuId ? { ...phi, [field]: value } : phi
+      ),
     }));
   };
 
@@ -736,52 +817,96 @@ export default function ChinhSuaHopDongPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs md:text-sm">Phí dịch vụ</Label>
-              <div className="space-y-2">
-                {formData.phiDichVu.map((phi, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <span className="text-sm flex-1">{phi.ten}</span>
-                    <span className="text-sm font-medium">{formatCurrency(phi.gia)}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removePhiDichVu(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+              <Label>Dịch vụ áp dụng cho hợp đồng</Label>
+              {!formData.phong ? (
+                <p className="text-sm text-muted-foreground">Chọn phòng trước để tải danh sách dịch vụ đang áp dụng cho tòa nhà/phòng.</p>
+              ) : dichVuOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    {dichVuOptions.map((option) => {
+                      const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
+                      return (
+                        <div key={option.dichVuId} className="grid grid-cols-1 md:grid-cols-[1fr_160px_120px_auto] gap-2 rounded border p-3">
+                          <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-2 text-left">
+                            <span className={cn("flex h-4 w-4 items-center justify-center rounded-sm border", selected ? "bg-primary text-primary-foreground" : "bg-background")}>
+                              {selected && <Check className="h-3 w-3" />}
+                            </span>
+                            <span className="text-sm font-medium">{option.ten}</span>
+                            {option.batBuoc && <Badge variant="outline">Bắt buộc</Badge>}
+                          </button>
+                          <Input type="number" min="0" value={selected?.gia ?? option.donGiaMacDinh} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)} />
+                          <Input type="number" min="0" step="0.1" value={selected?.soLuong ?? 1} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)} />
+                          <div className="text-sm text-muted-foreground md:text-right">
+                            {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-                
-                <div className="flex gap-2">
-                  <div className="w-[50%]">
-                    <Input
-                      placeholder="Tên dịch vụ"
-                      value={newPhiDichVu.ten}
-                      onChange={(e) => setNewPhiDichVu(prev => ({ ...prev, ten: e.target.value }))}
-                    />
-                  </div>
-                  <div className="w-[40%]">
-                    <Input
-                      placeholder="Giá"
-                      type="number"
-                      min="0"
-                      value={newPhiDichVu.gia}
-                      onChange={(e) => setNewPhiDichVu(prev => ({ ...prev, gia: parseInt(e.target.value) || 0 }))}
-                    />
-                    {newPhiDichVu.gia > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(newPhiDichVu.gia)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="w-[10%]">
-                    <Button type="button" onClick={addPhiDichVu} className="w-full">
-                      <Plus className="h-4 w-4" />
-                    </Button>
+
+                  <div className="mt-4 border-t pt-4">
+                    <Label className="text-xs md:text-sm mb-2 block">Thêm dịch vụ khác</Label>
+                    <Popover open={openAddDichVu} onOpenChange={setOpenAddDichVu}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className="w-full justify-between text-sm">
+                          Chọn thêm dịch vụ từ danh sách...
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[90vw] md:w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Tìm dịch vụ..." value={searchDichVu} onValueChange={setSearchDichVu} />
+                          <CommandEmpty>
+                            <div className="flex flex-col items-center justify-center py-4 space-y-3">
+                              <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ "{searchDichVu}".</p>
+                              {searchDichVu.trim() && (
+                                <Button 
+                                  type="button" 
+                                  variant="secondary" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    const newDv: DichVuOption = {
+                                      dichVuId: `new-${Date.now()}`,
+                                      ten: searchDichVu.trim(),
+                                      donGiaMacDinh: 0,
+                                      loaiTinhPhi: 'FIXED'
+                                    };
+                                    setDichVuOptions(prev => [...prev, newDv]);
+                                    toggleDichVuHopDong(newDv);
+                                    setSearchDichVu("");
+                                    setOpenAddDichVu(false);
+                                  }}
+                                >
+                                  <Plus className="mr-2 h-4 w-4" /> Tạo nhanh dịch vụ này
+                                </Button>
+                              )}
+                            </div>
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-64 overflow-auto">
+                            {globalDichVuList
+                              .filter(dv => !dichVuOptions.some(opt => opt.dichVuId === dv.dichVuId))
+                              .map((dv) => (
+                                <CommandItem
+                                  key={dv.dichVuId}
+                                  value={dv.ten}
+                                  onSelect={() => {
+                                    setDichVuOptions(prev => [...prev, dv]);
+                                    toggleDichVuHopDong(dv);
+                                    setOpenAddDichVu(false);
+                                  }}
+                                >
+                                  {dv.ten} - {formatCurrency(dv.donGiaMacDinh)} {dv.donVi ? `/${dv.donVi}` : ''}
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 pt-4 border-t">

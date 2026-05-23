@@ -275,22 +275,29 @@ public class AuthService {
      * ==================================================================== */
 
     private void assignRole(NguoiDung user, String vaiTroStr) {
-        VaiTroHeThong vaiTroEnum;
+        VaiTroHeThong tempRole;
         try {
-            vaiTroEnum = VaiTroHeThong.valueOf(vaiTroStr.toUpperCase());
+            tempRole = VaiTroHeThong.valueOf(vaiTroStr.toUpperCase());
         } catch (Exception e) {
-            vaiTroEnum = VaiTroHeThong.LANDLORD; // default
+            tempRole = VaiTroHeThong.LANDLORD; // default
         }
+        final VaiTroHeThong vaiTroEnum = tempRole;
 
-        Optional<VaiTro> vaiTro = vaiTroRepository.findByTen(vaiTroEnum);
-        if (vaiTro.isPresent()) {
-            NguoiDungVaiTro ndvt = NguoiDungVaiTro.builder()
-                    .nguoiDung(user)
-                    .vaiTro(vaiTro.get())
-                    .taoLuc(ZonedDateTime.now())
-                    .build();
-            nguoiDungVaiTroRepository.save(ndvt);
-        }
+        VaiTro vaiTro = vaiTroRepository.findByTen(vaiTroEnum)
+                .orElseGet(() -> {
+                    VaiTro newRole = VaiTro.builder()
+                            .ten(vaiTroEnum)
+                            .moTa("Quyền " + vaiTroEnum.name())
+                            .build();
+                    return vaiTroRepository.save(newRole);
+                });
+
+        NguoiDungVaiTro ndvt = NguoiDungVaiTro.builder()
+                .nguoiDung(user)
+                .vaiTro(vaiTro)
+                .taoLuc(ZonedDateTime.now())
+                .build();
+        nguoiDungVaiTroRepository.save(ndvt);
     }
 
     private String resolveRole(NguoiDung user) {

@@ -23,18 +23,13 @@ public class PhongController {
     public ApiResponse<List<PhongResponse>> getAll(
             @RequestParam(required = false) String toaNha,
             @RequestParam(required = false) String trangThai) {
-        List<PhongResponse> respList = phongService.getAllPhong(toaNha, trangThai)
-                .stream()
-                .map(phongService::toResponse)
-                .toList();
-        return ApiResponse.success(respList);
+        return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai));
     }
 
     @GetMapping("/{id}")
     public ApiResponse<PhongResponse> getById(@PathVariable UUID id) {
         try {
-            Phong phong = phongService.getPhongById(id);
-            return ApiResponse.success(phongService.toResponse(phong));
+            return ApiResponse.success(phongService.getPhongById(id));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -43,7 +38,7 @@ public class PhongController {
     @PostMapping
     public ApiResponse<PhongResponse> create(@Valid @RequestBody PhongRequest request) {
         try {
-            return ApiResponse.success(phongService.toResponse(phongService.createPhong(request)), "Thêm phòng thành công");
+            return ApiResponse.success(phongService.createPhong(request), "Thêm phòng thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -52,7 +47,7 @@ public class PhongController {
     @PutMapping("/{id}")
     public ApiResponse<PhongResponse> update(@PathVariable UUID id, @RequestBody PhongRequest request) {
         try {
-            return ApiResponse.success(phongService.toResponse(phongService.updatePhong(id, request)), "Cập nhật phòng thành công");
+            return ApiResponse.success(phongService.updatePhong(id, request), "Cập nhật phòng thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

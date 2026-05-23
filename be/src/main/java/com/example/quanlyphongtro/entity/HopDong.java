@@ -63,6 +63,10 @@ public class HopDong {
 
     private Integer chiSoDienBanDau;
     private Integer chiSoNuocBanDau;
+    
+    @Column(columnDefinition = "TEXT")
+    private String tienIchBanGiao;
+
     private String noiDungHopDong;
     private String filePdf;
     private String ghiChu;
