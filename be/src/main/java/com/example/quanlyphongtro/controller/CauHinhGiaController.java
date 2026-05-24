@@ -44,17 +44,17 @@ public class CauHinhGiaController {
 
     @PostMapping
     public ApiResponse<CauHinhGiaResponse> create(@Valid @RequestBody CauHinhGiaRequest request) {
-        return ApiResponse.success(cauHinhGiaService.create(request), "Tao cau hinh gia thanh cong");
+        return ApiResponse.success(cauHinhGiaService.create(request), "Tạo cấu hình giá thành công");
     }
 
     @PutMapping("/{id}")
     public ApiResponse<CauHinhGiaResponse> update(@PathVariable UUID id, @RequestBody CauHinhGiaRequest request) {
-        return ApiResponse.success(cauHinhGiaService.update(id, request), "Cap nhat cau hinh gia thanh cong");
+        return ApiResponse.success(cauHinhGiaService.update(id, request), "Cập nhật cấu hình giá thành công");
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deactivate(@PathVariable UUID id) {
         cauHinhGiaService.deactivate(id);
-        return ApiResponse.success(null, "Ngung ap dung cau hinh gia thanh cong");
+        return ApiResponse.success(null, "Ngừng áp dụng cấu hình giá thành công");
     }
 }

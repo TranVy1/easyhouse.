@@ -47,7 +47,7 @@ public class HopDongService {
     @Transactional(readOnly = true)
     public HopDongResponse getById(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         return toResponse(hd);
     }
 
@@ -55,18 +55,18 @@ public class HopDongService {
     public HopDongResponse create(HopDongRequest req) {
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
         if (phongId == null) {
-            throw new RuntimeException("Vui long chon phong cho hop dong");
+            throw new RuntimeException("Vui lòng chọn phòng cho hợp đồng");
         }
         UUID khachThueId = resolveRepresentativeId(req);
         if (khachThueId == null) {
-            throw new RuntimeException("Vui long chon nguoi dai dien hop dong");
+            throw new RuntimeException("Vui lòng chọn người đại diện hợp đồng");
         }
 
         Phong phong = phongRepository.findById(phongId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
         KhachThue kt = khachThueRepository.findById(khachThueId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
         TrangThaiHopDong trangThai = parseStatus(req.getTrangThai(), TrangThaiHopDong.DRAFT);
         validateRoomCanContract(phong, trangThai);
         validateTenantBelongsToRoomOwner(kt, phong);
@@ -111,18 +111,18 @@ public class HopDongService {
     @Transactional
     public HopDongResponse update(UUID id, HopDongRequest req) {
         HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
 
         UUID oldPhongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
         UUID khachThueId = resolveRepresentativeId(req);
         if (phongId != null) {
             hd.setPhong(phongRepository.findById(phongId)
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay phong")));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng")));
         }
         if (khachThueId != null) {
             hd.setKhachThue(khachThueRepository.findById(khachThueId)
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue")));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê")));
         }
         if (req.getMaHopDong() != null)
             hd.setMaHopDong(resolveContractCode(req.getMaHopDong(), hd.getPhong(), hd.getNgayBatDau()));
@@ -188,7 +188,7 @@ public class HopDongService {
     @Transactional(readOnly = true)
     public List<HopDongDichVuOptionResponse> getDichVuTheoPhong(UUID phongId) {
         Phong phong = phongRepository.findById(phongId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
         if (phong.getNhaTro() == null) {
             return List.of();
         }
@@ -229,7 +229,7 @@ public class HopDongService {
     @Transactional
     public void delete(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         UUID phongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         hd.setXoaLuc(java.time.ZonedDateTime.now());
         hopDongRepository.save(hd);
@@ -252,7 +252,7 @@ public class HopDongService {
                 try {
                     yield TrangThaiHopDong.valueOf(s.trim().toUpperCase(Locale.ROOT));
                 } catch (Exception e) {
-                    throw new RuntimeException("Trang thai hop dong khong hop le: " + s);
+                    throw new RuntimeException("Trạng thái hợp đồng không hợp lệ: " + s);
                 }
             }
         };
@@ -264,7 +264,7 @@ public class HopDongService {
         try {
             return TrangThaiCocHopDong.valueOf(s.trim().toUpperCase(Locale.ROOT));
         } catch (Exception e) {
-            throw new RuntimeException("Trang thai coc hop dong khong hop le: " + s);
+            throw new RuntimeException("Trạng thái cọc hợp đồng không hợp lệ: " + s);
         }
     }
 
@@ -276,7 +276,7 @@ public class HopDongService {
             case "quy" -> "QUARTERLY";
             case "nam" -> "YEARLY";
             case "MONTHLY", "QUARTERLY", "YEARLY" -> value.trim().toUpperCase(Locale.ROOT);
-            default -> throw new RuntimeException("Chu ky thanh toan khong hop le: " + value);
+            default -> throw new RuntimeException("Chu kỳ thanh toán không hợp lệ: " + value);
         };
     }
 
@@ -312,7 +312,7 @@ public class HopDongService {
 
         for (UUID memberId : memberIds) {
             KhachThue kt = khachThueRepository.findById(memberId)
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay thanh vien hop dong"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thành viên hợp đồng"));
             thanhVienHopDongRepository.save(com.example.quanlyphongtro.entity.ThanhVienHopDong.builder()
                     .hopDong(hopDong)
                     .khachThue(kt)
@@ -383,7 +383,7 @@ public class HopDongService {
             return null;
         if (item.getDichVuId() != null) {
             return dichVuRepository.findById(item.getDichVuId())
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay dich vu hop dong"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ hợp đồng"));
         }
         if (item.getTen() == null || item.getTen().isBlank() || hopDong.getPhong() == null
                 || hopDong.getPhong().getNhaTro() == null) {
@@ -563,50 +563,50 @@ public class HopDongService {
     private void validateContractPayload(LocalDate ngayBatDau, LocalDate ngayKetThuc, BigDecimal giaThue,
             BigDecimal tienCoc, Integer ngayThanhToan) {
         if (ngayBatDau == null || ngayKetThuc == null) {
-            throw new RuntimeException("Vui long nhap ngay bat dau va ngay ket thuc hop dong");
+            throw new RuntimeException("Vui lòng nhập ngày bắt đầu và ngày kết thúc hợp đồng");
         }
         if (!ngayKetThuc.isAfter(ngayBatDau)) {
-            throw new RuntimeException("Ngay ket thuc hop dong phai sau ngay bat dau");
+            throw new RuntimeException("Ngày kết thúc hợp đồng phải sau ngày bắt đầu");
         }
         if (giaThue == null || giaThue.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Gia thue hop dong khong hop le");
+            throw new RuntimeException("Giá thuê hợp đồng không hợp lệ");
         }
         if (tienCoc == null || tienCoc.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Tien coc hop dong khong hop le");
+            throw new RuntimeException("Tiền cọc hợp đồng không hợp lệ");
         }
         if (ngayThanhToan == null || ngayThanhToan < 1 || ngayThanhToan > 31) {
-            throw new RuntimeException("Ngay thanh toan hang thang phai tu 1 den 31");
+            throw new RuntimeException("Ngày thanh toán hằng tháng phải từ 1 đến 31");
         }
     }
 
     private void validateInitialReadings(Integer chiSoDien, Integer chiSoNuoc) {
         if (chiSoDien != null && chiSoDien < 0) {
-            throw new RuntimeException("Chi so dien ban dau khong duoc am");
+            throw new RuntimeException("Chỉ số điện ban đầu không được âm");
         }
         if (chiSoNuoc != null && chiSoNuoc < 0) {
-            throw new RuntimeException("Chi so nuoc ban dau khong duoc am");
+            throw new RuntimeException("Chỉ số nước ban đầu không được âm");
         }
     }
 
     private void validateRoomCanContract(Phong phong, TrangThaiHopDong trangThai) {
         if (phong == null || phong.getXoaLuc() != null) {
-            throw new RuntimeException("Phong khong ton tai hoac da bi xoa");
+            throw new RuntimeException("Phòng không tồn tại hoặc đã bị xóa");
         }
         if (isOccupyingStatus(trangThai)
                 && (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE)) {
-            throw new RuntimeException("Phong dang bao tri hoac ngung hoat dong, khong the tao hop dong cho thue");
+            throw new RuntimeException("Phòng đang bảo trì hoặc ngừng hoạt động, không thể tạo hợp đồng cho thuê");
         }
     }
 
     private void validateTenantBelongsToRoomOwner(KhachThue khachThue, Phong phong) {
         if (khachThue == null || khachThue.getXoaLuc() != null || Boolean.FALSE.equals(khachThue.getDangHoatDong())) {
-            throw new RuntimeException("Khach thue khong ton tai hoac da ngung hoat dong");
+            throw new RuntimeException("Khách thuê không tồn tại hoặc đã ngừng hoạt động");
         }
         UUID roomOwnerId = phong != null && phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null
                 ? phong.getNhaTro().getChuTro().getId() : null;
         UUID tenantOwnerId = khachThue.getChuTro() != null ? khachThue.getChuTro().getId() : null;
         if (roomOwnerId != null && tenantOwnerId != null && !roomOwnerId.equals(tenantOwnerId)) {
-            throw new RuntimeException("Khach thue khong thuoc cung chu tro voi phong");
+            throw new RuntimeException("Khách thuê không thuộc cùng chủ trọ với phòng");
         }
     }
 
@@ -615,7 +615,7 @@ public class HopDongService {
         Set<UUID> memberIds = resolveMemberIds(req, representative != null ? representative.getId() : null);
         for (UUID memberId : memberIds) {
             KhachThue member = khachThueRepository.findById(memberId)
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay thanh vien hop dong"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thành viên hợp đồng"));
             validateTenantBelongsToRoomOwner(member, phong);
         }
 
@@ -626,16 +626,16 @@ public class HopDongService {
                 LocalDate ngayVao = member.getNgayVao() != null ? member.getNgayVao() : ngayBatDau;
                 LocalDate ngayRoi = member.getNgayRoi();
                 if (ngayVao == null) {
-                    throw new RuntimeException("Ngay vao cua thanh vien khong hop le");
+                    throw new RuntimeException("Ngày vào của thành viên không hợp lệ");
                 }
                 if (ngayRoi != null && ngayRoi.isBefore(ngayVao)) {
-                    throw new RuntimeException("Ngay roi cua thanh vien phai sau ngay vao");
+                    throw new RuntimeException("Ngày rời của thành viên phải sau ngày vào");
                 }
                 if (ngayBatDau != null && ngayVao.isBefore(ngayBatDau)) {
-                    throw new RuntimeException("Ngay vao cua thanh vien khong duoc truoc ngay bat dau hop dong");
+                    throw new RuntimeException("Ngày vào của thành viên không được trước ngày bắt đầu hợp đồng");
                 }
                 if (ngayKetThuc != null && ngayRoi != null && ngayRoi.isAfter(ngayKetThuc)) {
-                    throw new RuntimeException("Ngay roi cua thanh vien khong duoc sau ngay ket thuc hop dong");
+                    throw new RuntimeException("Ngày rời của thành viên không được sau ngày kết thúc hợp đồng");
                 }
                 if (Boolean.TRUE.equals(member.getDangO()) || member.getDangO() == null) {
                     externalActiveMembers++;
@@ -645,7 +645,7 @@ public class HopDongService {
 
         int totalActiveMembers = memberIds.size() + externalActiveMembers;
         if (phong != null && phong.getSoNguoiToiDa() != null && totalActiveMembers > phong.getSoNguoiToiDa()) {
-            throw new RuntimeException("So nguoi trong hop dong vuot qua suc chua toi da cua phong");
+            throw new RuntimeException("Số người trong hợp đồng vượt quá sức chứa tối đa của phòng");
         }
     }
 
@@ -660,10 +660,10 @@ public class HopDongService {
 
     private void validateServiceCharge(String tenDichVu, BigDecimal donGia, BigDecimal soLuong) {
         if (donGia == null || donGia.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Don gia dich vu khong hop le: " + tenDichVu);
+            throw new RuntimeException("Đơn giá dịch vụ không hợp lệ: " + tenDichVu);
         }
         if (soLuong == null || soLuong.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("So luong dich vu khong hop le: " + tenDichVu);
+            throw new RuntimeException("Số lượng dịch vụ không hợp lệ: " + tenDichVu);
         }
     }
 
@@ -688,13 +688,13 @@ public class HopDongService {
 
     private void ensureContractCodeAvailable(String maHopDong, UUID excludeId) {
         if (maHopDong == null || maHopDong.isBlank()) {
-            throw new RuntimeException("Ma hop dong khong hop le");
+            throw new RuntimeException("Mã hợp đồng không hợp lệ");
         }
         boolean exists = excludeId == null
                 ? hopDongRepository.existsByMaHopDong(maHopDong)
                 : hopDongRepository.existsByMaHopDongAndIdNot(maHopDong, excludeId);
         if (exists) {
-            throw new RuntimeException("Ma hop dong da ton tai");
+            throw new RuntimeException("Mã hợp đồng đã tồn tại");
         }
     }
 
@@ -704,7 +704,7 @@ public class HopDongService {
         List<HopDong> conflicts = hopDongRepository.findOverlappingRoomContracts(
                 phongId, OCCUPYING_STATUSES, ngayBatDau, ngayKetThuc, excludeId);
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Phong nay da co hop dong cho kich hoat hoac dang hoat dong trong khoang thoi gian nay");
+            throw new RuntimeException("Phòng này đã có hợp đồng chờ kích hoạt hoặc đang hoạt động trong khoảng thời gian này");
         }
     }
 

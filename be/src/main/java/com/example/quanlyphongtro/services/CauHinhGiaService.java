@@ -55,14 +55,14 @@ public class CauHinhGiaService {
         return cauHinhGiaRepository.findApplicable(nhaTroId, loai, effectiveDate).stream()
                 .findFirst()
                 .map(CauHinhGiaResponse::fromEntity)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay cau hinh gia dang ap dung"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cấu hình giá đang áp dụng"));
     }
 
     @Transactional
     public CauHinhGiaResponse create(CauHinhGiaRequest request) {
         validateDateRange(request.getHieuLucTu(), request.getHieuLucDen());
         NhaTro nhaTro = nhaTroRepository.findById(request.getNhaTroId())
-                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
 
         CauHinhGia entity = CauHinhGia.builder()
                 .nhaTro(nhaTro)
@@ -86,7 +86,7 @@ public class CauHinhGiaService {
 
         if (request.getNhaTroId() != null) {
             entity.setNhaTro(nhaTroRepository.findById(request.getNhaTroId())
-                    .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro")));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ")));
         }
         if (request.getDichVuId() != null) entity.setDichVuId(request.getDichVuId());
         if (request.getLoai() != null) entity.setLoai(parseLoai(request.getLoai(), true));
@@ -118,18 +118,18 @@ public class CauHinhGiaService {
 
     private CauHinhGia findById(UUID id) {
         return cauHinhGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay cau hinh gia"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cấu hình giá"));
     }
 
     private LoaiMucHoaDon parseLoai(String value, boolean required) {
         if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
-            if (required) throw new RuntimeException("loai khong hop le");
+            if (required) throw new RuntimeException("Loại cấu hình giá không hợp lệ");
             return null;
         }
         try {
             return LoaiMucHoaDon.valueOf(value.trim().toUpperCase());
         } catch (Exception e) {
-            throw new RuntimeException("loai khong hop le: " + value);
+            throw new RuntimeException("Loại cấu hình giá không hợp lệ: " + value);
         }
     }
 
@@ -140,19 +140,19 @@ public class CauHinhGiaService {
         try {
             return LoaiTinhPhi.valueOf(value.trim().toUpperCase());
         } catch (Exception e) {
-            throw new RuntimeException("loaiTinhPhi khong hop le: " + value);
+            throw new RuntimeException("Loại tính phí không hợp lệ: " + value);
         }
     }
 
     private void validateMoney(BigDecimal value) {
         if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("donGia phai >= 0");
+            throw new RuntimeException("Đơn giá phải lớn hơn hoặc bằng 0");
         }
     }
 
     private void validateDateRange(LocalDate from, LocalDate to) {
         if (from != null && to != null && to.isBefore(from)) {
-            throw new RuntimeException("hieuLucDen phai >= hieuLucTu");
+            throw new RuntimeException("Ngày hết hiệu lực phải sau hoặc bằng ngày hiệu lực");
         }
     }
 }

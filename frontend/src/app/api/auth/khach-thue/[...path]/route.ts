@@ -34,7 +34,7 @@ async function proxyAuthKhachThue(
     return NextResponse.json(data, { status: response.status });
   } catch {
     return NextResponse.json(
-      { success: false, message: 'Khong the ket noi may chu khach thue' },
+      { success: false, message: 'Không thể kết nối máy chủ khách thuê' },
       { status: 500 }
     );
   }

@@ -12,21 +12,21 @@ import java.util.UUID;
 @Data
 public class CauHinhGiaRequest {
 
-    @NotNull(message = "nhaTroId khong duoc de trong")
+    @NotNull(message = "Vui lòng chọn nhà trọ")
     private UUID nhaTroId;
 
     private UUID dichVuId;
 
-    @NotBlank(message = "loai khong duoc de trong")
+    @NotBlank(message = "Vui lòng chọn loại cấu hình giá")
     private String loai;
 
-    @NotBlank(message = "tenHienThi khong duoc de trong")
+    @NotBlank(message = "Vui lòng nhập tên hiển thị")
     private String tenHienThi;
 
     private String loaiTinhPhi;
 
-    @NotNull(message = "donGia khong duoc de trong")
-    @DecimalMin(value = "0.00", message = "donGia phai >= 0")
+    @NotNull(message = "Vui lòng nhập đơn giá")
+    @DecimalMin(value = "0.00", message = "Đơn giá phải lớn hơn hoặc bằng 0")
     private BigDecimal donGia;
 
     private LocalDate hieuLucTu;

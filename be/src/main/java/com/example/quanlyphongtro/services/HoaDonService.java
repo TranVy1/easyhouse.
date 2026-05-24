@@ -51,9 +51,9 @@ public class HoaDonService {
     @Transactional(readOnly = true)
     public HoaDonResponse getById(UUID id) {
         HoaDon hd = hoaDonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         if (hd.getXoaLuc() != null) {
-            throw new RuntimeException("Hoa don da bi xoa");
+            throw new RuntimeException("Hóa đơn đã bị xóa");
         }
         return HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(id));
     }
@@ -63,7 +63,7 @@ public class HoaDonService {
         InvoiceContext ctx = resolveContext(req, null);
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), null);
 
-        BigDecimal daTra = nonNegativeMoney(req.getDaThanhToan(), "So tien da thanh toan");
+        BigDecimal daTra = nonNegativeMoney(req.getDaThanhToan(), "Số tiền đã thanh toán");
         HoaDon hd = HoaDon.builder()
                 .phong(ctx.phong())
                 .hopDong(ctx.hopDong())
@@ -73,7 +73,7 @@ public class HoaDonService {
                 .kyThang(ctx.kyThang())
                 .tuNgay(ctx.tuNgay())
                 .denNgay(ctx.denNgay())
-                .soDuDauKy(nonNegativeMoney(req.getSoDuDauKy(), "So du dau ky"))
+                .soDuDauKy(nonNegativeMoney(req.getSoDuDauKy(), "Số dư đầu kỳ"))
                 .tongTienPhatSinh(BigDecimal.ZERO)
                 .tongTien(BigDecimal.ZERO)
                 .daTra(daTra)
@@ -92,9 +92,9 @@ public class HoaDonService {
     @Transactional
     public HoaDonResponse update(UUID id, HoaDonRequest req) {
         HoaDon hd = hoaDonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         if (hd.getXoaLuc() != null) {
-            throw new RuntimeException("Hoa don da bi xoa");
+            throw new RuntimeException("Hóa đơn đã bị xóa");
         }
 
         InvoiceContext ctx = resolveContext(req, hd);
@@ -110,8 +110,8 @@ public class HoaDonService {
         hd.setDenNgay(ctx.denNgay());
         hd.setHanTra(ctx.hanTra());
         if (req.getMaHoaDon() != null) hd.setMaHoaDon(resolveInvoiceCode(req.getMaHoaDon(), ctx));
-        if (req.getSoDuDauKy() != null) hd.setSoDuDauKy(nonNegativeMoney(req.getSoDuDauKy(), "So du dau ky"));
-        if (req.getDaThanhToan() != null) hd.setDaTra(nonNegativeMoney(req.getDaThanhToan(), "So tien da thanh toan"));
+        if (req.getSoDuDauKy() != null) hd.setSoDuDauKy(nonNegativeMoney(req.getSoDuDauKy(), "Số dư đầu kỳ"));
+        if (req.getDaThanhToan() != null) hd.setDaTra(nonNegativeMoney(req.getDaThanhToan(), "Số tiền đã thanh toán"));
         if (req.getGhiChu() != null) hd.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) hd.setTrangThai(parseTrangThai(req.getTrangThai(), hd.getTrangThai()));
 
@@ -133,7 +133,7 @@ public class HoaDonService {
     @Transactional
     public void delete(UUID id) {
         HoaDon hd = hoaDonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         markReadingsCancelled(id);
         hd.setTrangThai(TrangThaiHoaDon.CANCELLED);
         hd.setXoaLuc(ZonedDateTime.now());
@@ -182,19 +182,19 @@ public class HoaDonService {
     private InvoiceContext resolveContext(HoaDonRequest req, HoaDon existing) {
         UUID hopDongId = coalesce(req.getHopDongId(), req.getHopDong());
         HopDong hopDong = hopDongId != null
-                ? hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"))
+                ? hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"))
                 : existing != null ? existing.getHopDong() : null;
         if (hopDong == null || hopDong.getXoaLuc() != null) {
-            throw new RuntimeException("Hoa don bat buoc chon hop dong hop le");
+            throw new RuntimeException("Hóa đơn bắt buộc chọn hợp đồng hợp lệ");
         }
         if (hopDong.getTrangThai() == TrangThaiHopDong.DRAFT || hopDong.getTrangThai() == TrangThaiHopDong.CANCELLED) {
-            throw new RuntimeException("Hop dong nhap hoac da huy khong duoc lap hoa don");
+            throw new RuntimeException("Hợp đồng nháp hoặc đã hủy không được lập hóa đơn");
         }
 
         Phong phong = hopDong.getPhong();
         KhachThue khachThue = hopDong.getKhachThue();
         if (phong == null || khachThue == null) {
-            throw new RuntimeException("Hop dong thieu phong hoac khach thue, khong the lap hoa don");
+            throw new RuntimeException("Hợp đồng thiếu phòng hoặc khách thuê, không thể lập hóa đơn");
         }
         validateRequestedRef(req.getPhongId(), req.getPhong(), phong != null ? phong.getId() : null, "phong");
         validateRequestedRef(req.getKhachThueId(), req.getKhachThue(), khachThue != null ? khachThue.getId() : null, "khach thue");
@@ -228,19 +228,19 @@ public class HoaDonService {
         if (req.getChiTietHoaDon() != null) {
             List<ChiTietHoaDon> manualItems = buildManualLineItems(req, hoaDon);
             if (manualItems.isEmpty()) {
-                throw new RuntimeException("Hoa don phai co it nhat mot dong chi tiet");
+                throw new RuntimeException("Hóa đơn phải có ít nhất một dòng chi tiết");
             }
             return manualItems;
         }
 
         List<ChiTietHoaDon> items = new ArrayList<>();
-        addLine(items, hoaDon, null, null, LoaiMucHoaDon.ROOM, "Tien phong", BigDecimal.ONE,
+        addLine(items, hoaDon, null, null, LoaiMucHoaDon.ROOM, "Tiền phòng", BigDecimal.ONE,
                 req.getTienPhong() != null ? req.getTienPhong() : defaultMoney(ctx.hopDong().getGiaThueHopDong()));
 
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.ELECTRICITY, LoaiMucHoaDon.ELECTRICITY,
-                req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), req.getTienDien(), "Tien dien");
+                req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), req.getTienDien(), "Tiền điện");
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.WATER, LoaiMucHoaDon.WATER,
-                req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(), req.getTienNuoc(), "Tien nuoc");
+                req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(), req.getTienNuoc(), "Tiền nước");
 
         List<ChiTietHoaDon> contractServiceLines = buildContractServiceLines(hoaDon, ctx);
         if (!contractServiceLines.isEmpty()) {
@@ -254,7 +254,7 @@ public class HoaDonService {
         }
 
         if (items.isEmpty()) {
-            throw new RuntimeException("Hoa don phai co it nhat mot dong chi tiet");
+            throw new RuntimeException("Hóa đơn phải có ít nhất một dòng chi tiết");
         }
         return items;
     }
@@ -286,10 +286,10 @@ public class HoaDonService {
             LoaiMucHoaDon loaiMuc, Integer chiSoCu, Integer chiSoMoi, BigDecimal requestTotal, String moTa) {
         if (chiSoCu == null && chiSoMoi == null) return;
         if (chiSoCu == null || chiSoMoi == null) {
-            throw new RuntimeException("Can nhap du chi so cu va moi cho " + moTa.toLowerCase(Locale.ROOT));
+            throw new RuntimeException("Cần nhập đủ chỉ số cũ và mới cho " + moTa.toLowerCase(Locale.ROOT));
         }
         if (chiSoCu < 0 || chiSoMoi < chiSoCu) {
-            throw new RuntimeException("Chi so dien nuoc khong hop le");
+            throw new RuntimeException("Chỉ số điện nước không hợp lệ");
         }
         int tieuThu = chiSoMoi - chiSoCu;
         if (tieuThu == 0) return;
@@ -297,7 +297,7 @@ public class HoaDonService {
         BigDecimal soLuong = BigDecimal.valueOf(tieuThu);
         BigDecimal donGia = resolveMeterUnitPrice(ctx, loaiMuc, requestTotal, soLuong);
         if (donGia.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Chua co don gia hop le cho " + moTa.toLowerCase(Locale.ROOT));
+            throw new RuntimeException("Chưa có đơn giá hợp lệ cho " + moTa.toLowerCase(Locale.ROOT));
         }
         UUID readingId = upsertReading(hoaDon, ctx, loaiChiSo, chiSoCu, chiSoMoi);
         addLine(items, hoaDon, null, readingId, loaiMuc, moTa + " " + chiSoCu + "-" + chiSoMoi, soLuong, donGia);
@@ -310,7 +310,7 @@ public class HoaDonService {
         List<ChiTietHoaDon> items = new ArrayList<>();
         for (DichVuHopDong service : services) {
             if (!isServiceActiveInPeriod(service, ctx.tuNgay(), ctx.denNgay())) continue;
-            String ten = service.getDichVu() != null ? service.getDichVu().getTenDichVu() : "Dich vu";
+            String ten = service.getDichVu() != null ? service.getDichVu().getTenDichVu() : "Dịch vụ";
             if (isMeterServiceName(ten)) continue;
             BigDecimal soLuong = resolveServiceQuantity(service, ctx.hopDong(), ctx.tuNgay(), ctx.denNgay());
             addLine(items, hoaDon, service.getDichVu() != null ? service.getDichVu().getId() : null, null,
@@ -360,7 +360,7 @@ public class HoaDonService {
         if (reading.getId() != null && reading.getHopDong() != null
                 && !reading.getHopDong().getId().equals(ctx.hopDong().getId())
                 && reading.getTrangThai() != TrangThaiChiSo.CANCELLED) {
-            throw new RuntimeException("Chi so " + loai.name() + " cua phong trong ky nay da duoc ghi cho hop dong khac");
+            throw new RuntimeException("Chỉ số " + loai.name() + " của phòng trong kỳ này đã được ghi cho hợp đồng khác");
         }
         reading.setPhong(ctx.phong());
         reading.setHopDong(ctx.hopDong());
@@ -472,7 +472,7 @@ public class HoaDonService {
                 ? hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(hopDongId, kyNam, kyThang)
                 : hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndIdNotAndXoaLucIsNull(hopDongId, kyNam, kyThang, excludeId);
         if (existing.isPresent()) {
-            throw new RuntimeException("Hop dong da co hoa don trong ky " + kyThang + "/" + kyNam);
+            throw new RuntimeException("Hợp đồng đã có hóa đơn trong kỳ " + kyThang + "/" + kyNam);
         }
     }
 
@@ -494,31 +494,31 @@ public class HoaDonService {
     private void validateRequestedRef(UUID first, UUID second, UUID expected, String label) {
         UUID requested = coalesce(first, second);
         if (requested != null && expected != null && !requested.equals(expected)) {
-            throw new RuntimeException("Hoa don phai dung " + label + " cua hop dong");
+            throw new RuntimeException("Hóa đơn phải đúng " + label + " của hợp đồng");
         }
     }
 
     private void validateInvoiceMonth(int kyNam, int kyThang) {
         if (kyThang < 1 || kyThang > 12 || kyNam < 2000 || kyNam > 2100) {
-            throw new RuntimeException("Ky hoa don khong hop le");
+            throw new RuntimeException("Kỳ hóa đơn không hợp lệ");
         }
     }
 
     private void validateInvoiceDates(LocalDate tuNgay, LocalDate denNgay, LocalDate hanTra, HopDong hopDong) {
         if (tuNgay == null || denNgay == null || hanTra == null) {
-            throw new RuntimeException("Vui long nhap du ngay hoa don");
+            throw new RuntimeException("Vui lòng nhập đủ ngày hóa đơn");
         }
         if (denNgay.isBefore(tuNgay)) {
-            throw new RuntimeException("Den ngay phai sau hoac bang tu ngay");
+            throw new RuntimeException("Đến ngày phải sau hoặc bằng từ ngày");
         }
         if (hanTra.isBefore(tuNgay)) {
-            throw new RuntimeException("Han tra khong duoc truoc tu ngay");
+            throw new RuntimeException("Hạn trả không được trước từ ngày");
         }
         if (hopDong.getNgayBatDau() != null && denNgay.isBefore(hopDong.getNgayBatDau())) {
-            throw new RuntimeException("Ky hoa don nam truoc ngay bat dau hop dong");
+            throw new RuntimeException("Kỳ hóa đơn nằm trước ngày bắt đầu hợp đồng");
         }
         if (hopDong.getNgayKetThuc() != null && tuNgay.isAfter(hopDong.getNgayKetThuc())) {
-            throw new RuntimeException("Ky hoa don nam sau ngay ket thuc hop dong");
+            throw new RuntimeException("Kỳ hóa đơn nằm sau ngày kết thúc hợp đồng");
         }
     }
 
@@ -549,7 +549,7 @@ public class HoaDonService {
                 try {
                     yield TrangThaiHoaDon.valueOf(value.trim().toUpperCase(Locale.ROOT));
                 } catch (Exception e) {
-                    throw new RuntimeException("Trang thai hoa don khong hop le: " + value);
+                    throw new RuntimeException("Trạng thái hóa đơn không hợp lệ: " + value);
                 }
             }
         };
@@ -571,37 +571,37 @@ public class HoaDonService {
 
     private LoaiMucHoaDon parseLoaiMuc(String value) {
         if (value == null || value.isBlank()) {
-            throw new RuntimeException("Loai muc hoa don bat buoc");
+            throw new RuntimeException("Loại mục hóa đơn là bắt buộc");
         }
         try {
             return LoaiMucHoaDon.valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (Exception e) {
-            throw new RuntimeException("Loai muc hoa don khong hop le: " + value);
+            throw new RuntimeException("Loại mục hóa đơn không hợp lệ: " + value);
         }
     }
 
     private void validateLineMoney(LoaiMucHoaDon loai, BigDecimal soLuong, BigDecimal donGia, BigDecimal thanhTien) {
         if (soLuong == null || soLuong.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("So luong hoa don khong hop le");
+            throw new RuntimeException("Số lượng hóa đơn không hợp lệ");
         }
         if (donGia == null || donGia.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Don gia hoa don khong hop le");
+            throw new RuntimeException("Đơn giá hóa đơn không hợp lệ");
         }
         if (thanhTien == null) {
-            throw new RuntimeException("Thanh tien hoa don khong hop le");
+            throw new RuntimeException("Thành tiền hóa đơn không hợp lệ");
         }
         if (loai == LoaiMucHoaDon.DISCOUNT) {
             return;
         }
         if (thanhTien.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Thanh tien hoa don khong duoc am");
+            throw new RuntimeException("Thành tiền hóa đơn không được âm");
         }
     }
 
     private BigDecimal nonNegativeMoney(BigDecimal value, String label) {
         BigDecimal result = value != null ? value : BigDecimal.ZERO;
         if (result.compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException(label + " khong duoc am");
+            throw new RuntimeException(label + " không được âm");
         }
         return result;
     }

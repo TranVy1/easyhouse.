@@ -36,7 +36,7 @@ public class AdminUserController {
     @PostMapping
     public ApiResponse<UserResponse> create(@RequestBody AdminUserRequest request) {
         try {
-            return ApiResponse.success(userService.createUser(request), "Tao tai khoan thanh cong");
+            return ApiResponse.success(userService.createUser(request), "Tạo tài khoản thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -45,7 +45,7 @@ public class AdminUserController {
     @PutMapping("/{id}")
     public ApiResponse<UserResponse> update(@PathVariable UUID id, @RequestBody AdminUserRequest request) {
         try {
-            return ApiResponse.success(userService.updateUser(id, request), "Cap nhat tai khoan thanh cong");
+            return ApiResponse.success(userService.updateUser(id, request), "Cập nhật tài khoản thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -55,7 +55,7 @@ public class AdminUserController {
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         try {
             userService.deleteUser(id);
-            return ApiResponse.success(null, "Xoa tai khoan thanh cong");
+            return ApiResponse.success(null, "Xóa tài khoản thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

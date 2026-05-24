@@ -172,7 +172,7 @@ class HoaDonServiceTest {
                 .thenReturn(Optional.of(HoaDon.builder().id(UUID.randomUUID()).build()));
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
-        assertEquals("Hop dong da co hoa don trong ky 5/2026", error.getMessage());
+        assertEquals("Hợp đồng đã có hóa đơn trong kỳ 5/2026", error.getMessage());
     }
 
     @Test
@@ -197,7 +197,7 @@ class HoaDonServiceTest {
         when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)).thenReturn(List.of());
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
-        assertEquals("Chua co don gia hop le cho tien dien", error.getMessage());
+        assertEquals("Chưa có đơn giá hợp lệ cho tiền điện", error.getMessage());
     }
 
     private CauHinhGia price(LoaiMucHoaDon loai, BigDecimal donGia) {

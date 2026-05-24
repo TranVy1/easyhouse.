@@ -956,7 +956,7 @@ export default function HoaDonPage() {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleCopyLink(viewingHoaDon)} className="w-full sm:w-auto">
                   <Copy className="h-3 w-3 md:h-4 md:w-4 mr-2" />
-                  Copy link
+                  Sao chép liên kết
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleDownload(viewingHoaDon)} className="w-full sm:w-auto">
                   <Download className="h-3 w-3 md:h-4 md:w-4 mr-2" />

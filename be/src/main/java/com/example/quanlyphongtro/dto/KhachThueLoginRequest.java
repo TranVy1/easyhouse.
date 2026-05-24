@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class KhachThueLoginRequest {
-    @NotBlank(message = "So dien thoai khong duoc de trong")
+    @NotBlank(message = "Số điện thoại không được để trống")
     private String soDienThoai;
 
-    @NotBlank(message = "Mat khau khong duoc de trong")
+    @NotBlank(message = "Mật khẩu không được để trống")
     private String matKhau;
 }

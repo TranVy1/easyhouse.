@@ -334,7 +334,7 @@ export function createColumns(
                 size="sm"
                 onClick={() => onShare(hoaDon)}
                 className="h-8 w-8 p-0"
-                title="Copy link cho khách hàng"
+                title="Sao chép liên kết cho khách hàng"
               >
                 <Copy className="h-4 w-4" />
               </Button>

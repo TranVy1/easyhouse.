@@ -46,7 +46,7 @@ export function ImageUpload({
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error('Tải ảnh lên thất bại');
       }
 
       const result = await response.json();
@@ -54,7 +54,7 @@ export function ImageUpload({
         onImageChange(result.data.url);
         toast.success('Upload ảnh thành công');
       } else {
-        throw new Error('Upload failed');
+        throw new Error('Tải ảnh lên thất bại');
       }
     } catch (error) {
       console.error('Upload error:', error);

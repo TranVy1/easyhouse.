@@ -269,7 +269,7 @@ export default function XemWebPage() {
                 id="web-iframe"
                 src={currentUrl}
                 className="w-full h-full border-0 rounded-lg"
-                title="Web Viewer"
+                title="Trình xem web"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}

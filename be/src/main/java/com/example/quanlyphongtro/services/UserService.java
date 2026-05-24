@@ -31,18 +31,18 @@ public class UserService {
     public UserResponse createUser(AdminUserRequest request) {
         UUID authUserId = request.getAuthUserId() != null ? request.getAuthUserId() : request.getSupabaseUserId();
         if (authUserId == null)
-            throw new RuntimeException("authUserId bat buoc vi nguoi_dung.id tham chieu Supabase auth.users(id)");
+            throw new RuntimeException("authUserId là bắt buộc vì nguoi_dung.id tham chiếu Supabase auth.users(id)");
 
         if (request.getEmail() == null || request.getEmail().isBlank())
-            throw new RuntimeException("Email khong duoc de trong");
+            throw new RuntimeException("Email không được để trống");
 
         String email = request.getEmail().trim().toLowerCase();
         if (nguoiDungRepository.existsByEmail(email))
-            throw new RuntimeException("Email da ton tai trong he thong");
+            throw new RuntimeException("Email đã tồn tại trong hệ thống");
 
         String phone = normalizeBlank(request.getPhone());
         if (phone != null && nguoiDungRepository.existsBySoDienThoai(phone))
-            throw new RuntimeException("So dien thoai da ton tai trong he thong");
+            throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
 
         NguoiDung user = NguoiDung.builder()
                 .id(authUserId)
@@ -62,7 +62,7 @@ public class UserService {
         if (request.getPhone() != null) {
             String phone = normalizeBlank(request.getPhone());
             if (phone != null && !phone.equals(user.getSoDienThoai()) && nguoiDungRepository.existsBySoDienThoai(phone))
-                throw new RuntimeException("So dien thoai da ton tai trong he thong");
+                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
             user.setSoDienThoai(phone);
         }
         if (request.getIsActive() != null)
@@ -80,13 +80,13 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getProfileByEmail(String email) {
         return mapToUserResponse(nguoiDungRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai")));
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại")));
     }
 
     @Transactional
     public UserResponse updateProfile(String email, UserRequest request) {
         NguoiDung user = nguoiDungRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         if (request.getName() != null) user.setHoTen(request.getName());
         if (request.getPhone() != null) user.setSoDienThoai(request.getPhone());
         if (request.getAvatar() != null) user.setAnhDaiDien(request.getAvatar());
@@ -101,13 +101,13 @@ public class UserService {
     public void changePassword(String email, ChangePasswordRequest request) {
         // Simplified - no password in NguoiDung entity in new schema
         // Auth is handled externally (Supabase / simplified)
-        throw new RuntimeException("Password management is handled by external auth provider");
+        throw new RuntimeException("Mật khẩu được quản lý bởi nhà cung cấp xác thực bên ngoài");
     }
 
     private NguoiDung findActiveUser(UUID id) {
         NguoiDung user = nguoiDungRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
-        if (user.getXoaLuc() != null) throw new RuntimeException("Nguoi dung da bi xoa");
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        if (user.getXoaLuc() != null) throw new RuntimeException("Người dùng đã bị xóa");
         return user;
     }
 

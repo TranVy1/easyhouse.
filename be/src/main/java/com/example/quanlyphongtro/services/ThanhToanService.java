@@ -47,7 +47,7 @@ public class ThanhToanService {
     @Transactional(readOnly = true)
     public ThanhToanResponse getById(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
         List<ChiTietHoaDon> ct = tt.getHoaDon() != null
                 ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
                 : Collections.emptyList();
@@ -64,15 +64,15 @@ public class ThanhToanService {
     @Transactional
     public ThanhToanResponse create(ThanhToanRequest req) {
         if (req.getHoaDonId() == null) {
-            throw new RuntimeException("Hoa don la bat buoc khi ghi nhan thanh toan");
+            throw new RuntimeException("Hóa đơn là bắt buộc khi ghi nhận thanh toán");
         }
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
-            throw new RuntimeException("Khong the thanh toan hoa don da xoa hoac da huy");
+            throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
         }
         if (req.getSoTien() == null || req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("So tien thanh toan phai lon hon 0");
+            throw new RuntimeException("Số tiền thanh toán phải lớn hơn 0");
         }
 
         ThanhToan tt = ThanhToan.builder()
@@ -95,7 +95,7 @@ public class ThanhToanService {
     @Transactional
     public void delete(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         thanhToanRepository.delete(tt);
         if (hdId != null) recalculate(hdId);

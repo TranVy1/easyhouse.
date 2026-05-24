@@ -10,10 +10,10 @@ import java.util.UUID;
 @Data
 public class ThongBaoRequest {
 
-    @NotBlank(message = "Tieu de khong duoc de trong")
+    @NotBlank(message = "Tiêu đề không được để trống")
     private String tieuDe;
 
-    @NotBlank(message = "Noi dung khong duoc de trong")
+    @NotBlank(message = "Nội dung không được để trống")
     private String noiDung;
 
     private String loai = "chung";
