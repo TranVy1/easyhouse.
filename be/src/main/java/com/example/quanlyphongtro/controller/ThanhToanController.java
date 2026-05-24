@@ -4,11 +4,17 @@ import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.dto.ThanhToanResponse;
 import com.example.quanlyphongtro.services.ThanhToanService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/thanh-toan")
@@ -47,7 +53,16 @@ public class ThanhToanController {
     @PostMapping
     public ApiResponse<ThanhToanResponse> create(@RequestBody ThanhToanRequest request) {
         try {
-            return ApiResponse.success(thanhToanService.create(request), "Tạo thanh toán thành công");
+            return ApiResponse.success(thanhToanService.create(request), "Tao thanh toan thanh cong");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<ThanhToanResponse> update(@PathVariable UUID id, @RequestBody ThanhToanRequest request) {
+        try {
+            return ApiResponse.success(thanhToanService.update(id, request), "Cap nhat thanh toan thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -57,7 +72,7 @@ public class ThanhToanController {
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         try {
             thanhToanService.delete(id);
-            return ApiResponse.success(null, "Xóa thanh toán thành công");
+            return ApiResponse.success(null, "Xoa thanh toan thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

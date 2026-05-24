@@ -10,6 +10,8 @@ import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.repository.ChiSoDienNuocRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.entity.TrangThaiChiSo;
+import com.example.quanlyphongtro.entity.LoaiDoiTuongMedia;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class ChiSoDienNuocService {
     private final ChiSoDienNuocRepository chiSoDienNuocRepository;
     private final PhongRepository phongRepository;
     private final HopDongRepository hopDongRepository;
+    private final MediaService mediaService;
 
     public List<ChiSoDienNuocResponse> getAll() {
         return chiSoDienNuocRepository.findAll().stream()
@@ -68,19 +71,27 @@ public class ChiSoDienNuocService {
             HopDong hopDong = hopDongRepository.findById(request.getHopDongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
             chiSo.setHopDong(hopDong);
+        } else {
+            // Find active contract for the room
+            List<HopDong> activeContracts = hopDongRepository.findRoomOccupyingContracts(phong.getId(), List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE));
+            if (!activeContracts.isEmpty()) {
+                chiSo.setHopDong(activeContracts.get(0));
+            }
         }
 
         chiSo.setLoai(request.getLoai());
         chiSo.setKyNam(request.getKyNam());
         chiSo.setKyThang(request.getKyThang());
-        chiSo.setNgayGhi(request.getNgayGhi());
+        chiSo.setNgayGhi(request.getNgayGhi() != null ? request.getNgayGhi() : java.time.LocalDate.now());
         chiSo.setChiSoCu(request.getChiSoCu());
         chiSo.setChiSoMoi(request.getChiSoMoi());
-        chiSo.setAnhDongHo(request.getAnhDongHo());
-        chiSo.setTrangThai(request.getTrangThai());
+        chiSo.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : TrangThaiChiSo.DRAFT);
         chiSo.setGhiChu(request.getGhiChu());
 
         ChiSoDienNuoc saved = chiSoDienNuocRepository.save(chiSo);
+        if (request.getAnhDongHo() != null) {
+            mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
+        }
         return mapToResponse(saved);
     }
 
@@ -88,6 +99,10 @@ public class ChiSoDienNuocService {
     public ChiSoDienNuocResponse update(UUID id, ChiSoDienNuocRequest request) {
         ChiSoDienNuoc chiSo = chiSoDienNuocRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chỉ số"));
+
+        if (chiSo.getTrangThai() == TrangThaiChiSo.BILLED && request.getTrangThai() != TrangThaiChiSo.CANCELLED) {
+            throw new RuntimeException("Không thể sửa chỉ số đã được lập hóa đơn");
+        }
 
         if (request.getChiSoMoi() < request.getChiSoCu()) {
             throw new RuntimeException("Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ");
@@ -97,26 +112,37 @@ public class ChiSoDienNuocService {
             HopDong hopDong = hopDongRepository.findById(request.getHopDongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
             chiSo.setHopDong(hopDong);
-        } else {
-            chiSo.setHopDong(null);
+        } else if (chiSo.getHopDong() == null && chiSo.getPhong() != null) {
+            // Find active contract for the room
+            List<HopDong> activeContracts = hopDongRepository.findRoomOccupyingContracts(chiSo.getPhong().getId(), List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE));
+            if (!activeContracts.isEmpty()) {
+                chiSo.setHopDong(activeContracts.get(0));
+            }
         }
 
         chiSo.setLoai(request.getLoai());
         chiSo.setKyNam(request.getKyNam());
         chiSo.setKyThang(request.getKyThang());
-        chiSo.setNgayGhi(request.getNgayGhi());
+        chiSo.setNgayGhi(request.getNgayGhi() != null ? request.getNgayGhi() : java.time.LocalDate.now());
         chiSo.setChiSoCu(request.getChiSoCu());
         chiSo.setChiSoMoi(request.getChiSoMoi());
-        chiSo.setAnhDongHo(request.getAnhDongHo());
-        chiSo.setTrangThai(request.getTrangThai());
+        if (request.getTrangThai() != null) chiSo.setTrangThai(request.getTrangThai());
         chiSo.setGhiChu(request.getGhiChu());
 
         ChiSoDienNuoc saved = chiSoDienNuocRepository.save(chiSo);
+        if (request.getAnhDongHo() != null) {
+            mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
+        }
         return mapToResponse(saved);
     }
 
     @Transactional
     public void delete(UUID id) {
+        ChiSoDienNuoc chiSo = chiSoDienNuocRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chỉ số"));
+        if (chiSo.getTrangThai() == TrangThaiChiSo.BILLED) {
+            throw new RuntimeException("Không thể xóa chỉ số đã được lập hóa đơn. Chỉ có thể Hủy.");
+        }
         chiSoDienNuocRepository.deleteById(id);
     }
 
@@ -145,7 +171,7 @@ public class ChiSoDienNuocService {
         response.setChiSoCu(entity.getChiSoCu());
         response.setChiSoMoi(entity.getChiSoMoi());
         response.setTieuThu(entity.getTieuThu());
-        response.setAnhDongHo(entity.getAnhDongHo());
+        response.setAnhDongHo(mediaService.firstUrl(LoaiDoiTuongMedia.METER_READING, entity.getId(), MediaService.METER_IMAGE));
         response.setTrangThai(entity.getTrangThai());
         response.setGhiChu(entity.getGhiChu());
         response.setTaoLuc(entity.getTaoLuc());

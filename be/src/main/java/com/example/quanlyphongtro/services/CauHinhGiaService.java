@@ -77,6 +77,7 @@ public class CauHinhGiaService {
                 .build();
 
         validateMoney(entity.getDonGia());
+        validateOverlap(entity);
         return CauHinhGiaResponse.fromEntity(cauHinhGiaRepository.save(entity));
     }
 
@@ -103,6 +104,7 @@ public class CauHinhGiaService {
         if (request.getDangApDung() != null) entity.setDangApDung(request.getDangApDung());
 
         validateDateRange(entity.getHieuLucTu(), entity.getHieuLucDen());
+        validateOverlap(entity);
         return CauHinhGiaResponse.fromEntity(cauHinhGiaRepository.save(entity));
     }
 
@@ -153,6 +155,31 @@ public class CauHinhGiaService {
     private void validateDateRange(LocalDate from, LocalDate to) {
         if (from != null && to != null && to.isBefore(from)) {
             throw new RuntimeException("Ngày hết hiệu lực phải sau hoặc bằng ngày hiệu lực");
+        }
+    }
+
+    private void validateOverlap(CauHinhGia entity) {
+        if (!Boolean.TRUE.equals(entity.getDangApDung())) return;
+        if (entity.getNhaTro() == null || entity.getLoai() == null) return;
+        // Chi validate overlap cho dien, nuoc, hoac cac loai co dinh khong the overlap.
+        // Dich vu co the co nhieu loai.
+        if (entity.getLoai() != LoaiMucHoaDon.ELECTRICITY && entity.getLoai() != LoaiMucHoaDon.WATER) return;
+
+        List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
+                entity.getNhaTro().getId(), entity.getLoai());
+
+        for (CauHinhGia existing : activeConfigs) {
+            if (entity.getId() != null && entity.getId().equals(existing.getId())) continue;
+            
+            LocalDate start1 = entity.getHieuLucTu() != null ? entity.getHieuLucTu() : LocalDate.MIN;
+            LocalDate end1 = entity.getHieuLucDen() != null ? entity.getHieuLucDen() : LocalDate.MAX;
+            
+            LocalDate start2 = existing.getHieuLucTu() != null ? existing.getHieuLucTu() : LocalDate.MIN;
+            LocalDate end2 = existing.getHieuLucDen() != null ? existing.getHieuLucDen() : LocalDate.MAX;
+            
+            if (!start1.isAfter(end2) && !start2.isAfter(end1)) {
+                throw new RuntimeException("Cấu hình giá bị trùng lặp thời gian áp dụng với một cấu hình khác cùng loại");
+            }
         }
     }
 }

@@ -32,11 +32,18 @@ public class KhachThueResponse {
     @JsonProperty("hopDongHienTai")
     private CurrentContractResponse hopDongHienTai;
 
+    @JsonProperty("lichSuThue")
+    private java.util.List<CurrentContractResponse> lichSuThue;
+
     @Data
     @Builder
     public static class CurrentContractResponse {
         @JsonProperty("_id")
         private UUID id;
+        private String maHopDong;
+        private LocalDate ngayBatDau;
+        private LocalDate ngayKetThuc;
+        private String trangThai;
         private PhongInfo phong;
     }
 

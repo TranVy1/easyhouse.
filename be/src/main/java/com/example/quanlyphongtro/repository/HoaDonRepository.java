@@ -40,4 +40,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
         @Param("start") LocalDate start,
         @Param("end") LocalDate end
     );
+
+    @Query("SELECT COALESCE(SUM(h.tongTien - h.daTra), 0) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.xoaLuc IS NULL")
+    java.math.BigDecimal sumUnpaidAmount(@Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList);
+
+    List<HoaDon> findByTaoLucBetweenAndXoaLucIsNull(java.time.ZonedDateTime start, java.time.ZonedDateTime end);
 }

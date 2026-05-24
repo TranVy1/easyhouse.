@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.services;
 import com.example.quanlyphongtro.dto.AuthResponse;
 import com.example.quanlyphongtro.dto.KhachThueLoginRequest;
 import com.example.quanlyphongtro.dto.KhachThueLoginResponse;
+import com.example.quanlyphongtro.dto.KhachThueDashboardResponse;
 import com.example.quanlyphongtro.dto.KhachThueResponse;
 import com.example.quanlyphongtro.dto.LoginRequest;
 import com.example.quanlyphongtro.dto.RegisterRequest;
@@ -17,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.math.BigDecimal;
+import java.security.SecureRandom;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +40,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+
+    private static final String TEMP_PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /* ====================================================================
      *  REGISTER
@@ -246,6 +253,32 @@ public class AuthService {
         emailService.sendVerificationEmail(user);
     }
 
+    @Transactional
+    public void forgotPassword(String email) {
+        if (email == null || email.isBlank()) return;
+
+        Optional<NguoiDung> userOptional = nguoiDungRepository.findByEmail(email.toLowerCase());
+        if (userOptional.isEmpty()) {
+            log.info("Forgot password requested for non-existing email {}", email.toLowerCase());
+            return;
+        }
+
+        NguoiDung user = userOptional.get();
+        if (user.getXoaLuc() != null || user.getTrangThai() == TrangThaiNguoiDung.BANNED) {
+            log.info("Forgot password ignored for inactive/banned user {}", user.getId());
+            return;
+        }
+
+        String temporaryPassword = generateTemporaryPassword(12);
+        user.setMatKhau(passwordEncoder.encode(temporaryPassword));
+        user.setSoLanDangNhapSai(0);
+        user.setKhoaDenLuc(null);
+        nguoiDungRepository.save(user);
+        refreshTokenRepository.deleteByNguoiDungId(user.getId());
+
+        emailService.sendTemporaryPasswordEmail(user, temporaryPassword);
+    }
+
     /* ====================================================================
      *  KHACH THUE LOGIN (simplified – phone + password)
      * ==================================================================== */
@@ -267,6 +300,36 @@ public class AuthService {
         return KhachThueLoginResponse.builder()
                 .token(accessToken)
                 .khachThue(KhachThueResponse.fromEntity(khachThue))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public KhachThueDashboardResponse getKhachThueDashboard(UUID userId) {
+        KhachThue khachThue = khachThueRepository.findByNguoiDungId(userId)
+                .orElseThrow(() -> new RuntimeException("Tai khoan chua lien ket khach thue"));
+
+        HopDong hopDong = hopDongRepository.findByKhachThueIdAndXoaLucIsNull(khachThue.getId()).stream()
+                .filter(item -> item.getTrangThai() == TrangThaiHopDong.ACTIVE || item.getTrangThai() == TrangThaiHopDong.PENDING)
+                .sorted(Comparator.comparing(HopDong::getNgayBatDau, Comparator.nullsLast(Comparator.reverseOrder())))
+                .findFirst()
+                .orElse(null);
+
+        List<HoaDon> hoaDons = hoaDonRepository.findByKhachThueIdAndXoaLucIsNullOrderByKyNamDescKyThangDesc(khachThue.getId());
+        long unpaidCount = hoaDons.stream()
+                .filter(item -> item.getTrangThai() == TrangThaiHoaDon.UNPAID
+                        || item.getTrangThai() == TrangThaiHoaDon.PARTIAL
+                        || item.getTrangThai() == TrangThaiHoaDon.OVERDUE)
+                .count();
+        HoaDon latestInvoice = hoaDons.stream().findFirst().orElse(null);
+
+        return KhachThueDashboardResponse.builder()
+                .khachThue(KhachThueDashboardResponse.TenantProfile.builder()
+                        .hoTen(khachThue.getHoTen())
+                        .trangThai(Boolean.FALSE.equals(khachThue.getDangHoatDong()) ? "daTraPhong" : "dangThue")
+                        .build())
+                .hopDongHienTai(toTenantContract(hopDong))
+                .soHoaDonChuaThanhToan(unpaidCount)
+                .hoaDonGanNhat(toTenantInvoice(latestInvoice))
                 .build();
     }
 
@@ -310,6 +373,56 @@ public class AuthService {
             log.warn("Could not resolve role for user {}: {}", user.getId(), e.getMessage());
         }
         return "LANDLORD";
+    }
+
+    private KhachThueDashboardResponse.TenantContract toTenantContract(HopDong hopDong) {
+        if (hopDong == null) return null;
+        Phong phong = hopDong.getPhong();
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+
+        return KhachThueDashboardResponse.TenantContract.builder()
+                .maHopDong(hopDong.getMaHopDong())
+                .ngayBatDau(hopDong.getNgayBatDau())
+                .ngayKetThuc(hopDong.getNgayKetThuc())
+                .tienCoc(hopDong.getTienCoc())
+                .phong(phong == null ? null : KhachThueDashboardResponse.TenantRoom.builder()
+                        .maPhong(phong.getTen())
+                        .giaThue(hopDong.getGiaThueHopDong() != null ? hopDong.getGiaThueHopDong() : BigDecimal.ZERO)
+                        .toaNha(nhaTro == null ? null : KhachThueDashboardResponse.TenantBuilding.builder()
+                                .tenToaNha(nhaTro.getTen())
+                                .diaChi(KhachThueDashboardResponse.TenantAddress.builder()
+                                        .duong(nhaTro.getDuong())
+                                        .phuong(nhaTro.getPhuong())
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private KhachThueDashboardResponse.TenantInvoice toTenantInvoice(HoaDon hoaDon) {
+        if (hoaDon == null) return null;
+        return KhachThueDashboardResponse.TenantInvoice.builder()
+                .maHoaDon(hoaDon.getMaHoaDon())
+                .thang(hoaDon.getKyThang())
+                .nam(hoaDon.getKyNam())
+                .tongTien(hoaDon.getTongTien())
+                .trangThai(toTenantInvoiceStatus(hoaDon.getTrangThai()))
+                .build();
+    }
+
+    private String toTenantInvoiceStatus(TrangThaiHoaDon status) {
+        if (status == TrangThaiHoaDon.PAID || status == TrangThaiHoaDon.OVERPAID) return "daThanhToan";
+        if (status == TrangThaiHoaDon.PARTIAL) return "daThanhToanMotPhan";
+        if (status == TrangThaiHoaDon.OVERDUE) return "quaHan";
+        return "chuaThanhToan";
+    }
+
+    private String generateTemporaryPassword(int length) {
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            password.append(TEMP_PASSWORD_CHARS.charAt(SECURE_RANDOM.nextInt(TEMP_PASSWORD_CHARS.length())));
+        }
+        return password.toString();
     }
 
     private String createRefreshToken(NguoiDung user) {

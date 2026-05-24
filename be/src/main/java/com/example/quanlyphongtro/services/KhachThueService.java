@@ -2,13 +2,23 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.KhachThueRequest;
 import com.example.quanlyphongtro.dto.KhachThueResponse;
-import com.example.quanlyphongtro.entity.*;
-import com.example.quanlyphongtro.repository.*;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.KhachThue;
+import com.example.quanlyphongtro.entity.LoaiDoiTuongMedia;
+import com.example.quanlyphongtro.entity.NguoiDung;
+import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.repository.HopDongRepository;
+import com.example.quanlyphongtro.repository.KhachThueRepository;
+import com.example.quanlyphongtro.repository.NguoiDungRepository;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,59 +27,69 @@ public class KhachThueService {
 
     private final KhachThueRepository khachThueRepository;
     private final HopDongRepository hopDongRepository;
-    private final PhongRepository phongRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final MediaService mediaService;
+    private final PermissionService permissionService;
 
     public List<KhachThueResponse> getAllKhachThue(String trangThai) {
         List<KhachThue> list = khachThueRepository.findByXoaLucIsNullOrderByTaoLucDesc();
         List<HopDong> activeContracts = hopDongRepository.findAllActive();
-        Map<UUID, HopDong> tenantContractMap = new HashMap<>();
-        for (HopDong hd : activeContracts) {
-            if (hd.getKhachThue() != null) {
-                tenantContractMap.put(hd.getKhachThue().getId(), hd);
-            }
+        Map<UUID, HopDong> tenantContractMap = activeContracts.stream()
+                .filter(hd -> hd.getKhachThue() != null)
+                .collect(Collectors.toMap(
+                        hd -> hd.getKhachThue().getId(),
+                        hd -> hd,
+                        (first, second) -> first,
+                        HashMap::new));
+
+        UUID userId = permissionService.requireCurrentUserId();
+        if (!permissionService.isAdmin(userId)) {
+            list = list.stream()
+                    .filter(kt -> canReadKhachThue(kt, tenantContractMap.get(kt.getId()), userId))
+                    .toList();
         }
+
         return list.stream().map(kt -> {
             KhachThueResponse res = KhachThueResponse.fromEntity(kt);
             mapMedia(res, kt.getId());
             HopDong hd = tenantContractMap.get(kt.getId());
             if (hd != null) mapContractInfo(res, hd);
             return res;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     public KhachThueResponse getKhachThueById(UUID id) {
         KhachThue kt = khachThueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+        HopDong activeContract = findActiveContract(id);
+        assertCanRead(kt, activeContract, permissionService.requireCurrentUserId());
+
         KhachThueResponse res = KhachThueResponse.fromEntity(kt);
         mapMedia(res, kt.getId());
-        hopDongRepository.findAllActive().stream()
-                .filter(hd -> hd.getKhachThue() != null && hd.getKhachThue().getId().equals(id))
-                .findFirst()
-                .ifPresent(hd -> mapContractInfo(res, hd));
-        return res;
-    }
-
-    private void mapContractInfo(KhachThueResponse res, HopDong hd) {
-        res.setTrangThai("dangThue");
-        KhachThueResponse.CurrentContractResponse cr = KhachThueResponse.CurrentContractResponse.builder().id(hd.getId()).build();
-        if (hd.getPhong() != null) {
-            Phong p = hd.getPhong();
-            KhachThueResponse.PhongInfo pi = KhachThueResponse.PhongInfo.builder()
-                    .id(p.getId()).maPhong(p.getTen()).tang(p.getTang()).build();
-            if (p.getNhaTro() != null) {
-                pi.setToaNha(KhachThueResponse.ToaNhaInfo.builder()
-                        .id(p.getNhaTro().getId()).tenToaNha(p.getNhaTro().getTen()).build());
-            }
-            cr.setPhong(pi);
+        
+        List<HopDong> allContracts = hopDongRepository.findByKhachThueIdAndXoaLucIsNull(id);
+        if (!allContracts.isEmpty()) {
+            List<KhachThueResponse.CurrentContractResponse> history = allContracts.stream()
+                .map(this::toContractResponse)
+                .toList();
+            res.setLichSuThue(history);
         }
-        res.setHopDongHienTai(cr);
+        
+        if (activeContract != null) {
+            res.setHopDongHienTai(toContractResponse(activeContract));
+            res.setTrangThai("dangThue");
+        }
+        
+        return res;
     }
 
     @Transactional
     public KhachThueResponse createKhachThue(KhachThueRequest req) {
+        UUID userId = permissionService.requireCurrentUserId();
+        NguoiDung owner = resolveOwnerForCreate(req, userId);
+
         KhachThue kt = KhachThue.builder()
+                .chuTro(owner)
                 .hoTen(req.getHoTen())
                 .soDienThoai(req.getSoDienThoai())
                 .email(req.getEmail())
@@ -82,27 +102,13 @@ public class KhachThueService {
                 .ghiChu(req.getGhiChu())
                 .dangHoatDong(true)
                 .build();
+
         if (req.getNguoiDungId() != null) {
             NguoiDung nd = nguoiDungRepository.findById(req.getNguoiDungId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung"));
             kt.setNguoiDung(nd);
         }
-        
-        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null 
-            ? org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal() 
-            : null;
-            
-        NguoiDung defaultUser = null;
-        if (principal instanceof UUID) {
-            defaultUser = nguoiDungRepository.findById((UUID) principal).orElse(null);
-        }
-        
-        if (defaultUser == null) {
-            defaultUser = nguoiDungRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không tìm thấy tài khoản người dùng nào trong DB"));
-        }
-        kt.setChuTro(defaultUser);
-        
+
         KhachThue saved = khachThueRepository.save(kt);
         saveCccdMedia(saved.getId(), req.getAnhCCCD());
         KhachThueResponse response = KhachThueResponse.fromEntity(saved);
@@ -113,7 +119,9 @@ public class KhachThueService {
     @Transactional
     public KhachThueResponse updateKhachThue(UUID id, KhachThueRequest req) {
         KhachThue kt = khachThueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+        assertCanWrite(kt, findActiveContract(id), permissionService.requireCurrentUserId());
+
         if (req.getHoTen() != null) kt.setHoTen(req.getHoTen());
         if (req.getSoDienThoai() != null) kt.setSoDienThoai(req.getSoDienThoai());
         if (req.getEmail() != null) kt.setEmail(req.getEmail());
@@ -125,6 +133,11 @@ public class KhachThueService {
         if (req.getQueQuan() != null) kt.setQueQuan(req.getQueQuan());
         if (req.getNgheNghiep() != null) kt.setNgheNghiep(req.getNgheNghiep());
         if (req.getGhiChu() != null) kt.setGhiChu(req.getGhiChu());
+        if (req.getNguoiDungId() != null) {
+            kt.setNguoiDung(nguoiDungRepository.findById(req.getNguoiDungId())
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung")));
+        }
+
         KhachThue saved = khachThueRepository.save(kt);
         saveCccdMedia(saved.getId(), req.getAnhCCCD());
         KhachThueResponse response = KhachThueResponse.fromEntity(saved);
@@ -135,9 +148,102 @@ public class KhachThueService {
     @Transactional
     public void deleteKhachThue(UUID id) {
         KhachThue kt = khachThueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách thuê"));
-        kt.setXoaLuc(java.time.ZonedDateTime.now());
+                .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+        assertCanWrite(kt, findActiveContract(id), permissionService.requireCurrentUserId());
+        kt.setXoaLuc(ZonedDateTime.now());
         khachThueRepository.save(kt);
+    }
+
+    private NguoiDung resolveOwnerForCreate(KhachThueRequest req, UUID currentUserId) {
+        UUID ownerId = req.getChuTroId();
+        if (ownerId != null && permissionService.isAdmin(currentUserId)) {
+            return nguoiDungRepository.findById(ownerId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay chu tro"));
+        }
+        return nguoiDungRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai"));
+    }
+
+    private HopDong findActiveContract(UUID khachThueId) {
+        return hopDongRepository.findAllActive().stream()
+                .filter(hd -> hd.getKhachThue() != null && hd.getKhachThue().getId().equals(khachThueId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void assertCanRead(KhachThue kt, HopDong activeContract, UUID userId) {
+        if (!canReadKhachThue(kt, activeContract, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem khach thue nay");
+        }
+    }
+
+    private void assertCanWrite(KhachThue kt, HopDong activeContract, UUID userId) {
+        if (!canWriteKhachThue(kt, activeContract, userId)) {
+            throw new RuntimeException("Ban khong co quyen sua khach thue nay");
+        }
+    }
+
+    private boolean canReadKhachThue(KhachThue kt, HopDong activeContract, UUID userId) {
+        if (permissionService.isAdmin(userId)) return true;
+        if (kt.getNguoiDung() != null && userId.equals(kt.getNguoiDung().getId())) return true;
+        if (kt.getChuTro() != null && userId.equals(kt.getChuTro().getId())) return true;
+        return activeContract != null && canReadContractBuilding(activeContract, userId);
+    }
+
+    private boolean canWriteKhachThue(KhachThue kt, HopDong activeContract, UUID userId) {
+        if (permissionService.isAdmin(userId)) return true;
+        if (kt.getChuTro() != null && userId.equals(kt.getChuTro().getId())) return true;
+        return activeContract != null && canWriteContractBuilding(activeContract, userId);
+    }
+
+    private boolean canReadContractBuilding(HopDong hopDong, UUID userId) {
+        if (hopDong.getPhong() == null || hopDong.getPhong().getNhaTro() == null) return false;
+        return permissionService.canReadNhaTro(
+                userId,
+                hopDong.getPhong().getNhaTro().getId(),
+                ownerId(hopDong));
+    }
+
+    private boolean canWriteContractBuilding(HopDong hopDong, UUID userId) {
+        if (hopDong.getPhong() == null || hopDong.getPhong().getNhaTro() == null) return false;
+        return permissionService.canWriteNhaTro(
+                userId,
+                hopDong.getPhong().getNhaTro().getId(),
+                ownerId(hopDong));
+    }
+
+    private UUID ownerId(HopDong hopDong) {
+        return hopDong.getPhong() != null
+                && hopDong.getPhong().getNhaTro() != null
+                && hopDong.getPhong().getNhaTro().getChuTro() != null
+                ? hopDong.getPhong().getNhaTro().getChuTro().getId()
+                : null;
+    }
+
+    private KhachThueResponse.CurrentContractResponse toContractResponse(HopDong hd) {
+        KhachThueResponse.CurrentContractResponse cr = KhachThueResponse.CurrentContractResponse.builder()
+                .id(hd.getId())
+                .maHopDong(hd.getMaHopDong())
+                .ngayBatDau(hd.getNgayBatDau())
+                .ngayKetThuc(hd.getNgayKetThuc())
+                .trangThai(hd.getTrangThai() != null ? hd.getTrangThai().name() : null)
+                .build();
+        if (hd.getPhong() != null) {
+            Phong p = hd.getPhong();
+            KhachThueResponse.PhongInfo pi = KhachThueResponse.PhongInfo.builder()
+                    .id(p.getId()).maPhong(p.getTen()).tang(p.getTang()).build();
+            if (p.getNhaTro() != null) {
+                pi.setToaNha(KhachThueResponse.ToaNhaInfo.builder()
+                        .id(p.getNhaTro().getId()).tenToaNha(p.getNhaTro().getTen()).build());
+            }
+            cr.setPhong(pi);
+        }
+        return cr;
+    }
+    
+    private void mapContractInfo(KhachThueResponse res, HopDong hd) {
+        res.setTrangThai("dangThue");
+        res.setHopDongHienTai(toContractResponse(hd));
     }
 
     private String firstNonBlank(String primary, String fallback) {

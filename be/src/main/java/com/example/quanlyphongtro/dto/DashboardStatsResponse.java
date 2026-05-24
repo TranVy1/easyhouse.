@@ -21,4 +21,7 @@ public class DashboardStatsResponse {
     private long hoaDonSapDenHan;
     private long suCoCanXuLy;
     private long hopDongSapHetHan;
+    private long tongKhachDangThue;
+    private BigDecimal tienDaThu;
+    private BigDecimal tienChuaThu;
 }

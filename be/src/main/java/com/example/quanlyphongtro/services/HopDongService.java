@@ -36,10 +36,13 @@ public class HopDongService {
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final DichVuRepository dichVuRepository;
     private final CauHinhGiaRepository cauHinhGiaRepository;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
     public List<HopDongResponse> getAll() {
+        UUID userId = permissionService.requireCurrentUserId();
         return hopDongRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+                .filter(hopDong -> canReadHopDong(hopDong, userId))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -51,6 +54,7 @@ public class HopDongService {
         if (hd.getXoaLuc() != null) {
             throw new RuntimeException("Không tìm thấy hợp đồng");
         }
+        assertCanRead(hd, permissionService.requireCurrentUserId());
         return toResponse(hd);
     }
 
@@ -67,6 +71,7 @@ public class HopDongService {
 
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+        assertCanWritePhong(phong, permissionService.requireCurrentUserId());
 
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
@@ -115,13 +120,17 @@ public class HopDongService {
     public HopDongResponse update(UUID id, HopDongRequest req) {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWrite(hd, userId);
 
         UUID oldPhongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
         UUID khachThueId = resolveRepresentativeId(req);
         if (phongId != null) {
-            hd.setPhong(phongRepository.findById(phongId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng")));
+            Phong newPhong = phongRepository.findById(phongId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+            assertCanWritePhong(newPhong, userId);
+            hd.setPhong(newPhong);
         }
         if (khachThueId != null) {
             hd.setKhachThue(khachThueRepository.findById(khachThueId)
@@ -192,6 +201,7 @@ public class HopDongService {
     public List<HopDongDichVuOptionResponse> getDichVuTheoPhong(UUID phongId) {
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+        assertCanReadPhong(phong, permissionService.requireCurrentUserId());
         if (phong.getNhaTro() == null) {
             return List.of();
         }
@@ -233,12 +243,75 @@ public class HopDongService {
     public void delete(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
         UUID phongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         hd.setXoaLuc(java.time.ZonedDateTime.now());
         hopDongRepository.save(hd);
         if (phongId != null) {
             syncRoomStatus(phongId);
         }
+    }
+
+    private void assertCanRead(HopDong hopDong, UUID userId) {
+        if (!canReadHopDong(hopDong, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem hop dong nay");
+        }
+    }
+
+    private void assertCanWrite(HopDong hopDong, UUID userId) {
+        if (!canWriteHopDong(hopDong, userId)) {
+            throw new RuntimeException("Ban khong co quyen sua hop dong nay");
+        }
+    }
+
+    private boolean canReadHopDong(HopDong hopDong, UUID userId) {
+        if (hopDong == null || userId == null || hopDong.getXoaLuc() != null) {
+            return false;
+        }
+        if (permissionService.isAdmin(userId)) {
+            return true;
+        }
+        KhachThue khachThue = hopDong.getKhachThue();
+        if (khachThue != null && khachThue.getNguoiDung() != null && userId.equals(khachThue.getNguoiDung().getId())) {
+            return true;
+        }
+        return canReadPhong(hopDong.getPhong(), userId);
+    }
+
+    private boolean canWriteHopDong(HopDong hopDong, UUID userId) {
+        return hopDong != null && hopDong.getXoaLuc() == null && canWritePhong(hopDong.getPhong(), userId);
+    }
+
+    private void assertCanReadPhong(Phong phong, UUID userId) {
+        if (!canReadPhong(phong, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem du lieu phong nay");
+        }
+    }
+
+    private void assertCanWritePhong(Phong phong, UUID userId) {
+        if (!canWritePhong(phong, userId)) {
+            throw new RuntimeException("Ban khong co quyen sua hop dong trong nha tro nay");
+        }
+    }
+
+    private boolean canReadPhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private boolean canWritePhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private UUID ownerId(NhaTro nhaTro) {
+        return nhaTro != null && nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
     }
 
     private TrangThaiHopDong parseStatus(String s, TrangThaiHopDong fallback) {

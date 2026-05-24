@@ -14,10 +14,11 @@ import {
   Calendar,
   Clock
 } from 'lucide-react';
-import { DashboardStats } from '@/types';
+import { DashboardStats, AuditLog } from '@/types';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentLogs, setRecentLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,23 +26,34 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/dashboard/stats');
-        if (response.ok) {
-          const result = await response.json();
+        const [statsRes, logsRes] = await Promise.all([
+          fetch('/api/dashboard/stats'),
+          fetch('/api/audit-log?size=5')
+        ]);
+        
+        if (statsRes.ok) {
+          const result = await statsRes.json();
           if (result.success) {
             setStats(result.data);
           }
         }
+
+        if (logsRes.ok) {
+          const result = await logsRes.json();
+          if (result.success && result.data && result.data.content) {
+            setRecentLogs(result.data.content);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   const formatCurrency = (amount: number) => {
@@ -102,7 +114,7 @@ export default function DashboardPage() {
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Phòng trống</p>
               <p className="text-base md:text-2xl font-bold text-green-600">{stats.phongTrong}</p>
               <p className="text-[8px] md:text-xs text-gray-500">
-                {((stats.phongTrong / stats.tongSoPhong) * 100).toFixed(1)}% tổng
+                {stats.tongSoPhong > 0 ? ((stats.phongTrong / stats.tongSoPhong) * 100).toFixed(1) : '0.0'}% tổng
               </p>
             </div>
             <DoorOpen className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
@@ -188,32 +200,39 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm font-medium truncate">Khách thuê mới đăng ký</p>
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Nguyễn Văn A - Phòng P101</p>
-              </div>
-              <Badge variant="secondary" className="text-[10px] md:text-xs">Mới</Badge>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm font-medium truncate">Thanh toán thành công</p>
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Phòng P102 - 2,500,000 VNĐ</p>
-              </div>
-              <Badge variant="outline" className="text-[10px] md:text-xs">Hoàn thành</Badge>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm font-medium truncate">Báo cáo sự cố</p>
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Phòng P105 - Hỏng điều hòa</p>
-              </div>
-              <Badge variant="destructive" className="text-[10px] md:text-xs">Cần xử lý</Badge>
-            </div>
+            {recentLogs.length > 0 ? recentLogs.map((log) => {
+              let colorClass = "bg-blue-500";
+              let badgeVariant = "secondary" as const;
+              
+              if (log.bangTacDong?.includes('su_co')) {
+                colorClass = "bg-orange-500";
+                badgeVariant = "destructive";
+              } else if (log.bangTacDong?.includes('thanh_toan') || log.bangTacDong?.includes('hoa_don')) {
+                colorClass = "bg-green-500";
+                badgeVariant = "outline";
+              }
+              
+              const formatTime = (dateStr: any) => {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString('vi-VN');
+              };
+
+              return (
+                <div key={log.id || log._id} className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 ${colorClass} rounded-full flex-shrink-0`}></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs md:text-sm font-medium truncate capitalize">{log.hanhDong}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                      {log.nguoiDungHoTen || 'Hệ thống'} • {formatTime(log.taoLuc)}
+                    </p>
+                  </div>
+                  <Badge variant={badgeVariant} className="text-[10px] md:text-xs">{log.bangTacDong || 'Hệ thống'}</Badge>
+                </div>
+              );
+            }) : (
+              <p className="text-sm text-gray-500 text-center py-4">Chưa có hoạt động nào</p>
+            )}
           </CardContent>
         </Card>
 

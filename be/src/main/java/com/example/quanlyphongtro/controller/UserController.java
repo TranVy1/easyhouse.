@@ -1,10 +1,19 @@
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
+import com.example.quanlyphongtro.dto.ChangePasswordRequest;
+import com.example.quanlyphongtro.dto.UserRequest;
 import com.example.quanlyphongtro.dto.UserResponse;
 import com.example.quanlyphongtro.services.UserService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/user")
@@ -14,66 +23,40 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/profile")
-    public ApiResponse<UserResponse> getProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        System.out.println("Fetching profile with Authorization: " + authHeader);
+    public ApiResponse<UserResponse> getProfile(Authentication authentication) {
         try {
-            String email = null;
-            
-            if (authHeader != null && authHeader.startsWith("Bearer ") && !authHeader.contains("undefined") && !authHeader.contains("null")) {
-                email = authHeader.substring(7).trim().toLowerCase();
-            }
-            
-            // Fallback for old sessions with dummy token
-            if ("dummy-jwt-token-for-now".equals(email)) {
-                System.out.println("Old dummy token detected, falling back to docong88@gmail.com for development");
-                email = "docong88@gmail.com"; 
-            }
-            
-            if (email == null || email.isEmpty()) {
-                // For development/fallback, try to get any user or return error
-                return ApiResponse.error("Không tìm thấy thông tin định danh người dùng. Vui lòng đăng nhập lại.");
-            }
-            
-            System.out.println("Looking up profile for email: " + email);
-            UserResponse profile = userService.getProfileByEmail(email);
-            return ApiResponse.success(profile);
+            UUID userId = requireUserId(authentication);
+            return ApiResponse.success(userService.getProfileById(userId));
         } catch (Exception e) {
-            System.err.println("Error fetching profile: " + e.getMessage());
-            return ApiResponse.error("Không thể lấy thông tin hồ sơ: " + e.getMessage());
+            return ApiResponse.error("Khong the lay thong tin ho so: " + e.getMessage());
         }
     }
 
     @PutMapping("/profile")
-    public ApiResponse<UserResponse> updateProfile(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestBody com.example.quanlyphongtro.dto.UserRequest request) {
+    public ApiResponse<UserResponse> updateProfile(Authentication authentication, @RequestBody UserRequest request) {
         try {
-            String email = "docong88@gmail.com";
-            if (authHeader != null && authHeader.startsWith("Bearer ") && !authHeader.contains("undefined") && !authHeader.contains("null")) {
-                email = authHeader.substring(7).trim().toLowerCase();
-                if ("dummy-jwt-token-for-now".equals(email)) email = "docong88@gmail.com";
-            }
-            UserResponse profile = userService.updateProfile(email, request);
-            return ApiResponse.success(profile, "Cập nhật hồ sơ thành công");
+            UUID userId = requireUserId(authentication);
+            UserResponse profile = userService.updateProfile(userId, request);
+            return ApiResponse.success(profile, "Cap nhat ho so thanh cong");
         } catch (Exception e) {
-            return ApiResponse.error("Không thể cập nhật hồ sơ: " + e.getMessage());
+            return ApiResponse.error("Khong the cap nhat ho so: " + e.getMessage());
         }
     }
 
     @PostMapping("/change-password")
-    public ApiResponse<String> changePassword(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestBody com.example.quanlyphongtro.dto.ChangePasswordRequest request) {
+    public ApiResponse<String> changePassword(Authentication authentication, @RequestBody ChangePasswordRequest request) {
         try {
-            String email = "docong88@gmail.com";
-            if (authHeader != null && authHeader.startsWith("Bearer ") && !authHeader.contains("undefined") && !authHeader.contains("null")) {
-                email = authHeader.substring(7).trim().toLowerCase();
-                if ("dummy-jwt-token-for-now".equals(email)) email = "docong88@gmail.com";
-            }
-            userService.changePassword(email, request);
-            return ApiResponse.success(null, "Đổi mật khẩu thành công");
+            requireUserId(authentication);
+            return ApiResponse.error("Mat khau duoc quan ly boi nha cung cap xac thuc. Vui long dung luong quen mat khau.");
         } catch (Exception e) {
-            return ApiResponse.error("Đổi mật khẩu thất bại: " + e.getMessage());
+            return ApiResponse.error("Doi mat khau that bai: " + e.getMessage());
         }
+    }
+
+    private UUID requireUserId(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UUID userId) {
+            return userId;
+        }
+        throw new RuntimeException("Khong tim thay thong tin dinh danh nguoi dung. Vui long dang nhap lai.");
     }
 }

@@ -14,5 +14,6 @@ public interface KhachThueRepository extends JpaRepository<KhachThue, UUID> {
     List<KhachThue> findByChuTroIdAndXoaLucIsNull(UUID chuTroId);
     List<KhachThue> findByXoaLucIsNullOrderByTaoLucDesc();
     List<KhachThue> findByDangHoatDongTrueAndXoaLucIsNull();
+    long countByDangHoatDongTrueAndXoaLucIsNull();
     Optional<KhachThue> findByChuTroIdAndSoCccd(UUID chuTroId, String soCccd);
 }

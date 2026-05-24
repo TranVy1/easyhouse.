@@ -22,6 +22,7 @@ public class MediaService {
     public static final String CCCD_BACK = "CCCD_BACK";
     public static final String INCIDENT_IMAGE = "INCIDENT_IMAGE";
     public static final String PAYMENT_RECEIPT = "PAYMENT_RECEIPT";
+    public static final String METER_IMAGE = "METER_IMAGE";
 
     private final FileMediaRepository fileMediaRepository;
 

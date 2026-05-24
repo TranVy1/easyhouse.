@@ -35,11 +35,13 @@ class HoaDonServiceTest {
     @Mock private CauHinhGiaRepository cauHinhGiaRepository;
     @Mock private DichVuHopDongRepository dichVuHopDongRepository;
     @Mock private ThanhVienHopDongRepository thanhVienHopDongRepository;
+    @Mock private PermissionService permissionService;
 
     private HoaDonService service;
     private UUID hopDongId;
     private UUID phongId;
     private UUID nhaTroId;
+    private UUID ownerId;
     private HopDong hopDong;
 
     @BeforeEach
@@ -54,14 +56,16 @@ class HoaDonServiceTest {
                 chiSoDienNuocRepository,
                 cauHinhGiaRepository,
                 dichVuHopDongRepository,
-                thanhVienHopDongRepository
+                thanhVienHopDongRepository,
+                permissionService
         );
 
         hopDongId = UUID.randomUUID();
         phongId = UUID.randomUUID();
         nhaTroId = UUID.randomUUID();
 
-        NguoiDung owner = NguoiDung.builder().id(UUID.randomUUID()).email("owner@example.com").hoTen("Owner").build();
+        ownerId = UUID.randomUUID();
+        NguoiDung owner = NguoiDung.builder().id(ownerId).email("owner@example.com").hoTen("Owner").build();
         NhaTro nhaTro = NhaTro.builder().id(nhaTroId).chuTro(owner).ten("Nha A").diaChi("Dia chi").build();
         Phong phong = Phong.builder()
                 .id(phongId)
@@ -97,6 +101,7 @@ class HoaDonServiceTest {
 
     @Test
     void createCalculatesInvoiceFromContractPricesAndReadings() {
+        stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
         request.setHopDong(hopDongId);
         request.setThang(5);
@@ -162,6 +167,7 @@ class HoaDonServiceTest {
 
     @Test
     void createRejectsDuplicateContractMonth() {
+        stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
         request.setHopDong(hopDongId);
         request.setThang(5);
@@ -177,6 +183,7 @@ class HoaDonServiceTest {
 
     @Test
     void createRejectsMeterReadingWithoutUnitPrice() {
+        stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
         request.setHopDong(hopDongId);
         request.setThang(5);
@@ -198,6 +205,31 @@ class HoaDonServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
         assertEquals("Chưa có đơn giá hợp lệ cho tiền điện", error.getMessage());
+    }
+
+    @Test
+    void getByIdRejectsUnauthorizedUser() {
+        UUID userId = UUID.randomUUID();
+        UUID hoaDonId = UUID.randomUUID();
+        HoaDon hoaDon = HoaDon.builder()
+                .id(hoaDonId)
+                .hopDong(hopDong)
+                .phong(hopDong.getPhong())
+                .khachThue(hopDong.getKhachThue())
+                .build();
+
+        when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(false);
+        when(permissionService.canReadNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.getById(hoaDonId));
+        assertEquals("Ban khong co quyen xem hoa don nay", error.getMessage());
+    }
+
+    private void stubCanWriteInvoice() {
+        when(permissionService.requireCurrentUserId()).thenReturn(ownerId);
+        when(permissionService.canWriteNhaTro(ownerId, nhaTroId, ownerId)).thenReturn(true);
     }
 
     private CauHinhGia price(LoaiMucHoaDon loai, BigDecimal donGia) {

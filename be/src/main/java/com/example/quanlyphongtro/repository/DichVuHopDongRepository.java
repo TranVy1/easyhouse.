@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface DichVuHopDongRepository extends JpaRepository<DichVuHopDong, UUID> {
     List<DichVuHopDong> findByHopDongIdOrderByTaoLucAsc(UUID hopDongId);
     void deleteByHopDongId(UUID hopDongId);
+    boolean existsByDichVuId(UUID dichVuId);
 }

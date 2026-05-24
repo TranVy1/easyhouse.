@@ -7,13 +7,12 @@ import com.example.quanlyphongtro.dto.UserResponse;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiNguoiDung;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,25 +23,29 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return nguoiDungRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
-                .map(this::mapToUserResponse).toList();
+                .map(this::mapToUserResponse)
+                .toList();
     }
 
     @Transactional
     public UserResponse createUser(AdminUserRequest request) {
         UUID authUserId = request.getAuthUserId() != null ? request.getAuthUserId() : request.getSupabaseUserId();
-        if (authUserId == null)
-            throw new RuntimeException("authUserId là bắt buộc vì nguoi_dung.id tham chiếu Supabase auth.users(id)");
-
-        if (request.getEmail() == null || request.getEmail().isBlank())
-            throw new RuntimeException("Email không được để trống");
+        if (authUserId == null) {
+            throw new RuntimeException("authUserId la bat buoc vi nguoi_dung.id tham chieu auth.users(id)");
+        }
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new RuntimeException("Email khong duoc de trong");
+        }
 
         String email = request.getEmail().trim().toLowerCase();
-        if (nguoiDungRepository.existsByEmail(email))
-            throw new RuntimeException("Email đã tồn tại trong hệ thống");
+        if (nguoiDungRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email da ton tai trong he thong");
+        }
 
         String phone = normalizeBlank(request.getPhone());
-        if (phone != null && nguoiDungRepository.existsBySoDienThoai(phone))
-            throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
+        if (phone != null && nguoiDungRepository.existsBySoDienThoai(phone)) {
+            throw new RuntimeException("So dien thoai da ton tai trong he thong");
+        }
 
         NguoiDung user = NguoiDung.builder()
                 .id(authUserId)
@@ -61,12 +64,14 @@ public class UserService {
         if (request.getName() != null) user.setHoTen(request.getName().trim());
         if (request.getPhone() != null) {
             String phone = normalizeBlank(request.getPhone());
-            if (phone != null && !phone.equals(user.getSoDienThoai()) && nguoiDungRepository.existsBySoDienThoai(phone))
-                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống");
+            if (phone != null && !phone.equals(user.getSoDienThoai()) && nguoiDungRepository.existsBySoDienThoai(phone)) {
+                throw new RuntimeException("So dien thoai da ton tai trong he thong");
+            }
             user.setSoDienThoai(phone);
         }
-        if (request.getIsActive() != null)
+        if (request.getIsActive() != null) {
             user.setTrangThai(request.getIsActive() ? TrangThaiNguoiDung.ACTIVE : TrangThaiNguoiDung.INACTIVE);
+        }
         return mapToUserResponse(nguoiDungRepository.save(user));
     }
 
@@ -80,17 +85,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getProfileByEmail(String email) {
         return mapToUserResponse(nguoiDungRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại")));
-    }
-
-    @Transactional
-    public UserResponse updateProfile(String email, UserRequest request) {
-        NguoiDung user = nguoiDungRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        if (request.getName() != null) user.setHoTen(request.getName());
-        if (request.getPhone() != null) user.setSoDienThoai(request.getPhone());
-        if (request.getAvatar() != null) user.setAnhDaiDien(request.getAvatar());
-        return mapToUserResponse(nguoiDungRepository.save(user));
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai")));
     }
 
     @Transactional(readOnly = true)
@@ -98,20 +93,41 @@ public class UserService {
         return mapToUserResponse(findActiveUser(id));
     }
 
+    @Transactional
+    public UserResponse updateProfile(String email, UserRequest request) {
+        NguoiDung user = nguoiDungRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+        applyProfileRequest(user, request);
+        return mapToUserResponse(nguoiDungRepository.save(user));
+    }
+
+    @Transactional
+    public UserResponse updateProfile(UUID id, UserRequest request) {
+        NguoiDung user = findActiveUser(id);
+        applyProfileRequest(user, request);
+        return mapToUserResponse(nguoiDungRepository.save(user));
+    }
+
     public void changePassword(String email, ChangePasswordRequest request) {
-        // Simplified - no password in NguoiDung entity in new schema
-        // Auth is handled externally (Supabase / simplified)
-        throw new RuntimeException("Mật khẩu được quản lý bởi nhà cung cấp xác thực bên ngoài");
+        throw new RuntimeException("Mat khau duoc quan ly boi nha cung cap xac thuc ben ngoai");
+    }
+
+    private void applyProfileRequest(NguoiDung user, UserRequest request) {
+        if (request.getName() != null) user.setHoTen(request.getName());
+        if (request.getPhone() != null) user.setSoDienThoai(request.getPhone());
+        if (request.getAvatar() != null) user.setAnhDaiDien(request.getAvatar());
     }
 
     private NguoiDung findActiveUser(UUID id) {
         NguoiDung user = nguoiDungRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        if (user.getXoaLuc() != null) throw new RuntimeException("Người dùng đã bị xóa");
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+        if (user.getXoaLuc() != null) throw new RuntimeException("Nguoi dung da bi xoa");
         return user;
     }
 
-    private String normalizeBlank(String v) { return v == null || v.isBlank() ? null : v.trim(); }
+    private String normalizeBlank(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
 
     private UserResponse mapToUserResponse(NguoiDung user) {
         boolean active = user.getTrangThai() == TrangThaiNguoiDung.ACTIVE;
@@ -121,7 +137,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phone(user.getSoDienThoai())
                 .avatar(user.getAnhDaiDien())
-                .role("chuNha") // Simplified role
+                .role("chuNha")
                 .isActive(active)
                 .trangThai(active ? "hoatDong" : "tamKhoa")
                 .createdAt(user.getTaoLuc())

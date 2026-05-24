@@ -2,18 +2,24 @@ package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.AuthResponse;
+import com.example.quanlyphongtro.dto.ForgotPasswordRequest;
+import com.example.quanlyphongtro.dto.KhachThueDashboardResponse;
 import com.example.quanlyphongtro.dto.KhachThueLoginRequest;
 import com.example.quanlyphongtro.dto.KhachThueLoginResponse;
 import com.example.quanlyphongtro.dto.LoginRequest;
 import com.example.quanlyphongtro.dto.RegisterRequest;
 import com.example.quanlyphongtro.services.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,10 +29,9 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
         try {
-            AuthResponse response = authService.login(request);
-            return ApiResponse.success(response, "Đăng nhập thành công");
+            return ApiResponse.success(authService.login(request), "Dang nhap thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -35,8 +40,7 @@ public class AuthController {
     @PostMapping("/register")
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            AuthResponse response = authService.register(request);
-            return ApiResponse.success(response, "Đăng ký thành công. Vui lòng kiểm tra email để xác thực.");
+            return ApiResponse.success(authService.register(request), "Dang ky thanh cong. Vui long kiem tra email de xac thuc.");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -47,10 +51,9 @@ public class AuthController {
         try {
             String refreshToken = body.get("refreshToken");
             if (refreshToken == null || refreshToken.isBlank()) {
-                return ApiResponse.error("refreshToken là bắt buộc");
+                return ApiResponse.error("refreshToken la bat buoc");
             }
-            AuthResponse response = authService.refreshAccessToken(refreshToken);
-            return ApiResponse.success(response, "Token đã được làm mới");
+            return ApiResponse.success(authService.refreshAccessToken(refreshToken), "Token da duoc lam moi");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -61,10 +64,9 @@ public class AuthController {
         try {
             String token = body.get("token");
             if (token == null || token.isBlank()) {
-                return ApiResponse.error("Token xác thực là bắt buộc");
+                return ApiResponse.error("Token xac thuc la bat buoc");
             }
-            AuthResponse response = authService.verifyEmail(token);
-            return ApiResponse.success(response, "Email đã được xác thực thành công");
+            return ApiResponse.success(authService.verifyEmail(token), "Email da duoc xac thuc thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -75,10 +77,20 @@ public class AuthController {
         try {
             String email = body.get("email");
             if (email == null || email.isBlank()) {
-                return ApiResponse.error("Email là bắt buộc");
+                return ApiResponse.error("Email la bat buoc");
             }
             authService.resendVerificationEmail(email);
-            return ApiResponse.success(null, "Email xác thực đã được gửi lại");
+            return ApiResponse.success(null, "Email xac thuc da duoc gui lai");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request.getEmail());
+            return ApiResponse.success(null, "Neu email ton tai, he thong da gui huong dan khoi phuc mat khau");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -90,17 +102,28 @@ public class AuthController {
             if (authentication != null && authentication.getPrincipal() instanceof UUID userId) {
                 authService.logout(userId);
             }
-            return ApiResponse.success(null, "Đăng xuất thành công");
+            return ApiResponse.success(null, "Dang xuat thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }
 
     @PostMapping("/khach-thue/login")
-    public ApiResponse<KhachThueLoginResponse> khachThueLogin(@Valid @RequestBody KhachThueLoginRequest request) {
+    public ApiResponse<KhachThueLoginResponse> khachThueLogin(@Valid @RequestBody KhachThueLoginRequest request, HttpServletRequest httpServletRequest) {
         try {
-            KhachThueLoginResponse response = authService.loginKhachThue(request);
-            return ApiResponse.success(response, "Đăng nhập khách thuê thành công");
+            return ApiResponse.success(authService.loginKhachThue(request), "Dang nhap khach thue thanh cong");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/khach-thue/me")
+    public ApiResponse<KhachThueDashboardResponse> khachThueMe(Authentication authentication) {
+        try {
+            if (authentication == null || !(authentication.getPrincipal() instanceof UUID userId)) {
+                return ApiResponse.error("Vui long dang nhap lai");
+            }
+            return ApiResponse.success(authService.getKhachThueDashboard(userId));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

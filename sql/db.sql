@@ -4991,8 +4991,7 @@ ALTER TABLE ONLY public.login_history
 -- Name: nguoi_dung nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.nguoi_dung
-    ADD CONSTRAINT nguoi_dung_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
 
 
 --

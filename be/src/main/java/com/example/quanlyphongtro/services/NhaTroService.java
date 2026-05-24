@@ -3,15 +3,20 @@ package com.example.quanlyphongtro.services;
 import com.example.quanlyphongtro.dto.NhaTroRequest;
 import com.example.quanlyphongtro.dto.NhaTroResponse;
 import com.example.quanlyphongtro.entity.NhaTro;
+import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
+import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import java.time.ZonedDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,34 +25,46 @@ public class NhaTroService {
 
     private final NhaTroRepository nhaTroRepository;
     private final PhongRepository phongRepository;
-    private final com.example.quanlyphongtro.repository.NguoiDungRepository nguoiDungRepository;
+    private final NguoiDungRepository nguoiDungRepository;
+    private final PermissionService permissionService;
 
     public List<NhaTroResponse> getAllNhaTro() {
-        return nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
-                .map(this::mapToResponse).collect(Collectors.toList());
+        List<NhaTro> nhaTroList = nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc();
+        Optional<UUID> currentUserId = permissionService.currentUserId();
+
+        if (currentUserId.isPresent() && !permissionService.isAdmin(currentUserId.get())) {
+            UUID userId = currentUserId.get();
+            List<UUID> assignedIds = permissionService.accessibleNhaTroIds(userId);
+            nhaTroList = nhaTroList.stream()
+                    .filter(item -> isOwnedBy(item, userId) || assignedIds.contains(item.getId()))
+                    .collect(Collectors.toMap(
+                            NhaTro::getId,
+                            item -> item,
+                            (first, second) -> first,
+                            LinkedHashMap::new))
+                    .values()
+                    .stream()
+                    .toList();
+        }
+
+        return nhaTroList.stream().map(this::mapToResponse).toList();
     }
 
     public NhaTroResponse getNhaTroById(UUID id) {
         NhaTro nt = nhaTroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        permissionService.currentUserId().ifPresent(userId -> assertCanRead(nt, userId));
         return mapToResponse(nt);
     }
 
     @Transactional
     public NhaTroResponse createNhaTro(NhaTroRequest request) {
+        UUID userId = permissionService.requireCurrentUserId();
+        NguoiDung currentUser = nguoiDungRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai"));
+
         NhaTro nt = new NhaTro();
-        // Lấy người dùng hiện tại từ SecurityContext
-        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UUID userId) {
-            com.example.quanlyphongtro.entity.NguoiDung currentUser = nguoiDungRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy người dùng hiện tại trong hệ thống."));
-            nt.setChuTro(currentUser);
-        } else {
-            // Fallback nếu không có auth (vd: đang test không truyền token)
-            com.example.quanlyphongtro.entity.NguoiDung defaultUser = nguoiDungRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new RuntimeException("Lỗi cấu hình: Không có người dùng nào trong hệ thống để gán làm chủ trọ."));
-            nt.setChuTro(defaultUser);
-        }
+        nt.setChuTro(currentUser);
         mapRequestToEntity(request, nt);
         return mapToResponse(nhaTroRepository.save(nt));
     }
@@ -55,7 +72,8 @@ public class NhaTroService {
     @Transactional
     public NhaTroResponse updateNhaTro(UUID id, NhaTroRequest request) {
         NhaTro nt = nhaTroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        assertCanWrite(nt, permissionService.requireCurrentUserId());
         mapRequestToEntity(request, nt);
         return mapToResponse(nhaTroRepository.save(nt));
     }
@@ -63,8 +81,12 @@ public class NhaTroService {
     @Transactional
     public void deleteNhaTro(UUID id) {
         NhaTro nt = nhaTroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
-        nt.setXoaLuc(java.time.ZonedDateTime.now());
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        assertCanWrite(nt, permissionService.requireCurrentUserId());
+        if (phongRepository.countByNhaTroIdAndXoaLucIsNull(id) > 0) {
+            throw new RuntimeException("Khong the xoa nha tro dang co phong hoat dong");
+        }
+        nt.setXoaLuc(ZonedDateTime.now());
         nhaTroRepository.save(nt);
     }
 
@@ -92,5 +114,26 @@ public class NhaTroService {
         int trong = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.AVAILABLE);
         int thue = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.RENTED);
         return NhaTroResponse.fromEntity(nt, tong, trong, thue);
+    }
+
+    private void assertCanRead(NhaTro nhaTro, UUID userId) {
+        if (!permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro))) {
+            throw new RuntimeException("Ban khong co quyen xem nha tro nay");
+        }
+    }
+
+    private void assertCanWrite(NhaTro nhaTro, UUID userId) {
+        if (!permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro))) {
+            throw new RuntimeException("Ban khong co quyen sua nha tro nay");
+        }
+    }
+
+    private boolean isOwnedBy(NhaTro nhaTro, UUID userId) {
+        UUID ownerId = ownerId(nhaTro);
+        return ownerId != null && ownerId.equals(userId);
+    }
+
+    private UUID ownerId(NhaTro nhaTro) {
+        return nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
     }
 }

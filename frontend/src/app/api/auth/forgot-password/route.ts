@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // TODO: Implement forgot password logic or forward to backend when backend endpoint is ready
-    console.log('Forgot password requested for:', body.email);
-    
-    return NextResponse.json(
-      { success: true, message: 'Nếu email tồn tại, chúng tôi đã gửi hướng dẫn khôi phục mật khẩu.' },
-      { status: 200 }
-    );
+
+    const response = await fetch(`${BACKEND_URL}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch {
     return NextResponse.json(
-      { success: false, message: 'Đã có lỗi xảy ra' },
+      { success: false, message: 'Khong the ket noi may chu khoi phuc mat khau' },
       { status: 500 }
     );
   }

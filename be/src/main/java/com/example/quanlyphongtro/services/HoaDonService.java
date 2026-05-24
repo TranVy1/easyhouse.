@@ -37,12 +37,15 @@ public class HoaDonService {
     private final CauHinhGiaRepository cauHinhGiaRepository;
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
     public List<HoaDonResponse> getAll() {
+        UUID userId = permissionService.requireCurrentUserId();
         List<HoaDon> list = hoaDonRepository.findByXoaLucIsNullOrderByTaoLucDesc();
         List<HoaDonResponse> res = new ArrayList<>();
         for (HoaDon hd : list) {
+            if (!canReadHoaDon(hd, userId)) continue;
             res.add(HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(hd.getId())));
         }
         return res;
@@ -55,12 +58,14 @@ public class HoaDonService {
         if (hd.getXoaLuc() != null) {
             throw new RuntimeException("Hóa đơn đã bị xóa");
         }
+        assertCanReadHoaDon(hd, permissionService.requireCurrentUserId());
         return HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(id));
     }
 
     @Transactional
     public HoaDonResponse create(HoaDonRequest req) {
         InvoiceContext ctx = resolveContext(req, null);
+        assertCanWriteHopDong(ctx.hopDong(), permissionService.requireCurrentUserId());
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), null);
 
         BigDecimal daTra = nonNegativeMoney(req.getDaThanhToan(), "Số tiền đã thanh toán");
@@ -96,8 +101,11 @@ public class HoaDonService {
         if (hd.getXoaLuc() != null) {
             throw new RuntimeException("Hóa đơn đã bị xóa");
         }
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWriteHoaDon(hd, userId);
 
         InvoiceContext ctx = resolveContext(req, hd);
+        assertCanWriteHopDong(ctx.hopDong(), userId);
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), hd.getId());
         boolean billingContextChanged = changedBillingContext(hd, ctx);
 
@@ -107,6 +115,7 @@ public class HoaDonService {
         hd.setKyNam(ctx.kyNam());
         hd.setKyThang(ctx.kyThang());
         hd.setTuNgay(ctx.tuNgay());
+
         hd.setDenNgay(ctx.denNgay());
         hd.setHanTra(ctx.hanTra());
         if (req.getMaHoaDon() != null) hd.setMaHoaDon(resolveInvoiceCode(req.getMaHoaDon(), ctx));
@@ -134,6 +143,12 @@ public class HoaDonService {
     public void delete(UUID id) {
         HoaDon hd = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        assertCanWriteHoaDon(hd, permissionService.requireCurrentUserId());
+        
+        if (hd.getDaTra() != null && hd.getDaTra().compareTo(BigDecimal.ZERO) > 0) {
+            throw new RuntimeException("Không thể xóa hóa đơn đã có giao dịch thanh toán");
+        }
+        
         markReadingsCancelled(id);
         hd.setTrangThai(TrangThaiHoaDon.CANCELLED);
         hd.setXoaLuc(ZonedDateTime.now());
@@ -142,12 +157,16 @@ public class HoaDonService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> getFormData() {
+        UUID userId = permissionService.requireCurrentUserId();
         Map<String, Object> result = new HashMap<>();
         result.put("hopDongList", hopDongRepository.findAllActive().stream()
+                .filter(hopDong -> canReadHopDong(hopDong, userId))
                 .map(hopDongService::toResponse).toList());
         result.put("phongList", phongRepository.findAll().stream()
+                .filter(phong -> canReadPhong(phong, userId))
                 .map(com.example.quanlyphongtro.dto.PhongResponse::fromEntity).toList());
         result.put("khachThueList", khachThueRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+                .filter(khachThue -> canReadKhachThue(khachThue, userId))
                 .map(com.example.quanlyphongtro.dto.KhachThueResponse::fromEntity).toList());
         return result;
     }
@@ -161,6 +180,7 @@ public class HoaDonService {
 
         HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
         if (hd != null && hd.getPhong() != null) {
+            assertCanReadHopDong(hd, permissionService.requireCurrentUserId());
             Optional<Integer> latestElectric = latestReading(hd.getPhong().getId(), LoaiChiSo.ELECTRICITY);
             Optional<Integer> latestWater = latestReading(hd.getPhong().getId(), LoaiChiSo.WATER);
             result.put("chiSoDienBanDau", latestElectric.orElse(hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0));
@@ -233,6 +253,100 @@ public class HoaDonService {
 
         validateInvoiceDates(tuNgay, denNgay, hanTra, hopDong);
         return new InvoiceContext(hopDong, phong, khachThue, kyNam, kyThang, tuNgay, denNgay, hanTra);
+    }
+
+    private void assertCanReadHoaDon(HoaDon hoaDon, UUID userId) {
+        if (!canReadHoaDon(hoaDon, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem hoa don nay");
+        }
+    }
+
+    private void assertCanWriteHoaDon(HoaDon hoaDon, UUID userId) {
+        if (!canWriteHoaDon(hoaDon, userId)) {
+            throw new RuntimeException("Ban khong co quyen sua hoa don nay");
+        }
+    }
+
+    private boolean canReadHoaDon(HoaDon hoaDon, UUID userId) {
+        if (hoaDon == null || userId == null || hoaDon.getXoaLuc() != null) {
+            return false;
+        }
+        if (permissionService.isAdmin(userId)) {
+            return true;
+        }
+        KhachThue khachThue = hoaDon.getKhachThue();
+        if (khachThue != null && khachThue.getNguoiDung() != null && userId.equals(khachThue.getNguoiDung().getId())) {
+            return true;
+        }
+        return canReadPhong(hoaDon.getPhong(), userId);
+    }
+
+    private boolean canWriteHoaDon(HoaDon hoaDon, UUID userId) {
+        return hoaDon != null && hoaDon.getXoaLuc() == null && canWritePhong(hoaDon.getPhong(), userId);
+    }
+
+    private void assertCanReadHopDong(HopDong hopDong, UUID userId) {
+        if (!canReadHopDong(hopDong, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem hop dong nay");
+        }
+    }
+
+    private void assertCanWriteHopDong(HopDong hopDong, UUID userId) {
+        if (!canWriteHopDong(hopDong, userId)) {
+            throw new RuntimeException("Ban khong co quyen lap hoa don cho hop dong nay");
+        }
+    }
+
+    private boolean canReadHopDong(HopDong hopDong, UUID userId) {
+        if (hopDong == null || userId == null || hopDong.getXoaLuc() != null) {
+            return false;
+        }
+        if (permissionService.isAdmin(userId)) {
+            return true;
+        }
+        KhachThue khachThue = hopDong.getKhachThue();
+        if (khachThue != null && khachThue.getNguoiDung() != null && userId.equals(khachThue.getNguoiDung().getId())) {
+            return true;
+        }
+        return canReadPhong(hopDong.getPhong(), userId);
+    }
+
+    private boolean canWriteHopDong(HopDong hopDong, UUID userId) {
+        return hopDong != null && hopDong.getXoaLuc() == null && canWritePhong(hopDong.getPhong(), userId);
+    }
+
+    private boolean canReadKhachThue(KhachThue khachThue, UUID userId) {
+        if (khachThue == null || userId == null || khachThue.getXoaLuc() != null) {
+            return false;
+        }
+        if (permissionService.isAdmin(userId)) {
+            return true;
+        }
+        if (khachThue.getNguoiDung() != null && userId.equals(khachThue.getNguoiDung().getId())) {
+            return true;
+        }
+        UUID ownerId = khachThue.getChuTro() != null ? khachThue.getChuTro().getId() : null;
+        return ownerId != null && ownerId.equals(userId);
+    }
+
+    private boolean canReadPhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private boolean canWritePhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private UUID ownerId(NhaTro nhaTro) {
+        return nhaTro != null && nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
     }
 
     private List<ChiTietHoaDon> buildLineItems(HoaDonRequest req, HoaDon hoaDon, InvoiceContext ctx) {

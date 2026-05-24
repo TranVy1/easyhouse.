@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +33,10 @@ public class BaoCaoService {
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
         
-        // Use streams to calculate aggregates if no custom query exists
-        var hoaDons = hoaDonRepository.findAll();
+        ZonedDateTime startOf6MonthsAgoZoned = LocalDate.now().minusMonths(5).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault());
+        ZonedDateTime endOfMonthZoned = endOfMonth.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1);
+        
+        List<com.example.quanlyphongtro.entity.HoaDon> hoaDons = hoaDonRepository.findByTaoLucBetweenAndXoaLucIsNull(startOf6MonthsAgoZoned, endOfMonthZoned);
         
         BigDecimal doanhThu = BigDecimal.ZERO;
         BigDecimal tienDaThu = BigDecimal.ZERO;
@@ -48,17 +52,16 @@ public class BaoCaoService {
         BigDecimal tienChuaThu = doanhThu.subtract(tienDaThu);
 
         long totalRooms = phongRepository.count();
-        long activeRooms = phongRepository.findAll().stream()
-                .filter(p -> p.getTrangThai() == TrangThaiPhong.RENTED).count();
+        long activeRooms = phongRepository.countByTrangThai(TrangThaiPhong.RENTED);
         
         Double tyLeLapDay = totalRooms > 0 ? (double) activeRooms / totalRooms * 100 : 0.0;
 
-        long suCoCanXuLy = suCoRepository.findAll().stream()
-                .filter(s -> s.getTrangThai() == TrangThaiSuCo.PENDING || s.getTrangThai() == TrangThaiSuCo.IN_PROGRESS).count();
+        long suCoCanXuLy = suCoRepository.countByTrangThai(TrangThaiSuCo.PENDING) + suCoRepository.countByTrangThai(TrangThaiSuCo.IN_PROGRESS);
 
-        LocalDate in30Days = LocalDate.now().plusDays(30);
-        long hopDongSapHetHan = hopDongRepository.findAll().stream()
-                .filter(h -> h.getNgayKetThuc() != null && !h.getNgayKetThuc().isBefore(LocalDate.now()) && !h.getNgayKetThuc().isAfter(in30Days)).count();
+        LocalDate today = LocalDate.now();
+        LocalDate in30Days = today.plusDays(30);
+        long hopDongSapHetHan = hopDongRepository.countContractsExpiringBetween(
+                com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE, today, in30Days);
 
         // Chart data for last 6 months
         List<BaoCaoTongQuanResponse.BieuDoDoanhThu> chartData = new ArrayList<>();

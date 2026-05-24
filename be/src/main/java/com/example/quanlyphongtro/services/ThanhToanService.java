@@ -25,9 +25,11 @@ public class ThanhToanService {
     private final HoaDonRepository hoaDonRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
     private final MediaService mediaService;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
     public List<ThanhToanResponse> getAll() {
+        UUID userId = permissionService.requireCurrentUserId();
         List<ThanhToan> list = thanhToanRepository.findAll();
         list.sort((a, b) -> {
             if (a.getNgayThanhToan() == null) return 1;
@@ -35,6 +37,7 @@ public class ThanhToanService {
             return b.getNgayThanhToan().compareTo(a.getNgayThanhToan());
         });
         return list.stream()
+                .filter(tt -> canReadHoaDon(tt.getHoaDon(), userId))
                 .map(tt -> {
                     List<ChiTietHoaDon> ct = tt.getHoaDon() != null
                             ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
@@ -48,6 +51,7 @@ public class ThanhToanService {
     public ThanhToanResponse getById(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
+        assertCanReadHoaDon(tt.getHoaDon(), permissionService.requireCurrentUserId());
         List<ChiTietHoaDon> ct = tt.getHoaDon() != null
                 ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
                 : Collections.emptyList();
@@ -56,6 +60,9 @@ public class ThanhToanService {
 
     @Transactional(readOnly = true)
     public List<ThanhToanResponse> getByHoaDon(UUID hoaDonId) {
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+        assertCanReadHoaDon(hoaDon, permissionService.requireCurrentUserId());
         return thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
                 .map(tt -> toResponse(tt, chiTietHoaDonRepository.findByHoaDonId(hoaDonId)))
                 .toList();
@@ -68,6 +75,7 @@ public class ThanhToanService {
         }
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        assertCanCreatePayment(hoaDon, permissionService.requireCurrentUserId());
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
             throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
         }
@@ -93,9 +101,51 @@ public class ThanhToanService {
     }
 
     @Transactional
+    public ThanhToanResponse update(UUID id, ThanhToanRequest req) {
+        ThanhToan tt = thanhToanRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWriteHoaDon(tt.getHoaDon(), userId);
+        UUID oldHoaDonId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
+
+        if (req.getHoaDonId() != null && (tt.getHoaDon() == null || !req.getHoaDonId().equals(tt.getHoaDon().getId()))) {
+            HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+            assertCanWriteHoaDon(hoaDon, userId);
+            if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
+                throw new RuntimeException("Khong the gan thanh toan vao hoa don da xoa hoac da huy");
+            }
+            tt.setHoaDon(hoaDon);
+            tt.setKhachThue(hoaDon.getKhachThue());
+        }
+        if (req.getSoTien() != null) {
+            if (req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("So tien thanh toan phai lon hon 0");
+            }
+            tt.setSoTien(req.getSoTien());
+        }
+        if (req.getPhuongThuc() != null) tt.setPhuongThucThanhToan(parsePhuongThuc(req.getPhuongThuc()));
+        if (req.getThongTinChuyenKhoan() != null) tt.setMaThamChieu(req.getThongTinChuyenKhoan().getSoGiaoDich());
+        if (req.getNgayThanhToan() != null) tt.setNgayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()));
+        if (req.getGhiChu() != null) tt.setGhiChu(req.getGhiChu());
+
+        ThanhToan saved = thanhToanRepository.save(tt);
+        if (req.getAnhBienLai() != null) {
+            mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
+        }
+
+        if (oldHoaDonId != null) recalculate(oldHoaDonId);
+        UUID newHoaDonId = saved.getHoaDon() != null ? saved.getHoaDon().getId() : null;
+        if (newHoaDonId != null && !newHoaDonId.equals(oldHoaDonId)) recalculate(newHoaDonId);
+
+        return toResponse(saved, newHoaDonId != null ? chiTietHoaDonRepository.findByHoaDonId(newHoaDonId) : Collections.emptyList());
+    }
+
+    @Transactional
     public void delete(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
+        assertCanWriteHoaDon(tt.getHoaDon(), permissionService.requireCurrentUserId());
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         thanhToanRepository.delete(tt);
         if (hdId != null) recalculate(hdId);
@@ -114,6 +164,63 @@ public class ThanhToanService {
         hoaDonRepository.save(hd);
     }
 
+    private void assertCanReadHoaDon(HoaDon hoaDon, UUID userId) {
+        if (!canReadHoaDon(hoaDon, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem thanh toan nay");
+        }
+    }
+
+    private void assertCanWriteHoaDon(HoaDon hoaDon, UUID userId) {
+        if (!canWriteHoaDon(hoaDon, userId)) {
+            throw new RuntimeException("Ban khong co quyen sua thanh toan nay");
+        }
+    }
+
+    private void assertCanCreatePayment(HoaDon hoaDon, UUID userId) {
+        if (!canWriteHoaDon(hoaDon, userId) && !isTenantInvoiceOwner(hoaDon, userId)) {
+            throw new RuntimeException("Ban khong co quyen ghi nhan thanh toan cho hoa don nay");
+        }
+    }
+
+    private boolean canReadHoaDon(HoaDon hoaDon, UUID userId) {
+        if (hoaDon == null || userId == null || hoaDon.getXoaLuc() != null) {
+            return false;
+        }
+        if (permissionService.isAdmin(userId) || isTenantInvoiceOwner(hoaDon, userId)) {
+            return true;
+        }
+        return canReadPhong(hoaDon.getPhong(), userId);
+    }
+
+    private boolean canWriteHoaDon(HoaDon hoaDon, UUID userId) {
+        return hoaDon != null && hoaDon.getXoaLuc() == null && canWritePhong(hoaDon.getPhong(), userId);
+    }
+
+    private boolean isTenantInvoiceOwner(HoaDon hoaDon, UUID userId) {
+        KhachThue khachThue = hoaDon != null ? hoaDon.getKhachThue() : null;
+        return khachThue != null && khachThue.getNguoiDung() != null && userId.equals(khachThue.getNguoiDung().getId());
+    }
+
+    private boolean canReadPhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private boolean canWritePhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong != null ? phong.getNhaTro() : null;
+        if (nhaTro == null || nhaTro.getId() == null) {
+            return false;
+        }
+        return permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private UUID ownerId(NhaTro nhaTro) {
+        return nhaTro != null && nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
+    }
+
     private ZonedDateTime parseNgayThanhToan(String value) {
         if (value == null || value.isBlank()) return ZonedDateTime.now();
         try {
@@ -128,7 +235,9 @@ public class ThanhToanService {
         return switch (value) {
             case "tienMat" -> PhuongThucThanhToan.CASH;
             case "chuyenKhoan" -> PhuongThucThanhToan.BANK_TRANSFER;
-            case "viDienTu" -> PhuongThucThanhToan.OTHER;
+            case "vietQr" -> PhuongThucThanhToan.VIETQR;
+            case "viDienTu" -> PhuongThucThanhToan.MOMO;
+            case "khac" -> PhuongThucThanhToan.OTHER;
             default -> {
                 try {
                     yield PhuongThucThanhToan.valueOf(value.toUpperCase());

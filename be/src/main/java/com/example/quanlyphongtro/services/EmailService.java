@@ -69,6 +69,32 @@ public class EmailService {
         }
     }
 
+    public void sendTemporaryPasswordEmail(NguoiDung user, String temporaryPassword) {
+        if (user == null || user.getEmail() == null || temporaryPassword == null || temporaryPassword.isBlank()) {
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(user.getEmail());
+            message.setSubject("[EasyHouse] Dat lai mat khau");
+            message.setText(
+                    "Xin chao " + user.getHoTen() + ",\n\n" +
+                    "Mat khau tam thoi cua ban la:\n\n" +
+                    temporaryPassword + "\n\n" +
+                    "Vui long dang nhap va doi mat khau ngay sau khi truy cap lai tai khoan.\n" +
+                    "Neu ban khong yeu cau dat lai mat khau, vui long lien he quan tri vien.\n\n" +
+                    "Tran trong,\nDoi ngu EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Temporary password email sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send temporary password email to {}: {}", user.getEmail(), e.getMessage());
+            throw new RuntimeException("Khong the gui email dat lai mat khau");
+        }
+    }
+
     /**
      * Verify the token string and activate the user account.
      * @return the verified user, or null if token is invalid/expired.

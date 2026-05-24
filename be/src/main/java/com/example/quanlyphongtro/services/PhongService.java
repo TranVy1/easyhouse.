@@ -2,14 +2,22 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.PhongRequest;
 import com.example.quanlyphongtro.dto.PhongResponse;
-import com.example.quanlyphongtro.entity.*;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.LoaiDoiTuongMedia;
+import com.example.quanlyphongtro.entity.NhaTro;
+import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.TrangThaiHopDong;
+import com.example.quanlyphongtro.entity.TrangThaiPhong;
+import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +26,10 @@ public class PhongService {
 
     private final PhongRepository phongRepository;
     private final NhaTroRepository nhaTroRepository;
-    private final com.example.quanlyphongtro.repository.HopDongRepository hopDongRepository;
+    private final HopDongRepository hopDongRepository;
     private final MediaService mediaService;
     private final TienIchService tienIchService;
+    private final PermissionService permissionService;
 
     public List<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr) {
         TrangThaiPhong tt = parseTrangThai(trangThaiStr);
@@ -31,21 +40,32 @@ public class PhongService {
         else if (nid != null) list = phongRepository.findByNhaTroIdAndXoaLucIsNull(nid);
         else if (tt != null) list = phongRepository.findByTrangThaiAndXoaLucIsNull(tt);
         else list = phongRepository.findByXoaLucIsNull();
+
+        Optional<UUID> currentUserId = permissionService.currentUserId();
+        if (currentUserId.isPresent() && !permissionService.isAdmin(currentUserId.get())) {
+            UUID userId = currentUserId.get();
+            list = list.stream()
+                    .filter(phong -> canReadPhong(phong, userId))
+                    .toList();
+        }
+
         return list.stream().map(this::toResponse).toList();
     }
 
     public PhongResponse getPhongById(UUID id) {
-        Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy Phòng"));
+        Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        permissionService.currentUserId().ifPresent(userId -> assertCanRead(phong, userId));
         return toResponse(phong);
     }
 
     @Transactional
     public PhongResponse createPhong(PhongRequest req) {
         NhaTro nt = nhaTroRepository.findById(req.getNhaTroId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
-                
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        assertCanWrite(nt, permissionService.requireCurrentUserId());
+
         if (phongRepository.existsByNhaTroIdAndTen(nt.getId(), req.getTen())) {
-            throw new RuntimeException("Tên phòng đã tồn tại trong tòa nhà này");
+            throw new RuntimeException("Ten phong da ton tai trong toa nha nay");
         }
 
         Phong p = Phong.builder()
@@ -68,23 +88,25 @@ public class PhongService {
 
     @Transactional
     public PhongResponse updatePhong(UUID id, PhongRequest req) {
-        Phong p = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy Phòng"));
+        Phong p = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        assertCanWrite(p.getNhaTro(), permissionService.requireCurrentUserId());
         UUID currentNhaTroId = p.getNhaTro().getId();
-        
+
         if (req.getNhaTroId() != null) {
             NhaTro nt = nhaTroRepository.findById(req.getNhaTroId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+            assertCanWrite(nt, permissionService.requireCurrentUserId());
             p.setNhaTro(nt);
             currentNhaTroId = nt.getId();
         }
-        
+
         if (req.getTen() != null) {
             if (phongRepository.existsByNhaTroIdAndTenAndIdNot(currentNhaTroId, req.getTen(), id)) {
-                throw new RuntimeException("Tên phòng đã tồn tại trong tòa nhà này");
+                throw new RuntimeException("Ten phong da ton tai trong toa nha nay");
             }
             p.setTen(req.getTen());
         }
-        
+
         if (req.getKhuVuc() != null) p.setKhuVuc(req.getKhuVuc());
         if (req.getTang() != null) p.setTang(req.getTang());
         if (req.getDienTich() != null) p.setDienTich(req.getDienTich());
@@ -94,10 +116,24 @@ public class PhongService {
         if (req.getSoNguoiToiDa() != null) p.setSoNguoiToiDa(req.getSoNguoiToiDa());
         TrangThaiPhong tt = parseTrangThai(req.getTrangThai());
         if (tt != null) p.setTrangThai(tt);
+
         Phong saved = phongRepository.saveAndFlush(p);
         mediaService.replaceUrls(LoaiDoiTuongMedia.ROOM, saved.getId(), req.getAnhPhong(), MediaService.ROOM_IMAGE);
         tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi());
         return toResponse(saved);
+    }
+
+    @Transactional
+    public void deletePhong(UUID id) {
+        Phong p = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        assertCanWrite(p.getNhaTro(), permissionService.requireCurrentUserId());
+        boolean hasOccupyingContracts = !hopDongRepository.findRoomOccupyingContracts(
+                id, List.of(TrangThaiHopDong.PENDING, TrangThaiHopDong.ACTIVE)).isEmpty();
+        if (hasOccupyingContracts) {
+            throw new RuntimeException("Khong the xoa phong dang co hop dong hoat dong");
+        }
+        p.setXoaLuc(ZonedDateTime.now());
+        phongRepository.save(p);
     }
 
     private PhongResponse toResponse(Phong phong) {
@@ -109,16 +145,25 @@ public class PhongService {
         return response;
     }
 
-    @Transactional
-    public void deletePhong(UUID id) {
-        Phong p = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy Phòng"));
-        boolean hasOccupyingContracts = !hopDongRepository.findRoomOccupyingContracts(
-                id, java.util.List.of(TrangThaiHopDong.PENDING, TrangThaiHopDong.ACTIVE)).isEmpty();
-        if (hasOccupyingContracts) {
-            throw new RuntimeException("Không thể xóa phòng đang có hợp đồng hoạt động");
+    private void assertCanRead(Phong phong, UUID userId) {
+        if (!canReadPhong(phong, userId)) {
+            throw new RuntimeException("Ban khong co quyen xem phong nay");
         }
-        p.setXoaLuc(java.time.ZonedDateTime.now());
-        phongRepository.save(p);
+    }
+
+    private boolean canReadPhong(Phong phong, UUID userId) {
+        NhaTro nhaTro = phong.getNhaTro();
+        return nhaTro != null && permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro));
+    }
+
+    private void assertCanWrite(NhaTro nhaTro, UUID userId) {
+        if (nhaTro == null || !permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro))) {
+            throw new RuntimeException("Ban khong co quyen sua phong trong nha tro nay");
+        }
+    }
+
+    private UUID ownerId(NhaTro nhaTro) {
+        return nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
     }
 
     private TrangThaiPhong parseTrangThai(String s) {

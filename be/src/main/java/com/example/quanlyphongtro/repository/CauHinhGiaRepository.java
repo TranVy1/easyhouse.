@@ -61,4 +61,6 @@ public interface CauHinhGiaRepository extends JpaRepository<CauHinhGia, UUID> {
             @Param("nhaTroId") UUID nhaTroId,
             @Param("ngayApDung") LocalDate ngayApDung
     );
+
+    boolean existsByDichVuId(UUID dichVuId);
 }

@@ -11,6 +11,7 @@ import com.example.quanlyphongtro.repository.ThanhToanRepository;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.SuCoRepository;
+import com.example.quanlyphongtro.repository.KhachThueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +29,14 @@ public class DashboardService {
     private final HoaDonRepository hoaDonRepository;
     private final HopDongRepository hopDongRepository;
     private final SuCoRepository suCoRepository;
+    private final KhachThueRepository khachThueRepository;
 
     public DashboardStatsResponse getStats() {
         long tongSoPhong = phongRepository.count();
         long phongTrong = phongRepository.countByTrangThai(TrangThaiPhong.AVAILABLE);
         long phongDangThue = phongRepository.countByTrangThai(TrangThaiPhong.RENTED);
         long phongBaoTri = phongRepository.countByTrangThai(TrangThaiPhong.MAINTENANCE);
+        long tongKhachDangThue = khachThueRepository.countByDangHoatDongTrueAndXoaLucIsNull();
 
         // Date calculations for payments (ZonedDateTime)
         ZonedDateTime nowZoned = ZonedDateTime.now();
@@ -54,8 +57,12 @@ public class DashboardService {
         BigDecimal doanhThuNam = thanhToanRepository.sumSuccessfulPaymentsInPeriod(
                 TrangThaiThanhToan.SUCCESS, startOfYear, endOfYear);
 
+        BigDecimal tienDaThu = doanhThuThang != null ? doanhThuThang : BigDecimal.ZERO;
+        BigDecimal tienChuaThu = hoaDonRepository.sumUnpaidAmount(
+                List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL, TrangThaiHoaDon.OVERDUE));
+
         long hoaDonSapDenHan = hoaDonRepository.countUnpaidInvoicesDueBetween(
-                List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL), today, next7Days);
+                List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL, TrangThaiHoaDon.OVERDUE), today, next7Days);
 
         long suCoCanXuLy = suCoRepository.countByTrangThai(TrangThaiSuCo.PENDING)
                 + suCoRepository.countByTrangThai(TrangThaiSuCo.IN_PROGRESS);
@@ -73,6 +80,9 @@ public class DashboardService {
                 .hoaDonSapDenHan(hoaDonSapDenHan)
                 .suCoCanXuLy(suCoCanXuLy)
                 .hopDongSapHetHan(hopDongSapHetHan)
+                .tongKhachDangThue(tongKhachDangThue)
+                .tienDaThu(tienDaThu)
+                .tienChuaThu(tienChuaThu)
                 .build();
     }
 }
