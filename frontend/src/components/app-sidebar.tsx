@@ -67,12 +67,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/dashboard/cau-hinh-gia",
           },
           {
+            title: "Chỉ số điện nước",
+            url: "/dashboard/chi-so-dien-nuoc",
+          },
+          {
             title: "Hợp đồng",
             url: "/dashboard/hop-dong",
           },
           {
             title: "Hóa đơn",
             url: "/dashboard/hoa-don",
+          },
+          {
+            title: "Công nợ",
+            url: "/dashboard/cong-no",
           },
           {
             title: "Thanh toán",

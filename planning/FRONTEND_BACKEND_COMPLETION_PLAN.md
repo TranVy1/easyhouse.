@@ -116,17 +116,17 @@ Muc tieu gan nhat: lam dashboard co the van hanh duoc end-to-end truoc khi lam c
 
 Ket luan: can them man hinh. Cac bang SQL moi va chuc nang thuc te chua duoc surfacing day du trong dashboard hien tai.
 
-- [ ] `/dashboard/cau-hinh-gia` - Cau hinh gia dich vu:
+- [x] `/dashboard/cau-hinh-gia` - Cau hinh gia dich vu:
   - Bat buoc lam som vi hoa don phu thuoc vao gia phong/dien/nuoc/internet/rac/gui xe.
   - Backend API nen tang da co `/api/cau-hinh-gia`; tiep theo can UI list/form.
 - [ ] `/dashboard/chi-so-dien-nuoc` - Chot chi so:
   - CRUD chi so theo phong/hop dong/ky/loai.
   - Trang thai DRAFT/CONFIRMED/BILLED/CANCELLED.
   - Day la dau vao bat buoc cho hoa don dung thuc te.
-- [ ] `/dashboard/cong-no` - Cong no:
+- [x] `/dashboard/cong-no` - Cong no:
   - Xem no theo khach thue/phong/toa nha/ky.
   - Loc qua han, xuat danh sach nhac no.
-  - Tao line item `DEBT` khi chuyen ky.
+  - Tao line item `DEBT` khi chuyen ky (Tich hop vao form lap hoa don duoi dang No cu / So du dau ky).
 - [ ] `/dashboard/dich-vu` - Dich vu va tien ich:
   - CRUD `dich_vu`, `tien_ich`.
   - Gan dich vu vao hop dong qua `dich_vu_hop_dong`.

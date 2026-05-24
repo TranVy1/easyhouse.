@@ -89,6 +89,14 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/hoa-don-public/:path*`
       },
       {
+        source: '/api/cong-no',
+        destination: `${backendUrl}/api/cong-no`
+      },
+      {
+        source: '/api/cong-no/:path*',
+        destination: `${backendUrl}/api/cong-no/:path*`
+      },
+      {
         source: '/api/upload',
         destination: `${backendUrl}/api/upload`
       },
@@ -123,6 +131,14 @@ const nextConfig: NextConfig = {
       {
         source: '/api/cau-hinh-gia/:path*',
         destination: `${backendUrl}/api/cau-hinh-gia/:path*`
+      },
+      {
+        source: '/api/chi-so-dien-nuoc',
+        destination: `${backendUrl}/api/chi-so-dien-nuoc`
+      },
+      {
+        source: '/api/chi-so-dien-nuoc/:path*',
+        destination: `${backendUrl}/api/chi-so-dien-nuoc/:path*`
       },
       {
         source: '/api/admin/:path*',

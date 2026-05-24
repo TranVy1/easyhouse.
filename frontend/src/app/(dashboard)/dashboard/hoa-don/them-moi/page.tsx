@@ -83,6 +83,7 @@ export default function ThemMoiHoaDonPage() {
     trangThai: 'chuaThanhToan' as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan',
     hanThanhToan: '',
     ghiChu: '',
+    soDuDauKy: 0,
   });
 
   // Tự động sinh mã hóa đơn
@@ -141,6 +142,7 @@ export default function ThemMoiHoaDonPage() {
             ...prev,
             chiSoDienBanDau: data.data.chiSoDienBanDau || 0,
             chiSoNuocBanDau: data.data.chiSoNuocBanDau || 0,
+            soDuDauKy: data.data.soDuDauKy || 0,
           }));
           setReadingSource(data.data);
         }
@@ -218,7 +220,7 @@ export default function ThemMoiHoaDonPage() {
     const tienDienTinh = soDien * giaDien;
     const tienNuocTinh = soNuoc * giaNuoc;
     
-    const total = formData.tienPhong + tienDienTinh + tienNuocTinh + totalPhiDichVu;
+    const total = formData.tienPhong + tienDienTinh + tienNuocTinh + totalPhiDichVu + formData.soDuDauKy;
     const conLai = total - formData.daThanhToan;
     
     setFormData(prev => ({
@@ -239,6 +241,7 @@ export default function ThemMoiHoaDonPage() {
     formData.daThanhToan,
     formData.phiDichVu,
     formData.hopDong,
+    formData.soDuDauKy,
     hopDongList,
   ]);
 
@@ -566,7 +569,7 @@ export default function ThemMoiHoaDonPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <Label htmlFor="tienPhong" className="text-sm">Tiền phòng (VNĐ)</Label>
                     <Input
@@ -580,6 +583,18 @@ export default function ThemMoiHoaDonPage() {
                     />
                   </div>
                   
+                  <div className="space-y-1">
+                    <Label htmlFor="soDuDauKy" className="text-sm">Nợ cũ / Số dư đầu kỳ (VNĐ)</Label>
+                    <Input
+                      id="soDuDauKy"
+                      type="number"
+                      min="0"
+                      value={formData.soDuDauKy}
+                      onChange={(e) => setFormData(prev => ({ ...prev, soDuDauKy: parseInt(e.target.value) || 0 }))}
+                      className="h-10"
+                    />
+                  </div>
+
                   <div className="space-y-1">
                     <Label htmlFor="daThanhToan" className="text-sm">Đã thanh toán (VNĐ)</Label>
                     <Input

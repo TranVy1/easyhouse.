@@ -176,6 +176,17 @@ public class HoaDonService {
             HoaDon last = latest.get(0);
             result.put("lastInvoiceMonth", last.getKyThang() + "/" + last.getKyNam());
         }
+
+        // Calculate total unpaid debt
+        BigDecimal totalDebt = BigDecimal.ZERO;
+        List<HoaDon> invoices = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hopDongId);
+        for (HoaDon invoice : invoices) {
+            BigDecimal unpaid = invoice.getTongTien().subtract(invoice.getDaTra());
+            if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
+                totalDebt = totalDebt.add(unpaid);
+            }
+        }
+        result.put("soDuDauKy", totalDebt);
         return result;
     }
 
