@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +28,19 @@ public class CauHinhGiaService {
 
     public List<CauHinhGiaResponse> getAll(UUID nhaTroId, String loaiRaw, Boolean dangApDung) {
         LoaiMucHoaDon loai = parseLoai(loaiRaw, false);
-        return cauHinhGiaRepository.search(nhaTroId, loai, dangApDung).stream()
+        List<CauHinhGia> list;
+        if (nhaTroId != null) {
+            list = cauHinhGiaRepository.findByNhaTroIdOrderByHieuLucTuDesc(nhaTroId);
+        } else {
+            list = cauHinhGiaRepository.findAll();
+        }
+
+        return list.stream()
+                .filter(c -> loai == null || c.getLoai() == loai)
+                .filter(c -> dangApDung == null || c.getDangApDung().equals(dangApDung))
+                .sorted(Comparator.comparing((CauHinhGia c) -> c.getNhaTro() != null ? c.getNhaTro().getTen() : "", Comparator.nullsLast(String::compareTo))
+                        .thenComparing(c -> c.getLoai() != null ? c.getLoai().name() : "", Comparator.nullsLast(String::compareTo))
+                        .thenComparing(CauHinhGia::getHieuLucTu, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(CauHinhGiaResponse::fromEntity)
                 .toList();
     }

@@ -63,6 +63,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Receipt,
         items: [
           {
+            title: "Cấu hình giá",
+            url: "/dashboard/cau-hinh-gia",
+          },
+          {
             title: "Hợp đồng",
             url: "/dashboard/hop-dong",
           },

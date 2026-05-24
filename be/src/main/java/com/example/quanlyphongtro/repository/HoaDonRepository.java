@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,4 +29,11 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
     List<HoaDon> findByTrangThaiAndXoaLucIsNull(TrangThaiHoaDon trangThai);
 
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThang(UUID hopDongId, Integer kyNam, Integer kyThang);
+
+    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra >= :start AND h.hanTra <= :end AND h.xoaLuc IS NULL")
+    long countUnpaidInvoicesDueBetween(
+        @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end
+    );
 }
