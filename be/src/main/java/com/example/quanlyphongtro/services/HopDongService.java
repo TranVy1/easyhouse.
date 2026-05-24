@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -66,15 +68,21 @@ public class HopDongService {
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
         TrangThaiHopDong trangThai = parseStatus(req.getTrangThai(), TrangThaiHopDong.DRAFT);
+        validateRoomCanContract(phong, trangThai);
+        validateTenantBelongsToRoomOwner(kt, phong);
         BigDecimal giaThue = firstMoney(req.getGiaThueHopDong(), req.getGiaThue(), phong.getGiaHienTai());
         BigDecimal tienCoc = firstMoney(req.getTienCoc(), phong.getTienCocMacDinh(), BigDecimal.ZERO);
         Integer ngayThanhToan = req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang()
                 : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5);
         validateContractPayload(req.getNgayBatDau(), req.getNgayKetThuc(), giaThue, tienCoc, ngayThanhToan);
+        validateInitialReadings(req.getChiSoDienBanDau(), req.getChiSoNuocBanDau());
+        validateMemberPayload(req, phong, kt, req.getNgayBatDau(), req.getNgayKetThuc());
         ensureNoOverlappingOccupancy(phong.getId(), req.getNgayBatDau(), req.getNgayKetThuc(), null, trangThai);
+        String maHopDong = resolveContractCode(req.getMaHopDong(), phong, req.getNgayBatDau());
+        ensureContractCodeAvailable(maHopDong, null);
 
         HopDong hd = HopDong.builder()
-                .maHopDong(req.getMaHopDong())
+                .maHopDong(maHopDong)
                 .phong(phong)
                 .khachThue(kt)
                 .ngayBatDau(req.getNgayBatDau())
@@ -117,7 +125,7 @@ public class HopDongService {
                     .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue")));
         }
         if (req.getMaHopDong() != null)
-            hd.setMaHopDong(req.getMaHopDong());
+            hd.setMaHopDong(resolveContractCode(req.getMaHopDong(), hd.getPhong(), hd.getNgayBatDau()));
         if (req.getNgayBatDau() != null)
             hd.setNgayBatDau(req.getNgayBatDau());
         if (req.getNgayKetThuc() != null)
@@ -149,8 +157,18 @@ public class HopDongService {
             TrangThaiHopDong newStatus = parseStatus(req.getTrangThai(), hd.getTrangThai());
             hd.setTrangThai(newStatus);
         }
+        if (hd.getMaHopDong() == null || hd.getMaHopDong().isBlank()) {
+            hd.setMaHopDong(resolveContractCode(null, hd.getPhong(), hd.getNgayBatDau()));
+        }
+        ensureContractCodeAvailable(hd.getMaHopDong(), hd.getId());
+        validateRoomCanContract(hd.getPhong(), hd.getTrangThai());
+        validateTenantBelongsToRoomOwner(hd.getKhachThue(), hd.getPhong());
         validateContractPayload(hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getGiaThueHopDong(), hd.getTienCoc(),
                 hd.getNgayThanhToanHangThang());
+        validateInitialReadings(hd.getChiSoDienBanDau(), hd.getChiSoNuocBanDau());
+        if (req.hasMemberPayload()) {
+            validateMemberPayload(req, hd.getPhong(), hd.getKhachThue(), hd.getNgayBatDau(), hd.getNgayKetThuc());
+        }
         ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getId(),
                 hd.getTrangThai());
         HopDong saved = hopDongRepository.save(hd);
@@ -171,6 +189,9 @@ public class HopDongService {
     public List<HopDongDichVuOptionResponse> getDichVuTheoPhong(UUID phongId) {
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        if (phong.getNhaTro() == null) {
+            return List.of();
+        }
         LocalDate today = LocalDate.now();
         Map<UUID, HopDongDichVuOptionResponse> options = new LinkedHashMap<>();
 
@@ -220,7 +241,7 @@ public class HopDongService {
     private TrangThaiHopDong parseStatus(String s, TrangThaiHopDong fallback) {
         if (s == null)
             return fallback != null ? fallback : TrangThaiHopDong.DRAFT;
-        return switch (s) {
+        return switch (s.trim()) {
             case "nhap" -> TrangThaiHopDong.DRAFT;
             case "choKichHoat" -> TrangThaiHopDong.PENDING;
             case "hoatDong" -> TrangThaiHopDong.ACTIVE;
@@ -229,9 +250,9 @@ public class HopDongService {
             case "daHuy" -> TrangThaiHopDong.CANCELLED;
             default -> {
                 try {
-                    yield TrangThaiHopDong.valueOf(s.toUpperCase());
+                    yield TrangThaiHopDong.valueOf(s.trim().toUpperCase(Locale.ROOT));
                 } catch (Exception e) {
-                    yield fallback != null ? fallback : TrangThaiHopDong.DRAFT;
+                    throw new RuntimeException("Trang thai hop dong khong hop le: " + s);
                 }
             }
         };
@@ -241,20 +262,21 @@ public class HopDongService {
         if (s == null)
             return TrangThaiCocHopDong.NOT_PAID;
         try {
-            return TrangThaiCocHopDong.valueOf(s.toUpperCase());
+            return TrangThaiCocHopDong.valueOf(s.trim().toUpperCase(Locale.ROOT));
         } catch (Exception e) {
-            return TrangThaiCocHopDong.NOT_PAID;
+            throw new RuntimeException("Trang thai coc hop dong khong hop le: " + s);
         }
     }
 
     private String parseChuKy(String value) {
         if (value == null || value.isBlank())
             return "MONTHLY";
-        return switch (value) {
+        return switch (value.trim()) {
             case "thang" -> "MONTHLY";
             case "quy" -> "QUARTERLY";
             case "nam" -> "YEARLY";
-            default -> value.toUpperCase();
+            case "MONTHLY", "QUARTERLY", "YEARLY" -> value.trim().toUpperCase(Locale.ROOT);
+            default -> throw new RuntimeException("Chu ky thanh toan khong hop le: " + value);
         };
     }
 
@@ -325,19 +347,24 @@ public class HopDongService {
 
     @Transactional
     private void replaceDichVuHopDong(HopDong hopDong, HopDongRequest req) {
-        if (hopDong == null || hopDong.getId() == null || req.getPhiDichVu() == null)
+        if (hopDong == null || hopDong.getId() == null)
             return;
         dichVuHopDongRepository.deleteByHopDongId(hopDong.getId());
         dichVuHopDongRepository.flush();
         LocalDate defaultStart = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
+        List<HopDongRequest.PhiDichVuItem> phiDichVu = mergeMandatoryServices(hopDong, req.getPhiDichVu());
+        Set<UUID> savedDichVuIds = new LinkedHashSet<>();
 
-        for (HopDongRequest.PhiDichVuItem item : req.getPhiDichVu()) {
+        for (HopDongRequest.PhiDichVuItem item : phiDichVu) {
             DichVu dichVu = resolveDichVu(hopDong, item);
             if (dichVu == null)
+                continue;
+            if (!savedDichVuIds.add(dichVu.getId()))
                 continue;
             LoaiTinhPhi loaiTinhPhi = parseLoaiTinhPhi(item.getLoaiTinhPhi(), dichVu.getLoaiTinhPhi());
             BigDecimal donGia = item.getGia() != null ? item.getGia() : defaultMoney(dichVu.getDonGiaMacDinh());
             BigDecimal soLuong = item.getSoLuong() != null ? item.getSoLuong() : BigDecimal.ONE;
+            validateServiceCharge(dichVu.getTenDichVu(), donGia, soLuong);
 
             dichVuHopDongRepository.save(DichVuHopDong.builder()
                     .hopDong(hopDong)
@@ -381,11 +408,13 @@ public class HopDongService {
                 .findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
 
         if (members.isEmpty() && hopDong.getKhachThue() != null) {
+            List<HopDongResponse.PhiDichVuResponse> phiDichVu = mapPhiDichVu(hopDong.getId());
             response.setKhachThueId(List.of(KhachThueResponse.fromEntity(hopDong.getKhachThue())));
             response.setNguoiDaiDien(KhachThueResponse.fromEntity(hopDong.getKhachThue()));
             response.setKhachThueDaiDienId(hopDong.getKhachThue().getId());
             response.setThanhVien(List.of());
-            response.setPhiDichVu(mapPhiDichVu(hopDong.getId()));
+            response.setPhiDichVu(phiDichVu);
+            applyMeterPrices(response, hopDong, phiDichVu);
             return response;
         }
 
@@ -427,7 +456,9 @@ public class HopDongService {
         response.setNguoiDaiDien(representative);
         response.setKhachThueDaiDienId(representativeId);
         response.setThanhVien(memberResponses);
-        response.setPhiDichVu(mapPhiDichVu(hopDong.getId()));
+        List<HopDongResponse.PhiDichVuResponse> phiDichVu = mapPhiDichVu(hopDong.getId());
+        response.setPhiDichVu(phiDichVu);
+        applyMeterPrices(response, hopDong, phiDichVu);
         return response;
     }
 
@@ -445,6 +476,68 @@ public class HopDongService {
                         .ketThucLuc(item.getKetThucLuc())
                         .build())
                 .toList();
+    }
+
+    private List<HopDongRequest.PhiDichVuItem> mergeMandatoryServices(HopDong hopDong, List<HopDongRequest.PhiDichVuItem> requestItems) {
+        List<HopDongRequest.PhiDichVuItem> merged = new ArrayList<>();
+        Set<UUID> includedIds = new LinkedHashSet<>();
+        if (requestItems != null) {
+            for (HopDongRequest.PhiDichVuItem item : requestItems) {
+                if (item == null) continue;
+                merged.add(item);
+                if (item.getDichVuId() != null) includedIds.add(item.getDichVuId());
+            }
+        }
+        if (hopDong.getPhong() == null || hopDong.getPhong().getNhaTro() == null) {
+            return merged;
+        }
+        for (HopDongDichVuOptionResponse option : getDichVuTheoPhong(hopDong.getPhong().getId())) {
+            if (!Boolean.TRUE.equals(option.getBatBuoc()) || option.getDichVuId() == null || includedIds.contains(option.getDichVuId())) {
+                continue;
+            }
+            HopDongRequest.PhiDichVuItem item = new HopDongRequest.PhiDichVuItem();
+            item.setDichVuId(option.getDichVuId());
+            item.setTen(option.getTen());
+            item.setGia(defaultMoney(option.getDonGiaMacDinh()));
+            item.setSoLuong(BigDecimal.ONE);
+            item.setLoaiTinhPhi(option.getLoaiTinhPhi());
+            merged.add(item);
+            includedIds.add(option.getDichVuId());
+        }
+        return merged;
+    }
+
+    private void applyMeterPrices(HopDongResponse response, HopDong hopDong, List<HopDongResponse.PhiDichVuResponse> phiDichVu) {
+        response.setGiaDien(resolveMeterPrice(hopDong, phiDichVu, LoaiMucHoaDon.ELECTRICITY));
+        response.setGiaNuoc(resolveMeterPrice(hopDong, phiDichVu, LoaiMucHoaDon.WATER));
+    }
+
+    private BigDecimal resolveMeterPrice(HopDong hopDong, List<HopDongResponse.PhiDichVuResponse> phiDichVu, LoaiMucHoaDon loai) {
+        if (hopDong.getPhong() != null && hopDong.getPhong().getNhaTro() != null) {
+            LocalDate ngayApDung = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
+            List<CauHinhGia> configs = cauHinhGiaRepository.findApplicable(hopDong.getPhong().getNhaTro().getId(), loai, ngayApDung);
+            if (!configs.isEmpty()) {
+                return defaultMoney(configs.get(0).getDonGia());
+            }
+        }
+        String keyword = loai == LoaiMucHoaDon.ELECTRICITY ? "dien" : "nuoc";
+        String english = loai == LoaiMucHoaDon.ELECTRICITY ? "electricity" : "water";
+        return phiDichVu.stream()
+                .filter(item -> containsNormalized(item.getTen(), keyword) || containsNormalized(item.getTen(), english))
+                .map(HopDongResponse.PhiDichVuResponse::getGia)
+                .filter(value -> value != null && value.compareTo(BigDecimal.ZERO) >= 0)
+                .findFirst()
+                .orElse(BigDecimal.ZERO);
+    }
+
+    private boolean containsNormalized(String value, String keyword) {
+        if (value == null || keyword == null) return false;
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('\u0111', 'd')
+                .replace('\u0110', 'D')
+                .toLowerCase(Locale.ROOT);
+        return normalized.contains(keyword.toLowerCase(Locale.ROOT));
     }
 
     private LoaiTinhPhi parseLoaiTinhPhi(String value, LoaiTinhPhi fallback) {
@@ -483,6 +576,125 @@ public class HopDongService {
         }
         if (ngayThanhToan == null || ngayThanhToan < 1 || ngayThanhToan > 31) {
             throw new RuntimeException("Ngay thanh toan hang thang phai tu 1 den 31");
+        }
+    }
+
+    private void validateInitialReadings(Integer chiSoDien, Integer chiSoNuoc) {
+        if (chiSoDien != null && chiSoDien < 0) {
+            throw new RuntimeException("Chi so dien ban dau khong duoc am");
+        }
+        if (chiSoNuoc != null && chiSoNuoc < 0) {
+            throw new RuntimeException("Chi so nuoc ban dau khong duoc am");
+        }
+    }
+
+    private void validateRoomCanContract(Phong phong, TrangThaiHopDong trangThai) {
+        if (phong == null || phong.getXoaLuc() != null) {
+            throw new RuntimeException("Phong khong ton tai hoac da bi xoa");
+        }
+        if (isOccupyingStatus(trangThai)
+                && (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE)) {
+            throw new RuntimeException("Phong dang bao tri hoac ngung hoat dong, khong the tao hop dong cho thue");
+        }
+    }
+
+    private void validateTenantBelongsToRoomOwner(KhachThue khachThue, Phong phong) {
+        if (khachThue == null || khachThue.getXoaLuc() != null || Boolean.FALSE.equals(khachThue.getDangHoatDong())) {
+            throw new RuntimeException("Khach thue khong ton tai hoac da ngung hoat dong");
+        }
+        UUID roomOwnerId = phong != null && phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null
+                ? phong.getNhaTro().getChuTro().getId() : null;
+        UUID tenantOwnerId = khachThue.getChuTro() != null ? khachThue.getChuTro().getId() : null;
+        if (roomOwnerId != null && tenantOwnerId != null && !roomOwnerId.equals(tenantOwnerId)) {
+            throw new RuntimeException("Khach thue khong thuoc cung chu tro voi phong");
+        }
+    }
+
+    private void validateMemberPayload(HopDongRequest req, Phong phong, KhachThue representative,
+            LocalDate ngayBatDau, LocalDate ngayKetThuc) {
+        Set<UUID> memberIds = resolveMemberIds(req, representative != null ? representative.getId() : null);
+        for (UUID memberId : memberIds) {
+            KhachThue member = khachThueRepository.findById(memberId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay thanh vien hop dong"));
+            validateTenantBelongsToRoomOwner(member, phong);
+        }
+
+        int externalActiveMembers = 0;
+        if (req.getThanhVien() != null) {
+            for (HopDongRequest.ThanhVienRequest member : req.getThanhVien()) {
+                if (member == null || member.getKhachThueId() != null) continue;
+                LocalDate ngayVao = member.getNgayVao() != null ? member.getNgayVao() : ngayBatDau;
+                LocalDate ngayRoi = member.getNgayRoi();
+                if (ngayVao == null) {
+                    throw new RuntimeException("Ngay vao cua thanh vien khong hop le");
+                }
+                if (ngayRoi != null && ngayRoi.isBefore(ngayVao)) {
+                    throw new RuntimeException("Ngay roi cua thanh vien phai sau ngay vao");
+                }
+                if (ngayBatDau != null && ngayVao.isBefore(ngayBatDau)) {
+                    throw new RuntimeException("Ngay vao cua thanh vien khong duoc truoc ngay bat dau hop dong");
+                }
+                if (ngayKetThuc != null && ngayRoi != null && ngayRoi.isAfter(ngayKetThuc)) {
+                    throw new RuntimeException("Ngay roi cua thanh vien khong duoc sau ngay ket thuc hop dong");
+                }
+                if (Boolean.TRUE.equals(member.getDangO()) || member.getDangO() == null) {
+                    externalActiveMembers++;
+                }
+            }
+        }
+
+        int totalActiveMembers = memberIds.size() + externalActiveMembers;
+        if (phong != null && phong.getSoNguoiToiDa() != null && totalActiveMembers > phong.getSoNguoiToiDa()) {
+            throw new RuntimeException("So nguoi trong hop dong vuot qua suc chua toi da cua phong");
+        }
+    }
+
+    private Set<UUID> resolveMemberIds(HopDongRequest req, UUID representativeId) {
+        Set<UUID> memberIds = new LinkedHashSet<>();
+        if (representativeId != null) memberIds.add(representativeId);
+        if (req.getKhachThueIds() != null) memberIds.addAll(req.getKhachThueIds());
+        if (req.getKhachThueId() != null) memberIds.add(req.getKhachThueId());
+        if (req.getNguoiDaiDien() != null) memberIds.add(req.getNguoiDaiDien());
+        return memberIds;
+    }
+
+    private void validateServiceCharge(String tenDichVu, BigDecimal donGia, BigDecimal soLuong) {
+        if (donGia == null || donGia.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Don gia dich vu khong hop le: " + tenDichVu);
+        }
+        if (soLuong == null || soLuong.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("So luong dich vu khong hop le: " + tenDichVu);
+        }
+    }
+
+    private String resolveContractCode(String raw, Phong phong, LocalDate ngayBatDau) {
+        String normalized = raw != null ? raw.trim() : "";
+        if (!normalized.isBlank()) {
+            return normalized;
+        }
+        String roomPart = phong != null && phong.getTen() != null ? phong.getTen().trim() : "PHONG";
+        roomPart = Normalizer.normalize(roomPart, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('\u0111', 'd')
+                .replace('\u0110', 'D')
+                .replaceAll("[^A-Za-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "")
+                .toUpperCase(Locale.ROOT);
+        if (roomPart.isBlank()) roomPart = "PHONG";
+        LocalDate date = ngayBatDau != null ? ngayBatDau : LocalDate.now();
+        return "HD-" + roomPart + "-" + date.getYear() + String.format("%02d", date.getMonthValue()) + "-"
+                + UUID.randomUUID().toString().substring(0, 6).toUpperCase(Locale.ROOT);
+    }
+
+    private void ensureContractCodeAvailable(String maHopDong, UUID excludeId) {
+        if (maHopDong == null || maHopDong.isBlank()) {
+            throw new RuntimeException("Ma hop dong khong hop le");
+        }
+        boolean exists = excludeId == null
+                ? hopDongRepository.existsByMaHopDong(maHopDong)
+                : hopDongRepository.existsByMaHopDongAndIdNot(maHopDong, excludeId);
+        if (exists) {
+            throw new RuntimeException("Ma hop dong da ton tai");
         }
     }
 

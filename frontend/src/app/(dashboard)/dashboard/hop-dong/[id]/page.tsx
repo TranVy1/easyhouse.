@@ -49,6 +49,25 @@ type DichVuOption = {
   batBuoc?: boolean;
 };
 
+type PhiDichVuForm = {
+  dichVuId?: string;
+  ten: string;
+  gia: number;
+  soLuong?: number;
+  loaiTinhPhi?: string;
+};
+
+type ApiDichVu = {
+  _id?: string;
+  id?: string;
+  tenDichVu?: string;
+  ten?: string;
+  loaiTinhPhi?: string;
+  donVi?: string;
+  donGiaMacDinh?: number;
+  batBuoc?: boolean;
+};
+
 export default function ChinhSuaHopDongPage() {
   const router = useRouter();
   const params = useParams();
@@ -78,7 +97,7 @@ export default function ChinhSuaHopDongPage() {
     giaNuoc: 25000,
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
-    phiDichVu: [] as Array<{dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string}>,
+    phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
@@ -88,7 +107,7 @@ export default function ChinhSuaHopDongPage() {
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
   const [searchDichVu, setSearchDichVu] = useState("");
 
-  const loadDichVuTheoPhong = async (phongId: string, currentPhiDichVu: any[] = []) => {
+  const loadDichVuTheoPhong = async (phongId: string, currentPhiDichVu: PhiDichVuForm[] = []) => {
     if (!phongId) {
       setDichVuOptions([]);
       return;
@@ -199,12 +218,12 @@ export default function ChinhSuaHopDongPage() {
       const dichVuResponse = await fetch('/api/dich-vu');
       if (dichVuResponse.ok) {
         const dvData = await dichVuResponse.json();
-        const dvOptions = (dvData.data || []).map((dv: any) => ({
-          dichVuId: dv._id,
-          ten: dv.tenDichVu,
+        const dvOptions = (dvData.data || []).map((dv: ApiDichVu) => ({
+          dichVuId: dv._id ?? dv.id ?? '',
+          ten: dv.tenDichVu ?? dv.ten ?? '',
           loaiTinhPhi: dv.loaiTinhPhi,
           donVi: dv.donVi,
-          donGiaMacDinh: dv.donGiaMacDinh,
+          donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
           batBuoc: dv.batBuoc
         }));
         setGlobalDichVuList(dvOptions);
@@ -864,7 +883,7 @@ export default function ChinhSuaHopDongPage() {
                           <CommandInput placeholder="Tìm dịch vụ..." value={searchDichVu} onValueChange={setSearchDichVu} />
                           <CommandEmpty>
                             <div className="flex flex-col items-center justify-center py-4 space-y-3">
-                              <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ "{searchDichVu}".</p>
+                              <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ &quot;{searchDichVu}&quot;.</p>
                               {searchDichVu.trim() && (
                                 <Button 
                                   type="button" 

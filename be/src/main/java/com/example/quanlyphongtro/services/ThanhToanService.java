@@ -7,11 +7,15 @@ import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class ThanhToanService {
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
     private final MediaService mediaService;
 
+    @Transactional(readOnly = true)
     public List<ThanhToanResponse> getAll() {
         List<ThanhToan> list = thanhToanRepository.findAll();
         list.sort((a, b) -> {
@@ -29,21 +34,27 @@ public class ThanhToanService {
             if (b.getNgayThanhToan() == null) return -1;
             return b.getNgayThanhToan().compareTo(a.getNgayThanhToan());
         });
-        List<ThanhToanResponse> res = new ArrayList<>();
-        for (ThanhToan tt : list) {
-            List<ChiTietHoaDon> ct = tt.getHoaDon() != null ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId()) : Collections.emptyList();
-            res.add(toResponse(tt, ct));
-        }
-        return res;
+        return list.stream()
+                .map(tt -> {
+                    List<ChiTietHoaDon> ct = tt.getHoaDon() != null
+                            ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
+                            : Collections.emptyList();
+                    return toResponse(tt, ct);
+                })
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public ThanhToanResponse getById(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
-        List<ChiTietHoaDon> ct = tt.getHoaDon() != null ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId()) : Collections.emptyList();
+                .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
+        List<ChiTietHoaDon> ct = tt.getHoaDon() != null
+                ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
+                : Collections.emptyList();
         return toResponse(tt, ct);
     }
 
+    @Transactional(readOnly = true)
     public List<ThanhToanResponse> getByHoaDon(UUID hoaDonId) {
         return thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
                 .map(tt -> toResponse(tt, chiTietHoaDonRepository.findByHoaDonId(hoaDonId)))
@@ -52,43 +63,39 @@ public class ThanhToanService {
 
     @Transactional
     public ThanhToanResponse create(ThanhToanRequest req) {
-        HoaDon hoaDon = req.getHoaDonId() != null ? hoaDonRepository.findById(req.getHoaDonId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn")) : null;
-
-        String maThamChieu = req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null;
-
-        PhuongThucThanhToan pttt = parsePhuongThuc(req.getPhuongThuc());
-
-        ZonedDateTime ngayTT = ZonedDateTime.now();
-        if (req.getNgayThanhToan() != null && !req.getNgayThanhToan().isEmpty()) {
-            try { ngayTT = LocalDate.parse(req.getNgayThanhToan()).atStartOfDay(ZoneId.systemDefault()); } catch (Exception ignored) {}
+        if (req.getHoaDonId() == null) {
+            throw new RuntimeException("Hoa don la bat buoc khi ghi nhan thanh toan");
+        }
+        HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+        if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
+            throw new RuntimeException("Khong the thanh toan hoa don da xoa hoac da huy");
+        }
+        if (req.getSoTien() == null || req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("So tien thanh toan phai lon hon 0");
         }
 
         ThanhToan tt = ThanhToan.builder()
-                .hoaDon(hoaDon).soTien(req.getSoTien())
-                .phuongThucThanhToan(pttt)
-                .maThamChieu(maThamChieu)
-                .ngayThanhToan(ngayTT).ghiChu(req.getGhiChu())
+                .hoaDon(hoaDon)
+                .khachThue(hoaDon.getKhachThue())
+                .soTien(req.getSoTien())
+                .phuongThucThanhToan(parsePhuongThuc(req.getPhuongThuc()))
+                .maThamChieu(req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null)
+                .ngayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()))
+                .ghiChu(req.getGhiChu())
                 .trangThai(TrangThaiThanhToan.SUCCESS)
                 .build();
         ThanhToan saved = thanhToanRepository.save(tt);
         mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
+        recalculate(hoaDon.getId());
 
-        if (hoaDon != null && req.getSoTien() != null) {
-            BigDecimal daTra = (hoaDon.getDaTra() != null ? hoaDon.getDaTra() : BigDecimal.ZERO).add(req.getSoTien());
-            hoaDon.setDaTra(daTra);
-            hoaDon.setTrangThai(resolveInvoiceStatus(daTra, hoaDon.getTongTien()));
-            hoaDonRepository.save(hoaDon);
-        }
-
-        List<ChiTietHoaDon> ct = hoaDon != null ? chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()) : Collections.emptyList();
-        return toResponse(saved, ct);
+        return toResponse(saved, chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()));
     }
 
     @Transactional
     public void delete(UUID id) {
         ThanhToan tt = thanhToanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         thanhToanRepository.delete(tt);
         if (hdId != null) recalculate(hdId);
@@ -96,14 +103,24 @@ public class ThanhToanService {
 
     private void recalculate(UUID hoaDonId) {
         HoaDon hd = hoaDonRepository.findById(hoaDonId).orElse(null);
-        if (hd == null) return;
+        if (hd == null || hd.getXoaLuc() != null) return;
         BigDecimal total = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
-                .map(ThanhToan::getSoTien).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(tt -> tt.getTrangThai() == TrangThaiThanhToan.SUCCESS)
+                .map(ThanhToan::getSoTien)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         hd.setDaTra(total);
-        if (total.compareTo(BigDecimal.ZERO) == 0) hd.setTrangThai(TrangThaiHoaDon.UNPAID);
-        else if (total.compareTo(hd.getTongTien()) >= 0) hd.setTrangThai(resolveInvoiceStatus(total, hd.getTongTien()));
-        else hd.setTrangThai(TrangThaiHoaDon.PARTIAL);
+        hd.setTrangThai(resolveInvoiceStatus(total, hd.getTongTien(), hd.getHanTra()));
         hoaDonRepository.save(hd);
+    }
+
+    private ZonedDateTime parseNgayThanhToan(String value) {
+        if (value == null || value.isBlank()) return ZonedDateTime.now();
+        try {
+            return LocalDate.parse(value).atStartOfDay(ZoneId.systemDefault());
+        } catch (Exception ignored) {
+            return ZonedDateTime.now();
+        }
     }
 
     private PhuongThucThanhToan parsePhuongThuc(String value) {
@@ -113,14 +130,22 @@ public class ThanhToanService {
             case "chuyenKhoan" -> PhuongThucThanhToan.BANK_TRANSFER;
             case "viDienTu" -> PhuongThucThanhToan.OTHER;
             default -> {
-                try { yield PhuongThucThanhToan.valueOf(value.toUpperCase()); } catch (Exception e) { yield PhuongThucThanhToan.CASH; }
+                try {
+                    yield PhuongThucThanhToan.valueOf(value.toUpperCase());
+                } catch (Exception e) {
+                    yield PhuongThucThanhToan.CASH;
+                }
             }
         };
     }
 
-    private TrangThaiHoaDon resolveInvoiceStatus(BigDecimal paid, BigDecimal total) {
-        if (total != null && paid.compareTo(total) > 0) return TrangThaiHoaDon.OVERPAID;
-        return TrangThaiHoaDon.PAID;
+    private TrangThaiHoaDon resolveInvoiceStatus(BigDecimal paid, BigDecimal total, LocalDate hanTra) {
+        BigDecimal safeTotal = total != null ? total : BigDecimal.ZERO;
+        if (paid.compareTo(BigDecimal.ZERO) == 0 && hanTra != null && hanTra.isBefore(LocalDate.now())) return TrangThaiHoaDon.OVERDUE;
+        if (paid.compareTo(BigDecimal.ZERO) == 0) return TrangThaiHoaDon.UNPAID;
+        if (paid.compareTo(safeTotal) < 0) return TrangThaiHoaDon.PARTIAL;
+        if (paid.compareTo(safeTotal) == 0) return TrangThaiHoaDon.PAID;
+        return TrangThaiHoaDon.OVERPAID;
     }
 
     private ThanhToanResponse toResponse(ThanhToan thanhToan, List<ChiTietHoaDon> chiTietList) {

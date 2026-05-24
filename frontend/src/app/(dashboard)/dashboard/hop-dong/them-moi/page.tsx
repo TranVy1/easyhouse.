@@ -48,6 +48,17 @@ type DichVuOption = {
   batBuoc?: boolean;
 };
 
+type ApiDichVu = {
+  _id?: string;
+  id?: string;
+  tenDichVu?: string;
+  ten?: string;
+  loaiTinhPhi?: string;
+  donVi?: string;
+  donGiaMacDinh?: number;
+  batBuoc?: boolean;
+};
+
 export default function ThemMoiHopDongPage() {
   const router = useRouter();
   const [phongList, setPhongList] = useState<Phong[]>([]);
@@ -172,12 +183,12 @@ export default function ThemMoiHopDongPage() {
       const dichVuResponse = await fetch('/api/dich-vu');
       if (dichVuResponse.ok) {
         const dvData = await dichVuResponse.json();
-        const dvOptions = (dvData.data || []).map((dv: any) => ({
-          dichVuId: dv._id,
-          ten: dv.tenDichVu,
+        const dvOptions = (dvData.data || []).map((dv: ApiDichVu) => ({
+          dichVuId: dv._id ?? dv.id ?? '',
+          ten: dv.tenDichVu ?? dv.ten ?? '',
           loaiTinhPhi: dv.loaiTinhPhi,
           donVi: dv.donVi,
-          donGiaMacDinh: dv.donGiaMacDinh,
+          donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
           batBuoc: dv.batBuoc
         }));
         setGlobalDichVuList(dvOptions);

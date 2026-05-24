@@ -22,20 +22,31 @@ public class HoaDonResponse {
     private Object khachThue;
     private Integer kyNam;
     private Integer kyThang;
+    private Integer nam;
+    private Integer thang;
     private LocalDate tuNgay;
     private LocalDate denNgay;
     private BigDecimal soDuDauKy;
     private BigDecimal tongTienPhatSinh;
     private BigDecimal tongTien;
     private BigDecimal daTra;
+    private BigDecimal daThanhToan;
     private BigDecimal soDuCuoiKy;
+    private BigDecimal conLai;
     private String trangThai;
     private LocalDate hanTra;
+    private LocalDate hanThanhToan;
     private String ghiChu;
+    private BigDecimal tienPhong;
+    private BigDecimal tienDien;
+    private BigDecimal soDien;
     private Integer chiSoDienBanDau;
     private Integer chiSoDienCuoiKy;
+    private BigDecimal tienNuoc;
+    private BigDecimal soNuoc;
     private Integer chiSoNuocBanDau;
     private Integer chiSoNuocCuoiKy;
+    private List<ChiTietItem> chiTiet;
     private List<ChiTietItem> chiTietHoaDon;
     private List<PhiDichVuItem> phiDichVu;
     private ZonedDateTime ngayTao;
@@ -76,6 +87,11 @@ public class HoaDonResponse {
         Integer chiSoDienCuoiKy = null;
         Integer chiSoNuocBanDau = null;
         Integer chiSoNuocCuoiKy = null;
+        BigDecimal tienPhong = BigDecimal.ZERO;
+        BigDecimal tienDien = BigDecimal.ZERO;
+        BigDecimal soDien = BigDecimal.ZERO;
+        BigDecimal tienNuoc = BigDecimal.ZERO;
+        BigDecimal soNuoc = BigDecimal.ZERO;
         if (chiTietList != null) {
             for (ChiTietHoaDon ct : chiTietList) {
                 items.add(ChiTietItem.builder()
@@ -96,18 +112,28 @@ public class HoaDonResponse {
                             .soLuong(ct.getSoLuong())
                             .build());
                 }
+                if (ct.getLoai() == LoaiMucHoaDon.ROOM) {
+                    tienPhong = defaultMoney(ct.getThanhTien());
+                }
                 if (ct.getLoai() == LoaiMucHoaDon.ELECTRICITY && ct.getMoTa() != null) {
+                    tienDien = defaultMoney(ct.getThanhTien());
+                    soDien = defaultMoney(ct.getSoLuong());
                     int[] readings = parseReadingRange(ct.getMoTa());
                     chiSoDienBanDau = readings[0];
                     chiSoDienCuoiKy = readings[1];
                 }
                 if (ct.getLoai() == LoaiMucHoaDon.WATER && ct.getMoTa() != null) {
+                    tienNuoc = defaultMoney(ct.getThanhTien());
+                    soNuoc = defaultMoney(ct.getSoLuong());
                     int[] readings = parseReadingRange(ct.getMoTa());
                     chiSoNuocBanDau = readings[0];
                     chiSoNuocCuoiKy = readings[1];
                 }
             }
         }
+        BigDecimal tongTien = defaultMoney(hd.getTongTien());
+        BigDecimal daTra = defaultMoney(hd.getDaTra());
+        BigDecimal conLai = hd.getSoDuCuoiKy() != null ? hd.getSoDuCuoiKy() : tongTien.subtract(daTra);
 
         return HoaDonResponse.builder()
                 .id(hd.getId())
@@ -117,20 +143,31 @@ public class HoaDonResponse {
                 .khachThue(ktObj)
                 .kyNam(hd.getKyNam())
                 .kyThang(hd.getKyThang())
+                .nam(hd.getKyNam())
+                .thang(hd.getKyThang())
                 .tuNgay(hd.getTuNgay())
                 .denNgay(hd.getDenNgay())
                 .soDuDauKy(hd.getSoDuDauKy())
                 .tongTienPhatSinh(hd.getTongTienPhatSinh())
-                .tongTien(hd.getTongTien())
-                .daTra(hd.getDaTra())
+                .tongTien(tongTien)
+                .daTra(daTra)
+                .daThanhToan(daTra)
                 .soDuCuoiKy(hd.getSoDuCuoiKy())
+                .conLai(conLai)
                 .trangThai(hd.getTrangThai() != null ? hd.getTrangThai().name() : null)
                 .hanTra(hd.getHanTra())
+                .hanThanhToan(hd.getHanTra())
                 .ghiChu(hd.getGhiChu())
+                .tienPhong(tienPhong)
+                .tienDien(tienDien)
+                .soDien(soDien)
                 .chiSoDienBanDau(chiSoDienBanDau)
                 .chiSoDienCuoiKy(chiSoDienCuoiKy)
+                .tienNuoc(tienNuoc)
+                .soNuoc(soNuoc)
                 .chiSoNuocBanDau(chiSoNuocBanDau)
                 .chiSoNuocCuoiKy(chiSoNuocCuoiKy)
+                .chiTiet(items)
                 .chiTietHoaDon(items)
                 .phiDichVu(phiDichVu)
                 .ngayTao(hd.getTaoLuc())
@@ -147,5 +184,9 @@ public class HoaDonResponse {
         } catch (Exception ignored) {
         }
         return new int[]{0, 0};
+    }
+
+    private static BigDecimal defaultMoney(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 }

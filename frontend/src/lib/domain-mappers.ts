@@ -336,6 +336,8 @@ export const normalizeHoaDon = (raw: unknown): HoaDon => {
   const item = isRecord(raw) ? raw : {};
   const details = Array.isArray(item.chiTiet)
     ? (item.chiTiet as ChiTietHoaDon[])
+    : Array.isArray(item.chiTietHoaDon)
+      ? (item.chiTietHoaDon as ChiTietHoaDon[])
     : Array.isArray(item.chi_tiet)
       ? (item.chi_tiet as ChiTietHoaDon[])
       : [];

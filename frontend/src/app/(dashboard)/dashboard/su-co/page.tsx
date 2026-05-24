@@ -628,7 +628,7 @@ function SuCoForm({
     ghiChuChuNha: string;
   }>({
     phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong as string || undefined),
-    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : (typeof suCo?.khachThue === 'object' ? (suCo?.khachThue as any)._id : suCo?.khachThue)) as string || '',
+    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : (typeof suCo?.khachThue === 'object' ? suCo.khachThue._id : suCo?.khachThue)) as string || '',
     tieuDe: suCo?.tieuDe || '',
     moTa: suCo?.moTa || '',
     loaiSuCo: suCo?.loaiSuCo || 'dien_nuoc',

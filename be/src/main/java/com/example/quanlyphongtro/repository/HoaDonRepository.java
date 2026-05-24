@@ -30,6 +30,10 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThang(UUID hopDongId, Integer kyNam, Integer kyThang);
 
+    Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(UUID hopDongId, Integer kyNam, Integer kyThang);
+
+    Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndIdNotAndXoaLucIsNull(UUID hopDongId, Integer kyNam, Integer kyThang, UUID id);
+
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra >= :start AND h.hanTra <= :end AND h.xoaLuc IS NULL")
     long countUnpaidInvoicesDueBetween(
         @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,

@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
     boolean existsByMaHopDong(String maHopDong);
 
+    boolean existsByMaHopDongAndIdNot(String maHopDong, UUID id);
+
     List<HopDong> findByXoaLucIsNullOrderByTaoLucDesc();
 
     List<HopDong> findByPhongIdAndXoaLucIsNull(UUID phongId);
