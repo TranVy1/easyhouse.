@@ -65,4 +65,11 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
 
     @Query("SELECT hd FROM HopDong hd WHERE hd.trangThai = 'ACTIVE' AND hd.xoaLuc IS NULL")
     List<HopDong> findAllActive();
+
+    @Query("SELECT COUNT(hd) FROM HopDong hd WHERE hd.trangThai = :trangThai AND hd.ngayKetThuc >= :start AND hd.ngayKetThuc <= :end AND hd.xoaLuc IS NULL")
+    long countContractsExpiringBetween(
+        @Param("trangThai") TrangThaiHopDong trangThai,
+        @Param("start") java.time.LocalDate start,
+        @Param("end") java.time.LocalDate end
+    );
 }
