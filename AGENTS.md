@@ -31,6 +31,15 @@ EasyHouse is a Vietnamese rental property management system.
 - Check enum mapping across DB, Java enum, DTO response, frontend union/switch before changing status fields.
 - Keep edits surgical. No broad formatting or unrelated cleanup.
 
+## Docker Database Refresh Rule
+
+- Every time the latest database is pushed into local Docker, restore the complete SQL dump including both schema and data. Do not restore only schema, only data, or a partial table subset unless the user explicitly asks for that exact partial operation.
+- Default restore source is `sql/db.sql` unless the user specifies another SQL file.
+- After restore, ensure a full-permission admin account exists for web login:
+  - Email: `admin@easyhouse.local`
+  - Password: `Admin@123`
+  - Role: `ADMIN`
+
 ## Common Commands
 
 Docker full stack:

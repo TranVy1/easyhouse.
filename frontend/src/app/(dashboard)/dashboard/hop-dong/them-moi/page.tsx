@@ -18,14 +18,13 @@ import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Save,
-  X,
-  Plus,
   Check,
   ChevronsUpDown
 } from 'lucide-react';
-import { HopDong, Phong, KhachThue } from '@/types';
+import { Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
+import { normalizeKhachThue, normalizePhong } from '@/lib/domain-mappers';
 import {
   Command,
   CommandEmpty,
@@ -57,6 +56,14 @@ type ApiDichVu = {
   donVi?: string;
   donGiaMacDinh?: number;
   batBuoc?: boolean;
+};
+
+type PhiDichVuForm = {
+  dichVuId?: string;
+  ten: string;
+  gia: number;
+  soLuong?: number;
+  loaiTinhPhi?: string;
 };
 
 export default function ThemMoiHopDongPage() {
@@ -110,7 +117,7 @@ export default function ThemMoiHopDongPage() {
 - Hợp đồng có hiệu lực kể từ ngày ký`,
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
-    phiDichVu: [] as Array<{ dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string }>,
+    phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
@@ -118,6 +125,66 @@ export default function ThemMoiHopDongPage() {
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
+
+  const ensureISODate = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(dateStr);
+    return Number.isNaN(parsed.getTime()) ? dateStr : parsed.toISOString().split('T')[0];
+  };
+
+  const isUuid = (value?: string) =>
+    Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
+
+  const sanitizePhiDichVu = (items: PhiDichVuForm[]) =>
+    items.map((item) => ({
+      ...(isUuid(item.dichVuId) ? { dichVuId: item.dichVuId } : {}),
+      ten: item.ten.trim(),
+      gia: Number(item.gia || 0),
+      soLuong: Number(item.soLuong || 1),
+      loaiTinhPhi: item.loaiTinhPhi || 'FIXED',
+    }));
+
+  const validateContractForm = () => {
+    const startDate = ensureISODate(formData.ngayBatDau);
+    const endDate = ensureISODate(formData.ngayKetThuc);
+
+    if (!formData.phong) return 'Vui lòng chọn phòng cho hợp đồng';
+    if (!formData.nguoiDaiDien) return 'Vui lòng chọn người đại diện hợp đồng';
+    if (!startDate || !endDate) return 'Vui lòng nhập ngày bắt đầu và ngày kết thúc hợp đồng';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+      return 'Ngày hợp đồng không hợp lệ';
+    }
+    if (endDate <= startDate) return 'Ngày kết thúc hợp đồng phải sau ngày bắt đầu';
+    if (!Number.isFinite(Number(formData.giaThue)) || Number(formData.giaThue) < 0) {
+      return 'Giá thuê hợp đồng không hợp lệ';
+    }
+    if (!Number.isFinite(Number(formData.tienCoc)) || Number(formData.tienCoc) < 0) {
+      return 'Tiền cọc hợp đồng không hợp lệ';
+    }
+    if (!Number.isInteger(Number(formData.ngayThanhToan)) || Number(formData.ngayThanhToan) < 1 || Number(formData.ngayThanhToan) > 31) {
+      return 'Ngày thanh toán hằng tháng phải từ 1 đến 31';
+    }
+    if (Number(formData.chiSoDienBanDau) < 0 || Number(formData.chiSoNuocBanDau) < 0) {
+      return 'Chỉ số điện nước ban đầu không được âm';
+    }
+    const invalidService = formData.phiDichVu.find((item) =>
+      !item.ten.trim() ||
+      !Number.isFinite(Number(item.gia)) ||
+      Number(item.gia) < 0 ||
+      !Number.isFinite(Number(item.soLuong || 1)) ||
+      Number(item.soLuong || 1) < 0
+    );
+    if (invalidService) return `Dịch vụ "${invalidService.ten || 'chưa đặt tên'}" có đơn giá hoặc số lượng không hợp lệ`;
+    return null;
+  };
 
   const loadDichVuTheoPhong = async (phongId: string) => {
     if (!phongId) {
@@ -161,40 +228,42 @@ export default function ThemMoiHopDongPage() {
 
   const fetchData = async () => {
     try {
-      // Fetch phong data
       const phongResponse = await fetch('/api/phong?limit=100');
-      if (phongResponse.ok) {
-        const phongData = await phongResponse.json();
-        // Lọc phòng trống và đã đặt
-        const availablePhong = (phongData.data || []).filter((phong: Phong) =>
+      const phongData = await phongResponse.json().catch(() => ({}));
+      if (!phongResponse.ok || phongData.success === false) {
+        throw new Error(phongData.message || 'Không tải được danh sách phòng');
+      }
+      const availablePhong = (phongData.data || [])
+        .map(normalizePhong)
+        .filter((phong: Phong) =>
           phong.trangThai === 'trong' || phong.trangThai === 'AVAILABLE' || phong.trangThai === 'daDat' || phong.trangThai === 'RESERVED'
         );
-        setPhongList(availablePhong);
-      }
+      setPhongList(availablePhong);
 
-      // Fetch khach thue data
       const khachThueResponse = await fetch('/api/khach-thue?limit=100');
-      if (khachThueResponse.ok) {
-        const khachThueData = await khachThueResponse.json();
-        setKhachThueList(khachThueData.data || []);
+      const khachThueData = await khachThueResponse.json().catch(() => ({}));
+      if (!khachThueResponse.ok || khachThueData.success === false) {
+        throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
       }
+      setKhachThueList((khachThueData.data || []).map(normalizeKhachThue));
 
-      // Fetch dich vu data
       const dichVuResponse = await fetch('/api/dich-vu');
-      if (dichVuResponse.ok) {
-        const dvData = await dichVuResponse.json();
-        const dvOptions = (dvData.data || []).map((dv: ApiDichVu) => ({
-          dichVuId: dv._id ?? dv.id ?? '',
+      const dvData = await dichVuResponse.json().catch(() => ({}));
+      if (!dichVuResponse.ok || dvData.success === false) {
+        toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
+      } else {
+        setGlobalDichVuList((dvData.data || []).map((dv: ApiDichVu) => ({
+          dichVuId: String(dv._id ?? dv.id ?? ''),
           ten: dv.tenDichVu ?? dv.ten ?? '',
           loaiTinhPhi: dv.loaiTinhPhi,
           donVi: dv.donVi,
           donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
-          batBuoc: dv.batBuoc
-        }));
-        setGlobalDichVuList(dvOptions);
+          batBuoc: dv.batBuoc,
+        })).filter((dv: DichVuOption) => dv.dichVuId && dv.ten));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -281,38 +350,15 @@ export default function ThemMoiHopDongPage() {
 
     if (submitting) return;
 
+    const validationError = validateContractForm();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     setSubmitting(true);
 
-    const ensureISODate = (dateStr: string) => {
-      if (!dateStr) return '';
-      // Nếu đã đúng định dạng YYYY-MM-DD thì giữ nguyên
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-
-      // Nếu là định dạng DD/MM/YYYY
-      const parts = dateStr.split('/');
-      if (parts.length === 3) {
-        const day = parts[0].padStart(2, '0');
-        const month = parts[1].padStart(2, '0');
-        const year = parts[2];
-        return `${year}-${month}-${day}`;
-      }
-
-      // Fallback: Thử parse qua Date object
-      try {
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) {
-          return d.toISOString().split('T')[0];
-        }
-      } catch (e) { }
-
-      return dateStr;
-    };
-
     try {
-      if (!formData.nguoiDaiDien) {
-        toast.error('Vui lòng chọn người đại diện hợp đồng');
-        return;
-      }
       const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
       const response = await fetch('/api/hop-dong', {
         method: 'POST',
@@ -326,10 +372,11 @@ export default function ThemMoiHopDongPage() {
           khachThueIds: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
+          phiDichVu: sanitizePhiDichVu(formData.phiDichVu),
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
         // Xóa cache để force refresh data
         sessionStorage.removeItem('hop-dong-data');

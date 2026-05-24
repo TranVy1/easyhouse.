@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -24,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, 
   FileText, 
@@ -35,14 +33,16 @@ import {
   RefreshCw,
   Search,
   Trash2,
+  Loader2,
   Users,
   Building2,
   Home
 } from 'lucide-react';
 import { HopDong, Phong, KhachThue, ToaNha } from '@/types';
 import { HopDongDataTable } from './table';
+import { hopDongStatusFromDb, normalizeHopDong, normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
 import { toast } from 'sonner';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 
 export default function HopDongPage() {
@@ -64,12 +64,33 @@ export default function HopDongPage() {
   const [toaNhaFilter, setToaNhaFilter] = useState<string>('all');
   const [viewingHopDong, setViewingHopDong] = useState<HopDong | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<HopDong | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<HopDong | null>(null);
+  const [extendTarget, setExtendTarget] = useState<HopDong | null>(null);
+  const [extendDate, setExtendDate] = useState('');
 
   useEffect(() => {
     document.title = 'Quản lý Hợp đồng';
   }, []);
 
-  const fetchData = useCallback(async (forceRefresh = false) => {
+  const readList = useCallback(async <T,>(url: string, label: string, mapper: (item: unknown) => T): Promise<T[]> => {
+    const response = await fetch(url);
+    let result: { success?: boolean; message?: string; data?: unknown } = {};
+    try {
+      result = await response.json();
+    } catch {
+      result = {};
+    }
+
+    if (!response.ok || result.success === false) {
+      throw new Error(result.message || `Không tải được ${label}`);
+    }
+
+    const items = Array.isArray(result.data) ? result.data : [];
+    return items.map(mapper);
+  }, []);
+
+  const fetchData = useCallback(async (forceRefresh = false): Promise<boolean> => {
     try {
       setLoading(true);
       
@@ -82,32 +103,20 @@ export default function HopDongPage() {
           setKhachThueList(cachedData.khachThueList || []);
           setToaNhaList(cachedData.toaNhaList || []);
           setLoading(false);
-          return;
+          return true;
         }
       }
       
-      // Fetch hop dong data
-      const hopDongResponse = await fetch('/api/hop-dong?limit=100');
-      const hopDongData = hopDongResponse.ok ? await hopDongResponse.json() : { data: [] };
-      const hopDongs = hopDongData.data || [];
+      const [hopDongs, phongs, khachThues, toaNhas] = await Promise.all([
+        readList('/api/hop-dong?limit=100', 'danh sách hợp đồng', normalizeHopDong),
+        readList('/api/phong?limit=100', 'danh sách phòng', normalizePhong),
+        readList('/api/khach-thue?limit=100', 'danh sách khách thuê', normalizeKhachThue),
+        readList('/api/toa-nha?limit=100', 'danh sách tòa nhà', normalizeToaNha),
+      ]);
+
       setHopDongList(hopDongs);
-
-      // Fetch phong data
-      const phongResponse = await fetch('/api/phong?limit=100');
-      const phongData = phongResponse.ok ? await phongResponse.json() : { data: [] };
-      const phongs = phongData.data || [];
       setPhongList(phongs);
-
-      // Fetch khach thue data
-      const khachThueResponse = await fetch('/api/khach-thue?limit=100');
-      const khachThueData = khachThueResponse.ok ? await khachThueResponse.json() : { data: [] };
-      const khachThues = khachThueData.data || [];
       setKhachThueList(khachThues);
-
-      // Fetch toa nha data
-      const toaNhaResponse = await fetch('/api/toa-nha?limit=100');
-      const toaNhaData = toaNhaResponse.ok ? await toaNhaResponse.json() : { data: [] };
-      const toaNhas = toaNhaData.data || [];
       setToaNhaList(toaNhas);
 
       // Lưu vào cache
@@ -117,13 +126,16 @@ export default function HopDongPage() {
         khachThueList: khachThues,
         toaNhaList: toaNhas,
       });
+      return true;
 
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error(error instanceof Error ? error.message : 'Không tải được dữ liệu hợp đồng');
+      return false;
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, [getCache, readList, setCache]);
 
   useEffect(() => {
     fetchData();
@@ -131,16 +143,23 @@ export default function HopDongPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchData(true); // Force refresh
+    const ok = await fetchData(true); // Force refresh
     setIsRefreshing(false);
-    toast.success('Đã tải dữ liệu mới nhất');
+    if (ok) {
+      toast.success('Đã tải dữ liệu mới nhất');
+    }
   };
 
 
+  const normalizeStatus = (status?: string) => hopDongStatusFromDb(status || 'nhap');
+  const isActiveStatus = (status?: string) => normalizeStatus(status) === 'hoatDong';
+
   const filteredHopDong = hopDongList.filter(hopDong => {
-    const matchesSearch = hopDong.maHopDong.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         hopDong.dieuKhoan.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || hopDong.trangThai === statusFilter;
+    const keyword = searchTerm.trim().toLowerCase();
+    const matchesSearch = !keyword ||
+      (hopDong.maHopDong || '').toLowerCase().includes(keyword) ||
+      (hopDong.dieuKhoan || '').toLowerCase().includes(keyword);
+    const matchesStatus = statusFilter === 'all' || normalizeStatus(hopDong.trangThai) === statusFilter;
     
     // Filter by toa nha
     let matchesToaNha = true;
@@ -157,7 +176,7 @@ export default function HopDongPage() {
   });
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    switch (normalizeStatus(status)) {
       case 'nhap':
         return <Badge variant="outline">Nháp</Badge>;
       case 'choKichHoat':
@@ -181,14 +200,6 @@ export default function HopDongPage() {
     }
     const phongObj = phongList.find(p => p._id === phong);
     return phongObj?.maPhong || 'Không xác định';
-  };
-
-  const getToaNhaName = (toaNha: string | { tenToaNha: string }) => {
-    if (typeof toaNha === 'object' && toaNha?.tenToaNha) {
-      return toaNha.tenToaNha;
-    }
-    const toaNhaObj = toaNhaList.find(t => t._id === toaNha);
-    return toaNhaObj?.tenToaNha || 'Không xác định';
   };
 
   const getPhongInfo = (phong: string | { maPhong: string; toaNha?: { tenToaNha: string } }) => {
@@ -246,17 +257,25 @@ export default function HopDongPage() {
     setViewingHopDong(hopDong);
   };
 
-  const handleDelete = async (id: string) => {
+  const requestDelete = (hopDong: HopDong) => {
+    setDeleteTarget(hopDong);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget?._id) return;
+    const id = deleteTarget._id;
+    setActionLoading(`delete-${id}`);
     try {
       const response = await fetch(`/api/hop-dong/${id}`, {
         method: 'DELETE',
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       
       if (response.ok && result.success) {
         // Xóa cache
-                  clearCache();
+        clearCache();
         setHopDongList(prev => prev.filter(hopDong => hopDong._id !== id));
+        setDeleteTarget(null);
         toast.success(result.message || 'Đã xóa hợp đồng thành công');
       } else {
         toast.error(result.message || 'Có lỗi xảy ra khi xóa hợp đồng');
@@ -264,6 +283,8 @@ export default function HopDongPage() {
     } catch (error) {
       console.error('Error deleting hop dong:', error);
       toast.error('Có lỗi xảy ra khi xóa hợp đồng');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -820,91 +841,106 @@ export default function HopDongPage() {
     }
   };
 
-  const handleGiaHan = async (hopDong: HopDong) => {
-    const ensureISODate = (dateStr: string) => {
-      if (!dateStr) return '';
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-      const parts = dateStr.split('/');
-      if (parts.length === 3) {
-        const day = parts[0].padStart(2, '0');
-        const month = parts[1].padStart(2, '0');
-        const year = parts[2];
-        return `${year}-${month}-${day}`;
-      }
-      try {
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-      } catch (e) {}
-      return dateStr;
-    };
+  const ensureISODate = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(dateStr);
+    return Number.isNaN(parsed.getTime()) ? dateStr : parsed.toISOString().split('T')[0];
+  };
 
-    const newEndDate = prompt('Nhập ngày kết thúc mới (YYYY-MM-DD hoặc DD/MM/YYYY):');
-    if (newEndDate) {
-      setActionLoading(`giahan-${hopDong._id}`);
-      try {
-        const response = await fetch(`/api/hop-dong/${hopDong._id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ngayKetThuc: ensureISODate(newEndDate),
-          }),
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          // Xóa cache
-          clearCache();
-          // Cập nhật state trực tiếp thay vì reload
-          setHopDongList(prev => prev.map(hd => 
-            hd._id === hopDong._id ? result.data : hd
-          ));
-          toast.success('Đã gia hạn hợp đồng thành công');
-        } else {
-          toast.error('Có lỗi xảy ra khi gia hạn hợp đồng');
-        }
-      } catch (error) {
-        console.error('Error extending contract:', error);
-        toast.error('Có lỗi xảy ra khi gia hạn hợp đồng');
-      } finally {
-        setActionLoading(null);
+  const getEndDateValue = (hopDong: HopDong) => String(hopDong.ngayKetThuc || '').split('T')[0];
+
+  const requestGiaHan = (hopDong: HopDong) => {
+    setExtendTarget(hopDong);
+    setExtendDate(getEndDateValue(hopDong));
+  };
+
+  const confirmGiaHan = async () => {
+    if (!extendTarget?._id) return;
+    const nextEndDate = ensureISODate(extendDate);
+    const currentEndDate = getEndDateValue(extendTarget);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextEndDate)) {
+      toast.error('Ngày kết thúc mới không hợp lệ');
+      return;
+    }
+    if (currentEndDate && nextEndDate <= currentEndDate) {
+      toast.error('Ngày kết thúc mới phải sau ngày kết thúc hiện tại');
+      return;
+    }
+
+    setActionLoading(`giahan-${extendTarget._id}`);
+    try {
+      const response = await fetch(`/api/hop-dong/${extendTarget._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ngayKetThuc: nextEndDate,
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      
+      if (response.ok && result.success) {
+        clearCache();
+        setHopDongList(prev => prev.map(hd => 
+          hd._id === extendTarget._id ? normalizeHopDong(result.data) : hd
+        ));
+        setExtendTarget(null);
+        setExtendDate('');
+        toast.success(result.message || 'Đã gia hạn hợp đồng thành công');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi gia hạn hợp đồng');
       }
+    } catch (error) {
+      console.error('Error extending contract:', error);
+      toast.error('Có lỗi xảy ra khi gia hạn hợp đồng');
+    } finally {
+      setActionLoading(null);
     }
   };
 
-  const handleHuy = async (hopDong: HopDong) => {
-    if (confirm('Bạn có chắc chắn muốn hủy hợp đồng này?')) {
-      setActionLoading(`huy-${hopDong._id}`);
-      try {
-        const response = await fetch(`/api/hop-dong/${hopDong._id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            trangThai: 'daHuy',
-          }),
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          // Xóa cache
-                    clearCache();
-          // Cập nhật state trực tiếp thay vì reload
-          setHopDongList(prev => prev.map(hd => 
-            hd._id === hopDong._id ? result.data : hd
-          ));
-          toast.success('Đã hủy hợp đồng thành công');
-        } else {
-          toast.error('Có lỗi xảy ra khi hủy hợp đồng');
-        }
-      } catch (error) {
-        console.error('Error cancelling contract:', error);
-        toast.error('Có lỗi xảy ra khi hủy hợp đồng');
-      } finally {
-        setActionLoading(null);
+  const requestHuy = (hopDong: HopDong) => {
+    setCancelTarget(hopDong);
+  };
+
+  const confirmHuy = async () => {
+    if (!cancelTarget?._id) return;
+    setActionLoading(`huy-${cancelTarget._id}`);
+    try {
+      const response = await fetch(`/api/hop-dong/${cancelTarget._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trangThai: 'daHuy',
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      
+      if (response.ok && result.success) {
+        clearCache();
+        setHopDongList(prev => prev.map(hd => 
+          hd._id === cancelTarget._id ? normalizeHopDong(result.data) : hd
+        ));
+        setCancelTarget(null);
+        toast.success(result.message || 'Đã hủy hợp đồng thành công');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi hủy hợp đồng');
       }
+    } catch (error) {
+      console.error('Error cancelling contract:', error);
+      toast.error('Có lỗi xảy ra khi hủy hợp đồng');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -946,6 +982,76 @@ export default function HopDongPage() {
           </Button>
         </div>
       </div>
+
+      <Dialog open={!!extendTarget} onOpenChange={(open) => !open && setExtendTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gia hạn hợp đồng</DialogTitle>
+            <DialogDescription>
+              Chọn ngày kết thúc mới cho hợp đồng {extendTarget?.maHopDong}. Ngày mới phải sau ngày kết thúc hiện tại.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="extendDate">Ngày kết thúc mới</Label>
+            <Input
+              id="extendDate"
+              type="date"
+              value={extendDate}
+              min={extendTarget ? getEndDateValue(extendTarget) : undefined}
+              onChange={(event) => setExtendDate(event.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExtendTarget(null)} disabled={!!actionLoading}>
+              Hủy
+            </Button>
+            <Button onClick={confirmGiaHan} disabled={actionLoading === `giahan-${extendTarget?._id}`}>
+              {actionLoading === `giahan-${extendTarget?._id}` && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Gia hạn
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hủy hợp đồng</DialogTitle>
+            <DialogDescription>
+              Hợp đồng {cancelTarget?.maHopDong} sẽ chuyển sang trạng thái Đã hủy. Phòng sẽ được đồng bộ lại trạng thái sau khi lưu.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={!!actionLoading}>
+              Không hủy
+            </Button>
+            <Button variant="destructive" onClick={confirmHuy} disabled={actionLoading === `huy-${cancelTarget?._id}`}>
+              {actionLoading === `huy-${cancelTarget?._id}` && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Xác nhận hủy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa hợp đồng</DialogTitle>
+            <DialogDescription>
+              Hợp đồng {deleteTarget?.maHopDong} sẽ được xóa mềm khỏi danh sách. Phòng liên quan sẽ được đồng bộ lại trạng thái.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={!!actionLoading}>
+              Không xóa
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={actionLoading === `delete-${deleteTarget?._id}`}>
+              {actionLoading === `delete-${deleteTarget?._id}` && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Xác nhận xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Modal */}
       {viewingHopDong && (
@@ -1141,7 +1247,7 @@ export default function HopDongPage() {
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Hoạt động</p>
               <p className="text-base md:text-2xl font-bold text-green-600">
-                {hopDongList.filter(h => h.trangThai === 'hoatDong' || h.trangThai === 'ACTIVE').length}
+                {hopDongList.filter(h => isActiveStatus(h.trangThai)).length}
               </p>
             </div>
             <FileText className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
@@ -1189,10 +1295,10 @@ export default function HopDongPage() {
             toaNhaList={toaNhaList}
             onView={handleView}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={requestDelete}
             onDownload={handleDownload}
-            onGiaHan={handleGiaHan}
-            onHuy={handleHuy}
+            onGiaHan={requestGiaHan}
+            onHuy={requestHuy}
             actionLoading={actionLoading}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
@@ -1260,7 +1366,6 @@ export default function HopDongPage() {
             const phongInfo = getPhongInfo(hopDong.phong);
             const nguoiDaiDien = getKhachThueName(hopDong.nguoiDaiDien);
             const isExpiring = isExpiringSoon(hopDong.ngayKetThuc);
-            const isExpiredNow = isExpired(hopDong.ngayKetThuc);
 
             return (
               <Card key={hopDong._id} className="p-4">
@@ -1276,7 +1381,7 @@ export default function HopDongPage() {
                     </div>
                     <div className="flex flex-col gap-1 items-end">
                       {(() => {
-                        switch (hopDong.trangThai) {
+                        switch (normalizeStatus(hopDong.trangThai)) {
                           case 'hoatDong':
                             return <Badge variant="default" className="text-xs">Hoạt động</Badge>;
                           case 'hetHan':
@@ -1287,7 +1392,7 @@ export default function HopDongPage() {
                             return <Badge variant="outline" className="text-xs">{hopDong.trangThai}</Badge>;
                         }
                       })()}
-                      {isExpiring && (hopDong.trangThai === 'hoatDong' || hopDong.trangThai === 'ACTIVE') && (
+                      {isExpiring && isActiveStatus(hopDong.trangThai) && (
                         <Badge variant="outline" className="text-xs text-orange-600 border-orange-600">
                           Sắp hết hạn
                         </Badge>
@@ -1366,6 +1471,52 @@ export default function HopDongPage() {
                     >
                       <Download className="h-3.5 w-3.5 mr-1" />
                       Tải
+                    </Button>
+                    {isActiveStatus(hopDong.trangThai) && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => requestGiaHan(hopDong)}
+                          disabled={actionLoading === `giahan-${hopDong._id}`}
+                          className="flex-1"
+                        >
+                          {actionLoading === `giahan-${hopDong._id}` ? (
+                            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                          ) : (
+                            <Calendar className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Gia hạn
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => requestHuy(hopDong)}
+                          disabled={actionLoading === `huy-${hopDong._id}`}
+                          className="flex-1"
+                        >
+                          {actionLoading === `huy-${hopDong._id}` ? (
+                            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                          ) : (
+                            <CloseIcon className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Hủy
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => requestDelete(hopDong)}
+                      disabled={actionLoading === `delete-${hopDong._id}`}
+                      className="flex-1 text-destructive"
+                    >
+                      {actionLoading === `delete-${hopDong._id}` ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      )}
+                      Xóa
                     </Button>
                   </div>
                 </div>

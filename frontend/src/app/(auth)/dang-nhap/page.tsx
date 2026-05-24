@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -49,6 +49,13 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get('error')) {
+      setError('Email hoặc mật khẩu không đúng');
+    }
+  }, []);
+
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     setError('');
@@ -58,12 +65,13 @@ export default function LoginPage() {
         email: data.email,
         matKhau: data.matKhau,
         redirect: false,
+        callbackUrl: '/dashboard',
       });
 
-      if (result?.error) {
+      if (!(result?.ok && !result.error)) {
         setError('Email hoặc mật khẩu không đúng');
       } else {
-        router.push('/dashboard');
+        router.push(result.url || '/dashboard');
       }
     } catch {
       setError('Đã xảy ra lỗi, vui lòng thử lại');

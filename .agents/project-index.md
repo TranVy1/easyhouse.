@@ -411,4 +411,6 @@ Then open `http://localhost:3000`.
 5. Add or update `frontend/next.config.ts` rewrites when adding backend endpoints called through `/api/...`.
 6. Treat billing, payment, and auth as high-risk areas.
 7. Do not run writes against production/customer DB. This repo currently points to Supabase secrets outside tracked files.
-8. Keep docs in sync when changing architecture or routes.
+8. When pushing the latest database into local Docker, restore a complete SQL dump with both schema and data; do not restore only schema, only data, or partial tables unless explicitly requested. Default source is `sql/db.sql`.
+9. After local Docker DB restore, ensure full-permission login exists: `admin@easyhouse.local` / `Admin@123` with role `ADMIN`.
+10. Keep docs in sync when changing architecture or routes.

@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   Save,
   Loader2,
-  X,
   Plus,
   Check,
   ChevronsUpDown
@@ -27,6 +26,7 @@ import {
 import { HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
+import { hopDongStatusFromDb, normalizeHopDong, normalizeKhachThue, normalizePhong } from '@/lib/domain-mappers';
 import {
   Command,
   CommandEmpty,
@@ -107,6 +107,93 @@ export default function ChinhSuaHopDongPage() {
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
   const [searchDichVu, setSearchDichVu] = useState("");
 
+  const ensureISODate = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(dateStr);
+    return Number.isNaN(parsed.getTime()) ? dateStr : parsed.toISOString().split('T')[0];
+  };
+
+  const isUuid = (value?: string) =>
+    Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
+
+  const sanitizePhiDichVu = (items: PhiDichVuForm[]) =>
+    items.map((item) => ({
+      ...(isUuid(item.dichVuId) ? { dichVuId: item.dichVuId } : {}),
+      ten: item.ten.trim(),
+      gia: Number(item.gia || 0),
+      soLuong: Number(item.soLuong || 1),
+      loaiTinhPhi: item.loaiTinhPhi || 'FIXED',
+    }));
+
+  const validateContractForm = () => {
+    const startDate = ensureISODate(formData.ngayBatDau);
+    const endDate = ensureISODate(formData.ngayKetThuc);
+
+    if (!formData.phong) return 'Vui lòng chọn phòng cho hợp đồng';
+    if (!formData.nguoiDaiDien) return 'Vui lòng chọn người đại diện hợp đồng';
+    if (!startDate || !endDate) return 'Vui lòng nhập ngày bắt đầu và ngày kết thúc hợp đồng';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+      return 'Ngày hợp đồng không hợp lệ';
+    }
+    if (endDate <= startDate) return 'Ngày kết thúc hợp đồng phải sau ngày bắt đầu';
+    if (!Number.isFinite(Number(formData.giaThue)) || Number(formData.giaThue) < 0) {
+      return 'Giá thuê hợp đồng không hợp lệ';
+    }
+    if (!Number.isFinite(Number(formData.tienCoc)) || Number(formData.tienCoc) < 0) {
+      return 'Tiền cọc hợp đồng không hợp lệ';
+    }
+    if (!Number.isInteger(Number(formData.ngayThanhToan)) || Number(formData.ngayThanhToan) < 1 || Number(formData.ngayThanhToan) > 31) {
+      return 'Ngày thanh toán hằng tháng phải từ 1 đến 31';
+    }
+    if (Number(formData.chiSoDienBanDau) < 0 || Number(formData.chiSoNuocBanDau) < 0) {
+      return 'Chỉ số điện nước ban đầu không được âm';
+    }
+    const invalidService = formData.phiDichVu.find((item) =>
+      !item.ten.trim() ||
+      !Number.isFinite(Number(item.gia)) ||
+      Number(item.gia) < 0 ||
+      !Number.isFinite(Number(item.soLuong || 1)) ||
+      Number(item.soLuong || 1) < 0
+    );
+    if (invalidService) return `Dịch vụ "${invalidService.ten || 'chưa đặt tên'}" có đơn giá hoặc số lượng không hợp lệ`;
+    return null;
+  };
+
+  const normalizeChuKyThanhToan = (value?: string): 'thang' | 'quy' | 'nam' => {
+    switch (value) {
+      case 'QUARTERLY':
+      case 'quy':
+        return 'quy';
+      case 'YEARLY':
+      case 'nam':
+        return 'nam';
+      default:
+        return 'thang';
+    }
+  };
+
+  const normalizeTrangThaiHopDong = (value?: string): 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy' => {
+    const status = hopDongStatusFromDb(value);
+    switch (status) {
+      case 'choKichHoat':
+      case 'hoatDong':
+      case 'hetHan':
+      case 'daKetThuc':
+      case 'daHuy':
+        return status;
+      default:
+        return 'nhap';
+    }
+  };
+
   const loadDichVuTheoPhong = async (phongId: string, currentPhiDichVu: PhiDichVuForm[] = []) => {
     if (!phongId) {
       setDichVuOptions([]);
@@ -157,14 +244,17 @@ export default function ChinhSuaHopDongPage() {
       // Fetch hợp đồng chi tiết theo ID
       const hopDongResponse = await fetch(`/api/hop-dong/${hopDongId}`);
       if (hopDongResponse.ok) {
-        const hopDongData = await hopDongResponse.json();
-        const hopDongItem = hopDongData.data;
+        const hopDongData = await hopDongResponse.json().catch(() => ({}));
+        if (hopDongData.success === false) {
+          throw new Error(hopDongData.message || 'Không tìm thấy hợp đồng');
+        }
+        const hopDongItem = hopDongData.data ? normalizeHopDong(hopDongData.data) : null;
         if (hopDongItem) {
           setHopDong(hopDongItem);
-          console.log('Hop dong loaded for editing:', hopDongItem);
           
           const khachThueIds = hopDongItem.khachThueId?.map((kt: string | { _id: string }) => typeof kt === 'object' ? kt._id : kt) || [];
-          const nguoiDaiDienId = typeof hopDongItem.nguoiDaiDien === 'object' ? (hopDongItem.nguoiDaiDien as {_id: string})?._id || '' : hopDongItem.nguoiDaiDien || '';
+          const nguoiDaiDienId = hopDongItem.khachThueDaiDienId ||
+            (typeof hopDongItem.nguoiDaiDien === 'object' ? (hopDongItem.nguoiDaiDien as {_id: string})?._id || '' : hopDongItem.nguoiDaiDien || '');
 
           setFormData({
             maHopDong: hopDongItem.maHopDong || '',
@@ -175,7 +265,7 @@ export default function ChinhSuaHopDongPage() {
             ngayKetThuc: hopDongItem.ngayKetThuc ? hopDongItem.ngayKetThuc.toString().split('T')[0] : '',
             giaThue: hopDongItem.giaThue || 0,
             tienCoc: hopDongItem.tienCoc || 0,
-            chuKyThanhToan: hopDongItem.chuKyThanhToan || 'thang',
+            chuKyThanhToan: normalizeChuKyThanhToan(hopDongItem.chuKyThanhToan),
             ngayThanhToan: hopDongItem.ngayThanhToan || 15,
             dieuKhoan: hopDongItem.dieuKhoan || '',
             giaDien: hopDongItem.giaDien || 3500,
@@ -183,7 +273,7 @@ export default function ChinhSuaHopDongPage() {
             chiSoDienBanDau: hopDongItem.chiSoDienBanDau || 0,
             chiSoNuocBanDau: hopDongItem.chiSoNuocBanDau || 0,
             phiDichVu: hopDongItem.phiDichVu || [],
-            trangThai: hopDongItem.trangThai || 'hoatDong',
+            trangThai: normalizeTrangThaiHopDong(hopDongItem.trangThai),
           });
           const phongId = typeof hopDongItem.phong === 'object' ? (hopDongItem.phong as {_id: string})?._id || '' : hopDongItem.phong || '';
           if (phongId) {
@@ -202,35 +292,38 @@ export default function ChinhSuaHopDongPage() {
 
       // Fetch phong data
       const phongResponse = await fetch('/api/phong?limit=100');
-      if (phongResponse.ok) {
-        const phongData = await phongResponse.json();
-        setPhongList(phongData.data || []);
+      const phongData = await phongResponse.json().catch(() => ({}));
+      if (!phongResponse.ok || phongData.success === false) {
+        throw new Error(phongData.message || 'Không tải được danh sách phòng');
       }
+      setPhongList((phongData.data || []).map(normalizePhong));
 
       // Fetch khach thue data
       const khachThueResponse = await fetch('/api/khach-thue?limit=100');
-      if (khachThueResponse.ok) {
-        const khachThueData = await khachThueResponse.json();
-        setKhachThueList(khachThueData.data || []);
+      const khachThueData = await khachThueResponse.json().catch(() => ({}));
+      if (!khachThueResponse.ok || khachThueData.success === false) {
+        throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
       }
+      setKhachThueList((khachThueData.data || []).map(normalizeKhachThue));
 
       // Fetch dich vu data
       const dichVuResponse = await fetch('/api/dich-vu');
-      if (dichVuResponse.ok) {
-        const dvData = await dichVuResponse.json();
-        const dvOptions = (dvData.data || []).map((dv: ApiDichVu) => ({
-          dichVuId: dv._id ?? dv.id ?? '',
+      const dvData = await dichVuResponse.json().catch(() => ({}));
+      if (!dichVuResponse.ok || dvData.success === false) {
+        toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
+      } else {
+        setGlobalDichVuList((dvData.data || []).map((dv: ApiDichVu) => ({
+          dichVuId: String(dv._id ?? dv.id ?? ''),
           ten: dv.tenDichVu ?? dv.ten ?? '',
           loaiTinhPhi: dv.loaiTinhPhi,
           donVi: dv.donVi,
           donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
-          batBuoc: dv.batBuoc
-        }));
-        setGlobalDichVuList(dvOptions);
+          batBuoc: dv.batBuoc,
+        })).filter((dv: DichVuOption) => dv.dichVuId && dv.ten));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Có lỗi xảy ra khi tải dữ liệu');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -317,38 +410,15 @@ export default function ChinhSuaHopDongPage() {
     
     if (submitting) return;
     
+    const validationError = validateContractForm();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     setSubmitting(true);
-    
-    const ensureISODate = (dateStr: string) => {
-      if (!dateStr) return '';
-      // Nếu đã đúng định dạng YYYY-MM-DD thì giữ nguyên
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-      
-      // Nếu là định dạng DD/MM/YYYY
-      const parts = dateStr.split('/');
-      if (parts.length === 3) {
-        const day = parts[0].padStart(2, '0');
-        const month = parts[1].padStart(2, '0');
-        const year = parts[2];
-        return `${year}-${month}-${day}`;
-      }
-      
-      // Fallback: Thử parse qua Date object
-      try {
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) {
-          return d.toISOString().split('T')[0];
-        }
-      } catch (e) {}
-      
-      return dateStr;
-    };
 
     try {
-      if (!formData.nguoiDaiDien) {
-        toast.error('Vui lòng chọn người đại diện hợp đồng');
-        return;
-      }
       const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
       const response = await fetch(`/api/hop-dong/${hopDongId}`, {
         method: 'PUT',
@@ -362,10 +432,11 @@ export default function ChinhSuaHopDongPage() {
           khachThueIds: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
+          phiDichVu: sanitizePhiDichVu(formData.phiDichVu),
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
         // Xóa cache để force refresh data
         sessionStorage.removeItem('hop-dong-data');

@@ -60,9 +60,11 @@ services:
     volumes:
       - ./frontend:/app
       - easyhouse_node_modules:/app/node_modules
+      - easyhouse_next_cache:/app/.next
     command: npm run dev -- --hostname 0.0.0.0
 
 volumes:
   easyhouse_postgres_data:
   easyhouse_maven_cache:
   easyhouse_node_modules:
+  easyhouse_next_cache:

@@ -21,20 +21,13 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { 
-  ArrowLeft,
-  Save,
   Loader2,
-  X,
-  Plus,
-  Check,
-  ChevronsUpDown,
   Edit,
   Trash2,
   Download,
   Eye,
   Calendar,
   FileText,
-  CreditCard,
   GripVertical,
   MoreVertical,
   Columns,
@@ -44,10 +37,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   CircleCheck,
-  Loader,
   Search,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -63,8 +54,6 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
-import { toast } from "sonner"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -94,6 +83,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { HopDong, Phong, KhachThue, ToaNha } from '@/types'
+import { hopDongStatusFromDb } from "@/lib/domain-mappers"
 
 // Helper functions
 const formatCurrency = (amount: number) => {
@@ -104,7 +94,7 @@ const formatCurrency = (amount: number) => {
 }
 
 const getStatusBadge = (status: string) => {
-  switch (status) {
+  switch (hopDongStatusFromDb(status)) {
     case 'nhap':
       return <Badge variant="outline">Nháp</Badge>
     case 'choKichHoat':
@@ -174,7 +164,7 @@ type HopDongTableProps = {
   toaNhaList: ToaNha[]
   onView: (hopDong: HopDong) => void
   onEdit: (hopDong: HopDong) => void
-  onDelete: (id: string) => void
+  onDelete: (hopDong: HopDong) => void
   onDownload: (hopDong: HopDong) => void
   onGiaHan: (hopDong: HopDong) => void
   onHuy: (hopDong: HopDong) => void
@@ -351,55 +341,67 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <MoreVertical className="size-4" />
-            <span className="sr-only">Mở menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => props.onView(row.original)}>
-            <Eye className="mr-2 h-4 w-4" />
-            Xem chi tiết
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => props.onEdit(row.original)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Chỉnh sửa
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => props.onDownload(row.original)}>
-            <Download className="mr-2 h-4 w-4" />
-            Tải xuống
-          </DropdownMenuItem>
-          {(row.original.trangThai === 'hoatDong' || row.original.trangThai === 'ACTIVE') && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => props.onGiaHan(row.original)}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Gia hạn
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => props.onHuy(row.original)}>
-                <FileText className="mr-2 h-4 w-4" />
-                Hủy hợp đồng
-              </DropdownMenuItem>
-            </>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            className="text-destructive"
-            onClick={() => props.onDelete(row.original._id!)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Xóa
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      const contractId = row.original._id!
+      const active = hopDongStatusFromDb(row.original.trangThai) === 'hoatDong'
+      const busyKey = props.actionLoading
+      const isBusy = Boolean(busyKey?.endsWith(`-${contractId}`))
+      const isExtending = busyKey === `giahan-${contractId}`
+      const isCancelling = busyKey === `huy-${contractId}`
+      const isDeleting = busyKey === `delete-${contractId}`
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+              disabled={isBusy}
+            >
+              {isBusy ? <Loader2 className="size-4 animate-spin" /> : <MoreVertical className="size-4" />}
+              <span className="sr-only">Mở menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem disabled={isBusy} onClick={() => props.onView(row.original)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Xem chi tiết
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isBusy} onClick={() => props.onEdit(row.original)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Chỉnh sửa
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isBusy} onClick={() => props.onDownload(row.original)}>
+              <Download className="mr-2 h-4 w-4" />
+              Tải xuống
+            </DropdownMenuItem>
+            {active && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={isBusy} onClick={() => props.onGiaHan(row.original)}>
+                  {isExtending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calendar className="mr-2 h-4 w-4" />}
+                  Gia hạn
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={isBusy} onClick={() => props.onHuy(row.original)}>
+                  {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                  Hủy hợp đồng
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-destructive"
+              disabled={isBusy}
+              onClick={() => props.onDelete(row.original)}
+            >
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+              Xóa
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
     enableHiding: false,
   },
 ]

@@ -48,6 +48,9 @@ public class HopDongService {
     public HopDongResponse getById(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        if (hd.getXoaLuc() != null) {
+            throw new RuntimeException("Không tìm thấy hợp đồng");
+        }
         return toResponse(hd);
     }
 
