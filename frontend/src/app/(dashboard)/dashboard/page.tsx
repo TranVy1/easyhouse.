@@ -202,7 +202,7 @@ export default function DashboardPage() {
           <CardContent className="space-y-3">
             {recentLogs.length > 0 ? recentLogs.map((log) => {
               let colorClass = "bg-blue-500";
-              let badgeVariant = "secondary" as const;
+              let badgeVariant: "secondary" | "destructive" | "outline" = "secondary";
               
               if (log.bangTacDong?.includes('su_co')) {
                 colorClass = "bg-orange-500";
