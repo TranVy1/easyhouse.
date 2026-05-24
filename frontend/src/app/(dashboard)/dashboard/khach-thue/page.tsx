@@ -425,7 +425,7 @@ export default function KhachThuePage() {
                         toast.success('Đã sao chép link đăng nhập khách thuê');
                       }}
                       className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      title="Copy link đăng nhập khách thuê"
+                      title="Sao chép liên kết đăng nhập khách thuê"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>

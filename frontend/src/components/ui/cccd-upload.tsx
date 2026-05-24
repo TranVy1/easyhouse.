@@ -52,7 +52,7 @@ export function CCCDUpload({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Lỗi upload ảnh');
+        throw new Error(error.message || 'Lỗi tải ảnh lên');
       }
 
       const result = await response.json();
@@ -61,11 +61,11 @@ export function CCCDUpload({
         [type]: result.data.secure_url
       });
       
-      toast.success(`Upload ảnh CCCD ${type === 'matTruoc' ? 'mặt trước' : 'mặt sau'} thành công!`);
+      toast.success(`Tải ảnh CCCD ${type === 'matTruoc' ? 'mặt trước' : 'mặt sau'} lên thành công!`);
 
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi upload ảnh');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải ảnh lên');
     } finally {
       setUploading(prev => ({ ...prev, [type]: false }));
       if (type === 'matTruoc' && matTruocInputRef.current) {
@@ -117,12 +117,12 @@ export function CCCDUpload({
               {uploading.matTruoc ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Đang upload...
+                  Đang tải lên...
                 </>
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload
+                  Tải lên
                 </>
               )}
             </Button>
@@ -187,12 +187,12 @@ export function CCCDUpload({
               {uploading.matSau ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Đang upload...
+                  Đang tải lên...
                 </>
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload
+                  Tải lên
                 </>
               )}
             </Button>
@@ -238,7 +238,7 @@ export function CCCDUpload({
       <div className="flex justify-center">
         <Badge variant="secondary" className="text-xs">
           {anhCCCD.matTruoc && anhCCCD.matSau 
-            ? 'Đã upload đầy đủ ảnh CCCD' 
+            ? 'Đã tải lên đầy đủ ảnh CCCD'
             : `Còn thiếu ${!anhCCCD.matTruoc && !anhCCCD.matSau ? '2' : '1'} ảnh CCCD`
           }
         </Badge>

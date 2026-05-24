@@ -201,7 +201,7 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
                   variant="ghost" 
                   size="sm" 
                   className="h-6 w-6 p-0" 
-                  title="Copy link chia sẻ"
+                  title="Sao chép liên kết chia sẻ"
                   onClick={() => {
                     const phong = row.original;
                     const publicUrl = `${window.location.origin}/xem-phong?phong=${phong.maPhong}`;

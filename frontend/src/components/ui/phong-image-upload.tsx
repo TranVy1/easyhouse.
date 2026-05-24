@@ -32,7 +32,7 @@ export function PhongImageUpload({
     
     // Kiểm tra số lượng ảnh
     if (images.length + newFiles.length > maxImages) {
-      toast.error(`Chỉ được upload tối đa ${maxImages} ảnh`);
+      toast.error(`Chỉ được tải lên tối đa ${maxImages} ảnh`);
       return;
     }
 
@@ -57,7 +57,7 @@ export function PhongImageUpload({
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.message || 'Lỗi upload ảnh');
+          throw new Error(error.message || 'Lỗi tải ảnh lên');
         }
 
         const result = await response.json();
@@ -67,11 +67,11 @@ export function PhongImageUpload({
       const uploadedUrls = await Promise.all(uploadPromises);
       onImagesChange([...images, ...uploadedUrls]);
       
-      toast.success(`Upload ${uploadedUrls.length} ảnh thành công!`);
+      toast.success(`Tải ${uploadedUrls.length} ảnh lên thành công!`);
 
     } catch (error) {
       console.error('Error uploading images:', error);
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi upload ảnh');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải ảnh lên');
     } finally {
       setUploading(false);
       if (inputRef.current) {
@@ -117,7 +117,7 @@ export function PhongImageUpload({
           {uploading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Đang upload...
+              Đang tải lên...
             </>
           ) : (
             <>
@@ -169,7 +169,7 @@ export function PhongImageUpload({
               Chưa có ảnh phòng nào
             </p>
             <p className="text-xs text-gray-400 text-center mt-1">
-              Click &quot;Thêm ảnh&quot; để upload ảnh minh họa phòng
+              Bấm &quot;Thêm ảnh&quot; để tải ảnh minh họa phòng lên
             </p>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ export function PhongImageUpload({
           className="text-xs"
         >
           {images.length > 0 
-            ? `Đã upload ${images.length} ảnh phòng` 
+            ? `Đã tải lên ${images.length} ảnh phòng`
             : 'Chưa có ảnh phòng'
           }
         </Badge>

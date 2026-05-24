@@ -33,7 +33,7 @@ public class CloudinaryService {
 
         } catch (Exception e) {
             log.error("Error uploading file to Cloudinary", e);
-            throw new IOException("Failed to upload file: " + e.getMessage(), e);
+            throw new IOException("Tải tệp lên thất bại: " + e.getMessage(), e);
         }
     }
 
@@ -55,7 +55,7 @@ public class CloudinaryService {
 
         } catch (Exception e) {
             log.error("Error uploading image to Cloudinary", e);
-            throw new IOException("Failed to upload image: " + e.getMessage(), e);
+            throw new IOException("Tải ảnh lên thất bại: " + e.getMessage(), e);
         }
     }
 
@@ -73,7 +73,7 @@ public class CloudinaryService {
 
         } catch (Exception e) {
             log.error("Error deleting file from Cloudinary", e);
-            throw new IOException("Failed to delete file: " + e.getMessage(), e);
+            throw new IOException("Xóa tệp thất bại: " + e.getMessage(), e);
         }
     }
 }

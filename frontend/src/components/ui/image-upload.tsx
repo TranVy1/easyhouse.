@@ -52,13 +52,13 @@ export function ImageUpload({
       const result = await response.json();
       if (result.success && result.data.url) {
         onImageChange(result.data.url);
-        toast.success('Upload ảnh thành công');
+        toast.success('Tải ảnh lên thành công');
       } else {
         throw new Error('Tải ảnh lên thất bại');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Có lỗi xảy ra khi upload ảnh');
+      toast.error('Có lỗi xảy ra khi tải ảnh lên');
     } finally {
       setUploading(false);
       // Reset input
@@ -106,7 +106,7 @@ export function ImageUpload({
             {uploading ? (
               <>
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Đang upload...</p>
+                <p className="mt-2 text-sm text-gray-500">Đang tải lên...</p>
               </>
             ) : (
               <>

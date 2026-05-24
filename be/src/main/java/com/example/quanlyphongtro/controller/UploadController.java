@@ -26,18 +26,18 @@ public class UploadController {
 
             // Validate file
             if (file.isEmpty()) {
-                return ApiResponse.error("File không được để trống");
+                return ApiResponse.error("Tệp không được để trống");
             }
 
             // Validate file size (max 10MB)
             if (file.getSize() > 10 * 1024 * 1024) {
-                return ApiResponse.error("File quá lớn. Kích thước tối đa là 10MB");
+                return ApiResponse.error("Tệp quá lớn. Kích thước tối đa là 10MB");
             }
 
             // Validate file type
             String contentType = file.getContentType();
             if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("application/"))) {
-                return ApiResponse.error("Loại file không được hỗ trợ. Chỉ chấp nhận ảnh và tài liệu");
+                return ApiResponse.error("Loại tệp không được hỗ trợ. Chỉ chấp nhận ảnh và tài liệu");
             }
 
             // Upload to Cloudinary
@@ -53,11 +53,11 @@ public class UploadController {
 
             log.info("File uploaded successfully: {}", uploadResult.get("secure_url"));
 
-            return ApiResponse.success(responseData, "Upload file thành công");
+            return ApiResponse.success(responseData, "Tải tệp lên thành công");
 
         } catch (Exception e) {
             log.error("Error uploading file", e);
-            return ApiResponse.error("Lỗi upload file: " + e.getMessage());
+            return ApiResponse.error("Lỗi tải tệp lên: " + e.getMessage());
         }
     }
 
@@ -70,11 +70,11 @@ public class UploadController {
 
             log.info("File deleted successfully: {}", publicId);
 
-            return ApiResponse.success(result, "Xóa file thành công");
+            return ApiResponse.success(result, "Xóa tệp thành công");
 
         } catch (Exception e) {
             log.error("Error deleting file", e);
-            return ApiResponse.error("Lỗi xóa file: " + e.getMessage());
+            return ApiResponse.error("Lỗi xóa tệp: " + e.getMessage());
         }
     }
 
@@ -87,11 +87,11 @@ public class UploadController {
 
             log.info("File deleted successfully by query: {}", publicId);
 
-            return ApiResponse.success(result, "Xóa file thành công");
+            return ApiResponse.success(result, "Xóa tệp thành công");
 
         } catch (Exception e) {
             log.error("Error deleting file by query", e);
-            return ApiResponse.error("Lỗi xóa file: " + e.getMessage());
+            return ApiResponse.error("Lỗi xóa tệp: " + e.getMessage());
         }
     }
 }

@@ -382,7 +382,7 @@ export default function ToaNhaPage() {
                             toast.success('Đã sao chép link trang xem phòng');
                           }}
                           className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Copy link trang xem phòng"
+                          title="Sao chép liên kết trang xem phòng"
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </Button>
