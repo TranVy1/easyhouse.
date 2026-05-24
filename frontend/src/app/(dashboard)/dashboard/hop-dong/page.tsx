@@ -158,10 +158,16 @@ export default function HopDongPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'nhap':
+        return <Badge variant="outline">Nháp</Badge>;
+      case 'choKichHoat':
+        return <Badge variant="secondary">Chờ kích hoạt</Badge>;
       case 'hoatDong':
         return <Badge variant="default">Hoạt động</Badge>;
       case 'hetHan':
         return <Badge variant="destructive">Hết hạn</Badge>;
+      case 'daKetThuc':
+        return <Badge variant="secondary">Đã kết thúc</Badge>;
       case 'daHuy':
         return <Badge variant="secondary">Đã hủy</Badge>;
       default:
@@ -1223,8 +1229,11 @@ export default function HopDongPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
+                <SelectItem value="nhap" className="text-sm">Nháp</SelectItem>
+                <SelectItem value="choKichHoat" className="text-sm">Chờ kích hoạt</SelectItem>
                 <SelectItem value="hoatDong" className="text-sm">Hoạt động</SelectItem>
                 <SelectItem value="hetHan" className="text-sm">Hết hạn</SelectItem>
+                <SelectItem value="daKetThuc" className="text-sm">Đã kết thúc</SelectItem>
                 <SelectItem value="daHuy" className="text-sm">Đã hủy</SelectItem>
               </SelectContent>
             </Select>

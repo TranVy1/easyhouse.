@@ -105,6 +105,10 @@ const formatCurrency = (amount: number) => {
 
 const getStatusBadge = (status: string) => {
   switch (status) {
+    case 'nhap':
+      return <Badge variant="outline">Nháp</Badge>
+    case 'choKichHoat':
+      return <Badge variant="secondary">Chờ kích hoạt</Badge>
     case 'hoatDong':
       return (
         <Badge variant="default" className="gap-1">
@@ -117,6 +121,12 @@ const getStatusBadge = (status: string) => {
         <Badge variant="destructive" className="gap-1">
           <Calendar className="h-3 w-3" />
           Hết hạn
+        </Badge>
+      )
+    case 'daKetThuc':
+      return (
+        <Badge variant="secondary" className="gap-1">
+          Đã kết thúc
         </Badge>
       )
     case 'daHuy':
@@ -522,8 +532,11 @@ export function HopDongDataTable(props: HopDongDataTableProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="nhap">Nháp</SelectItem>
+              <SelectItem value="choKichHoat">Chờ kích hoạt</SelectItem>
               <SelectItem value="hoatDong">Hoạt động</SelectItem>
               <SelectItem value="hetHan">Hết hạn</SelectItem>
+              <SelectItem value="daKetThuc">Đã kết thúc</SelectItem>
               <SelectItem value="daHuy">Đã hủy</SelectItem>
             </SelectContent>
           </Select>

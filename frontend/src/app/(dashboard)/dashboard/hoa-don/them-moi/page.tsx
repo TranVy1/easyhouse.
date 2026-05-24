@@ -193,14 +193,26 @@ export default function ThemMoiHoaDonPage() {
   }, [formData.hopDong, formData.thang, formData.nam, fetchLatestElectricityReading]);
 
   const calculateTotal = useCallback(() => {
-    const totalPhiDichVu = formData.phiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
+    const selectedHopDong = hopDongList.find(hd => hd._id === formData.hopDong);
     
+    // Tìm dịch vụ Điện và Nước trong phiDichVu
+    const dienService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('điện') || p.ten.toLowerCase().includes('electricity'));
+    const nuocService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('nước') || p.ten.toLowerCase().includes('water'));
+    
+    const giaDien = dienService ? dienService.gia : 0;
+    const giaNuoc = nuocService ? nuocService.gia : 0;
+    
+    // Lọc bỏ Điện và Nước khỏi tổng phí dịch vụ để không bị tính đúp
+    const filteredPhiDichVu = formData.phiDichVu.filter(phi => 
+      !phi.ten.toLowerCase().includes('điện') && 
+      !phi.ten.toLowerCase().includes('electricity') && 
+      !phi.ten.toLowerCase().includes('nước') && 
+      !phi.ten.toLowerCase().includes('water')
+    );
+    const totalPhiDichVu = filteredPhiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
+
     const soDien = formData.chiSoDienCuoiKy - formData.chiSoDienBanDau;
     const soNuoc = formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau;
-    
-    const selectedHopDong = hopDongList.find(hd => hd._id === formData.hopDong);
-    const giaDien = selectedHopDong?.giaDien || 0;
-    const giaNuoc = selectedHopDong?.giaNuoc || 0;
     
     const tienDienTinh = soDien * giaDien;
     const tienNuocTinh = soNuoc * giaNuoc;
@@ -260,9 +272,18 @@ export default function ThemMoiHoaDonPage() {
     setSubmitting(true);
     
     try {
+      // Lọc bỏ Điện và Nước khỏi phiDichVu để backend không thêm đúp (backend tự add tiền điện/nước riêng)
+      const filteredPhiDichVu = formData.phiDichVu.filter(phi => 
+        !phi.ten.toLowerCase().includes('điện') && 
+        !phi.ten.toLowerCase().includes('electricity') && 
+        !phi.ten.toLowerCase().includes('nước') && 
+        !phi.ten.toLowerCase().includes('water')
+      );
+
       // Đảm bảo các trường ID luôn là UUID string, không phải object
       const requestData = {
         ...formData,
+        phiDichVu: filteredPhiDichVu,
         hopDong: extractId(formData.hopDong) || formData.hopDong,
         phong: extractId(formData.phong) || formData.phong,
         khachThue: extractId(formData.khachThue) || formData.khachThue,

@@ -79,7 +79,7 @@ export default function ChinhSuaHopDongPage() {
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
     phiDichVu: [] as Array<{dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string}>,
-    trangThai: 'hoatDong' as 'hoatDong' | 'hetHan' | 'daHuy',
+    trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
   const [openPhong, setOpenPhong] = useState(false);
@@ -755,13 +755,16 @@ export default function ChinhSuaHopDongPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="trangThai" className="text-xs md:text-sm">Trạng thái</Label>
-                <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'hoatDong' | 'hetHan' | 'daHuy' }))}>
+                <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy' }))}>
                   <SelectTrigger className="text-sm" size="sm">
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="nhap" className="text-sm">Nháp</SelectItem>
+                    <SelectItem value="choKichHoat" className="text-sm">Chờ kích hoạt</SelectItem>
                     <SelectItem value="hoatDong" className="text-sm">Hoạt động</SelectItem>
                     <SelectItem value="hetHan" className="text-sm">Hết hạn</SelectItem>
+                    <SelectItem value="daKetThuc" className="text-sm">Đã kết thúc</SelectItem>
                     <SelectItem value="daHuy" className="text-sm">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>

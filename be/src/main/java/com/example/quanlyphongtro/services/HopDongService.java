@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class HopDongService {
+    private static final List<TrangThaiHopDong> OCCUPYING_STATUSES = List.of(TrangThaiHopDong.PENDING, TrangThaiHopDong.ACTIVE);
 
     private final HopDongRepository hopDongRepository;
     private final PhongRepository phongRepository;
@@ -50,6 +52,9 @@ public class HopDongService {
     @Transactional
     public HopDongResponse create(HopDongRequest req) {
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
+        if (phongId == null) {
+            throw new RuntimeException("Vui long chon phong cho hop dong");
+        }
         UUID khachThueId = resolveRepresentativeId(req);
         if (khachThueId == null) {
             throw new RuntimeException("Vui long chon nguoi dai dien hop dong");
@@ -58,13 +63,15 @@ public class HopDongService {
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
 
-        hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(phongId, TrangThaiHopDong.ACTIVE)
-                .ifPresent(existing -> {
-                    throw new RuntimeException("Phong nay da co hop dong dang hoat dong");
-                });
-
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
+        TrangThaiHopDong trangThai = parseStatus(req.getTrangThai(), TrangThaiHopDong.DRAFT);
+        BigDecimal giaThue = firstMoney(req.getGiaThueHopDong(), req.getGiaThue(), phong.getGiaHienTai());
+        BigDecimal tienCoc = firstMoney(req.getTienCoc(), phong.getTienCocMacDinh(), BigDecimal.ZERO);
+        Integer ngayThanhToan = req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang()
+                : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5);
+        validateContractPayload(req.getNgayBatDau(), req.getNgayKetThuc(), giaThue, tienCoc, ngayThanhToan);
+        ensureNoOverlappingOccupancy(phong.getId(), req.getNgayBatDau(), req.getNgayKetThuc(), null, trangThai);
 
         HopDong hd = HopDong.builder()
                 .maHopDong(req.getMaHopDong())
@@ -72,13 +79,12 @@ public class HopDongService {
                 .khachThue(kt)
                 .ngayBatDau(req.getNgayBatDau())
                 .ngayKetThuc(req.getNgayKetThuc())
-                .giaThueHopDong(req.getGiaThueHopDong() != null ? req.getGiaThueHopDong() : req.getGiaThue())
-                .tienCoc(req.getTienCoc())
+                .giaThueHopDong(giaThue)
+                .tienCoc(tienCoc)
                 .trangThaiCoc(parseCocStatus(req.getTrangThaiCoc()))
-                .trangThai(parseStatus(req.getTrangThai()))
+                .trangThai(trangThai)
                 .chuKyThanhToan(parseChuKy(req.getChuKyThanhToan()))
-                .ngayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang()
-                        : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5))
+                .ngayThanhToanHangThang(ngayThanhToan)
                 .tuDongGiaHan(req.getTuDongGiaHan() != null ? req.getTuDongGiaHan() : false)
                 .chiSoDienBanDau(req.getChiSoDienBanDau())
                 .chiSoNuocBanDau(req.getChiSoNuocBanDau())
@@ -90,8 +96,7 @@ public class HopDongService {
         HopDong saved = hopDongRepository.save(hd);
         replaceThanhVien(saved, req);
         replaceDichVuHopDong(saved, req);
-        phong.setTrangThai(TrangThaiPhong.RENTED);
-        phongRepository.save(phong);
+        syncRoomStatus(phong.getId());
         return toResponse(saved);
     }
 
@@ -100,6 +105,7 @@ public class HopDongService {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
 
+        UUID oldPhongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
         UUID khachThueId = resolveRepresentativeId(req);
         if (phongId != null) {
@@ -140,14 +146,13 @@ public class HopDongService {
         if (req.getGhiChu() != null)
             hd.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) {
-            TrangThaiHopDong newStatus = parseStatus(req.getTrangThai());
+            TrangThaiHopDong newStatus = parseStatus(req.getTrangThai(), hd.getTrangThai());
             hd.setTrangThai(newStatus);
-            if (newStatus == TrangThaiHopDong.TERMINATED || newStatus == TrangThaiHopDong.CANCELLED) {
-                Phong phong = hd.getPhong();
-                phong.setTrangThai(TrangThaiPhong.AVAILABLE);
-                phongRepository.save(phong);
-            }
         }
+        validateContractPayload(hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getGiaThueHopDong(), hd.getTienCoc(),
+                hd.getNgayThanhToanHangThang());
+        ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getId(),
+                hd.getTrangThai());
         HopDong saved = hopDongRepository.save(hd);
         if (req.hasMemberPayload()) {
             replaceThanhVien(saved, req);
@@ -155,9 +160,14 @@ public class HopDongService {
         if (req.getPhiDichVu() != null) {
             replaceDichVuHopDong(saved, req);
         }
+        if (oldPhongId != null && !oldPhongId.equals(saved.getPhong().getId())) {
+            syncRoomStatus(oldPhongId);
+        }
+        syncRoomStatus(saved.getPhong().getId());
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<HopDongDichVuOptionResponse> getDichVuTheoPhong(UUID phongId) {
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
@@ -199,27 +209,29 @@ public class HopDongService {
     public void delete(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
-        if (hd.getTrangThai() == TrangThaiHopDong.ACTIVE) {
-            Phong phong = hd.getPhong();
-            phong.setTrangThai(TrangThaiPhong.AVAILABLE);
-            phongRepository.save(phong);
-        }
+        UUID phongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         hd.setXoaLuc(java.time.ZonedDateTime.now());
         hopDongRepository.save(hd);
+        if (phongId != null) {
+            syncRoomStatus(phongId);
+        }
     }
 
-    private TrangThaiHopDong parseStatus(String s) {
+    private TrangThaiHopDong parseStatus(String s, TrangThaiHopDong fallback) {
         if (s == null)
-            return TrangThaiHopDong.ACTIVE;
+            return fallback != null ? fallback : TrangThaiHopDong.DRAFT;
         return switch (s) {
+            case "nhap" -> TrangThaiHopDong.DRAFT;
+            case "choKichHoat" -> TrangThaiHopDong.PENDING;
             case "hoatDong" -> TrangThaiHopDong.ACTIVE;
             case "hetHan" -> TrangThaiHopDong.EXPIRED;
+            case "daKetThuc" -> TrangThaiHopDong.TERMINATED;
             case "daHuy" -> TrangThaiHopDong.CANCELLED;
             default -> {
                 try {
                     yield TrangThaiHopDong.valueOf(s.toUpperCase());
                 } catch (Exception e) {
-                    yield TrangThaiHopDong.ACTIVE;
+                    yield fallback != null ? fallback : TrangThaiHopDong.DRAFT;
                 }
             }
         };
@@ -272,13 +284,6 @@ public class HopDongService {
             memberIds.add(representativeId);
         if (req.getKhachThueIds() != null)
             memberIds.addAll(req.getKhachThueIds());
-        if (req.getThanhVien() != null) {
-            req.getThanhVien().stream()
-                    .map(HopDongRequest.ThanhVienRequest::getKhachThueId)
-                    .filter(id -> id != null)
-                    .forEach(memberIds::add);
-        }
-
         thanhVienHopDongRepository.deleteByHopDongId(hopDong.getId());
         thanhVienHopDongRepository.flush();
         LocalDate defaultNgayVao = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
@@ -296,6 +301,25 @@ public class HopDongService {
                     .dangO(true)
                     .laNguoiDaiDien(memberId.equals(representativeId))
                     .build());
+        }
+
+        if (req.getThanhVien() != null) {
+            for (HopDongRequest.ThanhVienRequest member : req.getThanhVien()) {
+                if (member == null || member.getKhachThueId() != null) continue;
+                if (member.getHoTen() == null || member.getHoTen().isBlank()) continue;
+                thanhVienHopDongRepository.save(com.example.quanlyphongtro.entity.ThanhVienHopDong.builder()
+                        .hopDong(hopDong)
+                        .khachThue(null)
+                        .hoTen(member.getHoTen().trim())
+                        .soCccd(member.getSoCccd())
+                        .soDienThoai(member.getSoDienThoai())
+                        .ngayVao(member.getNgayVao() != null ? member.getNgayVao() : defaultNgayVao)
+                        .ngayRoi(member.getNgayRoi())
+                        .dangO(member.getDangO() != null ? member.getDangO() : true)
+                        .laNguoiDaiDien(false)
+                        .ghiChu(member.getGhiChu())
+                        .build());
+            }
         }
     }
 
@@ -435,5 +459,66 @@ public class HopDongService {
 
     private BigDecimal defaultMoney(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private BigDecimal firstMoney(BigDecimal first, BigDecimal second, BigDecimal fallback) {
+        if (first != null) return first;
+        if (second != null) return second;
+        return fallback != null ? fallback : BigDecimal.ZERO;
+    }
+
+    private void validateContractPayload(LocalDate ngayBatDau, LocalDate ngayKetThuc, BigDecimal giaThue,
+            BigDecimal tienCoc, Integer ngayThanhToan) {
+        if (ngayBatDau == null || ngayKetThuc == null) {
+            throw new RuntimeException("Vui long nhap ngay bat dau va ngay ket thuc hop dong");
+        }
+        if (!ngayKetThuc.isAfter(ngayBatDau)) {
+            throw new RuntimeException("Ngay ket thuc hop dong phai sau ngay bat dau");
+        }
+        if (giaThue == null || giaThue.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Gia thue hop dong khong hop le");
+        }
+        if (tienCoc == null || tienCoc.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Tien coc hop dong khong hop le");
+        }
+        if (ngayThanhToan == null || ngayThanhToan < 1 || ngayThanhToan > 31) {
+            throw new RuntimeException("Ngay thanh toan hang thang phai tu 1 den 31");
+        }
+    }
+
+    private void ensureNoOverlappingOccupancy(UUID phongId, LocalDate ngayBatDau, LocalDate ngayKetThuc, UUID excludeId,
+            TrangThaiHopDong trangThai) {
+        if (!isOccupyingStatus(trangThai)) return;
+        List<HopDong> conflicts = hopDongRepository.findOverlappingRoomContracts(
+                phongId, OCCUPYING_STATUSES, ngayBatDau, ngayKetThuc, excludeId);
+        if (!conflicts.isEmpty()) {
+            throw new RuntimeException("Phong nay da co hop dong cho kich hoat hoac dang hoat dong trong khoang thoi gian nay");
+        }
+    }
+
+    private boolean isOccupyingStatus(TrangThaiHopDong trangThai) {
+        return trangThai == TrangThaiHopDong.PENDING || trangThai == TrangThaiHopDong.ACTIVE;
+    }
+
+    private void syncRoomStatus(UUID phongId) {
+        if (phongId == null) return;
+        Phong phong = phongRepository.findById(phongId).orElse(null);
+        if (phong == null || phong.getXoaLuc() != null) return;
+        if (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE) {
+            return;
+        }
+
+        List<HopDong> occupying = hopDongRepository.findRoomOccupyingContracts(phongId, OCCUPYING_STATUSES).stream()
+                .sorted(Comparator.comparing((HopDong hd) -> hd.getTrangThai() == TrangThaiHopDong.ACTIVE ? 0 : 1)
+                        .thenComparing(HopDong::getNgayBatDau, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+        if (occupying.stream().anyMatch(hd -> hd.getTrangThai() == TrangThaiHopDong.ACTIVE)) {
+            phong.setTrangThai(TrangThaiPhong.RENTED);
+        } else if (!occupying.isEmpty()) {
+            phong.setTrangThai(TrangThaiPhong.RESERVED);
+        } else if (phong.getTrangThai() == TrangThaiPhong.RENTED || phong.getTrangThai() == TrangThaiPhong.RESERVED) {
+            phong.setTrangThai(TrangThaiPhong.AVAILABLE);
+        }
+        phongRepository.save(phong);
     }
 }

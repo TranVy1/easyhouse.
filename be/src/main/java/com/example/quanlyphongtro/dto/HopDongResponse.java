@@ -112,8 +112,6 @@ public class HopDongResponse {
                 .chiSoDienBanDau(hd.getChiSoDienBanDau())
                 .chiSoNuocBanDau(hd.getChiSoNuocBanDau())
                 .noiDungHopDong(hd.getNoiDungHopDong() != null ? hd.getNoiDungHopDong() : "")
-                .giaDien(BigDecimal.ZERO)
-                .giaNuoc(BigDecimal.ZERO)
                 .phiDichVu(List.of())
                 .filePdf(hd.getFilePdf())
                 .ghiChu(hd.getGhiChu())
@@ -122,12 +120,15 @@ public class HopDongResponse {
     }
 
     private static String mapTrangThai(String trangThai) {
-        if (trangThai == null) return "hoatDong";
+        if (trangThai == null) return "nhap";
         return switch (trangThai) {
+            case "DRAFT" -> "nhap";
+            case "PENDING" -> "choKichHoat";
             case "ACTIVE" -> "hoatDong";
             case "EXPIRED" -> "hetHan";
-            case "CANCELLED", "TERMINATED" -> "daHuy";
-            default -> "hoatDong";
+            case "TERMINATED" -> "daKetThuc";
+            case "CANCELLED" -> "daHuy";
+            default -> "nhap";
         };
     }
 

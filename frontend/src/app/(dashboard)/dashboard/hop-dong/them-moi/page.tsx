@@ -97,12 +97,10 @@ export default function ThemMoiHopDongPage() {
 - Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận
 - Mọi tranh chấp sẽ được giải quyết thông qua thương lượng
 - Hợp đồng có hiệu lực kể từ ngày ký`,
-    giaDien: 3500,
-    giaNuoc: 25000,
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
     phiDichVu: [] as Array<{ dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string }>,
-    trangThai: 'hoatDong' as 'hoatDong' | 'hetHan' | 'daHuy',
+    trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
   const [openPhong, setOpenPhong] = useState(false);
@@ -124,6 +122,7 @@ export default function ThemMoiHopDongPage() {
         donGiaMacDinh: Number(item.donGiaMacDinh || 0),
       }));
       setDichVuOptions(options);
+
       setFormData(prev => ({
         ...prev,
         phiDichVu: [
@@ -675,45 +674,20 @@ export default function ThemMoiHopDongPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="giaDien">Giá điện (VNĐ/kWh)</Label>
-                <Input
-                  id="giaDien"
-                  type="number"
-                  min="0"
-                  value={formData.giaDien}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaDien: parseInt(e.target.value) || 0 }))}
-                  required
-                />
-                <span className="text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaDien)}
-                </span>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="giaNuoc">Giá nước (VNĐ/m³)</Label>
-                <Input
-                  id="giaNuoc"
-                  type="number"
-                  min="0"
-                  value={formData.giaNuoc}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaNuoc: parseInt(e.target.value) || 0 }))}
-                  required
-                />
-                <span className="text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaNuoc)}
-                </span>
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="trangThai">Trạng thái</Label>
-                <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'hoatDong' | 'hetHan' | 'daHuy' }))}>
+                <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy' }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="nhap">Nháp</SelectItem>
+                    <SelectItem value="choKichHoat">Chờ kích hoạt</SelectItem>
                     <SelectItem value="hoatDong">Hoạt động</SelectItem>
                     <SelectItem value="hetHan">Hết hạn</SelectItem>
+                    <SelectItem value="daKetThuc">Đã kết thúc</SelectItem>
                     <SelectItem value="daHuy">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
