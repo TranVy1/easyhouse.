@@ -148,6 +148,50 @@ const nextConfig: NextConfig = {
         source: '/api/user/:path*',
         destination: `${backendUrl}/api/user/:path*`
       },
+      {
+        source: '/api/tien-ich',
+        destination: `${backendUrl}/api/tien-ich`
+      },
+      {
+        source: '/api/tien-ich/:path*',
+        destination: `${backendUrl}/api/tien-ich/:path*`
+      },
+      {
+        source: '/api/lich-hen',
+        destination: `${backendUrl}/api/lich-hen`
+      },
+      {
+        source: '/api/lich-hen/:path*',
+        destination: `${backendUrl}/api/lich-hen/:path*`
+      },
+      {
+        source: '/api/media',
+        destination: `${backendUrl}/api/media`
+      },
+      {
+        source: '/api/media/:path*',
+        destination: `${backendUrl}/api/media/:path*`
+      },
+      {
+        source: '/api/bao-cao/:path*',
+        destination: `${backendUrl}/api/bao-cao/:path*`
+      },
+      {
+        source: '/api/audit-log/:path*',
+        destination: `${backendUrl}/api/audit-log/:path*`
+      },
+      {
+        source: '/api/audit-log',
+        destination: `${backendUrl}/api/audit-log`
+      },
+      {
+        source: '/api/bank-transaction/:path*',
+        destination: `${backendUrl}/api/bank-transaction/:path*`
+      },
+      {
+        source: '/api/bank-transaction',
+        destination: `${backendUrl}/api/bank-transaction`
+      },
     ];
   }
 };

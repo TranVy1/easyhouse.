@@ -202,8 +202,8 @@ export default function ThongBaoPage() {
     return toaNhaNames.length > 0 ? toaNhaNames.join(', ') : 'Không xác định';
   };
 
-  const getPhongNames = (phongIds: string[]) => {
-    if (phongIds.length === 0) return 'Tất cả phòng';
+  const getPhongNames = (phongIds?: string[]) => {
+    if (!phongIds || phongIds.length === 0) return 'Tất cả phòng';
     const phongNames = phongIds.map(id => {
       const phong = phongList.find(p => p._id === id);
       return phong?.maPhong || 'Không xác định';
@@ -211,8 +211,8 @@ export default function ThongBaoPage() {
     return phongNames.join(', ');
   };
 
-  const getKhachThueNames = (khachThueIds: string[]) => {
-    if (khachThueIds.length === 0) return 'Tất cả khách thuê';
+  const getKhachThueNames = (khachThueIds?: string[]) => {
+    if (!khachThueIds || khachThueIds.length === 0) return 'Tất cả khách thuê';
     const khachThueNames = khachThueIds.map(id => {
       const khachThue = khachThueList.find(k => k._id === id);
       return khachThue?.hoTen || 'Không xác định';
@@ -272,7 +272,7 @@ export default function ThongBaoPage() {
   const handleToggleRead = async (thongBao: ThongBao) => {
     if (!thongBao._id) return;
 
-    const daDoc = !(thongBao.daDoc?.length > 0);
+    const daDoc = !(thongBao.daDoc && thongBao.daDoc.length > 0);
     try {
       const response = await fetch(`/api/thong-bao/${thongBao._id}/da-doc?daDoc=${daDoc}`, {
         method: 'PATCH',
@@ -501,8 +501,8 @@ export default function ThongBaoPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={thongBao.daDoc.length > 0 ? "default" : "secondary"}>
-                        {thongBao.daDoc.length > 0 ? 'Đã đọc' : 'Chưa đọc'}
+                      <Badge variant={thongBao.daDoc && thongBao.daDoc.length > 0 ? "default" : "secondary"}>
+                        {thongBao.daDoc && thongBao.daDoc.length > 0 ? 'Đã đọc' : 'Chưa đọc'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -626,8 +626,8 @@ export default function ThongBaoPage() {
 
                   {/* Read status */}
                   <div className="border-t pt-2">
-                    <Badge variant={thongBao.daDoc.length > 0 ? "default" : "secondary"} className="text-xs">
-                      {thongBao.daDoc.length > 0 ? 'Đã đọc' : 'Chưa đọc'}
+                    <Badge variant={thongBao.daDoc && thongBao.daDoc.length > 0 ? "default" : "secondary"} className="text-xs">
+                      {thongBao.daDoc && thongBao.daDoc.length > 0 ? 'Đã đọc' : 'Chưa đọc'}
                     </Badge>
                   </div>
 
@@ -640,7 +640,7 @@ export default function ThongBaoPage() {
                       className="flex-1"
                     >
                       <Eye className="h-3.5 w-3.5 mr-1" />
-                      {thongBao.daDoc.length > 0 ? 'Chưa đọc' : 'Đã đọc'}
+                      {thongBao.daDoc && thongBao.daDoc.length > 0 ? 'Chưa đọc' : 'Đã đọc'}
                     </Button>
                     <Button
                       variant="outline"

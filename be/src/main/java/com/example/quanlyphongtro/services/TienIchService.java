@@ -15,6 +15,41 @@ import java.util.UUID;
 public class TienIchService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final com.example.quanlyphongtro.repository.TienIchRepository tienIchRepository;
+
+    public List<com.example.quanlyphongtro.dto.TienIchResponse> getAll() {
+        return tienIchRepository.findAll().stream()
+                .map(com.example.quanlyphongtro.dto.TienIchResponse::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public com.example.quanlyphongtro.dto.TienIchResponse getById(UUID id) {
+        com.example.quanlyphongtro.entity.TienIch tienIch = tienIchRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tiện ích"));
+        return com.example.quanlyphongtro.dto.TienIchResponse.fromEntity(tienIch);
+    }
+
+    @Transactional
+    public com.example.quanlyphongtro.dto.TienIchResponse create(com.example.quanlyphongtro.dto.TienIchRequest req) {
+        com.example.quanlyphongtro.entity.TienIch tienIch = new com.example.quanlyphongtro.entity.TienIch();
+        tienIch.setTen(req.getTen());
+        tienIch.setBieuTuong(req.getBieuTuong());
+        return com.example.quanlyphongtro.dto.TienIchResponse.fromEntity(tienIchRepository.save(tienIch));
+    }
+
+    @Transactional
+    public com.example.quanlyphongtro.dto.TienIchResponse update(UUID id, com.example.quanlyphongtro.dto.TienIchRequest req) {
+        com.example.quanlyphongtro.entity.TienIch tienIch = tienIchRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tiện ích"));
+        tienIch.setTen(req.getTen());
+        tienIch.setBieuTuong(req.getBieuTuong());
+        return com.example.quanlyphongtro.dto.TienIchResponse.fromEntity(tienIchRepository.save(tienIch));
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        tienIchRepository.deleteById(id);
+    }
 
     public List<String> listByPhong(UUID phongId) {
         if (phongId == null) return List.of();

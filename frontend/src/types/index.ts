@@ -70,6 +70,9 @@ export type LoaiThongBaoUi = 'chung' | 'hoaDon' | 'thanhToan' | 'hopDong' | 'suC
 export type LoaiThongBao = LoaiThongBaoDb | LoaiThongBaoUi;
 export type KenhThongBao = 'IN_APP' | 'EMAIL' | 'SMS' | 'ZALO' | 'TELEGRAM' | 'PUSH';
 
+export type TrangThaiLichHen = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
+export type LoaiDoiTuongMedia = 'USER' | 'TENANT' | 'ROOM' | 'CONTRACT' | 'INVOICE' | 'PAYMENT' | 'INCIDENT' | 'METER_READING' | 'APPOINTMENT' | 'OTHER';
+
 export interface DiaChi {
   soNha: string;
   duong: string;
@@ -95,6 +98,17 @@ export interface PhiDichVu {
   gia: number;
   soLuong?: number;
   loaiTinhPhi?: LoaiTinhPhi;
+}
+
+export interface DichVu {
+  id?: ID;
+  _id?: ID;
+  chuTroId?: ID;
+  tenDichVu: string;
+  loaiTinhPhi: LoaiTinhPhi;
+  donVi?: string;
+  donGiaMacDinh: number;
+  batBuoc: boolean;
 }
 
 export interface NguoiDung {
@@ -414,6 +428,82 @@ export interface SuCo {
   ngayCapNhat: DateLike;
   taoLuc?: DateLike;
   capNhatLuc?: DateLike;
+}
+
+export interface LichHen {
+  id?: ID;
+  _id?: ID;
+  phongId?: ID;
+  phong?: PhongRef;
+  nguoiDungId?: ID;
+  hoTen: string;
+  soDienThoai: string;
+  email?: string;
+  ngayHen: DateLike;
+  trangThai: TrangThaiLichHen;
+  daGuiNhacNho?: boolean;
+  ghiChu?: string;
+  taoLuc?: DateLike;
+  capNhatLuc?: DateLike;
+}
+
+export interface FileMedia {
+  id?: ID;
+  _id?: ID;
+  doiTuong: LoaiDoiTuongMedia;
+  doiTuongId: ID;
+  url: string;
+  publicId?: string;
+  loaiFile?: string;
+  kichThuocBytes?: number;
+  metadata?: any;
+  nguoiTaiLenId?: ID;
+  taoLuc?: DateLike;
+}
+
+export interface BaoCaoTongQuan {
+  doanhThu: number;
+  tienDaThu: number;
+  tienChuaThu: number;
+  tyLeLapDay: number;
+  suCoCanXuLy: number;
+  hopDongSapHetHan: number;
+  bieuDoDoanhThu: {
+    thang: string;
+    doanhThu: number;
+    daThu: number;
+  }[];
+}
+
+export interface AuditLog {
+  id?: ID;
+  _id?: ID;
+  nguoiDungId?: ID;
+  nguoiDungHoTen?: string;
+  nguoiDungEmail?: string;
+  hanhDong: string;
+  bangTacDong?: string;
+  banGhiId?: ID;
+  duLieuCu?: string;
+  duLieuMoi?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  taoLuc?: DateLike;
+}
+
+export interface BankTransaction {
+  id?: ID;
+  _id?: ID;
+  nhaTroId?: ID;
+  hoaDonId?: ID;
+  soTien: number;
+  noiDungChuyenKhoan?: string;
+  maGiaoDich?: string;
+  nganHang?: string;
+  thoiGianGiaoDich: DateLike;
+  payload?: any;
+  daDoiSoat: boolean;
+  taoLuc?: DateLike;
 }
 
 export interface ThongBao {

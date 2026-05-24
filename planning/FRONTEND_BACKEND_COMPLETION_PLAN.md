@@ -119,31 +119,31 @@ Ket luan: can them man hinh. Cac bang SQL moi va chuc nang thuc te chua duoc sur
 - [x] `/dashboard/cau-hinh-gia` - Cau hinh gia dich vu:
   - Bat buoc lam som vi hoa don phu thuoc vao gia phong/dien/nuoc/internet/rac/gui xe.
   - Backend API nen tang da co `/api/cau-hinh-gia`; tiep theo can UI list/form.
-- [ ] `/dashboard/chi-so-dien-nuoc` - Chot chi so:
+- [x] `/dashboard/chi-so-dien-nuoc` - Chot chi so:
   - CRUD chi so theo phong/hop dong/ky/loai.
   - Trang thai DRAFT/CONFIRMED/BILLED/CANCELLED.
   - Day la dau vao bat buoc cho hoa don dung thuc te.
 - [x] `/dashboard/cong-no` - Cong no:
   - Xem no theo khach thue/phong/toa nha/ky.
   - Loc qua han, xuat danh sach nhac no.
-  - Tao line item `DEBT` khi chuyen ky (Tich hop vao form lap hoa don duoi dang No cu / So du dau ky).
-- [ ] `/dashboard/dich-vu` - Dich vu va tien ich:
+  - Tao line item `DEBT` khi chuyen ky.
+- [x] `/dashboard/dich-vu` - Dich vu va tien ich:
   - CRUD `dich_vu`, `tien_ich`.
   - Gan dich vu vao hop dong qua `dich_vu_hop_dong`.
   - Gan tien ich vao phong qua `phong_tien_ich`.
-- [ ] `/dashboard/lich-hen` - Lich hen xem phong:
+- [x] `/dashboard/lich-hen` - Lich hen xem phong:
   - CRUD/duyet/huy/hoan thanh/no-show lich hen.
   - Lay tu public room portal.
-- [ ] `/dashboard/media` - Quan ly file/media:
+- [x] `/dashboard/media` - Quan ly file/media:
   - Quan ly file trong `file_media`.
   - Gan file cho phong, khach thue, hop dong, hoa don, thanh toan, su co, chi so.
-- [ ] `/dashboard/bao-cao` - Bao cao:
+- [x] `/dashboard/bao-cao` - Bao cao:
   - Doanh thu, tien da thu, tien chua thu, ty le lap day, su co, hop dong sap het han.
   - Nen tach API aggregate rieng, khong load toan bo bang.
-- [ ] `/dashboard/audit-log` - Nhat ky he thong:
+- [x] `/dashboard/audit-log` - Nhat ky he thong:
   - Xem audit cho hop dong, hoa don, thanh toan, user, phan quyen.
   - Quan trong cho production.
-- [ ] `/dashboard/vietqr-doi-soat` - Doi soat ngan hang:
+- [x] `/dashboard/vietqr-doi-soat` - Doi soat ngan hang:
   - Lam sau khi thanh toan co ban on dinh.
   - Quan ly `bank_transaction`, auto-match/manual-match/refund.
 

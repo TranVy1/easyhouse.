@@ -55,6 +55,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Khách thuê",
             url: "/dashboard/khach-thue",
           },
+          {
+            title: "Dịch vụ & Tiện ích",
+            url: "/dashboard/dich-vu",
+          },
         ],
       },
       {
@@ -100,6 +104,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Thông báo",
             url: "/dashboard/thong-bao",
+          },
+          {
+            title: "Lịch hẹn",
+            url: "/dashboard/lich-hen",
+          },
+          {
+            title: "File & Media",
+            url: "/dashboard/media",
+          },
+          {
+            title: "Báo cáo",
+            url: "/dashboard/bao-cao",
+          },
+          {
+            title: "Nhật ký hệ thống",
+            url: "/dashboard/audit-log",
+          },
+          {
+            title: "Đối soát VietQR",
+            url: "/dashboard/vietqr-doi-soat",
           },
           {
             title: "Xem Web",

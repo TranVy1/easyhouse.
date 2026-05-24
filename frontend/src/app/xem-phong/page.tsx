@@ -30,6 +30,8 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { ImageCarousel } from '@/components/ui/image-carousel';
 
+import { DatLichHenDialog } from '@/components/ui/dat-lich-hen-dialog';
+
 type ToaNhaRef = string | { tenToaNha?: string };
 
 const getToaNhaTen = (toaNha: ToaNhaRef) => {
@@ -49,6 +51,7 @@ export default function XemPhongPage() {
   const [selectedPhong, setSelectedPhong] = useState<Phong | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '') => {
     try {
@@ -393,9 +396,13 @@ export default function XemPhongPage() {
                     <p className="text-xs md:text-sm text-slate-600">
                       Phòng này hiện đang trống và có thể cho thuê. Vui lòng liên hệ để biết thêm thông tin.
                     </p>
-                    <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300" size="sm">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300" 
+                      size="sm"
+                      onClick={() => setIsBookingOpen(true)}
+                    >
                       <Phone className="h-4 w-4 mr-2" />
-                      Liên hệ ngay
+                      Đặt lịch xem phòng
                     </Button>
                   </CardContent>
                 </Card>
@@ -454,6 +461,13 @@ export default function XemPhongPage() {
             </div>
           </div>
         </div>
+        
+        <DatLichHenDialog 
+          isOpen={isBookingOpen} 
+          onClose={() => setIsBookingOpen(false)} 
+          phongId={selectedPhong._id || selectedPhong.id || ""} 
+          maPhong={selectedPhong.maPhong} 
+        />
       </div>
     );
   }
