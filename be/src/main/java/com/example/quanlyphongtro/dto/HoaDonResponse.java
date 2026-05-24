@@ -33,6 +33,7 @@ public class HoaDonResponse {
     private LocalDate hanTra;
     private String ghiChu;
     private List<ChiTietItem> chiTietHoaDon;
+    private List<PhiDichVuItem> phiDichVu;
     private ZonedDateTime ngayTao;
     private ZonedDateTime ngayCapNhat;
 
@@ -40,11 +41,22 @@ public class HoaDonResponse {
     @Builder
     public static class ChiTietItem {
         private UUID id;
+        private UUID dichVuId;
+        private UUID chiSoDienNuocId;
         private String loai;
         private String moTa;
         private BigDecimal soLuong;
         private BigDecimal donGia;
         private BigDecimal thanhTien;
+    }
+
+    @Data
+    @Builder
+    public static class PhiDichVuItem {
+        private UUID dichVuId;
+        private String ten;
+        private BigDecimal gia;
+        private BigDecimal soLuong;
     }
 
     public static HoaDonResponse fromEntity(HoaDon hd, List<ChiTietHoaDon> chiTietList) {
@@ -55,16 +67,27 @@ public class HoaDonResponse {
         Object hdObj = hd.getHopDong() != null ? hd.getHopDong().getId().toString() : null;
 
         List<ChiTietItem> items = new ArrayList<>();
+        List<PhiDichVuItem> phiDichVu = new ArrayList<>();
         if (chiTietList != null) {
             for (ChiTietHoaDon ct : chiTietList) {
                 items.add(ChiTietItem.builder()
                         .id(ct.getId())
+                        .dichVuId(ct.getDichVuId())
+                        .chiSoDienNuocId(ct.getChiSoDienNuocId())
                         .loai(ct.getLoai() != null ? ct.getLoai().name() : null)
                         .moTa(ct.getMoTa())
                         .soLuong(ct.getSoLuong())
                         .donGia(ct.getDonGia())
                         .thanhTien(ct.getThanhTien())
                         .build());
+                if (ct.getLoai() == LoaiMucHoaDon.SERVICE) {
+                    phiDichVu.add(PhiDichVuItem.builder()
+                            .dichVuId(ct.getDichVuId())
+                            .ten(ct.getMoTa())
+                            .gia(ct.getDonGia())
+                            .soLuong(ct.getSoLuong())
+                            .build());
+                }
             }
         }
 
@@ -87,6 +110,7 @@ public class HoaDonResponse {
                 .hanTra(hd.getHanTra())
                 .ghiChu(hd.getGhiChu())
                 .chiTietHoaDon(items)
+                .phiDichVu(phiDichVu)
                 .ngayTao(hd.getTaoLuc())
                 .ngayCapNhat(hd.getCapNhatLuc())
                 .build();

@@ -48,7 +48,9 @@ public class HoaDonRequest {
 
     @Data
     public static class PhiDichVuItem {
+        private UUID dichVuId;
         private String ten;
         private BigDecimal gia;
+        private BigDecimal soLuong;
     }
 }

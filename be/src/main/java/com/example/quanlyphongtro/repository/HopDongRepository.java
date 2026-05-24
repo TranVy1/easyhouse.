@@ -24,6 +24,40 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
     @Query("SELECT hd FROM HopDong hd WHERE hd.phong.id = :phongId AND hd.trangThai = :trangThai AND hd.xoaLuc IS NULL ORDER BY hd.taoLuc DESC")
     List<HopDong> findByPhongIdAndTrangThai(@Param("phongId") UUID phongId, @Param("trangThai") TrangThaiHopDong trangThai);
 
+    @Query("""
+            SELECT hd
+            FROM HopDong hd
+            WHERE hd.phong.id = :phongId
+              AND hd.trangThai IN :trangThai
+              AND hd.xoaLuc IS NULL
+              AND (:excludeId IS NULL OR hd.id <> :excludeId)
+              AND hd.ngayBatDau <= :ngayKetThuc
+              AND hd.ngayKetThuc >= :ngayBatDau
+            ORDER BY hd.ngayBatDau ASC
+            """)
+    List<HopDong> findOverlappingRoomContracts(
+            @Param("phongId") UUID phongId,
+            @Param("trangThai") List<TrangThaiHopDong> trangThai,
+            @Param("ngayBatDau") java.time.LocalDate ngayBatDau,
+            @Param("ngayKetThuc") java.time.LocalDate ngayKetThuc,
+            @Param("excludeId") UUID excludeId
+    );
+
+    @Query("""
+            SELECT hd
+            FROM HopDong hd
+            WHERE hd.phong.id = :phongId
+              AND hd.trangThai IN :trangThai
+              AND hd.xoaLuc IS NULL
+            ORDER BY
+              CASE hd.trangThai WHEN com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE THEN 0 ELSE 1 END,
+              hd.ngayBatDau DESC
+            """)
+    List<HopDong> findRoomOccupyingContracts(
+            @Param("phongId") UUID phongId,
+            @Param("trangThai") List<TrangThaiHopDong> trangThai
+    );
+
     default Optional<HopDong> findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(UUID phongId, TrangThaiHopDong trangThai) {
         List<HopDong> list = findByPhongIdAndTrangThai(phongId, trangThai);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));

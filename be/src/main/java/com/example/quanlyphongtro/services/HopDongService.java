@@ -32,7 +32,6 @@ public class HopDongService {
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final DichVuRepository dichVuRepository;
     private final CauHinhGiaRepository cauHinhGiaRepository;
-    private final TienIchService tienIchService;
 
     @Transactional(readOnly = true)
     public List<HopDongResponse> getAll() {
@@ -67,9 +66,6 @@ public class HopDongService {
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
 
-        List<String> tienIchHienTai = tienIchService.listByPhong(phongId);
-        String snapshotTienIch = String.join(", ", tienIchHienTai);
-
         HopDong hd = HopDong.builder()
                 .maHopDong(req.getMaHopDong())
                 .phong(phong)
@@ -81,11 +77,11 @@ public class HopDongService {
                 .trangThaiCoc(parseCocStatus(req.getTrangThaiCoc()))
                 .trangThai(parseStatus(req.getTrangThai()))
                 .chuKyThanhToan(parseChuKy(req.getChuKyThanhToan()))
-                .ngayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang() : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5))
+                .ngayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang()
+                        : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5))
                 .tuDongGiaHan(req.getTuDongGiaHan() != null ? req.getTuDongGiaHan() : false)
                 .chiSoDienBanDau(req.getChiSoDienBanDau())
                 .chiSoNuocBanDau(req.getChiSoNuocBanDau())
-                .tienIchBanGiao(snapshotTienIch)
                 .noiDungHopDong(req.getNoiDungHopDong() != null ? req.getNoiDungHopDong() : req.getDieuKhoan())
                 .filePdf(req.getFilePdf())
                 .ghiChu(req.getGhiChu())
@@ -114,23 +110,35 @@ public class HopDongService {
             hd.setKhachThue(khachThueRepository.findById(khachThueId)
                     .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue")));
         }
-        if (req.getMaHopDong() != null) hd.setMaHopDong(req.getMaHopDong());
-        if (req.getNgayBatDau() != null) hd.setNgayBatDau(req.getNgayBatDau());
-        if (req.getNgayKetThuc() != null) hd.setNgayKetThuc(req.getNgayKetThuc());
+        if (req.getMaHopDong() != null)
+            hd.setMaHopDong(req.getMaHopDong());
+        if (req.getNgayBatDau() != null)
+            hd.setNgayBatDau(req.getNgayBatDau());
+        if (req.getNgayKetThuc() != null)
+            hd.setNgayKetThuc(req.getNgayKetThuc());
         if (req.getGiaThueHopDong() != null || req.getGiaThue() != null)
             hd.setGiaThueHopDong(req.getGiaThueHopDong() != null ? req.getGiaThueHopDong() : req.getGiaThue());
-        if (req.getTienCoc() != null) hd.setTienCoc(req.getTienCoc());
-        if (req.getTrangThaiCoc() != null) hd.setTrangThaiCoc(parseCocStatus(req.getTrangThaiCoc()));
-        if (req.getChuKyThanhToan() != null) hd.setChuKyThanhToan(parseChuKy(req.getChuKyThanhToan()));
+        if (req.getTienCoc() != null)
+            hd.setTienCoc(req.getTienCoc());
+        if (req.getTrangThaiCoc() != null)
+            hd.setTrangThaiCoc(parseCocStatus(req.getTrangThaiCoc()));
+        if (req.getChuKyThanhToan() != null)
+            hd.setChuKyThanhToan(parseChuKy(req.getChuKyThanhToan()));
         if (req.getNgayThanhToanHangThang() != null || req.getNgayThanhToan() != null)
-            hd.setNgayThanhToanHangThang(req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang() : req.getNgayThanhToan());
-        if (req.getTuDongGiaHan() != null) hd.setTuDongGiaHan(req.getTuDongGiaHan());
-        if (req.getChiSoDienBanDau() != null) hd.setChiSoDienBanDau(req.getChiSoDienBanDau());
-        if (req.getChiSoNuocBanDau() != null) hd.setChiSoNuocBanDau(req.getChiSoNuocBanDau());
+            hd.setNgayThanhToanHangThang(
+                    req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang() : req.getNgayThanhToan());
+        if (req.getTuDongGiaHan() != null)
+            hd.setTuDongGiaHan(req.getTuDongGiaHan());
+        if (req.getChiSoDienBanDau() != null)
+            hd.setChiSoDienBanDau(req.getChiSoDienBanDau());
+        if (req.getChiSoNuocBanDau() != null)
+            hd.setChiSoNuocBanDau(req.getChiSoNuocBanDau());
         if (req.getNoiDungHopDong() != null || req.getDieuKhoan() != null)
             hd.setNoiDungHopDong(req.getNoiDungHopDong() != null ? req.getNoiDungHopDong() : req.getDieuKhoan());
-        if (req.getFilePdf() != null) hd.setFilePdf(req.getFilePdf());
-        if (req.getGhiChu() != null) hd.setGhiChu(req.getGhiChu());
+        if (req.getFilePdf() != null)
+            hd.setFilePdf(req.getFilePdf());
+        if (req.getGhiChu() != null)
+            hd.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) {
             TrangThaiHopDong newStatus = parseStatus(req.getTrangThai());
             hd.setTrangThai(newStatus);
@@ -156,8 +164,23 @@ public class HopDongService {
         LocalDate today = LocalDate.now();
         Map<UUID, HopDongDichVuOptionResponse> options = new LinkedHashMap<>();
 
+        if (phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null) {
+            List<DichVu> defaultServices = dichVuRepository.findByChuTroId(phong.getNhaTro().getChuTro().getId());
+            for (DichVu dv : defaultServices) {
+                options.put(dv.getId(), HopDongDichVuOptionResponse.builder()
+                        .dichVuId(dv.getId())
+                        .ten(dv.getTenDichVu())
+                        .loaiTinhPhi(dv.getLoaiTinhPhi() != null ? dv.getLoaiTinhPhi().name() : null)
+                        .donVi(dv.getDonVi())
+                        .donGiaMacDinh(dv.getDonGiaMacDinh())
+                        .batBuoc(Boolean.TRUE.equals(dv.getBatBuoc()))
+                        .build());
+            }
+        }
+
         for (CauHinhGia config : cauHinhGiaRepository.findApplicableServices(phong.getNhaTro().getId(), today)) {
-            if (config.getDichVuId() == null || options.containsKey(config.getDichVuId())) continue;
+            if (config.getDichVuId() == null)
+                continue;
             DichVu dichVu = dichVuRepository.findById(config.getDichVuId()).orElse(null);
             options.put(config.getDichVuId(), HopDongDichVuOptionResponse.builder()
                     .dichVuId(config.getDichVuId())
@@ -186,24 +209,35 @@ public class HopDongService {
     }
 
     private TrangThaiHopDong parseStatus(String s) {
-        if (s == null) return TrangThaiHopDong.ACTIVE;
+        if (s == null)
+            return TrangThaiHopDong.ACTIVE;
         return switch (s) {
             case "hoatDong" -> TrangThaiHopDong.ACTIVE;
             case "hetHan" -> TrangThaiHopDong.EXPIRED;
             case "daHuy" -> TrangThaiHopDong.CANCELLED;
             default -> {
-                try { yield TrangThaiHopDong.valueOf(s.toUpperCase()); } catch (Exception e) { yield TrangThaiHopDong.ACTIVE; }
+                try {
+                    yield TrangThaiHopDong.valueOf(s.toUpperCase());
+                } catch (Exception e) {
+                    yield TrangThaiHopDong.ACTIVE;
+                }
             }
         };
     }
 
     private TrangThaiCocHopDong parseCocStatus(String s) {
-        if (s == null) return TrangThaiCocHopDong.NOT_PAID;
-        try { return TrangThaiCocHopDong.valueOf(s.toUpperCase()); } catch (Exception e) { return TrangThaiCocHopDong.NOT_PAID; }
+        if (s == null)
+            return TrangThaiCocHopDong.NOT_PAID;
+        try {
+            return TrangThaiCocHopDong.valueOf(s.toUpperCase());
+        } catch (Exception e) {
+            return TrangThaiCocHopDong.NOT_PAID;
+        }
     }
 
     private String parseChuKy(String value) {
-        if (value == null || value.isBlank()) return "MONTHLY";
+        if (value == null || value.isBlank())
+            return "MONTHLY";
         return switch (value) {
             case "thang" -> "MONTHLY";
             case "quy" -> "QUARTERLY";
@@ -217,20 +251,27 @@ public class HopDongService {
     }
 
     private UUID resolveRepresentativeId(HopDongRequest req) {
-        if (req.getNguoiDaiDien() != null) return req.getNguoiDaiDien();
-        if (req.getKhachThueId() != null) return req.getKhachThueId();
-        if (req.getKhachThueIds() != null && !req.getKhachThueIds().isEmpty()) return req.getKhachThueIds().get(0);
+        if (req.getNguoiDaiDien() != null)
+            return req.getNguoiDaiDien();
+        if (req.getKhachThueId() != null)
+            return req.getKhachThueId();
+        if (req.getKhachThueIds() != null && !req.getKhachThueIds().isEmpty())
+            return req.getKhachThueIds().get(0);
         return null;
     }
 
     @Transactional
     private void replaceThanhVien(HopDong hopDong, HopDongRequest req) {
-        if (hopDong == null || hopDong.getId() == null) return;
+        if (hopDong == null || hopDong.getId() == null)
+            return;
 
-        UUID representativeId = hopDong.getKhachThue() != null ? hopDong.getKhachThue().getId() : resolveRepresentativeId(req);
+        UUID representativeId = hopDong.getKhachThue() != null ? hopDong.getKhachThue().getId()
+                : resolveRepresentativeId(req);
         Set<UUID> memberIds = new LinkedHashSet<>();
-        if (representativeId != null) memberIds.add(representativeId);
-        if (req.getKhachThueIds() != null) memberIds.addAll(req.getKhachThueIds());
+        if (representativeId != null)
+            memberIds.add(representativeId);
+        if (req.getKhachThueIds() != null)
+            memberIds.addAll(req.getKhachThueIds());
         if (req.getThanhVien() != null) {
             req.getThanhVien().stream()
                     .map(HopDongRequest.ThanhVienRequest::getKhachThueId)
@@ -239,6 +280,7 @@ public class HopDongService {
         }
 
         thanhVienHopDongRepository.deleteByHopDongId(hopDong.getId());
+        thanhVienHopDongRepository.flush();
         LocalDate defaultNgayVao = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
 
         for (UUID memberId : memberIds) {
@@ -259,13 +301,16 @@ public class HopDongService {
 
     @Transactional
     private void replaceDichVuHopDong(HopDong hopDong, HopDongRequest req) {
-        if (hopDong == null || hopDong.getId() == null || req.getPhiDichVu() == null) return;
+        if (hopDong == null || hopDong.getId() == null || req.getPhiDichVu() == null)
+            return;
         dichVuHopDongRepository.deleteByHopDongId(hopDong.getId());
+        dichVuHopDongRepository.flush();
         LocalDate defaultStart = hopDong.getNgayBatDau() != null ? hopDong.getNgayBatDau() : LocalDate.now();
 
         for (HopDongRequest.PhiDichVuItem item : req.getPhiDichVu()) {
             DichVu dichVu = resolveDichVu(hopDong, item);
-            if (dichVu == null) continue;
+            if (dichVu == null)
+                continue;
             LoaiTinhPhi loaiTinhPhi = parseLoaiTinhPhi(item.getLoaiTinhPhi(), dichVu.getLoaiTinhPhi());
             BigDecimal donGia = item.getGia() != null ? item.getGia() : defaultMoney(dichVu.getDonGiaMacDinh());
             BigDecimal soLuong = item.getSoLuong() != null ? item.getSoLuong() : BigDecimal.ONE;
@@ -283,16 +328,19 @@ public class HopDongService {
     }
 
     private DichVu resolveDichVu(HopDong hopDong, HopDongRequest.PhiDichVuItem item) {
-        if (item == null) return null;
+        if (item == null)
+            return null;
         if (item.getDichVuId() != null) {
             return dichVuRepository.findById(item.getDichVuId())
                     .orElseThrow(() -> new RuntimeException("Khong tim thay dich vu hop dong"));
         }
-        if (item.getTen() == null || item.getTen().isBlank() || hopDong.getPhong() == null || hopDong.getPhong().getNhaTro() == null) {
+        if (item.getTen() == null || item.getTen().isBlank() || hopDong.getPhong() == null
+                || hopDong.getPhong().getNhaTro() == null) {
             return null;
         }
         NguoiDung chuTro = hopDong.getPhong().getNhaTro().getChuTro();
-        if (chuTro == null) return null;
+        if (chuTro == null)
+            return null;
         return dichVuRepository.findByChuTroIdAndTenDichVuIgnoreCase(chuTro.getId(), item.getTen())
                 .orElseGet(() -> dichVuRepository.save(DichVu.builder()
                         .chuTro(chuTro)
@@ -303,10 +351,10 @@ public class HopDongService {
                         .build()));
     }
 
-    private HopDongResponse toResponse(HopDong hopDong) {
+    public HopDongResponse toResponse(HopDong hopDong) {
         HopDongResponse response = HopDongResponse.fromEntity(hopDong);
-        List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members =
-                thanhVienHopDongRepository.findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
+        List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members = thanhVienHopDongRepository
+                .findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
 
         if (members.isEmpty() && hopDong.getKhachThue() != null) {
             response.setKhachThueId(List.of(KhachThueResponse.fromEntity(hopDong.getKhachThue())));
@@ -376,8 +424,13 @@ public class HopDongService {
     }
 
     private LoaiTinhPhi parseLoaiTinhPhi(String value, LoaiTinhPhi fallback) {
-        if (value == null || value.isBlank()) return fallback != null ? fallback : LoaiTinhPhi.FIXED;
-        try { return LoaiTinhPhi.valueOf(value.toUpperCase()); } catch (Exception e) { return fallback != null ? fallback : LoaiTinhPhi.FIXED; }
+        if (value == null || value.isBlank())
+            return fallback != null ? fallback : LoaiTinhPhi.FIXED;
+        try {
+            return LoaiTinhPhi.valueOf(value.toUpperCase());
+        } catch (Exception e) {
+            return fallback != null ? fallback : LoaiTinhPhi.FIXED;
+        }
     }
 
     private BigDecimal defaultMoney(BigDecimal value) {

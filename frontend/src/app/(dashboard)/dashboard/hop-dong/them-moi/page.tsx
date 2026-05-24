@@ -15,7 +15,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   ArrowLeft,
   Save,
   X,
@@ -101,8 +101,7 @@ export default function ThemMoiHopDongPage() {
     giaNuoc: 25000,
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
-    chiSoNuocBanDau: 0,
-    phiDichVu: [] as Array<{dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string}>,
+    phiDichVu: [] as Array<{ dichVuId?: string, ten: string, gia: number, soLuong?: number, loaiTinhPhi?: string }>,
     trangThai: 'hoatDong' as 'hoatDong' | 'hetHan' | 'daHuy',
   });
 
@@ -110,7 +109,6 @@ export default function ThemMoiHopDongPage() {
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
-  const [searchDichVu, setSearchDichVu] = useState("");
 
   const loadDichVuTheoPhong = async (phongId: string) => {
     if (!phongId) {
@@ -158,7 +156,7 @@ export default function ThemMoiHopDongPage() {
       if (phongResponse.ok) {
         const phongData = await phongResponse.json();
         // Lọc phòng trống và đã đặt
-        const availablePhong = (phongData.data || []).filter((phong: Phong) => 
+        const availablePhong = (phongData.data || []).filter((phong: Phong) =>
           phong.trangThai === 'trong' || phong.trangThai === 'AVAILABLE' || phong.trangThai === 'daDat' || phong.trangThai === 'RESERVED'
         );
         setPhongList(availablePhong);
@@ -232,12 +230,12 @@ export default function ThemMoiHopDongPage() {
         phiDichVu: exists
           ? prev.phiDichVu.filter(phi => phi.dichVuId !== option.dichVuId)
           : [...prev.phiDichVu, {
-              dichVuId: option.dichVuId,
-              ten: option.ten,
-              gia: option.donGiaMacDinh,
-              soLuong: 1,
-              loaiTinhPhi: option.loaiTinhPhi,
-            }],
+            dichVuId: option.dichVuId,
+            ten: option.ten,
+            gia: option.donGiaMacDinh,
+            soLuong: 1,
+            loaiTinhPhi: option.loaiTinhPhi,
+          }],
       };
     });
   };
@@ -270,16 +268,16 @@ export default function ThemMoiHopDongPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (submitting) return;
-    
+
     setSubmitting(true);
-    
+
     const ensureISODate = (dateStr: string) => {
       if (!dateStr) return '';
       // Nếu đã đúng định dạng YYYY-MM-DD thì giữ nguyên
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-      
+
       // Nếu là định dạng DD/MM/YYYY
       const parts = dateStr.split('/');
       if (parts.length === 3) {
@@ -288,15 +286,15 @@ export default function ThemMoiHopDongPage() {
         const year = parts[2];
         return `${year}-${month}-${day}`;
       }
-      
+
       // Fallback: Thử parse qua Date object
       try {
         const d = new Date(dateStr);
         if (!isNaN(d.getTime())) {
           return d.toISOString().split('T')[0];
         }
-      } catch (e) {}
-      
+      } catch (e) { }
+
       return dateStr;
     };
 
@@ -356,8 +354,8 @@ export default function ThemMoiHopDongPage() {
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3 md:gap-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => router.push('/dashboard/hop-dong')}
         >
@@ -391,7 +389,7 @@ export default function ThemMoiHopDongPage() {
                   className="text-sm"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-xs md:text-sm">Phòng *</Label>
                 <Popover open={openPhong} onOpenChange={setOpenPhong}>
@@ -523,11 +521,11 @@ export default function ThemMoiHopDongPage() {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                  <PopoverContent className="w-[90vw] md:w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Tìm khách thuê để thêm vào phòng..." className="text-sm" />
-                      <CommandEmpty className="text-sm">Không tìm thấy khách thuê.</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-auto">
+                <PopoverContent className="w-[90vw] md:w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm khách thuê để thêm vào phòng..." className="text-sm" />
+                    <CommandEmpty className="text-sm">Không tìm thấy khách thuê.</CommandEmpty>
+                    <CommandGroup className="max-h-64 overflow-auto">
                       {khachThueList.filter(khachThue => khachThue._id !== formData.nguoiDaiDien).map((khachThue) => (
                         <CommandItem
                           key={khachThue._id}
@@ -571,7 +569,7 @@ export default function ThemMoiHopDongPage() {
                   className="text-sm"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="ngayKetThuc" className="text-xs md:text-sm">Ngày kết thúc</Label>
                 <Input
@@ -630,7 +628,7 @@ export default function ThemMoiHopDongPage() {
                   {formatCurrency(formData.giaThue)}
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="tienCoc" className="text-xs md:text-sm">Tiền cọc (VNĐ)</Label>
                 <Input
@@ -646,7 +644,7 @@ export default function ThemMoiHopDongPage() {
                   {formatCurrency(formData.tienCoc)}
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="ngayThanhToan" className="text-xs md:text-sm">Ngày thanh toán</Label>
                 <Input
@@ -676,7 +674,7 @@ export default function ThemMoiHopDongPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="giaDien">Giá điện (VNĐ/kWh)</Label>
                 <Input
@@ -691,7 +689,7 @@ export default function ThemMoiHopDongPage() {
                   {formatCurrency(formData.giaDien)}
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="giaNuoc">Giá nước (VNĐ/m³)</Label>
                 <Input
@@ -706,7 +704,7 @@ export default function ThemMoiHopDongPage() {
                   {formatCurrency(formData.giaNuoc)}
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="trangThai">Trạng thái</Label>
                 <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'hoatDong' | 'hetHan' | 'daHuy' }))}>
@@ -738,7 +736,7 @@ export default function ThemMoiHopDongPage() {
                   Chỉ số đồng hồ điện khi bắt đầu hợp đồng
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="chiSoNuocBanDau">Chỉ số nước ban đầu (m³)</Label>
                 <Input
@@ -767,6 +765,22 @@ export default function ThemMoiHopDongPage() {
                 className="resize-none"
               />
             </div>
+
+            {formData.phong && (
+              <div className="space-y-2 pb-4">
+                <Label>Tiện ích có sẵn của phòng</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const selectedPhong = phongList.find(p => p._id === formData.phong);
+                    const tienNghi = selectedPhong?.tienNghi || [];
+                    if (tienNghi.length === 0) return <span className="text-sm text-muted-foreground">Phòng chưa có tiện ích nào được thiết lập.</span>;
+                    return tienNghi.map((tn, idx) => (
+                      <Badge key={idx} variant="secondary">{tn}</Badge>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Dịch vụ áp dụng cho hợp đồng</Label>
@@ -809,33 +823,8 @@ export default function ThemMoiHopDongPage() {
                       </PopoverTrigger>
                       <PopoverContent className="w-[90vw] md:w-full p-0">
                         <Command>
-                          <CommandInput placeholder="Tìm dịch vụ..." value={searchDichVu} onValueChange={setSearchDichVu} />
-                          <CommandEmpty>
-                            <div className="flex flex-col items-center justify-center py-4 space-y-3">
-                              <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ "{searchDichVu}".</p>
-                              {searchDichVu.trim() && (
-                                <Button 
-                                  type="button" 
-                                  variant="secondary" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    const newDv: DichVuOption = {
-                                      dichVuId: `new-${Date.now()}`,
-                                      ten: searchDichVu.trim(),
-                                      donGiaMacDinh: 0,
-                                      loaiTinhPhi: 'FIXED'
-                                    };
-                                    setDichVuOptions(prev => [...prev, newDv]);
-                                    toggleDichVuHopDong(newDv);
-                                    setSearchDichVu("");
-                                    setOpenAddDichVu(false);
-                                  }}
-                                >
-                                  <Plus className="mr-2 h-4 w-4" /> Tạo nhanh dịch vụ này
-                                </Button>
-                              )}
-                            </div>
-                          </CommandEmpty>
+                          <CommandInput placeholder="Tìm dịch vụ..." />
+                          <CommandEmpty>Không tìm thấy dịch vụ.</CommandEmpty>
                           <CommandGroup className="max-h-64 overflow-auto">
                             {globalDichVuList
                               .filter(dv => !dichVuOptions.some(opt => opt.dichVuId === dv.dichVuId))
@@ -862,9 +851,9 @@ export default function ThemMoiHopDongPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 pt-4 border-t">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 size="sm"
                 onClick={() => router.push('/dashboard/hop-dong')}
                 disabled={submitting}
@@ -872,7 +861,7 @@ export default function ThemMoiHopDongPage() {
               >
                 Hủy
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 size="sm"
                 disabled={submitting}

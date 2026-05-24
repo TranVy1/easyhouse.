@@ -21,6 +21,7 @@ public class HoaDonService {
     private final PhongRepository phongRepository;
     private final HopDongRepository hopDongRepository;
     private final KhachThueRepository khachThueRepository;
+    private final HopDongService hopDongService;
 
     public List<HoaDonResponse> getAll() {
         List<HoaDon> list = hoaDonRepository.findByXoaLucIsNullOrderByTaoLucDesc();
@@ -87,6 +88,8 @@ public class HoaDonService {
                 try { loai = LoaiMucHoaDon.valueOf(ci.getLoai()); } catch (Exception ignored) {}
                 items.add(ChiTietHoaDon.builder()
                         .hoaDon(saved).loai(loai)
+                        .dichVuId(ci.getDichVuId())
+                        .chiSoDienNuocId(ci.getChiSoDienNuocId())
                         .moTa(ci.getMoTa())
                         .soLuong(ci.getSoLuong() != null ? ci.getSoLuong() : BigDecimal.ONE)
                         .donGia(ci.getDonGia() != null ? ci.getDonGia() : BigDecimal.ZERO)
@@ -137,7 +140,10 @@ public class HoaDonService {
                 LoaiMucHoaDon loai = LoaiMucHoaDon.OTHER;
                 try { loai = LoaiMucHoaDon.valueOf(ci.getLoai()); } catch (Exception ignored) {}
                 items.add(ChiTietHoaDon.builder()
-                        .hoaDon(hd).loai(loai).moTa(ci.getMoTa())
+                        .hoaDon(hd).loai(loai)
+                        .dichVuId(ci.getDichVuId())
+                        .chiSoDienNuocId(ci.getChiSoDienNuocId())
+                        .moTa(ci.getMoTa())
                         .soLuong(ci.getSoLuong() != null ? ci.getSoLuong() : BigDecimal.ONE)
                         .donGia(ci.getDonGia() != null ? ci.getDonGia() : BigDecimal.ZERO)
                         .thanhTien(thanhTien).build());
@@ -163,7 +169,7 @@ public class HoaDonService {
     public Map<String, Object> getFormData() {
         Map<String, Object> result = new HashMap<>();
         result.put("hopDongList", hopDongRepository.findAllActive().stream()
-                .map(com.example.quanlyphongtro.dto.HopDongResponse::fromEntity).toList());
+                .map(hopDongService::toResponse).toList());
         result.put("phongList", phongRepository.findAll().stream()
                 .map(com.example.quanlyphongtro.dto.PhongResponse::fromEntity).toList());
         result.put("khachThueList", khachThueRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
@@ -200,15 +206,21 @@ public class HoaDonService {
         addLine(items, LoaiMucHoaDon.WATER, "Tien nuoc", BigDecimal.ONE, req.getTienNuoc());
         if (req.getPhiDichVu() != null) {
             for (HoaDonRequest.PhiDichVuItem phi : req.getPhiDichVu()) {
-                addLine(items, LoaiMucHoaDon.SERVICE, phi.getTen(), BigDecimal.ONE, phi.getGia());
+                BigDecimal soLuong = phi.getSoLuong() != null ? phi.getSoLuong() : BigDecimal.ONE;
+                addLine(items, phi.getDichVuId(), LoaiMucHoaDon.SERVICE, phi.getTen(), soLuong, phi.getGia());
             }
         }
         return items.isEmpty() ? null : items;
     }
 
     private void addLine(List<HoaDonRequest.ChiTietItem> items, LoaiMucHoaDon loai, String moTa, BigDecimal soLuong, BigDecimal donGia) {
+        addLine(items, null, loai, moTa, soLuong, donGia);
+    }
+
+    private void addLine(List<HoaDonRequest.ChiTietItem> items, UUID dichVuId, LoaiMucHoaDon loai, String moTa, BigDecimal soLuong, BigDecimal donGia) {
         if (donGia == null || donGia.compareTo(BigDecimal.ZERO) == 0) return;
         HoaDonRequest.ChiTietItem item = new HoaDonRequest.ChiTietItem();
+        item.setDichVuId(dichVuId);
         item.setLoai(loai.name());
         item.setMoTa(moTa);
         item.setSoLuong(soLuong);

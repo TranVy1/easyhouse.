@@ -69,6 +69,14 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/hop-dong/:path*`
       },
       {
+        source: '/api/dich-vu',
+        destination: `${backendUrl}/api/dich-vu`
+      },
+      {
+        source: '/api/dich-vu/:path*',
+        destination: `${backendUrl}/api/dich-vu/:path*`
+      },
+      {
         source: '/api/hoa-don',
         destination: `${backendUrl}/api/hoa-don`
       },
