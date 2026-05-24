@@ -310,14 +310,16 @@ export default function ThemMoiHopDongPage() {
         },
         body: JSON.stringify({
           ...formData,
+          nguoiDaiDien: formData.nguoiDaiDien,
           khachThueId: thanhVienIds,
+          khachThueIds: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
         }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
+      if (response.ok && result.success) {
         // Xóa cache để force refresh data
         sessionStorage.removeItem('hop-dong-data');
         toast.success(result.message || 'Đã tạo hợp đồng thành công');
@@ -326,8 +328,7 @@ export default function ThemMoiHopDongPage() {
         router.replace('/dashboard/hop-dong');
         router.refresh();
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Có lỗi xảy ra');
+        toast.error(result.message || 'Có lỗi xảy ra');
       }
     } catch (error) {
       console.error('Error submitting form:', error);

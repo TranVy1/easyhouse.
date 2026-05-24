@@ -27,6 +27,10 @@ public class HoaDonRequest {
     private BigDecimal tienPhong;
     private BigDecimal tienDien;
     private BigDecimal tienNuoc;
+    private Integer chiSoDienBanDau;
+    private Integer chiSoDienCuoiKy;
+    private Integer chiSoNuocBanDau;
+    private Integer chiSoNuocCuoiKy;
     private BigDecimal daThanhToan;
     private String trangThai;
     private String ghiChu;

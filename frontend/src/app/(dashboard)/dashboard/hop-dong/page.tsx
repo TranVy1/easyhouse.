@@ -251,14 +251,15 @@ export default function HopDongPage() {
       const response = await fetch(`/api/hop-dong/${id}`, {
         method: 'DELETE',
       });
+      const result = await response.json();
       
-      if (response.ok) {
+      if (response.ok && result.success) {
         // Xóa cache
                   clearCache();
         setHopDongList(prev => prev.filter(hopDong => hopDong._id !== id));
-        toast.success('Đã xóa hợp đồng thành công');
+        toast.success(result.message || 'Đã xóa hợp đồng thành công');
       } else {
-        toast.error('Có lỗi xảy ra khi xóa hợp đồng');
+        toast.error(result.message || 'Có lỗi xảy ra khi xóa hợp đồng');
       }
     } catch (error) {
       console.error('Error deleting hop dong:', error);

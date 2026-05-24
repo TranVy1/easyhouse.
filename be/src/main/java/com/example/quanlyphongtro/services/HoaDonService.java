@@ -22,6 +22,7 @@ public class HoaDonService {
     private final HopDongRepository hopDongRepository;
     private final KhachThueRepository khachThueRepository;
     private final HopDongService hopDongService;
+    private final ChiSoDienNuocRepository chiSoDienNuocRepository;
 
     public List<HoaDonResponse> getAll() {
         List<HoaDon> list = hoaDonRepository.findByXoaLucIsNullOrderByTaoLucDesc();
@@ -79,7 +80,7 @@ public class HoaDonService {
         // Create line items
         List<ChiTietHoaDon> items = new ArrayList<>();
         BigDecimal tongPhatSinh = BigDecimal.ZERO;
-        List<HoaDonRequest.ChiTietItem> requestItems = normalizeLineItems(req);
+        List<HoaDonRequest.ChiTietItem> requestItems = normalizeLineItems(req, saved, phong, hopDong);
         if (requestItems != null) {
             for (HoaDonRequest.ChiTietItem ci : requestItems) {
                 BigDecimal thanhTien = ci.getThanhTien() != null ? ci.getThanhTien()
@@ -129,7 +130,7 @@ public class HoaDonService {
         if (req.getTrangThai() != null) hd.setTrangThai(parseTrangThai(req.getTrangThai(), hd.getTrangThai()));
 
         // Rebuild chi tiet if provided
-        List<HoaDonRequest.ChiTietItem> requestItems = normalizeLineItems(req);
+        List<HoaDonRequest.ChiTietItem> requestItems = normalizeLineItems(req, hd, hd.getPhong(), hd.getHopDong());
         if (requestItems != null) {
             chiTietHoaDonRepository.deleteByHoaDonId(id);
             List<ChiTietHoaDon> items = new ArrayList<>();
@@ -162,10 +163,12 @@ public class HoaDonService {
     public void delete(UUID id) {
         HoaDon hd = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        markReadingsCancelled(id);
         hd.setXoaLuc(ZonedDateTime.now());
         hoaDonRepository.save(hd);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Map<String, Object> getFormData() {
         Map<String, Object> result = new HashMap<>();
         result.put("hopDongList", hopDongRepository.findAllActive().stream()
@@ -183,27 +186,34 @@ public class HoaDonService {
         result.put("chiSoDienBanDau", 0);
         result.put("chiSoNuocBanDau", 0);
 
+        HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
+        if (hd != null && hd.getPhong() != null) {
+            Optional<Integer> latestElectric = latestReading(hd.getPhong().getId(), LoaiChiSo.ELECTRICITY);
+            Optional<Integer> latestWater = latestReading(hd.getPhong().getId(), LoaiChiSo.WATER);
+            result.put("chiSoDienBanDau", latestElectric.orElse(hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0));
+            result.put("chiSoNuocBanDau", latestWater.orElse(hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0));
+            if (latestElectric.isPresent() || latestWater.isPresent()) {
+                result.put("isFirstInvoice", false);
+            }
+        }
+
         List<HoaDon> latest = hoaDonRepository.findLatestByHopDong(hopDongId);
         if (!latest.isEmpty()) {
             result.put("isFirstInvoice", false);
             HoaDon last = latest.get(0);
             result.put("lastInvoiceMonth", last.getKyThang() + "/" + last.getKyNam());
-        } else {
-            HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
-            if (hd != null) {
-                result.put("chiSoDienBanDau", hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0);
-                result.put("chiSoNuocBanDau", hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0);
-            }
         }
         return result;
     }
 
-    private List<HoaDonRequest.ChiTietItem> normalizeLineItems(HoaDonRequest req) {
+    private List<HoaDonRequest.ChiTietItem> normalizeLineItems(HoaDonRequest req, HoaDon hoaDon, Phong phong, HopDong hopDong) {
         if (req.getChiTietHoaDon() != null) return req.getChiTietHoaDon();
         List<HoaDonRequest.ChiTietItem> items = new ArrayList<>();
         addLine(items, LoaiMucHoaDon.ROOM, "Tien phong", BigDecimal.ONE, req.getTienPhong());
-        addLine(items, LoaiMucHoaDon.ELECTRICITY, "Tien dien", BigDecimal.ONE, req.getTienDien());
-        addLine(items, LoaiMucHoaDon.WATER, "Tien nuoc", BigDecimal.ONE, req.getTienNuoc());
+        UUID chiSoDienId = upsertReading(hoaDon, phong, hopDong, LoaiChiSo.ELECTRICITY, req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy());
+        UUID chiSoNuocId = upsertReading(hoaDon, phong, hopDong, LoaiChiSo.WATER, req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy());
+        addLine(items, null, chiSoDienId, LoaiMucHoaDon.ELECTRICITY, readingDescription(req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), "Tien dien"), BigDecimal.ONE, req.getTienDien());
+        addLine(items, null, chiSoNuocId, LoaiMucHoaDon.WATER, readingDescription(req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(), "Tien nuoc"), BigDecimal.ONE, req.getTienNuoc());
         if (req.getPhiDichVu() != null) {
             for (HoaDonRequest.PhiDichVuItem phi : req.getPhiDichVu()) {
                 BigDecimal soLuong = phi.getSoLuong() != null ? phi.getSoLuong() : BigDecimal.ONE;
@@ -218,15 +228,64 @@ public class HoaDonService {
     }
 
     private void addLine(List<HoaDonRequest.ChiTietItem> items, UUID dichVuId, LoaiMucHoaDon loai, String moTa, BigDecimal soLuong, BigDecimal donGia) {
+        addLine(items, dichVuId, null, loai, moTa, soLuong, donGia);
+    }
+
+    private void addLine(List<HoaDonRequest.ChiTietItem> items, UUID dichVuId, UUID chiSoDienNuocId, LoaiMucHoaDon loai, String moTa, BigDecimal soLuong, BigDecimal donGia) {
         if (donGia == null || donGia.compareTo(BigDecimal.ZERO) == 0) return;
         HoaDonRequest.ChiTietItem item = new HoaDonRequest.ChiTietItem();
         item.setDichVuId(dichVuId);
+        item.setChiSoDienNuocId(chiSoDienNuocId);
         item.setLoai(loai.name());
         item.setMoTa(moTa);
         item.setSoLuong(soLuong);
         item.setDonGia(donGia);
         item.setThanhTien(donGia.multiply(soLuong));
         items.add(item);
+    }
+
+    private UUID upsertReading(HoaDon hoaDon, Phong phong, HopDong hopDong, LoaiChiSo loai, Integer chiSoCu, Integer chiSoMoi) {
+        if (hoaDon == null || phong == null || chiSoCu == null || chiSoMoi == null) return null;
+        if (chiSoCu < 0 || chiSoMoi < chiSoCu) {
+            throw new RuntimeException("Chi so dien nuoc khong hop le");
+        }
+
+        ChiSoDienNuoc reading = chiSoDienNuocRepository
+                .findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), loai, hoaDon.getKyNam(), hoaDon.getKyThang())
+                .orElseGet(ChiSoDienNuoc::new);
+        reading.setPhong(phong);
+        reading.setHopDong(hopDong);
+        reading.setLoai(loai);
+        reading.setKyNam(hoaDon.getKyNam());
+        reading.setKyThang(hoaDon.getKyThang());
+        reading.setNgayGhi(hoaDon.getDenNgay() != null ? hoaDon.getDenNgay() : LocalDate.now());
+        reading.setChiSoCu(chiSoCu);
+        reading.setChiSoMoi(chiSoMoi);
+        reading.setTrangThai(TrangThaiChiSo.BILLED);
+        return chiSoDienNuocRepository.save(reading).getId();
+    }
+
+    private String readingDescription(Integer chiSoCu, Integer chiSoMoi, String fallback) {
+        if (chiSoCu == null || chiSoMoi == null) return fallback;
+        return chiSoCu + "-" + chiSoMoi;
+    }
+
+    private Optional<Integer> latestReading(UUID phongId, LoaiChiSo loai) {
+        return chiSoDienNuocRepository.findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(phongId, loai).stream()
+                .filter(item -> item.getTrangThai() != TrangThaiChiSo.CANCELLED)
+                .map(ChiSoDienNuoc::getChiSoMoi)
+                .filter(Objects::nonNull)
+                .findFirst();
+    }
+
+    private void markReadingsCancelled(UUID hoaDonId) {
+        for (ChiTietHoaDon item : chiTietHoaDonRepository.findByHoaDonId(hoaDonId)) {
+            if (item.getChiSoDienNuocId() == null) continue;
+            chiSoDienNuocRepository.findById(item.getChiSoDienNuocId()).ifPresent(reading -> {
+                reading.setTrangThai(TrangThaiChiSo.CANCELLED);
+                chiSoDienNuocRepository.save(reading);
+            });
+        }
     }
 
     private TrangThaiHoaDon parseTrangThai(String value, TrangThaiHoaDon fallback) {

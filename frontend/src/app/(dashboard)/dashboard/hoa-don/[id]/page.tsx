@@ -152,9 +152,10 @@ export default function ChinhSuaHoaDonPage() {
       if (formDataResponse.ok) {
         const formData = await formDataResponse.json();
         console.log('Form data loaded:', formData.data);
-        setHopDongList(formData.data.hopDongList || []);
-        setPhongList(formData.data.phongList || []);
-        setKhachThueList(formData.data.khachThueList || []);
+        const data = formData.data || {};
+        setHopDongList(data.hopDongList || []);
+        setPhongList(data.phongList || []);
+        setKhachThueList(data.khachThueList || []);
       } else {
         console.error('Failed to load form data:', formDataResponse.status);
       }

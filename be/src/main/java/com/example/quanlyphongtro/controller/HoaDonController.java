@@ -7,7 +7,16 @@ import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.services.HoaDonService;
 import com.example.quanlyphongtro.services.ThanhToanService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,85 +32,80 @@ public class HoaDonController {
     private final ThanhToanService thanhToanService;
 
     @GetMapping
-    public ApiResponse<List<HoaDonResponse>> getAll() {
+    public ResponseEntity<ApiResponse<List<HoaDonResponse>>> getAll() {
         try {
-            return ApiResponse.success(hoaDonService.getAll());
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAll()));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<HoaDonResponse> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<HoaDonResponse>> getById(@PathVariable UUID id) {
         try {
-            return ApiResponse.success(hoaDonService.getById(id));
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id)));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @PostMapping
-    public ApiResponse<HoaDonResponse> create(@RequestBody HoaDonRequest request) {
+    public ResponseEntity<ApiResponse<HoaDonResponse>> create(@RequestBody HoaDonRequest request) {
         try {
-            return ApiResponse.success(hoaDonService.create(request), "Tạo hóa đơn thành công");
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.create(request), "Tạo hóa đơn thành công"));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<HoaDonResponse> update(@PathVariable UUID id, @RequestBody HoaDonRequest request) {
+    public ResponseEntity<ApiResponse<HoaDonResponse>> update(@PathVariable UUID id, @RequestBody HoaDonRequest request) {
         try {
-            return ApiResponse.success(hoaDonService.update(id, request), "Cập nhật hóa đơn thành công");
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.update(id, request), "Cập nhật hóa đơn thành công"));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         try {
             hoaDonService.delete(id);
-            return ApiResponse.success(null, "Xóa hóa đơn thành công");
+            return ResponseEntity.ok(ApiResponse.success(null, "Xóa hóa đơn thành công"));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @DeleteMapping
-    public ApiResponse<Void> deleteByParam(@RequestParam UUID id) {
-        try {
-            hoaDonService.delete(id);
-            return ApiResponse.success(null, "Xóa hóa đơn thành công");
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteByParam(@RequestParam UUID id) {
+        return delete(id);
     }
 
     @GetMapping("/form-data")
-    public ApiResponse<Map<String, Object>> getFormData() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getFormData() {
         try {
-            return ApiResponse.success(hoaDonService.getFormData());
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getFormData()));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @GetMapping("/latest-reading")
-    public ApiResponse<Map<String, Object>> getLatestReading(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getLatestReading(
             @RequestParam String hopDong,
             @RequestParam int thang,
             @RequestParam int nam) {
         try {
             UUID hopDongId = UUID.fromString(hopDong);
-            return ApiResponse.success(hoaDonService.getLatestReading(hopDongId, thang, nam));
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getLatestReading(hopDongId, thang, nam)));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     @PostMapping("/{id}/thanh-toan")
-    public ApiResponse<HoaDonResponse> thanhToan(
+    public ResponseEntity<ApiResponse<HoaDonResponse>> thanhToan(
             @PathVariable UUID id,
             @RequestBody Map<String, Object> body) {
         try {
@@ -112,9 +116,8 @@ public class HoaDonController {
             ttRequest.setGhiChu((String) body.get("ghiChu"));
             ttRequest.setAnhBienLai((String) body.get("anhBienLai"));
             ttRequest.setNgayThanhToan((String) body.get("ngayThanhToan"));
-            
-            if (body.get("thongTinChuyenKhoan") != null) {
-                Map<String, Object> thongTin = (Map<String, Object>) body.get("thongTinChuyenKhoan");
+
+            if (body.get("thongTinChuyenKhoan") instanceof Map<?, ?> thongTin) {
                 ThanhToanRequest.ThongTinChuyenKhoan thongTinCK = new ThanhToanRequest.ThongTinChuyenKhoan();
                 thongTinCK.setSoGiaoDich((String) thongTin.get("soGiaoDich"));
                 thongTinCK.setNganHang((String) thongTin.get("nganHang"));
@@ -122,9 +125,13 @@ public class HoaDonController {
             }
 
             thanhToanService.create(ttRequest);
-            return ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công");
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công"));
         } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            return badRequest(e.getMessage());
         }
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> badRequest(String message) {
+        return ResponseEntity.badRequest().body(ApiResponse.error(message));
     }
 }

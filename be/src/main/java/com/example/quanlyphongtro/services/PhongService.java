@@ -112,8 +112,9 @@ public class PhongService {
     @Transactional
     public void deletePhong(UUID id) {
         Phong p = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy Phòng"));
-        boolean hasActiveContracts = !hopDongRepository.findByPhongIdAndTrangThai(id, TrangThaiHopDong.ACTIVE).isEmpty();
-        if (hasActiveContracts) {
+        boolean hasOccupyingContracts = !hopDongRepository.findRoomOccupyingContracts(
+                id, java.util.List.of(TrangThaiHopDong.PENDING, TrangThaiHopDong.ACTIVE)).isEmpty();
+        if (hasOccupyingContracts) {
             throw new RuntimeException("Không thể xóa phòng đang có hợp đồng hoạt động");
         }
         p.setXoaLuc(java.time.ZonedDateTime.now());

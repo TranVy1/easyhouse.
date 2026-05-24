@@ -32,6 +32,10 @@ public class HoaDonResponse {
     private String trangThai;
     private LocalDate hanTra;
     private String ghiChu;
+    private Integer chiSoDienBanDau;
+    private Integer chiSoDienCuoiKy;
+    private Integer chiSoNuocBanDau;
+    private Integer chiSoNuocCuoiKy;
     private List<ChiTietItem> chiTietHoaDon;
     private List<PhiDichVuItem> phiDichVu;
     private ZonedDateTime ngayTao;
@@ -68,6 +72,10 @@ public class HoaDonResponse {
 
         List<ChiTietItem> items = new ArrayList<>();
         List<PhiDichVuItem> phiDichVu = new ArrayList<>();
+        Integer chiSoDienBanDau = null;
+        Integer chiSoDienCuoiKy = null;
+        Integer chiSoNuocBanDau = null;
+        Integer chiSoNuocCuoiKy = null;
         if (chiTietList != null) {
             for (ChiTietHoaDon ct : chiTietList) {
                 items.add(ChiTietItem.builder()
@@ -87,6 +95,16 @@ public class HoaDonResponse {
                             .gia(ct.getDonGia())
                             .soLuong(ct.getSoLuong())
                             .build());
+                }
+                if (ct.getLoai() == LoaiMucHoaDon.ELECTRICITY && ct.getMoTa() != null) {
+                    int[] readings = parseReadingRange(ct.getMoTa());
+                    chiSoDienBanDau = readings[0];
+                    chiSoDienCuoiKy = readings[1];
+                }
+                if (ct.getLoai() == LoaiMucHoaDon.WATER && ct.getMoTa() != null) {
+                    int[] readings = parseReadingRange(ct.getMoTa());
+                    chiSoNuocBanDau = readings[0];
+                    chiSoNuocCuoiKy = readings[1];
                 }
             }
         }
@@ -109,10 +127,25 @@ public class HoaDonResponse {
                 .trangThai(hd.getTrangThai() != null ? hd.getTrangThai().name() : null)
                 .hanTra(hd.getHanTra())
                 .ghiChu(hd.getGhiChu())
+                .chiSoDienBanDau(chiSoDienBanDau)
+                .chiSoDienCuoiKy(chiSoDienCuoiKy)
+                .chiSoNuocBanDau(chiSoNuocBanDau)
+                .chiSoNuocCuoiKy(chiSoNuocCuoiKy)
                 .chiTietHoaDon(items)
                 .phiDichVu(phiDichVu)
                 .ngayTao(hd.getTaoLuc())
                 .ngayCapNhat(hd.getCapNhatLuc())
                 .build();
+    }
+
+    private static int[] parseReadingRange(String value) {
+        try {
+            String[] parts = value.replaceAll("[^0-9-]", "").split("-");
+            if (parts.length >= 2) {
+                return new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])};
+            }
+        } catch (Exception ignored) {
+        }
+        return new int[]{0, 0};
     }
 }

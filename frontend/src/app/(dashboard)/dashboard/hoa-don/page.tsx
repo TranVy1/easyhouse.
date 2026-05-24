@@ -132,9 +132,10 @@ export default function HoaDonPage() {
       if (formDataResponse.ok) {
         const formData = await formDataResponse.json();
         console.log('Form data loaded:', formData.data);
-        const hopDongs = formData.data.hopDongList || [];
-        const phongs = formData.data.phongList || [];
-        const khachThues = formData.data.khachThueList || [];
+        const data = formData.data || {};
+        const hopDongs = data.hopDongList || [];
+        const phongs = data.phongList || [];
+        const khachThues = data.khachThueList || [];
         
         setHopDongList(hopDongs);
         setPhongList(phongs);
