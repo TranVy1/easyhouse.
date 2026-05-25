@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,12 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
     boolean existsByMaHopDongAndIdNot(String maHopDong, UUID id);
 
     List<HopDong> findByXoaLucIsNullOrderByTaoLucDesc();
+
+    @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p " +
+           "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
+           "AND (:phongId IS NULL OR p.id = cast(:phongId as uuid)) " +
+           "AND (:trangThai IS NULL OR hd.trangThai = :trangThai)")
+    Page<HopDong> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("phongId") String phongId, @Param("trangThai") TrangThaiHopDong trangThai, Pageable pageable);
 
     List<HopDong> findByPhongIdAndXoaLucIsNull(UUID phongId);
 
@@ -80,4 +88,15 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
         @Param("trangThai") TrangThaiHopDong trangThai,
         @Param("targetDate") java.time.LocalDate targetDate
     );
+
+    @Query("SELECT COUNT(hd) FROM HopDong hd WHERE hd.trangThai = :trangThai AND hd.ngayKetThuc >= :start AND hd.ngayKetThuc <= :end AND hd.xoaLuc IS NULL AND hd.phong.nhaTro.id IN :nhaTroIds")
+    long countContractsExpiringBetweenAndNhaTroIdIn(
+        @Param("trangThai") TrangThaiHopDong trangThai,
+        @Param("start") java.time.LocalDate start,
+        @Param("end") java.time.LocalDate end,
+        @Param("nhaTroIds") List<UUID> nhaTroIds
+    );
+    
+    @Query("SELECT COUNT(DISTINCT hd.khachThue) FROM HopDong hd WHERE hd.trangThai = 'ACTIVE' AND hd.xoaLuc IS NULL AND hd.phong.nhaTro.id IN :nhaTroIds")
+    long countActiveTenantsByNhaTroIdIn(@Param("nhaTroIds") List<UUID> nhaTroIds);
 }

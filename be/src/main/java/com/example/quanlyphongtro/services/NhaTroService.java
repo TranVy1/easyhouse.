@@ -16,6 +16,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -28,32 +33,39 @@ public class NhaTroService {
     private final NguoiDungRepository nguoiDungRepository;
     private final PermissionService permissionService;
 
-    public List<NhaTroResponse> getAllNhaTro() {
-        List<NhaTro> nhaTroList = nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc();
-        Optional<UUID> currentUserId = permissionService.currentUserId();
-
-        if (currentUserId.isPresent() && !permissionService.isAdmin(currentUserId.get())) {
-            UUID userId = currentUserId.get();
-            List<UUID> assignedIds = permissionService.accessibleNhaTroIds(userId);
-            nhaTroList = nhaTroList.stream()
-                    .filter(item -> isOwnedBy(item, userId) || assignedIds.contains(item.getId()))
-                    .collect(Collectors.toMap(
-                            NhaTro::getId,
-                            item -> item,
-                            (first, second) -> first,
-                            LinkedHashMap::new))
-                    .values()
-                    .stream()
-                    .toList();
+    public PaginatedResponse<NhaTroResponse> getAllNhaTro(int page, int limit) {
+        UUID userId = permissionService.currentUserId().orElse(null);
+        boolean isAdmin = userId != null && permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin && userId != null) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
         }
 
-        return nhaTroList.stream().map(this::mapToResponse).toList();
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<NhaTro> pageResult = nhaTroRepository.findAllAccessible(isAdmin, nhaTroIds, pageable);
+        
+        List<NhaTroResponse> mappedList = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        return PaginatedResponse.of(pageResult, mappedList);
     }
 
     public NhaTroResponse getNhaTroById(UUID id) {
         NhaTro nt = nhaTroRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         permissionService.currentUserId().ifPresent(userId -> assertCanRead(nt, userId));
+        return mapToResponse(nt);
+    }
+
+    public List<NhaTroResponse> getPublicAllNhaTro() {
+        List<NhaTro> nhaTroList = nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc();
+        return nhaTroList.stream().map(this::mapToResponse).toList();
+    }
+
+    public NhaTroResponse getPublicNhaTroById(UUID id) {
+        NhaTro nt = nhaTroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         return mapToResponse(nt);
     }
 

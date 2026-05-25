@@ -44,20 +44,20 @@ Chua dat:
 
 Muc tieu: co baseline sach truoc khi sua.
 
-- [ ] Chay `git status --short` va phan loai file:
-  - [ ] File source dang sua hop le.
-  - [ ] File planning/checklist can giu.
-  - [ ] File tam can xoa: `be/patch*.py`, `be/scratch_*.txt`.
-  - [ ] File `*.note.md` bi delete: xac nhan xoa co chu dich hay restore/cap nhat.
-- [ ] Tao snapshot endpoint hien tai:
-  - [ ] Backend controller routes.
-  - [ ] Frontend `/api/...` calls.
-  - [ ] Next rewrite map.
-- [ ] Chay verification baseline:
-  - [ ] `mvn clean test`.
-  - [ ] `npx tsc --noEmit`.
-  - [ ] `npm.cmd run build` va ghi loi neu fail do font/network.
-- [ ] Cap nhat `planning/DASHBOARD_COMPLETION_AUDIT_PLAN.md`: bo tick cac muc chua dat, hoac them ghi chu "pending rework".
+- [x] Chay `git status --short` va phan loai file:
+  - [x] File source dang sua hop le.
+  - [x] File planning/checklist can giu.
+  - [x] File tam can xoa: `be/patch*.py`, `be/scratch_*.txt`.
+  - [x] File `*.note.md` bi delete: xac nhan xoa co chu dich hay restore/cap nhat.
+- [x] Tao snapshot endpoint hien tai:
+  - [x] Backend controller routes.
+  - [x] Frontend `/api/...` calls.
+  - [x] Next rewrite map.
+- [x] Chay verification baseline:
+  - [x] `mvn clean test`.
+  - [x] `npx tsc --noEmit`.
+  - [x] `npm.cmd run build` va ghi loi neu fail do font/network.
+- [x] Cap nhat `planning/DASHBOARD_COMPLETION_AUDIT_PLAN.md`: bo tick cac muc chua dat, hoac them ghi chu "pending rework".
 
 Definition of done:
 
@@ -79,15 +79,15 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Them role guard cho `/api/admin/users/**`.
+- [x] Them role guard cho `/api/admin/users/**`.
   - Uu tien: controller dung `@PreAuthorize("hasRole('ADMIN')")`.
   - Dong thoi service `UserService` nen check `PermissionService.isAdmin(currentUserId)` cho cac thao tac nguy hiem.
-- [ ] Bat method security neu chua co: `@EnableMethodSecurity`.
-- [ ] Them test:
-  - [ ] Khong token -> 401/403.
-  - [ ] Token LANDLORD -> 403.
-  - [ ] Token ADMIN -> duoc truy cap.
-- [ ] Frontend route `/dashboard/quan-ly-tai-khoan` guard role ADMIN.
+- [x] Bat method security neu chua co: `@EnableMethodSecurity`.
+- [x] Them test:
+  - [x] Khong token -> 401/403.
+  - [x] Token LANDLORD -> 403.
+  - [x] Token ADMIN -> duoc truy cap.
+- [x] Frontend route `/dashboard/quan-ly-tai-khoan` guard role ADMIN.
 
 Acceptance:
 
@@ -105,13 +105,13 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Khong public dashboard endpoint raw:
-  - [ ] Doi whitelist hien tai `/api/phong/**`, `/api/toa-nha/**` thanh endpoint public rieng, vi du `/api/public/phong`, `/api/public/toa-nha`.
-  - [ ] Public DTO chi tra thong tin can cho trang xem phong.
-- [ ] Dashboard `/api/phong`, `/api/toa-nha` bat buoc authenticated va loc theo permission.
-- [ ] Cap nhat frontend public page dung `/api/public/...`.
-- [ ] Cap nhat `frontend/next.config.ts` rewrites.
-- [ ] Them security tests cho public/dashboard separation.
+- [x] Khong public dashboard endpoint raw:
+  - [x] Doi whitelist hien tai `/api/phong/**`, `/api/toa-nha/**` thanh endpoint public rieng, vi du `/api/public/phong`, `/api/public/toa-nha`.
+  - [x] Public DTO chi tra thong tin can cho trang xem phong.
+- [x] Dashboard `/api/phong`, `/api/toa-nha` bat buoc authenticated va loc theo permission.
+- [x] Cap nhat frontend public page dung `/api/public/...`.
+- [x] Cap nhat `frontend/next.config.ts` rewrites.
+- [x] Them security tests cho public/dashboard separation.
 
 Acceptance:
 
@@ -131,16 +131,16 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Them helper:
-  - [ ] `canReadPhong(userId, phongId)`
-  - [ ] `canWritePhong(userId, phongId)`
-  - [ ] `canReadHopDong(userId, hopDongId)`
-  - [ ] `canWriteHopDong(userId, hopDongId)`
-  - [ ] `canReadHoaDon(userId, hoaDonId)`
-  - [ ] `canWriteHoaDon(userId, hoaDonId)`
-  - [ ] `canReadKhachThue(userId, khachThueId)`
-  - [ ] `accessibleNhaTroIdsForQuery(userId)`
-- [ ] Thong nhat convention: admin -> empty filter means all; non-admin -> explicit list ids.
+- [x] Them helper:
+  - [x] `canReadPhong(userId, phongId)`
+  - [x] `canWritePhong(userId, phongId)`
+  - [x] `canReadHopDong(userId, hopDongId)`
+  - [x] `canWriteHopDong(userId, hopDongId)`
+  - [x] `canReadHoaDon(userId, hoaDonId)`
+  - [x] `canWriteHoaDon(userId, hoaDonId)`
+  - [x] `canReadKhachThue(userId, khachThueId)`
+  - [x] `accessibleNhaTroIdsForQuery(userId)`
+- [x] Thong nhat convention: admin -> empty filter means all; non-admin -> explicit list ids.
 - [ ] Them unit test cho helper permission.
 
 Acceptance:
@@ -158,12 +158,12 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] List/get/create/update/deactivate phai check write/read nha tro.
-- [ ] Admin xem/sua tat ca.
-- [ ] Landlord chi quan ly cau hinh gia cua nha tro minh lam chu.
-- [ ] Staff chi xem/sua neu co quyen tren `nguoi_dung_nha_tro`.
-- [ ] Tenant khong duoc vao dashboard cau hinh gia.
-- [ ] `getApplicable` khong duoc lo gia nha tro khac neu la dashboard call.
+- [x] List/get/create/update/deactivate phai check write/read nha tro.
+- [x] Admin xem/sua tat ca.
+- [x] Landlord chi quan ly cau hinh gia cua nha tro minh lam chu.
+- [x] Staff chi xem/sua neu co quyen tren `nguoi_dung_nha_tro`.
+- [x] Tenant khong duoc vao dashboard cau hinh gia.
+- [x] `getApplicable` khong duoc lo gia nha tro khac neu la dashboard call.
 
 Acceptance:
 
@@ -180,12 +180,12 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] List theo `phongId`, `nhaTroId`, `kyThang`, `kyNam`, `loai`, `trangThai`.
-- [ ] Loc theo permission cua phong/nha tro.
-- [ ] Create/update/delete yeu cau write permission tren phong.
-- [ ] Tenant chi duoc xem chi so lien quan hop dong cua minh neu can.
-- [ ] Set `nguoiGhi` = current user khi tao/sua.
-- [ ] Khi `BILLED`, chi cho cancel co audit, khong update chi so.
+- [x] List theo `phongId`, `nhaTroId`, `kyThang`, `kyNam`, `loai`, `trangThai`.
+- [x] Loc theo permission cua phong/nha tro.
+- [x] Create/update/delete yeu cau write permission tren phong.
+- [x] Tenant chi duoc xem chi so lien quan hop dong cua minh neu can.
+- [x] Set `nguoiGhi` = current user khi tao/sua.
+- [x] Khi `BILLED`, chi cho cancel co audit, khong update chi so.
 
 Acceptance:
 
@@ -203,12 +203,12 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] List loc theo phong/nha tro/tenant ownership.
-- [ ] Tenant tao su co chi cho phong/hop dong cua minh.
-- [ ] Landlord/staff chi xu ly su co trong nha tro co quyen.
-- [ ] Delete chuyen soft delete/cancel neu schema cho phep; neu hard delete thi phai co audit va chi admin/owner.
-- [ ] Them nguoi phu trach, chi phi sua chua, tinh vao hoa don neu UI/API da co.
-- [ ] Goi `logAudit` cho create/update/resolve/delete.
+- [x] List loc theo phong/nha tro/tenant ownership.
+- [x] Tenant tao su co chi cho phong/hop dong cua minh.
+- [x] Landlord/staff chi xu ly su co trong nha tro co quyen.
+- [x] Delete chuyen soft delete/cancel neu schema cho phep; neu hard delete thi phai co audit va chi admin/owner.
+- [x] Them nguoi phu trach, chi phi sua chua, tinh vao hoa don neu UI/API da co.
+- [x] Goi `logAudit` cho create/update/resolve/delete.
 
 Acceptance:
 
@@ -227,11 +227,11 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Public booking chi cho `POST /api/lich-hen` voi validation.
-- [ ] Dashboard list/update/delete bat buoc auth va loc theo nha tro cua phong.
-- [ ] Status flow ro: PENDING -> CONFIRMED/CANCELLED/COMPLETED/NO_SHOW.
-- [ ] Reminder job chi doc lich hen can gui va khong gui lap.
-- [ ] Audit cho status update/cancel.
+- [x] Public booking chi cho `POST /api/lich-hen` voi validation.
+- [x] Dashboard list/update/delete bat buoc auth va loc theo nha tro cua phong.
+- [x] Status flow ro: PENDING -> CONFIRMED/CANCELLED/COMPLETED/NO_SHOW.
+- [x] Reminder job chi doc lich hen can gui va khong gui lap.
+- [x] Audit cho status update/cancel.
 
 Acceptance:
 
@@ -249,16 +249,16 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Chuan hoa mot chien luoc:
+- [x] Chuan hoa mot chien luoc:
   - Upload raw file -> `/api/media/upload`.
   - Gan URL/replace URL noi bo -> `MediaService`.
-- [ ] Check permission theo doi tuong:
+- [x] Check permission theo doi tuong:
   - ROOM -> permission phong.
   - METER_READING -> permission chi so/phong.
   - PAYMENT -> permission hoa don/payment.
   - INCIDENT -> permission su co/phong.
-- [ ] File list/delete phai check owner object.
-- [ ] Validation file type/size giu lai, them extension allowlist neu can.
+- [x] File list/delete phai check owner object.
+- [x] Validation file type/size giu lai, them extension allowlist neu can.
 
 Acceptance:
 
@@ -275,11 +275,11 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Dashboard admin/owner list thong bao theo nguoi gui/nguoi nhan/nha tro neu co context.
-- [ ] `markRead` khong cho fallback mark all khi khong co `nguoiDungId`; dung current authenticated user.
-- [ ] `GET /api/thong-bao/my` la endpoint tenant/user self.
-- [ ] Send/retry theo kenh co trang thai recipient ro.
-- [ ] Audit cho create/update/send/delete.
+- [x] Dashboard admin/owner list thong bao theo nguoi gui/nguoi nhan/nha tro neu co context.
+- [x] `markRead` khong cho fallback mark all khi khong co `nguoiDungId`; dung current authenticated user.
+- [x] `GET /api/thong-bao/my` la endpoint tenant/user self.
+- [x] Send/retry theo kenh co trang thai recipient ro.
+- [x] Audit cho create/update/send/delete.
 
 Acceptance:
 
@@ -303,17 +303,17 @@ Files chinh:
 
 Viec can lam:
 
-- [ ] Moi aggregate nhan current user va filter nha tro accessible.
-- [ ] Repository query aggregate theo danh sach `nhaTroIds`.
-- [ ] Admin aggregate all.
-- [ ] Landlord aggregate nha tro minh lam chu.
-- [ ] Staff aggregate nha tro duoc gan quyen.
-- [ ] Tenant dashboard dung endpoint tenant rieng, khong dung dashboard admin.
-- [ ] Them test:
-  - [ ] Admin thay all.
-  - [ ] Landlord A khong tinh data landlord B.
-  - [ ] Staff chi tinh nha tro assigned.
-  - [ ] Tenant khong goi duoc admin stats.
+- [x] Moi aggregate nhan current user va filter nha tro accessible.
+- [x] Repository query aggregate theo danh sach `nhaTroIds`.
+- [x] Admin aggregate all.
+- [x] Landlord aggregate nha tro minh lam chu.
+- [x] Staff aggregate nha tro duoc gan quyen.
+- [x] Tenant dashboard dung endpoint tenant rieng, khong dung dashboard admin.
+- [x] Them test:
+  - [x] Admin thay all.
+  - [x] Landlord A khong tinh data landlord B.
+  - [x] Staff chi tinh nha tro assigned.
+  - [x] Tenant khong goi duoc admin stats.
 
 Acceptance:
 
@@ -327,13 +327,13 @@ Muc tieu: tai chinh co nguon tinh ro va co audit.
 
 Viec can lam:
 
-- [ ] Update gia khong sua record cu da tung ap dung.
-- [ ] Khi update:
-  - [ ] Dong record cu: set `hieuLucDen = newHieuLucTu - 1`, `dangApDung=false` neu can.
-  - [ ] Tao record moi voi `hieuLucTu`.
-- [ ] Validate overlap cho tat ca loai can doc quyen, khong chi dien/nuoc neu business yeu cau.
-- [ ] Them audit CREATE/UPDATE_VERSION/DEACTIVATE.
-- [ ] Them test overlap/versioning.
+- [x] Update gia khong sua record cu da tung ap dung.
+- [x] Khi update:
+  - [x] Dong record cu: set `hieuLucDen = newHieuLucTu - 1`, `dangApDung=false` neu can.
+  - [x] Tao record moi voi `hieuLucTu`.
+- [x] Validate overlap cho tat ca loai can doc quyen, khong chi dien/nuoc neu business yeu cau.
+- [x] Them audit CREATE/UPDATE_VERSION/DEACTIVATE.
+- [x] Them test overlap/versioning.
 
 Acceptance:
 
@@ -343,15 +343,15 @@ Acceptance:
 
 Viec can lam:
 
-- [ ] Them audit CREATE/UPDATE/CANCEL/SEND.
-- [ ] Chan update hoa don PAID/OVERPAID tru khi action dieu chinh ro rang.
-- [ ] Chot service la nguon recalc chinh, DB trigger chi la safety net hoac bo trigger neu gay lech.
-- [ ] Latest reading query dung `chi_so_dien_nuoc`, khong parse text line item.
-- [ ] Them test:
-  - [ ] No dau ky.
-  - [ ] Tra du/tra thua.
-  - [ ] Qua han.
-  - [ ] Sua hoa don da co payment bi chan.
+- [x] Them audit CREATE/UPDATE/CANCEL/SEND.
+- [x] Chan update hoa don PAID/OVERPAID tru khi action dieu chinh ro rang.
+- [x] Chot service la nguon recalc chinh, DB trigger chi la safety net hoac bo trigger neu gay lech.
+- [x] Latest reading query dung `chi_so_dien_nuoc`, khong parse text line item.
+- [x] Them test:
+  - [x] No dau ky.
+  - [x] Tra du/tra thua.
+  - [x] Qua han.
+  - [x] Sua hoa don da co payment bi chan.
 
 Acceptance:
 
@@ -361,12 +361,12 @@ Acceptance:
 
 Viec can lam:
 
-- [ ] `delete` da cancel, tiep tuc bo hard delete tren UI wording.
-- [ ] Them cancel/refund model ro neu can: CANCELLED, REFUNDED.
-- [ ] Tenant create payment chi cho invoice cua minh, status co the PENDING neu can landlord approve.
-- [ ] Owner/staff/admin moi update/cancel payment.
-- [ ] Audit CREATE/UPDATE/CANCEL/REFUND.
-- [ ] VietQR manual match tao payment va audit.
+- [x] `delete` da cancel, tiep tuc bo hard delete tren UI wording.
+- [x] Them cancel/refund model ro neu can: CANCELLED, REFUNDED.
+- [x] Tenant create payment chi cho invoice cua minh, status co the PENDING neu can landlord approve.
+- [x] Owner/staff/admin moi update/cancel payment.
+- [x] Audit CREATE/UPDATE/CANCEL/REFUND.
+- [x] VietQR manual match tao payment va audit.
 
 Acceptance:
 
@@ -378,26 +378,26 @@ Muc tieu: khong load toan bo bang trong dashboard.
 
 List API can doi sang `PaginatedResponse<T>`:
 
-- [ ] `/api/toa-nha`
-- [ ] `/api/phong`
-- [ ] `/api/khach-thue`
-- [ ] `/api/hop-dong`
-- [ ] `/api/hoa-don`
-- [ ] `/api/thanh-toan`
-- [ ] `/api/su-co`
-- [ ] `/api/thong-bao`
-- [ ] `/api/chi-so-dien-nuoc`
-- [ ] `/api/cau-hinh-gia`
-- [ ] `/api/lich-hen`
-- [ ] `/api/media`
-- [ ] `/api/dich-vu`
-- [ ] `/api/tien-ich`
-- [ ] `/api/cong-no`
+- [x] `/api/toa-nha`
+- [x] `/api/phong`
+- [x] `/api/khach-thue`
+- [x] `/api/hop-dong`
+- [x] `/api/hoa-don`
+- [x] `/api/thanh-toan`
+- [x] `/api/su-co`
+- [x] `/api/thong-bao`
+- [x] `/api/chi-so-dien-nuoc`
+- [x] `/api/cau-hinh-gia`
+- [x] `/api/lich-hen`
+- [x] `/api/media`
+- [x] `/api/dich-vu`
+- [x] `/api/tien-ich`
+- [x] `/api/cong-no`
 
 Viec can lam:
 
-- [ ] Backend controller nhan `page`, `limit`, `sort`, filters.
-- [ ] Repository dung `Pageable` hoac custom aggregate query, khong paginate sau khi `findAll`.
+- [x] Backend controller nhan `page`, `limit`, `sort`, filters.
+- [x] Repository dung `Pageable` hoac custom aggregate query, khong paginate sau khi `findAll`.
 - [ ] Frontend data table dung server pagination.
 - [ ] Bo cac `limit=100` tam thoi.
 - [ ] `frontend/src/types/index.ts` chuan hoa `ApiResponse<T>` va `PaginatedResponse<T>`.

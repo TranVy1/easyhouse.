@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.ThongBaoRequest;
 import com.example.quanlyphongtro.dto.ThongBaoResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.entity.KenhThongBao;
 import com.example.quanlyphongtro.entity.KhachThue;
 import com.example.quanlyphongtro.entity.LoaiThongBao;
@@ -30,10 +31,12 @@ public class ThongBaoService {
     private final KhachThueRepository khachThueRepository;
 
     @Transactional(readOnly = true)
-    public List<ThongBaoResponse> getAll() {
-        return thongBaoRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+    public PaginatedResponse<ThongBaoResponse> getAll(org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<ThongBao> page = thongBaoRepository.findByXoaLucIsNullOrderByTaoLucDesc(pageable);
+        List<ThongBaoResponse> mappedData = page.getContent().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        return PaginatedResponse.of(page, mappedData);
     }
 
     @Transactional(readOnly = true)
@@ -91,17 +94,18 @@ public class ThongBaoService {
     public ThongBaoResponse markRead(UUID id, UUID nguoiDungId, boolean daDoc) {
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
-        if (nguoiDungId == null) {
-            List<ThongBaoNguoiNhan> recipients = thongBaoNguoiNhanRepository.findByThongBaoId(id);
-            ZonedDateTime now = ZonedDateTime.now();
-            for (ThongBaoNguoiNhan recipient : recipients) {
-                recipient.setDaDoc(daDoc);
-                recipient.setDocLuc(daDoc ? now : null);
+        
+        UUID targetUserId = nguoiDungId;
+        if (targetUserId == null) {
+            targetUserId = permissionService.requireCurrentUserId();
+        } else {
+            // If they provided a user ID, they must either be that user or an admin
+            if (!targetUserId.equals(permissionService.requireCurrentUserId()) && !permissionService.isAdmin(permissionService.requireCurrentUserId())) {
+                throw new RuntimeException("Khong co quyen danh dau da doc cho nguoi dung khac");
             }
-            thongBaoNguoiNhanRepository.saveAll(recipients);
-            return toResponse(tb);
         }
-        NguoiDung nguoiDung = resolveNguoiDungForRecipient(nguoiDungId);
+        
+        NguoiDung nguoiDung = resolveNguoiDungForRecipient(targetUserId);
         ThongBaoNguoiNhan recipient = thongBaoNguoiNhanRepository.findByThongBaoIdAndNguoiDungId(id, nguoiDung.getId())
                 .orElseGet(() -> ThongBaoNguoiNhan.builder()
                         .thongBao(tb)
@@ -188,15 +192,22 @@ public class ThongBaoService {
     private com.example.quanlyphongtro.services.PermissionService permissionService;
 
     @Transactional(readOnly = true)
-    public List<ThongBaoResponse> getMyThongBao() {
+    public PaginatedResponse<ThongBaoResponse> getMyThongBao(org.springframework.data.domain.Pageable pageable) {
         UUID currentUserId = permissionService.requireCurrentUserId();
         
         List<ThongBaoNguoiNhan> myRecipients = thongBaoNguoiNhanRepository.findByNguoiDungId(currentUserId);
         List<UUID> myThongBaoIds = myRecipients.stream().map(r -> r.getThongBao().getId()).toList();
         
-        return thongBaoRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
-                .filter(tb -> Boolean.TRUE.equals(tb.getGuiTatCa()) || myThongBaoIds.contains(tb.getId()))
+        org.springframework.data.domain.Page<ThongBao> page;
+        if (myThongBaoIds.isEmpty()) {
+            page = thongBaoRepository.findMyThongBaoGuiTatCa(pageable);
+        } else {
+            page = thongBaoRepository.findMyThongBao(myThongBaoIds, pageable);
+        }
+
+        List<ThongBaoResponse> mappedData = page.getContent().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        return PaginatedResponse.of(page, mappedData);
     }
 }

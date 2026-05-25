@@ -25,9 +25,16 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        // Protect admin routes
+        if (req.nextUrl.pathname.startsWith('/dashboard/quan-ly-tai-khoan')) {
+          return token?.role === 'ADMIN' || token?.role === 'ROLE_ADMIN';
+        }
         // Protect dashboard routes
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
-          return !!token;
+          return !!token && token.role !== 'TENANT';
+        }
+        if (req.nextUrl.pathname.startsWith('/khach-thue/dashboard')) {
+          return !!token && token.role === 'TENANT';
         }
         if (req.nextUrl.pathname.startsWith('/api/')) {
           return true;

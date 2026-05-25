@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.dto.ThanhToanResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.ThanhToanService;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,9 +26,13 @@ public class ThanhToanController {
     private final ThanhToanService thanhToanService;
 
     @GetMapping
-    public ApiResponse<List<ThanhToanResponse>> getAll() {
+    public ApiResponse<PaginatedResponse<ThanhToanResponse>> getAll(
+            @RequestParam(required = false) String hoaDonId,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ApiResponse.success(thanhToanService.getAll());
+            return ApiResponse.success(thanhToanService.getAll(hoaDonId, trangThai, page, limit));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

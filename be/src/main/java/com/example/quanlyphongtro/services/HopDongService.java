@@ -8,6 +8,11 @@ import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
@@ -39,12 +44,29 @@ public class HopDongService {
     private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
-    public List<HopDongResponse> getAll() {
+    public PaginatedResponse<HopDongResponse> getAll(String phongId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
-        return hopDongRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
-                .filter(hopDong -> canReadHopDong(hopDong, userId))
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        boolean isAdmin = permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
+        }
+        
+        TrangThaiHopDong tt = null;
+        if (trangThaiStr != null && !trangThaiStr.isBlank() && !trangThaiStr.equals("all")) {
+            try { tt = TrangThaiHopDong.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
+        }
+        
+        String pid = (phongId == null || phongId.isBlank() || phongId.equals("all")) ? null : phongId;
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<HopDong> pageResult = hopDongRepository.findAllAccessible(isAdmin, userId, nhaTroIds, pid, tt, pageable);
+        
+        List<HopDongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
+        return PaginatedResponse.of(pageResult, mappedList);
     }
 
     @Transactional(readOnly = true)

@@ -11,8 +11,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface CauHinhGiaRepository extends JpaRepository<CauHinhGia, UUID> {
+public interface CauHinhGiaRepository extends JpaRepository<CauHinhGia, UUID>, JpaSpecificationExecutor<CauHinhGia> {
     List<CauHinhGia> findByNhaTroIdOrderByHieuLucTuDesc(UUID nhaTroId);
 
     List<CauHinhGia> findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(UUID nhaTroId, LoaiMucHoaDon loai);

@@ -6,6 +6,11 @@ import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -13,6 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,23 +35,36 @@ public class ThanhToanService {
     private final EmailService emailService;
 
     @Transactional(readOnly = true)
-    public List<ThanhToanResponse> getAll() {
+    public PaginatedResponse<ThanhToanResponse> getAll(String hoaDonId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
-        List<ThanhToan> list = thanhToanRepository.findAll();
-        list.sort((a, b) -> {
-            if (a.getNgayThanhToan() == null) return 1;
-            if (b.getNgayThanhToan() == null) return -1;
-            return b.getNgayThanhToan().compareTo(a.getNgayThanhToan());
-        });
-        return list.stream()
-                .filter(tt -> canReadHoaDon(tt.getHoaDon(), userId))
-                .map(tt -> {
-                    List<ChiTietHoaDon> ct = tt.getHoaDon() != null
-                            ? chiTietHoaDonRepository.findByHoaDonId(tt.getHoaDon().getId())
-                            : Collections.emptyList();
-                    return toResponse(tt, ct);
-                })
-                .toList();
+        boolean isAdmin = permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
+        }
+        
+        TrangThaiThanhToan tt = null;
+        if (trangThaiStr != null && !trangThaiStr.isBlank() && !trangThaiStr.equals("all")) {
+            try { tt = TrangThaiThanhToan.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
+        }
+        
+        String hid = (hoaDonId == null || hoaDonId.isBlank() || hoaDonId.equals("all")) ? null : hoaDonId;
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "ngayThanhToan"));
+        Page<ThanhToan> pageResult = thanhToanRepository.findAllAccessible(isAdmin, userId, nhaTroIds, hid, tt, pageable);
+        
+        List<ThanhToanResponse> res = new ArrayList<>();
+        for (ThanhToan hd : pageResult.getContent()) {
+            List<ChiTietHoaDon> ct = hd.getHoaDon() != null
+                    ? chiTietHoaDonRepository.findByHoaDonId(hd.getHoaDon().getId())
+                    : Collections.emptyList();
+            res.add(toResponse(hd, ct));
+        }
+        
+        return PaginatedResponse.of(pageResult, res);
     }
 
     @Transactional(readOnly = true)
@@ -76,12 +95,19 @@ public class ThanhToanService {
         }
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-        assertCanCreatePayment(hoaDon, permissionService.requireCurrentUserId());
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanCreatePayment(hoaDon, userId);
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
             throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
         }
         if (req.getSoTien() == null || req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Số tiền thanh toán phải lớn hơn 0");
+        }
+
+        boolean isStaffOrAdmin = canWriteHoaDon(hoaDon, userId);
+        TrangThaiThanhToan status = isStaffOrAdmin ? TrangThaiThanhToan.SUCCESS : TrangThaiThanhToan.PENDING;
+        if (isStaffOrAdmin && req.getTrangThai() != null) {
+            status = parseTrangThai(req.getTrangThai());
         }
 
         ThanhToan tt = ThanhToan.builder()
@@ -92,7 +118,7 @@ public class ThanhToanService {
                 .maThamChieu(req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null)
                 .ngayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()))
                 .ghiChu(req.getGhiChu())
-                .trangThai(TrangThaiThanhToan.SUCCESS)
+                .trangThai(status)
                 .build();
         ThanhToan saved = thanhToanRepository.save(tt);
         mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
@@ -137,6 +163,7 @@ public class ThanhToanService {
         if (req.getThongTinChuyenKhoan() != null) tt.setMaThamChieu(req.getThongTinChuyenKhoan().getSoGiaoDich());
         if (req.getNgayThanhToan() != null) tt.setNgayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()));
         if (req.getGhiChu() != null) tt.setGhiChu(req.getGhiChu());
+        if (req.getTrangThai() != null) tt.setTrangThai(parseTrangThai(req.getTrangThai()));
 
         ThanhToan saved = thanhToanRepository.save(tt);
         if (req.getAnhBienLai() != null) {
@@ -290,5 +317,14 @@ public class ThanhToanService {
             .taoLuc(ZonedDateTime.now())
             .build();
         auditLogRepository.save(log);
+    }
+
+    private TrangThaiThanhToan parseTrangThai(String value) {
+        if (value == null || value.isBlank()) return TrangThaiThanhToan.PENDING;
+        try {
+            return TrangThaiThanhToan.valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (Exception e) {
+            throw new RuntimeException("Trạng thái thanh toán không hợp lệ: " + value);
+        }
     }
 }

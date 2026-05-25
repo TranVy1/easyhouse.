@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.KhachThueRequest;
 import com.example.quanlyphongtro.dto.KhachThueResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.KhachThueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,11 @@ public class KhachThueController {
     private final KhachThueService khachThueService;
 
     @GetMapping
-    public ApiResponse<List<KhachThueResponse>> getAll(
-            @RequestParam(required = false) String trangThai) {
-        return ApiResponse.success(khachThueService.getAllKhachThue(trangThai));
+    public ApiResponse<PaginatedResponse<KhachThueResponse>> getAll(
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+        return ApiResponse.success(khachThueService.getAllKhachThue(trangThai, page, limit));
     }
 
     @GetMapping("/{id}")

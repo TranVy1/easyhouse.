@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.CauHinhGiaRequest;
 import com.example.quanlyphongtro.dto.CauHinhGiaResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.CauHinhGiaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,16 @@ public class CauHinhGiaController {
     private final CauHinhGiaService cauHinhGiaService;
 
     @GetMapping
-    public ApiResponse<List<CauHinhGiaResponse>> getAll(
+    public ApiResponse<PaginatedResponse<CauHinhGiaResponse>> getAll(
             @RequestParam(required = false) UUID nhaTroId,
             @RequestParam(required = false) String loai,
-            @RequestParam(required = false) Boolean dangApDung
+            @RequestParam(required = false) Boolean dangApDung,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "hieuLucTu,desc") String sort
     ) {
-        return ApiResponse.success(cauHinhGiaService.getAll(nhaTroId, loai, dangApDung));
+        org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+        return ApiResponse.success(cauHinhGiaService.getAll(nhaTroId, loai, dangApDung, pageable));
     }
 
     @GetMapping("/{id}")

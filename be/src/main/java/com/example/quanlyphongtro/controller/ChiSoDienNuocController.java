@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.ChiSoDienNuocRequest;
 import com.example.quanlyphongtro.dto.ChiSoDienNuocResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.ChiSoDienNuocService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +19,19 @@ public class ChiSoDienNuocController {
     private final ChiSoDienNuocService chiSoDienNuocService;
 
     @GetMapping
-    public ApiResponse<List<ChiSoDienNuocResponse>> getAll(
-            @RequestParam(required = false) UUID phongId) {
-        if (phongId != null) {
-            return ApiResponse.success(chiSoDienNuocService.getByPhong(phongId));
-        }
-        return ApiResponse.success(chiSoDienNuocService.getAll());
+    public ApiResponse<PaginatedResponse<ChiSoDienNuocResponse>> getAll(
+            @RequestParam(required = false) UUID nhaTroId,
+            @RequestParam(required = false) UUID phongId,
+            @RequestParam(required = false) Integer kyThang,
+            @RequestParam(required = false) Integer kyNam,
+            @RequestParam(required = false) String loai,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "kyNam,desc") String sort) {
+        
+        org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+        return ApiResponse.success(chiSoDienNuocService.getAll(nhaTroId, phongId, kyThang, kyNam, loai, trangThai, pageable));
     }
 
     @GetMapping("/{id}")

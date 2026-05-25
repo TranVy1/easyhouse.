@@ -95,7 +95,7 @@ export default function ToaNhaPage() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          const toaNhas = result.data;
+          const toaNhas = Array.isArray(result.data) ? result.data : (result.data?.data || []);
           setToaNhaList(toaNhas);
           setCache({ toaNhaList: toaNhas });
         }

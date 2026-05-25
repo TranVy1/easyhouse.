@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.NhaTroRequest;
 import com.example.quanlyphongtro.dto.NhaTroResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.NhaTroService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,11 @@ public class NhaTroController {
     private final NhaTroService nhaTroService;
 
     @GetMapping
-    public ApiResponse<List<NhaTroResponse>> getAll() {
-        return ApiResponse.success(nhaTroService.getAllNhaTro());
+    public ApiResponse<PaginatedResponse<NhaTroResponse>> getAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ApiResponse.success(nhaTroService.getAllNhaTro(page, limit));
     }
 
     @GetMapping("/{id}")

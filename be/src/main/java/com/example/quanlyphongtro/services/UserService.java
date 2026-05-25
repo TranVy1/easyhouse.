@@ -9,12 +9,12 @@ import com.example.quanlyphongtro.repository.*;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.quanlyphongtro.dto.UserRoleAssignmentRequest;
 import com.example.quanlyphongtro.dto.UserBuildingAssignmentRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,16 +25,19 @@ public class UserService {
     private final NguoiDungVaiTroRepository nguoiDungVaiTroRepository;
     private final NhaTroRepository nhaTroRepository;
     private final NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
+        permissionService.requireAdmin();
         return nguoiDungRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
                 .map(this::mapToUserResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public UserResponse createUser(AdminUserRequest request) {
+        permissionService.requireAdmin();
         UUID authUserId = request.getAuthUserId() != null ? request.getAuthUserId() : request.getSupabaseUserId();
         if (authUserId == null) {
             throw new RuntimeException("authUserId la bat buoc vi nguoi_dung.id tham chieu auth.users(id)");
@@ -66,6 +69,7 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(UUID id, AdminUserRequest request) {
+        permissionService.requireAdmin();
         NguoiDung user = findActiveUser(id);
         if (request.getName() != null) user.setHoTen(request.getName().trim());
         if (request.getPhone() != null) {
@@ -83,6 +87,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(UUID id) {
+        permissionService.requireAdmin();
         NguoiDung user = findActiveUser(id);
         user.setXoaLuc(ZonedDateTime.now());
         nguoiDungRepository.save(user);
@@ -164,6 +169,7 @@ public class UserService {
 
     @Transactional
     public void assignRoles(UUID userId, UserRoleAssignmentRequest request) {
+        permissionService.requireAdmin();
         NguoiDung user = findActiveUser(userId);
         
         // Remove existing roles
@@ -194,6 +200,7 @@ public class UserService {
 
     @Transactional
     public void assignBuildings(UUID userId, UserBuildingAssignmentRequest request) {
+        permissionService.requireAdmin();
         NguoiDung user = findActiveUser(userId);
         
         // Remove existing assignments

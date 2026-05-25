@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.HoaDonRequest;
 import com.example.quanlyphongtro.dto.HoaDonResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.services.HoaDonService;
 import com.example.quanlyphongtro.services.ThanhToanService;
@@ -32,9 +33,13 @@ public class HoaDonController {
     private final ThanhToanService thanhToanService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<HoaDonResponse>>> getAll() {
+    public ResponseEntity<ApiResponse<PaginatedResponse<HoaDonResponse>>> getAll(
+            @RequestParam(required = false) String hopDongId,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAll()));
+            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAll(hopDongId, trangThai, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

@@ -1,6 +1,7 @@
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.dto.ThongBaoRequest;
 import com.example.quanlyphongtro.dto.ThongBaoResponse;
 import com.example.quanlyphongtro.services.ThongBaoService;
@@ -27,8 +28,14 @@ public class ThongBaoController {
     private final ThongBaoService thongBaoService;
 
     @GetMapping
-    public ApiResponse<List<ThongBaoResponse>> getAll() {
-        try { return ApiResponse.success(thongBaoService.getAll()); }
+    public ApiResponse<PaginatedResponse<ThongBaoResponse>> getAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "taoLuc,desc") String sort) {
+        try { 
+            org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+            return ApiResponse.success(thongBaoService.getAll(pageable)); 
+        }
         catch (Exception e) { return ApiResponse.error(e.getMessage()); }
     }
 
@@ -80,8 +87,14 @@ public class ThongBaoController {
     }
 
     @GetMapping("/my")
-    public ApiResponse<List<ThongBaoResponse>> getMyThongBao() {
-        try { return ApiResponse.success(thongBaoService.getMyThongBao()); }
+    public ApiResponse<PaginatedResponse<ThongBaoResponse>> getMyThongBao(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "taoLuc,desc") String sort) {
+        try { 
+            org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+            return ApiResponse.success(thongBaoService.getMyThongBao(pageable)); 
+        }
         catch (Exception e) { return ApiResponse.error(e.getMessage()); }
     }
 }

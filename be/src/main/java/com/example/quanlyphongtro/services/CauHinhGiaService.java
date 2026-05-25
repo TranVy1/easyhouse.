@@ -17,6 +17,13 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -26,23 +33,41 @@ public class CauHinhGiaService {
     private final CauHinhGiaRepository cauHinhGiaRepository;
     private final NhaTroRepository nhaTroRepository;
 
-    public List<CauHinhGiaResponse> getAll(UUID nhaTroId, String loaiRaw, Boolean dangApDung) {
+    public PaginatedResponse<CauHinhGiaResponse> getAll(UUID nhaTroId, String loaiRaw, Boolean dangApDung, Pageable pageable) {
         LoaiMucHoaDon loai = parseLoai(loaiRaw, false);
-        List<CauHinhGia> list;
-        if (nhaTroId != null) {
-            list = cauHinhGiaRepository.findByNhaTroIdOrderByHieuLucTuDesc(nhaTroId);
-        } else {
-            list = cauHinhGiaRepository.findAll();
-        }
+        UUID userId = permissionService.requireCurrentUserId();
+        List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
 
-        return list.stream()
-                .filter(c -> loai == null || c.getLoai() == loai)
-                .filter(c -> dangApDung == null || c.getDangApDung().equals(dangApDung))
-                .sorted(Comparator.comparing((CauHinhGia c) -> c.getNhaTro() != null ? c.getNhaTro().getTen() : "", Comparator.nullsLast(String::compareTo))
-                        .thenComparing(c -> c.getLoai() != null ? c.getLoai().name() : "", Comparator.nullsLast(String::compareTo))
-                        .thenComparing(CauHinhGia::getHieuLucTu, Comparator.nullsLast(Comparator.reverseOrder())))
+        Specification<CauHinhGia> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (nhaTroId != null) {
+                predicates.add(cb.equal(root.get("nhaTro").get("id"), nhaTroId));
+            }
+            if (loai != null) {
+                predicates.add(cb.equal(root.get("loai"), loai));
+            }
+            if (dangApDung != null) {
+                predicates.add(cb.equal(root.get("dangApDung"), dangApDung));
+            }
+
+            if (accessibleIds != null) {
+                if (accessibleIds.isEmpty()) {
+                    predicates.add(cb.disjunction());
+                } else {
+                    predicates.add(root.get("nhaTro").get("id").in(accessibleIds));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<CauHinhGia> page = cauHinhGiaRepository.findAll(spec, pageable);
+        List<CauHinhGiaResponse> data = page.getContent().stream()
                 .map(CauHinhGiaResponse::fromEntity)
                 .toList();
+
+        return PaginatedResponse.of(page, data);
     }
 
     public CauHinhGiaResponse getById(UUID id) {
@@ -63,6 +88,7 @@ public class CauHinhGiaService {
         validateDateRange(request.getHieuLucTu(), request.getHieuLucDen());
         NhaTro nhaTro = nhaTroRepository.findById(request.getNhaTroId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+        checkWritePermission(nhaTro);
 
         CauHinhGia entity = CauHinhGia.builder()
                 .nhaTro(nhaTro)
@@ -78,44 +104,62 @@ public class CauHinhGiaService {
 
         validateMoney(entity.getDonGia());
         validateOverlap(entity);
-        return CauHinhGiaResponse.fromEntity(cauHinhGiaRepository.save(entity));
+        CauHinhGia saved = cauHinhGiaRepository.save(entity);
+        logAudit(saved, "CREATE");
+        return CauHinhGiaResponse.fromEntity(saved);
     }
 
     @Transactional
     public CauHinhGiaResponse update(UUID id, CauHinhGiaRequest request) {
-        CauHinhGia entity = findById(id);
+        CauHinhGia oldEntity = findById(id);
+        checkWritePermission(oldEntity.getNhaTro());
 
-        if (request.getNhaTroId() != null) {
-            entity.setNhaTro(nhaTroRepository.findById(request.getNhaTroId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ")));
+        NhaTro nhaTro = oldEntity.getNhaTro();
+        if (request.getNhaTroId() != null && !request.getNhaTroId().equals(nhaTro.getId())) {
+            nhaTro = nhaTroRepository.findById(request.getNhaTroId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
+            checkWritePermission(nhaTro);
         }
-        if (request.getDichVuId() != null) entity.setDichVuId(request.getDichVuId());
-        if (request.getLoai() != null) entity.setLoai(parseLoai(request.getLoai(), true));
-        if (request.getTenHienThi() != null && !request.getTenHienThi().isBlank()) {
-            entity.setTenHienThi(request.getTenHienThi().trim());
-        }
-        if (request.getLoaiTinhPhi() != null) entity.setLoaiTinhPhi(parseLoaiTinhPhi(request.getLoaiTinhPhi()));
-        if (request.getDonGia() != null) {
-            validateMoney(request.getDonGia());
-            entity.setDonGia(request.getDonGia());
-        }
-        if (request.getHieuLucTu() != null) entity.setHieuLucTu(request.getHieuLucTu());
-        if (request.getHieuLucDen() != null) entity.setHieuLucDen(request.getHieuLucDen());
-        if (request.getDangApDung() != null) entity.setDangApDung(request.getDangApDung());
 
-        validateDateRange(entity.getHieuLucTu(), entity.getHieuLucDen());
-        validateOverlap(entity);
-        return CauHinhGiaResponse.fromEntity(cauHinhGiaRepository.save(entity));
+        CauHinhGia newEntity = CauHinhGia.builder()
+                .nhaTro(nhaTro)
+                .dichVuId(request.getDichVuId() != null ? request.getDichVuId() : oldEntity.getDichVuId())
+                .loai(request.getLoai() != null ? parseLoai(request.getLoai(), true) : oldEntity.getLoai())
+                .tenHienThi(request.getTenHienThi() != null && !request.getTenHienThi().isBlank() ? request.getTenHienThi().trim() : oldEntity.getTenHienThi())
+                .loaiTinhPhi(request.getLoaiTinhPhi() != null ? parseLoaiTinhPhi(request.getLoaiTinhPhi()) : oldEntity.getLoaiTinhPhi())
+                .donGia(request.getDonGia() != null ? request.getDonGia() : oldEntity.getDonGia())
+                .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
+                .hieuLucDen(request.getHieuLucDen() != null ? request.getHieuLucDen() : oldEntity.getHieuLucDen())
+                .dangApDung(request.getDangApDung() != null ? request.getDangApDung() : true)
+                .build();
+
+        validateMoney(newEntity.getDonGia());
+        validateDateRange(newEntity.getHieuLucTu(), newEntity.getHieuLucDen());
+
+        if (Boolean.TRUE.equals(oldEntity.getDangApDung())) {
+            oldEntity.setDangApDung(false);
+            if (oldEntity.getHieuLucDen() == null || oldEntity.getHieuLucDen().isAfter(newEntity.getHieuLucTu().minusDays(1))) {
+                oldEntity.setHieuLucDen(newEntity.getHieuLucTu().minusDays(1));
+            }
+            cauHinhGiaRepository.save(oldEntity);
+        }
+
+        validateOverlap(newEntity);
+        CauHinhGia saved = cauHinhGiaRepository.save(newEntity);
+        logAudit(saved, "UPDATE_VERSION");
+        return CauHinhGiaResponse.fromEntity(saved);
     }
 
     @Transactional
     public void deactivate(UUID id) {
         CauHinhGia entity = findById(id);
+        checkWritePermission(entity.getNhaTro());
         entity.setDangApDung(false);
         if (entity.getHieuLucDen() == null) {
             entity.setHieuLucDen(LocalDate.now());
         }
-        cauHinhGiaRepository.save(entity);
+        CauHinhGia saved = cauHinhGiaRepository.save(entity);
+        logAudit(saved, "DEACTIVATE");
     }
 
     private CauHinhGia findById(UUID id) {
@@ -161,15 +205,18 @@ public class CauHinhGiaService {
     private void validateOverlap(CauHinhGia entity) {
         if (!Boolean.TRUE.equals(entity.getDangApDung())) return;
         if (entity.getNhaTro() == null || entity.getLoai() == null) return;
-        // Chi validate overlap cho dien, nuoc, hoac cac loai co dinh khong the overlap.
-        // Dich vu co the co nhieu loai.
-        if (entity.getLoai() != LoaiMucHoaDon.ELECTRICITY && entity.getLoai() != LoaiMucHoaDon.WATER) return;
-
+        
+        // Validate overlap cho tat ca loai can doc quyen
         List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
                 entity.getNhaTro().getId(), entity.getLoai());
 
         for (CauHinhGia existing : activeConfigs) {
             if (entity.getId() != null && entity.getId().equals(existing.getId())) continue;
+            // Neu loai dich vu giong nhau (nhung la loai OTHER) thi phai check dichVuId giong nhau
+            if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
+                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
+                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
+            }
             
             LocalDate start1 = entity.getHieuLucTu() != null ? entity.getHieuLucTu() : LocalDate.MIN;
             LocalDate end1 = entity.getHieuLucDen() != null ? entity.getHieuLucDen() : LocalDate.MAX;
@@ -198,5 +245,25 @@ public class CauHinhGiaService {
             .taoLuc(java.time.ZonedDateTime.now())
             .build();
         auditLogRepository.save(log);
+    }
+
+    private void checkReadPermission(CauHinhGia entity) {
+        if (entity.getNhaTro() != null) {
+            UUID userId = permissionService.requireCurrentUserId();
+            UUID ownerId = entity.getNhaTro().getChuTro() != null ? entity.getNhaTro().getChuTro().getId() : null;
+            if (!permissionService.canReadNhaTro(userId, entity.getNhaTro().getId(), ownerId)) {
+                throw new RuntimeException("Khong co quyen truy cap cau hinh gia nay");
+            }
+        }
+    }
+
+    private void checkWritePermission(NhaTro nhaTro) {
+        if (nhaTro != null) {
+            UUID userId = permissionService.requireCurrentUserId();
+            UUID ownerId = nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
+            if (!permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId)) {
+                throw new RuntimeException("Khong co quyen thay doi cau hinh gia cua nha tro nay");
+            }
+        }
     }
 }

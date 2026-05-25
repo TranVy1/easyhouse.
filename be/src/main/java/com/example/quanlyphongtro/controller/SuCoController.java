@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.SuCoRequest;
 import com.example.quanlyphongtro.dto.SuCoResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.SuCoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,12 @@ public class SuCoController {
     private final SuCoService suCoService;
 
     @GetMapping
-    public ApiResponse<List<SuCoResponse>> getAll() {
+    public ApiResponse<List<SuCoResponse>> getAll(
+            @RequestParam(required = false) UUID nhaTroId,
+            @RequestParam(required = false) UUID phongId,
+            @RequestParam(required = false) String trangThai) {
         try {
-            return ApiResponse.success(suCoService.getAllSuCo());
+            return ApiResponse.success(suCoService.getAllSuCo(nhaTroId, phongId, trangThai));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface LichHenRepository extends JpaRepository<LichHen, UUID> {
+public interface LichHenRepository extends JpaRepository<LichHen, UUID>, JpaSpecificationExecutor<LichHen> {
     List<LichHen> findByNguoiDungId(UUID nguoiDungId);
     List<LichHen> findByPhongId(UUID phongId);
     List<LichHen> findByPhongNhaTroId(UUID nhaTroId);

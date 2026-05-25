@@ -8,6 +8,8 @@ import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.SuCoRepository;
+import com.example.quanlyphongtro.services.PermissionService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +27,13 @@ public class BaoCaoService {
     private final PhongRepository phongRepository;
     private final SuCoRepository suCoRepository;
     private final HopDongRepository hopDongRepository;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
     public BaoCaoTongQuanResponse getTongQuan() {
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        List<UUID> nhaTroIds = permissionService.getAllAccessibleNhaTroIds(currentUserId);
+        
         LocalDate today = LocalDate.now();
         int currentMonth = today.getMonthValue();
         int currentYear = today.getYear();
@@ -36,12 +42,19 @@ public class BaoCaoService {
         int startMonth = sixMonthsAgo.getMonthValue();
         int startYear = sixMonthsAgo.getYear();
 
-        List<DoanhThuTheoThang> thongKeList = hoaDonRepository.getDoanhThuThongKe(startYear, startMonth);
+        if (nhaTroIds != null && nhaTroIds.isEmpty()) {
+            return BaoCaoTongQuanResponse.builder()
+                .doanhThu(BigDecimal.ZERO).tienDaThu(BigDecimal.ZERO).tienChuaThu(BigDecimal.ZERO)
+                .tyLeLapDay(0.0).suCoCanXuLy(0L).hopDongSapHetHan(0L).bieuDoDoanhThu(new ArrayList<>()).build();
+        }
+
+        List<DoanhThuTheoThang> thongKeList = nhaTroIds == null 
+            ? hoaDonRepository.getDoanhThuThongKe(startYear, startMonth)
+            : hoaDonRepository.getDoanhThuThongKeAndNhaTroIdIn(startYear, startMonth, nhaTroIds);
 
         BigDecimal doanhThu = BigDecimal.ZERO;
         BigDecimal tienDaThu = BigDecimal.ZERO;
 
-        // Current month data
         for (DoanhThuTheoThang tk : thongKeList) {
             if (tk.getNam() == currentYear && tk.getThang() == currentMonth) {
                 doanhThu = doanhThu.add(tk.getDoanhThu() != null ? tk.getDoanhThu() : BigDecimal.ZERO);
@@ -51,16 +64,19 @@ public class BaoCaoService {
         
         BigDecimal tienChuaThu = doanhThu.subtract(tienDaThu);
 
-        long totalRooms = phongRepository.count();
-        long activeRooms = phongRepository.countByTrangThai(TrangThaiPhong.RENTED);
+        long totalRooms = nhaTroIds == null ? phongRepository.count() : phongRepository.countByNhaTroIdIn(nhaTroIds);
+        long activeRooms = nhaTroIds == null ? phongRepository.countByTrangThai(TrangThaiPhong.RENTED) : phongRepository.countByTrangThaiAndNhaTroIdIn(TrangThaiPhong.RENTED, nhaTroIds);
         
         Double tyLeLapDay = totalRooms > 0 ? (double) activeRooms / totalRooms * 100 : 0.0;
 
-        long suCoCanXuLy = suCoRepository.countByTrangThai(TrangThaiSuCo.PENDING) + suCoRepository.countByTrangThai(TrangThaiSuCo.IN_PROGRESS);
+        long suCoCanXuLy = nhaTroIds == null
+            ? suCoRepository.countByTrangThai(TrangThaiSuCo.PENDING) + suCoRepository.countByTrangThai(TrangThaiSuCo.IN_PROGRESS)
+            : suCoRepository.countByTrangThaiAndPhong_NhaTro_IdIn(TrangThaiSuCo.PENDING, nhaTroIds) + suCoRepository.countByTrangThaiAndPhong_NhaTro_IdIn(TrangThaiSuCo.IN_PROGRESS, nhaTroIds);
 
         LocalDate in30Days = today.plusDays(30);
-        long hopDongSapHetHan = hopDongRepository.countContractsExpiringBetween(
-                com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE, today, in30Days);
+        long hopDongSapHetHan = nhaTroIds == null
+            ? hopDongRepository.countContractsExpiringBetween(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE, today, in30Days)
+            : hopDongRepository.countContractsExpiringBetweenAndNhaTroIdIn(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE, today, in30Days, nhaTroIds);
 
         // Chart data for last 6 months
         List<BaoCaoTongQuanResponse.BieuDoDoanhThu> chartData = new ArrayList<>();

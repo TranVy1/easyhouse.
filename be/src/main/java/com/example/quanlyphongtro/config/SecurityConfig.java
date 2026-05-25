@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -40,10 +42,9 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/hoa-don-public/**",
+                    "/api/public/**",
                     "/actuator/**"
                 ).permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/phong", "/api/phong/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/toa-nha", "/api/toa-nha/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/lich-hen").permitAll()
                 .anyRequest().authenticated()
             )

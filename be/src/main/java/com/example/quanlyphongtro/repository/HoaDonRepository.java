@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +18,12 @@ import java.util.UUID;
 public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     List<HoaDon> findByXoaLucIsNullOrderByTaoLucDesc();
+
+    @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
+           "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
+           "AND (:hopDongId IS NULL OR h.hopDong.id = cast(:hopDongId as uuid)) " +
+           "AND (:trangThai IS NULL OR h.trangThai = :trangThai)")
+    Page<HoaDon> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("hopDongId") String hopDongId, @Param("trangThai") TrangThaiHoaDon trangThai, Pageable pageable);
 
     List<HoaDon> findByPhongIdAndXoaLucIsNull(UUID phongId);
 
@@ -57,4 +65,24 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
            "GROUP BY h.kyNam, h.kyThang " +
            "ORDER BY h.kyNam DESC, h.kyThang DESC")
     List<com.example.quanlyphongtro.dto.DoanhThuTheoThang> getDoanhThuThongKe(@Param("nam") int nam, @Param("thang") int thang);
+
+    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra >= :start AND h.hanTra <= :end AND h.xoaLuc IS NULL AND h.hopDong.phong.nhaTro.id IN :nhaTroIds")
+    long countUnpaidInvoicesDueBetweenAndNhaTroIdIn(
+        @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
+        @Param("start") LocalDate start,
+        @Param("end") LocalDate end,
+        @Param("nhaTroIds") List<UUID> nhaTroIds
+    );
+
+    @Query("SELECT COALESCE(SUM(h.tongTien - h.daTra), 0) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.xoaLuc IS NULL AND h.hopDong.phong.nhaTro.id IN :nhaTroIds")
+    java.math.BigDecimal sumUnpaidAmountAndNhaTroIdIn(
+        @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
+        @Param("nhaTroIds") List<UUID> nhaTroIds
+    );
+
+    @Query("SELECT h.kyThang AS thang, h.kyNam AS nam, SUM(h.tongTien) AS doanhThu, SUM(h.daTra) AS daThu " +
+           "FROM HoaDon h WHERE h.xoaLuc IS NULL AND (h.kyNam > :nam OR (h.kyNam = :nam AND h.kyThang >= :thang)) AND h.hopDong.phong.nhaTro.id IN :nhaTroIds " +
+           "GROUP BY h.kyNam, h.kyThang " +
+           "ORDER BY h.kyNam DESC, h.kyThang DESC")
+    List<com.example.quanlyphongtro.dto.DoanhThuTheoThang> getDoanhThuThongKeAndNhaTroIdIn(@Param("nam") int nam, @Param("thang") int thang, @Param("nhaTroIds") List<UUID> nhaTroIds);
 }

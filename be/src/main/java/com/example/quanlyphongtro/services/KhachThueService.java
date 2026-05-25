@@ -18,6 +18,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -31,31 +36,41 @@ public class KhachThueService {
     private final MediaService mediaService;
     private final PermissionService permissionService;
 
-    public List<KhachThueResponse> getAllKhachThue(String trangThai) {
-        List<KhachThue> list = khachThueRepository.findByXoaLucIsNullOrderByTaoLucDesc();
-        List<HopDong> activeContracts = hopDongRepository.findAllActive();
+    public PaginatedResponse<KhachThueResponse> getAllKhachThue(String trangThai, int page, int limit) {
+        UUID userId = permissionService.requireCurrentUserId();
+        boolean isAdmin = permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
+        }
+        
+        String filterTrangThai = (trangThai == null || trangThai.isBlank() || trangThai.equals("all")) ? null : trangThai;
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<KhachThue> pageResult = khachThueRepository.findAllAccessible(isAdmin, userId, nhaTroIds, filterTrangThai, pageable);
+        
+        // We still need active contracts to map correctly
+        List<UUID> ktIds = pageResult.getContent().stream().map(KhachThue::getId).toList();
+        List<HopDong> activeContracts = ktIds.isEmpty() ? List.of() : hopDongRepository.findAllActive().stream().filter(hd -> hd.getKhachThue() != null && ktIds.contains(hd.getKhachThue().getId())).toList();
         Map<UUID, HopDong> tenantContractMap = activeContracts.stream()
-                .filter(hd -> hd.getKhachThue() != null)
                 .collect(Collectors.toMap(
                         hd -> hd.getKhachThue().getId(),
                         hd -> hd,
                         (first, second) -> first,
                         HashMap::new));
 
-        UUID userId = permissionService.requireCurrentUserId();
-        if (!permissionService.isAdmin(userId)) {
-            list = list.stream()
-                    .filter(kt -> canReadKhachThue(kt, tenantContractMap.get(kt.getId()), userId))
-                    .toList();
-        }
-
-        return list.stream().map(kt -> {
+        List<KhachThueResponse> mappedList = pageResult.getContent().stream().map(kt -> {
             KhachThueResponse res = KhachThueResponse.fromEntity(kt);
             mapMedia(res, kt.getId());
             HopDong hd = tenantContractMap.get(kt.getId());
             if (hd != null) mapContractInfo(res, hd);
             return res;
         }).toList();
+        
+        return PaginatedResponse.of(pageResult, mappedList);
     }
 
     public KhachThueResponse getKhachThueById(UUID id) {

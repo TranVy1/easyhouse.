@@ -1,6 +1,7 @@
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.dto.TienIchRequest;
 import com.example.quanlyphongtro.dto.TienIchResponse;
 import com.example.quanlyphongtro.services.TienIchService;
@@ -19,9 +20,14 @@ public class TienIchController {
     private final TienIchService tienIchService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TienIchResponse>>> getAll() {
-        List<TienIchResponse> data = tienIchService.getAll();
-        return ResponseEntity.ok(ApiResponse.<List<TienIchResponse>>builder()
+    public ResponseEntity<ApiResponse<PaginatedResponse<TienIchResponse>>> getAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "ten,asc") String sort) {
+        
+        org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+        PaginatedResponse<TienIchResponse> data = tienIchService.getAll(pageable);
+        return ResponseEntity.ok(ApiResponse.<PaginatedResponse<TienIchResponse>>builder()
                 .success(true)
                 .message("Lấy danh sách tiện ích thành công")
                 .data(data)

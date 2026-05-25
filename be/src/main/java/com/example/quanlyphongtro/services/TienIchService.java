@@ -8,6 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -17,10 +20,12 @@ public class TienIchService {
     private final JdbcTemplate jdbcTemplate;
     private final com.example.quanlyphongtro.repository.TienIchRepository tienIchRepository;
 
-    public List<com.example.quanlyphongtro.dto.TienIchResponse> getAll() {
-        return tienIchRepository.findAll().stream()
+    public PaginatedResponse<com.example.quanlyphongtro.dto.TienIchResponse> getAll(Pageable pageable) {
+        Page<com.example.quanlyphongtro.entity.TienIch> page = tienIchRepository.findAll(pageable);
+        List<com.example.quanlyphongtro.dto.TienIchResponse> data = page.getContent().stream()
                 .map(com.example.quanlyphongtro.dto.TienIchResponse::fromEntity)
                 .collect(java.util.stream.Collectors.toList());
+        return PaginatedResponse.of(page, data);
     }
 
     public com.example.quanlyphongtro.dto.TienIchResponse getById(UUID id) {

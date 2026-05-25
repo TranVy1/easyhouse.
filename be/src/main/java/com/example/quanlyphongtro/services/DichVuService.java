@@ -1,7 +1,10 @@
 package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.DichVuResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.entity.DichVu;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.quanlyphongtro.repository.CauHinhGiaRepository;
 import com.example.quanlyphongtro.repository.DichVuHopDongRepository;
 import com.example.quanlyphongtro.repository.DichVuRepository;
@@ -25,17 +28,19 @@ public class DichVuService {
     private final PermissionService permissionService;
     private final NguoiDungRepository nguoiDungRepository;
 
-    public List<DichVuResponse> getAll() {
+    public PaginatedResponse<DichVuResponse> getAll(Pageable pageable) {
         UUID currentUserId = permissionService.requireCurrentUserId();
-        List<DichVu> list;
+        Page<DichVu> page;
         if (permissionService.isAdmin(currentUserId)) {
-            list = dichVuRepository.findAll();
+            page = dichVuRepository.findAll(pageable);
         } else {
-            list = dichVuRepository.findByChuTroId(currentUserId);
+            page = dichVuRepository.findByChuTroId(currentUserId, pageable);
         }
-        return list.stream()
+        
+        List<DichVuResponse> data = page.getContent().stream()
                 .map(DichVuResponse::fromEntity)
                 .collect(Collectors.toList());
+        return PaginatedResponse.of(page, data);
     }
 
     public DichVuResponse getById(UUID id) {

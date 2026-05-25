@@ -12,6 +12,8 @@ import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.entity.TrangThaiChiSo;
 import com.example.quanlyphongtro.entity.LoaiDoiTuongMedia;
+import com.example.quanlyphongtro.services.PermissionService;
+import com.example.quanlyphongtro.entity.NguoiDung;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import com.example.quanlyphongtro.entity.LoaiChiSo;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +39,60 @@ public class ChiSoDienNuocService {
     private final PhongRepository phongRepository;
     private final HopDongRepository hopDongRepository;
     private final MediaService mediaService;
+    private final PermissionService permissionService;
+    private final com.example.quanlyphongtro.repository.NguoiDungRepository nguoiDungRepository;
+    private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
 
-    public List<ChiSoDienNuocResponse> getAll() {
-        return chiSoDienNuocRepository.findAll().stream()
+    public PaginatedResponse<ChiSoDienNuocResponse> getAll(UUID nhaTroId, UUID phongId, Integer kyThang, Integer kyNam, String loai, String trangThai, Pageable pageable) {
+        UUID userId = permissionService.requireCurrentUserId();
+        List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+
+        Specification<ChiSoDienNuoc> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isNotNull(root.get("phong")));
+
+            if (phongId != null) {
+                predicates.add(cb.equal(root.get("phong").get("id"), phongId));
+            }
+            if (nhaTroId != null) {
+                predicates.add(cb.equal(root.get("phong").get("nhaTro").get("id"), nhaTroId));
+            }
+            if (kyThang != null) {
+                predicates.add(cb.equal(root.get("kyThang"), kyThang));
+            }
+            if (kyNam != null) {
+                predicates.add(cb.equal(root.get("kyNam"), kyNam));
+            }
+            if (loai != null && !loai.isBlank() && !loai.equals("all")) {
+                predicates.add(cb.equal(root.get("loai"), LoaiChiSo.valueOf(loai)));
+            }
+            if (trangThai != null && !trangThai.isBlank() && !trangThai.equals("all")) {
+                predicates.add(cb.equal(root.get("trangThai"), TrangThaiChiSo.valueOf(trangThai)));
+            }
+            
+            if (accessibleIds != null) {
+                if (accessibleIds.isEmpty()) {
+                    predicates.add(cb.disjunction()); // Always false if no access
+                } else {
+                    predicates.add(root.get("phong").get("nhaTro").get("id").in(accessibleIds));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<ChiSoDienNuoc> page = chiSoDienNuocRepository.findAll(spec, pageable);
+        List<ChiSoDienNuocResponse> data = page.getContent().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+        return PaginatedResponse.of(page, data);
     }
 
     public List<ChiSoDienNuocResponse> getByPhong(UUID phongId) {
+        UUID userId = permissionService.requireCurrentUserId();
+        if (!permissionService.canReadPhong(userId, phongId)) {
+            throw new RuntimeException("Khong co quyen truy cap phong nay");
+        }
         return chiSoDienNuocRepository.findByPhongIdOrderByKyNamDescKyThangDesc(phongId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

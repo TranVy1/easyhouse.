@@ -5,6 +5,7 @@ import com.example.quanlyphongtro.dto.HoaDonResponse;
 import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.repository.ChiTietHoaDonRepository;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
+import com.example.quanlyphongtro.services.PermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +25,25 @@ public class CongNoService {
 
     private final HoaDonRepository hoaDonRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
+    private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
-    public List<CongNoResponse> getTongNo() {
+    public PaginatedResponse<CongNoResponse> getTongNo(Pageable pageable) {
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        List<UUID> nhaTroIds = permissionService.getAllAccessibleNhaTroIds(currentUserId);
+        
+        if (nhaTroIds != null && nhaTroIds.isEmpty()) {
+            return PaginatedResponse.of(new PageImpl<>(new ArrayList<>(), pageable, 0), new ArrayList<>());
+        }
+
         // Fetch all unpaid invoices
         List<HoaDon> unpaidInvoices = hoaDonRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
                 .filter(hd -> hd.getTongTien().compareTo(hd.getDaTra()) > 0)
+                .filter(hd -> {
+                    if (nhaTroIds == null) return true; // Admin sees all
+                    if (hd.getHopDong() == null || hd.getHopDong().getPhong() == null || hd.getHopDong().getPhong().getNhaTro() == null) return false;
+                    return nhaTroIds.contains(hd.getHopDong().getPhong().getNhaTro().getId());
+                })
                 .collect(Collectors.toList());
 
         // Group by Phong ID
@@ -72,6 +90,16 @@ public class CongNoService {
 
         // Sort by tongNo descending
         result.sort((a, b) -> b.getTongNo().compareTo(a.getTongNo()));
-        return result;
+        
+        int totalElements = result.size();
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), totalElements);
+        List<CongNoResponse> pageContent = new ArrayList<>();
+        if (start < totalElements) {
+            pageContent = result.subList(start, end);
+        }
+        
+        Page<CongNoResponse> page = new PageImpl<>(pageContent, pageable, totalElements);
+        return PaginatedResponse.of(page, pageContent);
     }
 }

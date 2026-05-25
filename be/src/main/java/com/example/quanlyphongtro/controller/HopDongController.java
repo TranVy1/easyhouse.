@@ -4,6 +4,7 @@ import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.HopDongDichVuOptionResponse;
 import com.example.quanlyphongtro.dto.HopDongRequest;
 import com.example.quanlyphongtro.dto.HopDongResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.HopDongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,9 +29,13 @@ public class HopDongController {
     private final HopDongService hopDongService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<HopDongResponse>>> getAll() {
+    public ResponseEntity<ApiResponse<PaginatedResponse<HopDongResponse>>> getAll(
+            @RequestParam(required = false) String phongId,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll()));
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, trangThai, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

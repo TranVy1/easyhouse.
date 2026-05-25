@@ -14,6 +14,7 @@ public class ThanhToanRequest {
     private String ngayThanhToan;
     private String ghiChu;
     private String anhBienLai;
+    private String trangThai;
 
     @Data
     public static class ThongTinChuyenKhoan {

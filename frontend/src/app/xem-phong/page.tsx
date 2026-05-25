@@ -60,7 +60,7 @@ export default function XemPhongPage() {
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
       
-      const response = await fetch(`/api/phong?${params.toString()}`);
+      const response = await fetch(`/api/public/phong?${params.toString()}`);
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -77,7 +77,7 @@ export default function XemPhongPage() {
 
   const fetchToaNha = useCallback(async () => {
     try {
-      const response = await fetch('/api/toa-nha');
+      const response = await fetch('/api/public/toa-nha');
       if (response.ok) {
         const result = await response.json();
         if (result.success) {

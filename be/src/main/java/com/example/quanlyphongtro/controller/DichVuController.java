@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.DichVuResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.DichVuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,14 @@ public class DichVuController {
     private final DichVuService dichVuService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<DichVuResponse>>> getAll() {
-        List<DichVuResponse> data = dichVuService.getAll();
-        return ResponseEntity.ok(ApiResponse.<List<DichVuResponse>>builder()
+    public ResponseEntity<ApiResponse<PaginatedResponse<DichVuResponse>>> getAll(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int limit,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "taoLuc,desc") String sort) {
+        
+        org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+        PaginatedResponse<DichVuResponse> data = dichVuService.getAll(pageable);
+        return ResponseEntity.ok(ApiResponse.<PaginatedResponse<DichVuResponse>>builder()
                 .success(true)
                 .message("Lấy danh sách dịch vụ thành công")
                 .data(data)

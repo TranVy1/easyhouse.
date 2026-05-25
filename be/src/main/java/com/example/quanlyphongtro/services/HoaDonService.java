@@ -6,6 +6,11 @@ import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -41,15 +46,33 @@ public class HoaDonService {
     private final EmailService emailService;
 
     @Transactional(readOnly = true)
-    public List<HoaDonResponse> getAll() {
+    public PaginatedResponse<HoaDonResponse> getAll(String hopDongId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
-        List<HoaDon> list = hoaDonRepository.findByXoaLucIsNullOrderByTaoLucDesc();
+        boolean isAdmin = permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
+        }
+        
+        TrangThaiHoaDon tt = null;
+        if (trangThaiStr != null && !trangThaiStr.isBlank() && !trangThaiStr.equals("all")) {
+            try { tt = TrangThaiHoaDon.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
+        }
+        
+        String hid = (hopDongId == null || hopDongId.isBlank() || hopDongId.equals("all")) ? null : hopDongId;
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<HoaDon> pageResult = hoaDonRepository.findAllAccessible(isAdmin, userId, nhaTroIds, hid, tt, pageable);
+        
         List<HoaDonResponse> res = new ArrayList<>();
-        for (HoaDon hd : list) {
-            if (!canReadHoaDon(hd, userId)) continue;
+        for (HoaDon hd : pageResult.getContent()) {
             res.add(HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(hd.getId())));
         }
-        return res;
+        
+        return PaginatedResponse.of(pageResult, res);
     }
 
     @Transactional(readOnly = true)
@@ -93,9 +116,11 @@ public class HoaDonService {
         List<ChiTietHoaDon> items = buildLineItems(req, saved, ctx);
         persistLineItemsAndTotals(saved, items);
 
+        logAudit(saved, "CREATE");
         if (saved.getTrangThai() == TrangThaiHoaDon.UNPAID) {
             try {
                 emailService.sendInvoiceCreatedEmail(saved, saved.getKhachThue());
+                logAudit(saved, "SEND");
             } catch (Exception e) {
                 // Ignore email error to prevent rollback
             }
@@ -112,6 +137,9 @@ public class HoaDonService {
             throw new RuntimeException("Hóa đơn đã bị xóa");
         }
         TrangThaiHoaDon oldStatus = hd.getTrangThai();
+        if (hd.getDaTra() != null && hd.getDaTra().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            throw new RuntimeException("Không thể sửa hóa đơn đã có giao dịch thanh toán");
+        }
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWriteHoaDon(hd, userId);
 
@@ -147,9 +175,11 @@ public class HoaDonService {
             hoaDonRepository.save(hd);
         }
 
+        logAudit(hd, "UPDATE");
         if (oldStatus == TrangThaiHoaDon.DRAFT && hd.getTrangThai() == TrangThaiHoaDon.UNPAID) {
             try {
                 emailService.sendInvoiceCreatedEmail(hd, hd.getKhachThue());
+                logAudit(hd, "SEND");
             } catch (Exception e) {
                 // Ignore email error to prevent rollback
             }

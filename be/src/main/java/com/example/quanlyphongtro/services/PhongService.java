@@ -17,6 +17,11 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -31,7 +36,34 @@ public class PhongService {
     private final TienIchService tienIchService;
     private final PermissionService permissionService;
 
-    public List<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr) {
+    public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, int page, int limit) {
+        TrangThaiPhong tt = parseTrangThai(trangThaiStr);
+        UUID nid = parseUuid(nhaTroId);
+
+        UUID userId = permissionService.currentUserId().orElse(null);
+        boolean isAdmin = userId != null && permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin && userId != null) {
+            List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+            if (!accessibleIds.isEmpty()) {
+                nhaTroIds = accessibleIds;
+            }
+        }
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<Phong> pageResult = phongRepository.findAllAccessible(nid, tt, isAdmin, nhaTroIds, pageable);
+        
+        List<PhongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
+        return PaginatedResponse.of(pageResult, mappedList);
+    }
+
+    public PhongResponse getPhongById(UUID id) {
+        Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        permissionService.currentUserId().ifPresent(userId -> assertCanRead(phong, userId));
+        return toResponse(phong);
+    }
+
+    public List<PhongResponse> getPublicAllPhong(String nhaTroId, String trangThaiStr) {
         TrangThaiPhong tt = parseTrangThai(trangThaiStr);
         UUID nid = parseUuid(nhaTroId);
 
@@ -41,20 +73,11 @@ public class PhongService {
         else if (tt != null) list = phongRepository.findByTrangThaiAndXoaLucIsNull(tt);
         else list = phongRepository.findByXoaLucIsNull();
 
-        Optional<UUID> currentUserId = permissionService.currentUserId();
-        if (currentUserId.isPresent() && !permissionService.isAdmin(currentUserId.get())) {
-            UUID userId = currentUserId.get();
-            list = list.stream()
-                    .filter(phong -> canReadPhong(phong, userId))
-                    .toList();
-        }
-
         return list.stream().map(this::toResponse).toList();
     }
 
-    public PhongResponse getPhongById(UUID id) {
+    public PhongResponse getPublicPhongById(UUID id) {
         Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
-        permissionService.currentUserId().ifPresent(userId -> assertCanRead(phong, userId));
         return toResponse(phong);
     }
 

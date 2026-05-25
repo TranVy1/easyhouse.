@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.LichHenRequest;
 import com.example.quanlyphongtro.dto.LichHenResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.LichHenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,16 @@ public class LichHenController {
     private final LichHenService lichHenService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LichHenResponse>>> getAll() {
-        List<LichHenResponse> data = lichHenService.getAll();
-        return ResponseEntity.ok(ApiResponse.<List<LichHenResponse>>builder()
+    public ResponseEntity<ApiResponse<PaginatedResponse<LichHenResponse>>> getAll(
+            @RequestParam(required = false) UUID nhaTroId,
+            @RequestParam(required = false) UUID phongId,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "ngayHen,desc") String sort) {
+        org.springframework.data.domain.Pageable pageable = com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+        PaginatedResponse<LichHenResponse> data = lichHenService.getAll(nhaTroId, phongId, trangThai, pageable);
+        return ResponseEntity.ok(ApiResponse.<PaginatedResponse<LichHenResponse>>builder()
                 .success(true)
                 .message("Lấy danh sách lịch hẹn thành công")
                 .data(data)

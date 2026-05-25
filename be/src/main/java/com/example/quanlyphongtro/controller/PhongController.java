@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.PhongRequest;
 import com.example.quanlyphongtro.dto.PhongResponse;
+import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.services.PhongService;
 import jakarta.validation.Valid;
@@ -20,10 +21,13 @@ public class PhongController {
     private final PhongService phongService;
 
     @GetMapping
-    public ApiResponse<List<PhongResponse>> getAll(
+    public ApiResponse<PaginatedResponse<PhongResponse>> getAll(
             @RequestParam(required = false) String toaNha,
-            @RequestParam(required = false) String trangThai) {
-        return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai));
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai, page, limit));
     }
 
     @GetMapping("/{id}")
