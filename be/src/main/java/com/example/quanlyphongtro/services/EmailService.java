@@ -2,6 +2,10 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.entity.EmailVerificationToken;
 import com.example.quanlyphongtro.entity.NguoiDung;
+import com.example.quanlyphongtro.entity.HoaDon;
+import com.example.quanlyphongtro.entity.ThanhToan;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.KhachThue;
 import com.example.quanlyphongtro.repository.EmailVerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -116,5 +121,130 @@ public class EmailService {
         }
         tokenRepository.delete(token);
         return user;
+    }
+
+    private String formatMoney(BigDecimal amount) {
+        if (amount == null) return "0 VNĐ";
+        return String.format("%,.0f VNĐ", amount);
+    }
+
+    public void sendInvoiceCreatedEmail(HoaDon hoaDon, KhachThue tenant) {
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(tenant.getEmail());
+            message.setSubject("[EasyHouse] Thông báo hóa đơn tiền phòng kỳ mới - " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam());
+            message.setText(
+                "Xin chào " + tenant.getHoTen() + ",\n\n" +
+                "EasyHouse xin thông báo hóa đơn tiền phòng kỳ tháng " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam() + " đã được lập.\n" +
+                "Chi tiết hóa đơn:\n" +
+                "- Mã hóa đơn: " + hoaDon.getMaHoaDon() + "\n" +
+                "- Phòng: " + (hoaDon.getPhong() != null ? hoaDon.getPhong().getTen() : "N/A") + "\n" +
+                "- Tổng tiền cần thanh toán: " + formatMoney(hoaDon.getTongTien()) + "\n" +
+                "- Hạn thanh toán: " + (hoaDon.getHanTra() != null ? hoaDon.getHanTra() : "N/A") + "\n\n" +
+                "Vui lòng đăng nhập vào cổng thông tin khách thuê tại " + frontendBaseUrl + "/khach-thue/dang-nhap để kiểm tra chi tiết bảng kê và thực hiện thanh toán.\n\n" +
+                "Trân trọng,\nBan quản lý EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Invoice created email sent to tenant {}", tenant.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send invoice created email to {}: {}", tenant.getEmail(), e.getMessage());
+        }
+    }
+
+    public void sendPaymentReceivedEmail(ThanhToan payment, HoaDon hoaDon, KhachThue tenant) {
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(tenant.getEmail());
+            message.setSubject("[EasyHouse] Xác nhận thanh toán hóa đơn thành công - " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam());
+            
+            BigDecimal conLai = hoaDon.getTongTien().subtract(hoaDon.getDaTra());
+            if (conLai.compareTo(BigDecimal.ZERO) < 0) conLai = BigDecimal.ZERO;
+
+            message.setText(
+                "Xin chào " + tenant.getHoTen() + ",\n\n" +
+                "Chúng tôi đã ghi nhận giao dịch thanh toán của bạn cho hóa đơn kỳ tháng " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam() + ".\n" +
+                "Chi tiết giao dịch:\n" +
+                "- Mã hóa đơn: " + hoaDon.getMaHoaDon() + "\n" +
+                "- Số tiền thanh toán: " + formatMoney(payment.getSoTien()) + "\n" +
+                "- Phương thức: " + (payment.getPhuongThucThanhToan() != null ? payment.getPhuongThucThanhToan() : "N/A") + "\n" +
+                "- Số tiền đã đóng (Tổng cộng): " + formatMoney(hoaDon.getDaTra()) + "\n" +
+                "- Số tiền còn lại: " + formatMoney(conLai) + "\n" +
+                "- Trạng thái hóa đơn hiện tại: " + (hoaDon.getTrangThai() != null ? hoaDon.getTrangThai() : "N/A") + "\n\n" +
+                "Cảm ơn bạn đã sử dụng dịch vụ của EasyHouse.\n\n" +
+                "Trân trọng,\nBan quản lý EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Payment confirmation email sent to tenant {}", tenant.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send payment confirmation email to {}: {}", tenant.getEmail(), e.getMessage());
+        }
+    }
+
+    public void sendContractExpiringEmail(HopDong contract, KhachThue tenant, int daysRemaining) {
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(tenant.getEmail());
+            message.setSubject("[EasyHouse] Thông báo: Hợp đồng thuê phòng sắp hết hạn sau " + daysRemaining + " ngày");
+            message.setText(
+                "Xin chào " + tenant.getHoTen() + ",\n\n" +
+                "Hợp đồng thuê phòng của bạn sắp hết hạn.\n" +
+                "Thông tin chi tiết:\n" +
+                "- Mã hợp đồng: " + contract.getMaHopDong() + "\n" +
+                "- Phòng: " + (contract.getPhong() != null ? contract.getPhong().getTen() : "N/A") + "\n" +
+                "- Ngày hết hạn: " + (contract.getNgayKetThuc() != null ? contract.getNgayKetThuc() : "N/A") + "\n" +
+                "- Thời gian còn lại: " + daysRemaining + " ngày\n\n" +
+                "Vui lòng liên hệ với chủ trọ để tiến hành làm thủ tục gia hạn hợp đồng hoặc chuẩn bị các thủ tục thanh lý hợp đồng bàn giao phòng.\n\n" +
+                "Trân trọng,\nBan quản lý EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Contract expiring email sent to tenant {} ({} days remaining)", tenant.getEmail(), daysRemaining);
+        } catch (Exception e) {
+            log.error("Failed to send contract expiring email to {}: {}", tenant.getEmail(), e.getMessage());
+        }
+    }
+
+    public void sendInvoiceOverdueEmail(HoaDon hoaDon, KhachThue tenant) {
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(tenant.getEmail());
+            message.setSubject("[EasyHouse] Cảnh báo: Hóa đơn tiền phòng quá hạn thanh toán!");
+            
+            BigDecimal no = hoaDon.getTongTien().subtract(hoaDon.getDaTra());
+            if (no.compareTo(BigDecimal.ZERO) < 0) no = BigDecimal.ZERO;
+
+            message.setText(
+                "Xin chào " + tenant.getHoTen() + ",\n\n" +
+                "Chúng tôi ghi nhận hóa đơn tiền phòng kỳ tháng " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam() + " của bạn đã quá hạn thanh toán.\n" +
+                "Thông tin chi tiết:\n" +
+                "- Mã hóa đơn: " + hoaDon.getMaHoaDon() + "\n" +
+                "- Phòng: " + (hoaDon.getPhong() != null ? hoaDon.getPhong().getTen() : "N/A") + "\n" +
+                "- Tổng tiền hóa đơn: " + formatMoney(hoaDon.getTongTien()) + "\n" +
+                "- Số tiền chưa đóng: " + formatMoney(no) + "\n" +
+                "- Hạn thanh toán: " + (hoaDon.getHanTra() != null ? hoaDon.getHanTra() : "N/A") + "\n\n" +
+                "Vui lòng thanh toán hóa đơn sớm nhất có thể để tránh phát sinh phí phạt hoặc ảnh hưởng đến hợp đồng thuê.\n" +
+                "Bạn có thể xem thông tin chi tiết và thanh toán tại cổng thông tin: " + frontendBaseUrl + "/khach-thue/dang-nhap .\n\n" +
+                "Trân trọng,\nBan quản lý EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Invoice overdue email sent to tenant {}", tenant.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send invoice overdue email to {}: {}", tenant.getEmail(), e.getMessage());
+        }
     }
 }

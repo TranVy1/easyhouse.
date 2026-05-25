@@ -26,6 +26,7 @@ public class ThanhToanService {
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
     private final MediaService mediaService;
     private final PermissionService permissionService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<ThanhToanResponse> getAll() {
@@ -96,6 +97,13 @@ public class ThanhToanService {
         ThanhToan saved = thanhToanRepository.save(tt);
         mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
         recalculate(hoaDon.getId());
+
+        try {
+            HoaDon updatedInvoice = hoaDonRepository.findById(hoaDon.getId()).orElse(hoaDon);
+            emailService.sendPaymentReceivedEmail(saved, updatedInvoice, updatedInvoice.getKhachThue());
+        } catch (Exception e) {
+            // Ignore email error to prevent rollback of transaction
+        }
 
         return toResponse(saved, chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()));
     }

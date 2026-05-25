@@ -29,9 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Loader2, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChiSoDienNuoc, LoaiChiSo, TrangThaiChiSo } from '@/types';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 export default function ChiSoDienNuocPage() {
   const [data, setData] = useState<ChiSoDienNuoc[]>([]);
@@ -54,6 +55,7 @@ export default function ChiSoDienNuocPage() {
     chiSoMoi: 0,
     trangThai: 'DRAFT' as TrangThaiChiSo,
     ghiChu: '',
+    anhDongHo: '',
   });
 
   const fetchData = useCallback(async () => {
@@ -100,6 +102,7 @@ export default function ChiSoDienNuocPage() {
         chiSoMoi: item.chiSoMoi || 0,
         trangThai: item.trangThai || 'DRAFT',
         ghiChu: item.ghiChu || '',
+        anhDongHo: item.anhDongHo || '',
       });
     } else {
       setEditingId(null);
@@ -113,6 +116,7 @@ export default function ChiSoDienNuocPage() {
         chiSoMoi: 0,
         trangThai: 'DRAFT',
         ghiChu: '',
+        anhDongHo: '',
       });
     }
     setIsDialogOpen(true);
@@ -328,6 +332,15 @@ export default function ChiSoDienNuocPage() {
                   placeholder="Ghi chú thêm..."
                 />
               </div>
+
+              <div className="space-y-2">
+                <ImageUpload
+                  imageUrl={formData.anhDongHo}
+                  onImageChange={url => setFormData({...formData, anhDongHo: url})}
+                  label={formData.loai === 'ELECTRICITY' ? 'Ảnh đồng hồ điện' : 'Ảnh đồng hồ nước'}
+                  placeholder="Chọn ảnh đồng hồ"
+                />
+              </div>
               
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -359,6 +372,7 @@ export default function ChiSoDienNuocPage() {
                   <TableHead className="text-right">CS Cũ</TableHead>
                   <TableHead className="text-right">CS Mới</TableHead>
                   <TableHead className="text-right">Tiêu thụ</TableHead>
+                  <TableHead className="text-center">Ảnh</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
@@ -366,13 +380,13 @@ export default function ChiSoDienNuocPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                     </TableCell>
                   </TableRow>
                 ) : data.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       Chưa có dữ liệu chỉ số nào.
                     </TableCell>
                   </TableRow>
@@ -392,6 +406,21 @@ export default function ChiSoDienNuocPage() {
                       <TableCell className="text-right font-medium">{item.chiSoMoi}</TableCell>
                       <TableCell className="text-right font-bold text-primary">
                         {item.tieuThu || (item.chiSoMoi && item.chiSoCu ? item.chiSoMoi - item.chiSoCu : 0)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item.anhDongHo ? (
+                          <a 
+                            href={item.anhDongHo} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="inline-flex items-center justify-center text-blue-500 hover:text-blue-600 hover:underline gap-1 text-sm font-medium"
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                            Xem ảnh
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Không có</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {getTrangThaiBadge(item.trangThai || 'DRAFT')}

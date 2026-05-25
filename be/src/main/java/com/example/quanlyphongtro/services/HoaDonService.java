@@ -38,6 +38,7 @@ public class HoaDonService {
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
     private final PermissionService permissionService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<HoaDonResponse> getAll() {
@@ -91,6 +92,15 @@ public class HoaDonService {
         HoaDon saved = hoaDonRepository.save(hd);
         List<ChiTietHoaDon> items = buildLineItems(req, saved, ctx);
         persistLineItemsAndTotals(saved, items);
+
+        if (saved.getTrangThai() == TrangThaiHoaDon.UNPAID) {
+            try {
+                emailService.sendInvoiceCreatedEmail(saved, saved.getKhachThue());
+            } catch (Exception e) {
+                // Ignore email error to prevent rollback
+            }
+        }
+
         return HoaDonResponse.fromEntity(saved, items);
     }
 
@@ -101,6 +111,7 @@ public class HoaDonService {
         if (hd.getXoaLuc() != null) {
             throw new RuntimeException("Hóa đơn đã bị xóa");
         }
+        TrangThaiHoaDon oldStatus = hd.getTrangThai();
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWriteHoaDon(hd, userId);
 
@@ -134,6 +145,14 @@ public class HoaDonService {
             items = chiTietHoaDonRepository.findByHoaDonId(id);
             syncInvoiceTotals(hd, items);
             hoaDonRepository.save(hd);
+        }
+
+        if (oldStatus == TrangThaiHoaDon.DRAFT && hd.getTrangThai() == TrangThaiHoaDon.UNPAID) {
+            try {
+                emailService.sendInvoiceCreatedEmail(hd, hd.getKhachThue());
+            } catch (Exception e) {
+                // Ignore email error to prevent rollback
+            }
         }
 
         return HoaDonResponse.fromEntity(hd, items);

@@ -36,6 +36,7 @@ class HoaDonServiceTest {
     @Mock private DichVuHopDongRepository dichVuHopDongRepository;
     @Mock private ThanhVienHopDongRepository thanhVienHopDongRepository;
     @Mock private PermissionService permissionService;
+    @Mock private EmailService emailService;
 
     private HoaDonService service;
     private UUID hopDongId;
@@ -57,7 +58,8 @@ class HoaDonServiceTest {
                 cauHinhGiaRepository,
                 dichVuHopDongRepository,
                 thanhVienHopDongRepository,
-                permissionService
+                permissionService,
+                emailService
         );
 
         hopDongId = UUID.randomUUID();

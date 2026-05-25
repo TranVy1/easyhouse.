@@ -45,4 +45,10 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
     java.math.BigDecimal sumUnpaidAmount(@Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList);
 
     List<HoaDon> findByTaoLucBetweenAndXoaLucIsNull(java.time.ZonedDateTime start, java.time.ZonedDateTime end);
+
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra < :today AND h.xoaLuc IS NULL")
+    List<HoaDon> findOverdueInvoices(
+        @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
+        @Param("today") java.time.LocalDate today
+    );
 }

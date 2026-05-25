@@ -74,4 +74,10 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
         @Param("start") java.time.LocalDate start,
         @Param("end") java.time.LocalDate end
     );
+
+    @Query("SELECT hd FROM HopDong hd WHERE hd.trangThai = :trangThai AND hd.ngayKetThuc = :targetDate AND hd.xoaLuc IS NULL")
+    List<HopDong> findActiveContractsExpiringOn(
+        @Param("trangThai") TrangThaiHopDong trangThai,
+        @Param("targetDate") java.time.LocalDate targetDate
+    );
 }

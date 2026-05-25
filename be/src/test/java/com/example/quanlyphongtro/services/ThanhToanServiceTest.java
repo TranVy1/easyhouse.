@@ -33,6 +33,7 @@ class ThanhToanServiceTest {
     @Mock private ChiTietHoaDonRepository chiTietHoaDonRepository;
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
+    @Mock private EmailService emailService;
 
     private ThanhToanService service;
 
@@ -43,7 +44,8 @@ class ThanhToanServiceTest {
                 hoaDonRepository,
                 chiTietHoaDonRepository,
                 mediaService,
-                permissionService
+                permissionService,
+                emailService
         );
     }
 
