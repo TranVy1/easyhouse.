@@ -14,4 +14,6 @@ public interface ThongBaoNguoiNhanRepository extends JpaRepository<ThongBaoNguoi
     Optional<ThongBaoNguoiNhan> findByThongBaoIdAndNguoiDungId(UUID thongBaoId, UUID nguoiDungId);
 
     void deleteByThongBaoId(UUID thongBaoId);
+
+    List<ThongBaoNguoiNhan> findByNguoiDungId(UUID nguoiDungId);
 }

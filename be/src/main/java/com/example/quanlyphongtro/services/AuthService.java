@@ -15,6 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -37,6 +41,7 @@ public class AuthService {
     private final HopDongRepository hopDongRepository;
     private final HoaDonRepository hoaDonRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final LoginHistoryRepository loginHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
@@ -101,16 +106,25 @@ public class AuthService {
      * ==================================================================== */
 
     @Transactional
-    public AuthResponse login(LoginRequest request) {
-        NguoiDung user = nguoiDungRepository.findByEmail(request.getEmail().toLowerCase())
-                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng"));
+    public AuthResponse login(LoginRequest request, HttpServletRequest httpServletRequest) {
+        String ipAddress = httpServletRequest != null ? httpServletRequest.getRemoteAddr() : null;
+        String userAgent = httpServletRequest != null ? httpServletRequest.getHeader("User-Agent") : null;
+        
+        Optional<NguoiDung> userOpt = nguoiDungRepository.findByEmail(request.getEmail().toLowerCase());
+        if (userOpt.isEmpty()) {
+            saveLoginHistory(null, request.getEmail().toLowerCase(), false, ipAddress, userAgent, "Email không tồn tại");
+            throw new RuntimeException("Email hoặc mật khẩu không đúng");
+        }
+        NguoiDung user = userOpt.get();
 
         // Check if account is locked
         if (user.getKhoaDenLuc() != null && user.getKhoaDenLuc().isAfter(ZonedDateTime.now())) {
+            saveLoginHistory(user, user.getEmail(), false, ipAddress, userAgent, "Tài khoản đang bị khóa");
             throw new RuntimeException("Tài khoản đang bị khóa. Vui lòng thử lại sau.");
         }
 
         if (user.getTrangThai() == TrangThaiNguoiDung.BANNED) {
+            saveLoginHistory(user, user.getEmail(), false, ipAddress, userAgent, "Tài khoản đã bị cấm");
             throw new RuntimeException("Tài khoản đã bị cấm");
         }
 
@@ -125,9 +139,11 @@ public class AuthService {
                 user.setKhoaDenLuc(ZonedDateTime.now().plusMinutes(15));
                 user.setSoLanDangNhapSai(0);
                 nguoiDungRepository.save(user);
+                saveLoginHistory(user, user.getEmail(), false, ipAddress, userAgent, "Sai mật khẩu quá 5 lần, khóa tài khoản");
                 throw new RuntimeException("Đăng nhập sai quá nhiều lần. Tài khoản bị khóa 15 phút.");
             }
             nguoiDungRepository.save(user);
+            saveLoginHistory(user, user.getEmail(), false, ipAddress, userAgent, "Sai mật khẩu");
             throw new RuntimeException("Email hoặc mật khẩu không đúng");
         }
 
@@ -136,6 +152,7 @@ public class AuthService {
         user.setKhoaDenLuc(null);
         user.setLanDangNhapCuoi(ZonedDateTime.now());
         nguoiDungRepository.save(user);
+        saveLoginHistory(user, user.getEmail(), true, ipAddress, userAgent, null);
 
         // Generate tokens
         String role = resolveRole(user);
@@ -284,17 +301,29 @@ public class AuthService {
      * ==================================================================== */
 
     @Transactional
-    public KhachThueLoginResponse loginKhachThue(KhachThueLoginRequest request) {
-        NguoiDung user = nguoiDungRepository.findBySoDienThoai(request.getSoDienThoai())
-                .orElseThrow(() -> new RuntimeException("Khách thuê không tồn tại"));
+    public KhachThueLoginResponse loginKhachThue(KhachThueLoginRequest request, HttpServletRequest httpServletRequest) {
+        String ipAddress = httpServletRequest != null ? httpServletRequest.getRemoteAddr() : null;
+        String userAgent = httpServletRequest != null ? httpServletRequest.getHeader("User-Agent") : null;
+        
+        Optional<NguoiDung> userOpt = nguoiDungRepository.findBySoDienThoai(request.getSoDienThoai());
+        if (userOpt.isEmpty()) {
+            saveLoginHistory(null, request.getSoDienThoai(), false, ipAddress, userAgent, "Khách thuê không tồn tại (SĐT)");
+            throw new RuntimeException("Khách thuê không tồn tại");
+        }
+        NguoiDung user = userOpt.get();
 
         if (user.getMatKhau() != null && !passwordEncoder.matches(request.getMatKhau(), user.getMatKhau())) {
+            saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), false, ipAddress, userAgent, "Sai mật khẩu");
             throw new RuntimeException("Mật khẩu không đúng");
         }
 
         KhachThue khachThue = khachThueRepository.findByNguoiDungId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Tài khoản chưa liên kết khách thuê"));
+                .orElseThrow(() -> {
+                    saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), false, ipAddress, userAgent, "Không tìm thấy hồ sơ khách thuê");
+                    return new RuntimeException("Tài khoản chưa liên kết khách thuê");
+                });
 
+        saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), true, ipAddress, userAgent, null);
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), "TENANT");
 
         return KhachThueLoginResponse.builder()
@@ -436,4 +465,22 @@ public class AuthService {
         refreshTokenRepository.save(rt);
         return tokenValue;
     }
+    
+    private void saveLoginHistory(NguoiDung user, String email, boolean thanhCong, String ipAddress, String userAgent, String lyDoThatBai) {
+        try {
+            LoginHistory history = LoginHistory.builder()
+                    .nguoiDung(user)
+                    .email(email)
+                    .thanhCong(thanhCong)
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
+                    .lyDoThatBai(lyDoThatBai)
+                    .taoLuc(ZonedDateTime.now())
+                    .build();
+            loginHistoryRepository.save(history);
+        } catch (Exception e) {
+            log.warn("Could not save login history: {}", e.getMessage());
+        }
+    }
 }
+

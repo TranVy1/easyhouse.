@@ -43,6 +43,7 @@ public class FileMediaService {
 
     @Transactional
     public FileMediaResponse uploadFile(MultipartFile file, String doiTuong, UUID doiTuongId, String loaiFile, UUID nguoiDungId) throws IOException {
+        validateFile(file);
         Map<String, Object> result = cloudinaryService.uploadFile(file);
         
         FileMedia fileMedia = new FileMedia();
@@ -75,5 +76,18 @@ public class FileMediaService {
         }
         
         fileMediaRepository.delete(fileMedia);
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new RuntimeException("Tep khong duoc de trong");
+        }
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new RuntimeException("Tep qua lon. Kich thuoc toi da la 10MB");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("application/"))) {
+            throw new RuntimeException("Loai tep khong duoc ho tro. Chi chap nhan anh va tai lieu");
+        }
     }
 }

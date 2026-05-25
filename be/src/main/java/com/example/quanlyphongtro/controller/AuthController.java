@@ -31,7 +31,7 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
         try {
-            return ApiResponse.success(authService.login(request), "Dang nhap thanh cong");
+            return ApiResponse.success(authService.login(request, httpServletRequest), "Dang nhap thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -111,7 +111,7 @@ public class AuthController {
     @PostMapping("/khach-thue/login")
     public ApiResponse<KhachThueLoginResponse> khachThueLogin(@Valid @RequestBody KhachThueLoginRequest request, HttpServletRequest httpServletRequest) {
         try {
-            return ApiResponse.success(authService.loginKhachThue(request), "Dang nhap khach thue thanh cong");
+            return ApiResponse.success(authService.loginKhachThue(request, httpServletRequest), "Dang nhap khach thue thanh cong");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

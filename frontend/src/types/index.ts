@@ -456,7 +456,7 @@ export interface FileMedia {
   publicId?: string;
   loaiFile?: string;
   kichThuocBytes?: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   nguoiTaiLenId?: ID;
   taoLuc?: DateLike;
 }
@@ -501,7 +501,7 @@ export interface BankTransaction {
   maGiaoDich?: string;
   nganHang?: string;
   thoiGianGiaoDich: DateLike;
-  payload?: any;
+  payload?: Record<string, unknown>;
   daDoiSoat: boolean;
   taoLuc?: DateLike;
 }

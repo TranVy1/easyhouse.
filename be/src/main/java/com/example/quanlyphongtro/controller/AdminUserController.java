@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.quanlyphongtro.dto.UserRoleAssignmentRequest;
+import com.example.quanlyphongtro.dto.UserBuildingAssignmentRequest;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,6 +59,26 @@ public class AdminUserController {
         try {
             userService.deleteUser(id);
             return ApiResponse.success(null, "Xóa tài khoản thành công");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/roles")
+    public ApiResponse<Void> assignRoles(@PathVariable UUID id, @RequestBody UserRoleAssignmentRequest request) {
+        try {
+            userService.assignRoles(id, request);
+            return ApiResponse.success(null, "Gán quyền thành công");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/buildings")
+    public ApiResponse<Void> assignBuildings(@PathVariable UUID id, @RequestBody UserBuildingAssignmentRequest request) {
+        try {
+            userService.assignBuildings(id, request);
+            return ApiResponse.success(null, "Gán tòa nhà thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

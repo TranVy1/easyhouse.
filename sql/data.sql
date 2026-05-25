@@ -219,6 +219,8 @@ INSERT INTO "public"."hop_dong" ("id", "phong_id", "khach_thue_id", "ma_hop_dong
 -- Data for Name: hoa_don; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."hoa_don" ("id", "ma_hoa_don", "phong_id", "khach_thue_id", "hop_dong_id", "ky_nam", "ky_thang", "tong_tien", "da_tra", "con_lai", "trang_thai", "han_thanh_toan", "ngay_lap", "ghi_chu", "hien_thi_cho_khach", "tao_luc", "cap_nhat_luc") VALUES
+	('10e9f6cd-73e4-41e7-beaa-2a201f11a88b', 'HD-001', '48ef0756-c05a-44fa-b4b0-d3f249f564d0', 'fba2a7bd-082f-47f7-b0cc-3c53e79352c4', 'f5075e49-2b06-4750-834e-e157f7e09a82', 2026, 5, 3375000.00, 3375000.00, 0.00, 'PAID', '2026-05-30', '2026-05-24', 'Hóa đơn tháng 5', true, '2026-05-24 10:05:00.000000+00', '2026-05-24 10:05:00.000000+00');
 
 
 --
@@ -288,6 +290,9 @@ INSERT INTO "public"."cau_hinh_gia" ("id", "nha_tro_id", "dich_vu_id", "loai", "
 -- Data for Name: chi_so_dien_nuoc; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."chi_so_dien_nuoc" ("id", "phong_id", "loai", "chi_so_cu", "chi_so_moi", "ngay_ghi", "ky_nam", "ky_thang", "nguoi_ghi_id", "hop_dong_id", "trang_thai", "hinh_anh", "ghi_chu", "tao_luc", "cap_nhat_luc") VALUES
+	('576579fc-349f-4428-ba1e-35e67ed9d750', '48ef0756-c05a-44fa-b4b0-d3f249f564d0', 'ELECTRICITY', 100, 150, '2026-05-24', 2026, 5, '00b4c56f-45fa-49a2-874b-601bc77dcb65', 'f5075e49-2b06-4750-834e-e157f7e09a82', 'BILLED', NULL, NULL, '2026-05-24 10:00:00.000000+00', '2026-05-24 10:00:00.000000+00'),
+	('90fc6a44-a03d-4c31-97b7-6ec7e3cc00d4', '48ef0756-c05a-44fa-b4b0-d3f249f564d0', 'WATER', 50, 60, '2026-05-24', 2026, 5, '00b4c56f-45fa-49a2-874b-601bc77dcb65', 'f5075e49-2b06-4750-834e-e157f7e09a82', 'BILLED', NULL, NULL, '2026-05-24 10:00:00.000000+00', '2026-05-24 10:00:00.000000+00');
 
 
 --
@@ -300,6 +305,10 @@ INSERT INTO "public"."cau_hinh_gia" ("id", "nha_tro_id", "dich_vu_id", "loai", "
 -- Data for Name: chi_tiet_hoa_don; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."chi_tiet_hoa_don" ("id", "hoa_don_id", "dich_vu_id", "loai", "ten_hien_thi", "don_gia", "so_luong", "thanh_tien", "chi_so_dien_nuoc_id", "ghi_chu", "tao_luc") VALUES
+	('6bdc2bb3-ec73-424a-950c-e22119eb4b12', '10e9f6cd-73e4-41e7-beaa-2a201f11a88b', NULL, 'ROOM', 'Tiền phòng', 3000000.00, 1.00, 3000000.00, NULL, NULL, '2026-05-24 10:05:00.000000+00'),
+	('8ebdbab6-1c25-4c6e-8260-fb0b1f1a5477', '10e9f6cd-73e4-41e7-beaa-2a201f11a88b', 'd1111111-1111-1111-1111-111111111111', 'ELECTRICITY', 'Tiền điện', 3500.00, 50.00, 175000.00, '576579fc-349f-4428-ba1e-35e67ed9d750', NULL, '2026-05-24 10:05:00.000000+00'),
+	('f02b37ac-1f74-4b47-beae-dc553ba5cb63', '10e9f6cd-73e4-41e7-beaa-2a201f11a88b', 'd2222222-2222-2222-2222-222222222222', 'WATER', 'Tiền nước', 100000.00, 2.00, 200000.00, '90fc6a44-a03d-4c31-97b7-6ec7e3cc00d4', NULL, '2026-05-24 10:05:00.000000+00');
 
 
 --
@@ -456,6 +465,8 @@ INSERT INTO "public"."refresh_token" ("id", "nguoi_dung_id", "token", "ngay_het_
 -- Data for Name: thanh_toan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO "public"."thanh_toan" ("id", "hoa_don_id", "khach_thue_id", "nguoi_ghi_nhan_id", "so_tien", "phuong_thuc", "ma_giao_dich", "anh_bien_lai", "ngay_thanh_toan", "trang_thai", "external_transaction_id", "ghi_chu", "tao_luc", "cap_nhat_luc") VALUES
+	('41e8c74a-4e89-4b6f-bc3a-9e120d9128f6', '10e9f6cd-73e4-41e7-beaa-2a201f11a88b', 'fba2a7bd-082f-47f7-b0cc-3c53e79352c4', '00b4c56f-45fa-49a2-874b-601bc77dcb65', 3375000.00, 'CASH', 'GD-001', NULL, '2026-05-25', 'COMPLETED', NULL, 'Thanh toán tiền mặt', '2026-05-25 10:00:00.000000+00', '2026-05-25 10:00:00.000000+00');
 
 
 --

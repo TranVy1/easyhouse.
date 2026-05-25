@@ -4,14 +4,16 @@ import com.example.quanlyphongtro.dto.AdminUserRequest;
 import com.example.quanlyphongtro.dto.ChangePasswordRequest;
 import com.example.quanlyphongtro.dto.UserRequest;
 import com.example.quanlyphongtro.dto.UserResponse;
-import com.example.quanlyphongtro.entity.NguoiDung;
-import com.example.quanlyphongtro.entity.TrangThaiNguoiDung;
-import com.example.quanlyphongtro.repository.NguoiDungRepository;
+import com.example.quanlyphongtro.entity.*;
+import com.example.quanlyphongtro.repository.*;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.quanlyphongtro.dto.UserRoleAssignmentRequest;
+import com.example.quanlyphongtro.dto.UserBuildingAssignmentRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -19,6 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final NguoiDungRepository nguoiDungRepository;
+    private final VaiTroRepository vaiTroRepository;
+    private final NguoiDungVaiTroRepository nguoiDungVaiTroRepository;
+    private final NhaTroRepository nhaTroRepository;
+    private final NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
@@ -137,10 +143,80 @@ public class UserService {
                 .email(user.getEmail())
                 .phone(user.getSoDienThoai())
                 .avatar(user.getAnhDaiDien())
-                .role("chuNha")
+                .role(resolveRole(user))
                 .isActive(active)
                 .trangThai(active ? "hoatDong" : "tamKhoa")
                 .createdAt(user.getTaoLuc())
                 .build();
+    }
+
+    private String resolveRole(NguoiDung user) {
+        try {
+            List<NguoiDungVaiTro> roles = nguoiDungVaiTroRepository.findByNguoiDungId(user.getId());
+            if (!roles.isEmpty()) {
+                return roles.get(0).getVaiTro().getTen().name();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return "chuNha"; // fallback
+    }
+
+    @Transactional
+    public void assignRoles(UUID userId, UserRoleAssignmentRequest request) {
+        NguoiDung user = findActiveUser(userId);
+        
+        // Remove existing roles
+        List<NguoiDungVaiTro> existingRoles = nguoiDungVaiTroRepository.findByNguoiDungId(userId);
+        nguoiDungVaiTroRepository.deleteAll(existingRoles);
+        
+        // Add new roles
+        if (request.getRoles() != null) {
+            for (VaiTroHeThong roleEnum : request.getRoles()) {
+                VaiTro vaiTro = vaiTroRepository.findByTen(roleEnum)
+                        .orElseGet(() -> {
+                            VaiTro newRole = VaiTro.builder()
+                                    .ten(roleEnum)
+                                    .moTa("Quyền " + roleEnum.name())
+                                    .build();
+                            return vaiTroRepository.save(newRole);
+                        });
+                
+                NguoiDungVaiTro ndvt = NguoiDungVaiTro.builder()
+                        .nguoiDung(user)
+                        .vaiTro(vaiTro)
+                        .taoLuc(ZonedDateTime.now())
+                        .build();
+                nguoiDungVaiTroRepository.save(ndvt);
+            }
+        }
+    }
+
+    @Transactional
+    public void assignBuildings(UUID userId, UserBuildingAssignmentRequest request) {
+        NguoiDung user = findActiveUser(userId);
+        
+        // Remove existing assignments
+        List<NguoiDungNhaTro> existingAssignments = nguoiDungNhaTroRepository.findByNguoiDungId(userId);
+        nguoiDungNhaTroRepository.deleteAll(existingAssignments);
+        
+        // Add new assignments
+        if (request.getAssignments() != null) {
+            for (UserBuildingAssignmentRequest.BuildingAssignment assignment : request.getAssignments()) {
+                NhaTro nhaTro = nhaTroRepository.findById(assignment.getNhaTroId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy tòa nhà: " + assignment.getNhaTroId()));
+                
+                NguoiDungNhaTro ndnt = NguoiDungNhaTro.builder()
+                        .nguoiDung(user)
+                        .nhaTro(nhaTro)
+                        .vaiTro(assignment.getVaiTro() != null ? assignment.getVaiTro() : VaiTroHeThong.STAFF)
+                        .coQuyenXem(assignment.getCoQuyenXem() != null ? assignment.getCoQuyenXem() : true)
+                        .coQuyenSua(assignment.getCoQuyenSua() != null ? assignment.getCoQuyenSua() : false)
+                        .coQuyenThuTien(assignment.getCoQuyenThuTien() != null ? assignment.getCoQuyenThuTien() : false)
+                        .taoLuc(ZonedDateTime.now())
+                        .build();
+                nguoiDungNhaTroRepository.save(ndnt);
+            }
+        }
     }
 }

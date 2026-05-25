@@ -25,6 +25,7 @@ public class HopDongRequest {
     private boolean thanhVienProvided;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
+    private LocalDate ngayKetThucThucTe;
     private BigDecimal giaThueHopDong;
     private BigDecimal giaThue;
     private BigDecimal tienCoc;

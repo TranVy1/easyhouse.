@@ -23,13 +23,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Thêm 2 dòng này để tắt ESLint và TypeScript errors khi build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Bỏ qua eslint và typescript check khi build đã bị tắt
   async rewrites() {
     return [
       {

@@ -1,6 +1,7 @@
 package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.BaoCaoTongQuanResponse;
+import com.example.quanlyphongtro.dto.DoanhThuTheoThang;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
 import com.example.quanlyphongtro.entity.TrangThaiSuCo;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
@@ -13,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,22 +28,24 @@ public class BaoCaoService {
 
     @Transactional(readOnly = true)
     public BaoCaoTongQuanResponse getTongQuan() {
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
-        
-        ZonedDateTime startOf6MonthsAgoZoned = LocalDate.now().minusMonths(5).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault());
-        ZonedDateTime endOfMonthZoned = endOfMonth.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1);
-        
-        List<com.example.quanlyphongtro.entity.HoaDon> hoaDons = hoaDonRepository.findByTaoLucBetweenAndXoaLucIsNull(startOf6MonthsAgoZoned, endOfMonthZoned);
-        
+        LocalDate today = LocalDate.now();
+        int currentMonth = today.getMonthValue();
+        int currentYear = today.getYear();
+
+        LocalDate sixMonthsAgo = today.minusMonths(5);
+        int startMonth = sixMonthsAgo.getMonthValue();
+        int startYear = sixMonthsAgo.getYear();
+
+        List<DoanhThuTheoThang> thongKeList = hoaDonRepository.getDoanhThuThongKe(startYear, startMonth);
+
         BigDecimal doanhThu = BigDecimal.ZERO;
         BigDecimal tienDaThu = BigDecimal.ZERO;
 
-        for (var hd : hoaDons) {
-            LocalDate hdDate = hd.getTaoLuc() != null ? hd.getTaoLuc().toLocalDate() : null;
-            if (hdDate != null && !hdDate.isBefore(startOfMonth) && !hdDate.isAfter(endOfMonth)) {
-                doanhThu = doanhThu.add(hd.getTongTien() != null ? hd.getTongTien() : BigDecimal.ZERO);
-                tienDaThu = tienDaThu.add(hd.getDaTra() != null ? hd.getDaTra() : BigDecimal.ZERO);
+        // Current month data
+        for (DoanhThuTheoThang tk : thongKeList) {
+            if (tk.getNam() == currentYear && tk.getThang() == currentMonth) {
+                doanhThu = doanhThu.add(tk.getDoanhThu() != null ? tk.getDoanhThu() : BigDecimal.ZERO);
+                tienDaThu = tienDaThu.add(tk.getDaThu() != null ? tk.getDaThu() : BigDecimal.ZERO);
             }
         }
         
@@ -58,31 +58,30 @@ public class BaoCaoService {
 
         long suCoCanXuLy = suCoRepository.countByTrangThai(TrangThaiSuCo.PENDING) + suCoRepository.countByTrangThai(TrangThaiSuCo.IN_PROGRESS);
 
-        LocalDate today = LocalDate.now();
         LocalDate in30Days = today.plusDays(30);
         long hopDongSapHetHan = hopDongRepository.countContractsExpiringBetween(
                 com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE, today, in30Days);
 
         // Chart data for last 6 months
         List<BaoCaoTongQuanResponse.BieuDoDoanhThu> chartData = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
         for (int i = 5; i >= 0; i--) {
-            LocalDate monthStart = LocalDate.now().minusMonths(i).withDayOfMonth(1);
-            LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
+            LocalDate monthDate = today.minusMonths(i);
+            int m = monthDate.getMonthValue();
+            int y = monthDate.getYear();
             
             BigDecimal mDoanhThu = BigDecimal.ZERO;
             BigDecimal mDaThu = BigDecimal.ZERO;
             
-            for (var hd : hoaDons) {
-                LocalDate hdDate = hd.getTaoLuc() != null ? hd.getTaoLuc().toLocalDate() : null;
-                if (hdDate != null && !hdDate.isBefore(monthStart) && !hdDate.isAfter(monthEnd)) {
-                    mDoanhThu = mDoanhThu.add(hd.getTongTien() != null ? hd.getTongTien() : BigDecimal.ZERO);
-                    mDaThu = mDaThu.add(hd.getDaTra() != null ? hd.getDaTra() : BigDecimal.ZERO);
+            for (DoanhThuTheoThang tk : thongKeList) {
+                if (tk.getNam() == y && tk.getThang() == m) {
+                    mDoanhThu = mDoanhThu.add(tk.getDoanhThu() != null ? tk.getDoanhThu() : BigDecimal.ZERO);
+                    mDaThu = mDaThu.add(tk.getDaThu() != null ? tk.getDaThu() : BigDecimal.ZERO);
                 }
             }
             
+            String label = String.format("%02d/%d", m, y);
             chartData.add(BaoCaoTongQuanResponse.BieuDoDoanhThu.builder()
-                    .thang(monthStart.format(formatter))
+                    .thang(label)
                     .doanhThu(mDoanhThu)
                     .daThu(mDaThu)
                     .build());

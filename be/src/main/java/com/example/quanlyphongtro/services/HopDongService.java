@@ -809,4 +809,79 @@ public class HopDongService {
         }
         phongRepository.save(phong);
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+
+    private void logAudit(HopDong hd, String hanhDong) {
+        if (auditLogRepository == null) return;
+        com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
+            .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+            .hanhDong(hanhDong)
+            .bangTacDong("hop_dong")
+            .banGhiId(hd.getId())
+            .taoLuc(java.time.ZonedDateTime.now())
+            .build();
+        auditLogRepository.save(log);
+    }
+
+    @Transactional
+    public com.example.quanlyphongtro.dto.HopDongResponse terminateContract(java.util.UUID id, com.example.quanlyphongtro.dto.KetThucHopDongRequest req) {
+        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
+        
+        hd.setTrangThai(TrangThaiHopDong.TERMINATED);
+        hd.setNgayKetThucThucTe(req.getNgayKetThucThucTe() != null ? req.getNgayKetThucThucTe() : java.time.LocalDate.now());
+        if (req.getTrangThaiCoc() != null) {
+            hd.setTrangThaiCoc(parseCocStatus(req.getTrangThaiCoc()));
+        }
+        if (req.getGhiChu() != null) {
+            hd.setGhiChu(req.getGhiChu());
+        }
+        hd = hopDongRepository.save(hd);
+        syncRoomStatus(hd.getPhong().getId());
+        logAudit(hd, "TERMINATE");
+        return com.example.quanlyphongtro.dto.HopDongResponse.fromEntity(hd);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.PhuLucHopDongRepository phuLucHopDongRepository;
+
+    @Transactional
+    public com.example.quanlyphongtro.dto.HopDongResponse extendContract(java.util.UUID id, com.example.quanlyphongtro.dto.GiaHanHopDongRequest req) {
+        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
+        
+        if (req.getNgayKetThucMoi() == null) {
+            throw new RuntimeException("Ngay ket thuc moi khong duoc de trong");
+        }
+        if (req.getNgayHieuLuc() == null) {
+            throw new RuntimeException("Ngay hieu luc khong duoc de trong");
+        }
+        if (req.getNgayKetThucMoi().isBefore(hd.getNgayBatDau())) {
+            throw new RuntimeException("Ngay ket thuc phai sau ngay bat dau");
+        }
+        
+        ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), req.getNgayKetThucMoi(), id, hd.getTrangThai());
+
+        com.example.quanlyphongtro.entity.PhuLucHopDong pl = com.example.quanlyphongtro.entity.PhuLucHopDong.builder()
+            .hopDong(hd)
+            .loai("GIA_HAN")
+            .noiDung(req.getNoiDung() != null ? req.getNoiDung() : "Gia han hop dong")
+            .ngayHieuLuc(req.getNgayHieuLuc())
+            .ngayKetThucMoi(req.getNgayKetThucMoi())
+            .giaThueMoi(req.getGiaThueMoi())
+            .nguoiTao(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+            .build();
+        phuLucHopDongRepository.save(pl);
+
+        hd.setNgayKetThuc(req.getNgayKetThucMoi());
+        if (req.getGiaThueMoi() != null) {
+            hd.setGiaThueHopDong(req.getGiaThueMoi());
+        }
+        hd = hopDongRepository.save(hd);
+        logAudit(hd, "EXTEND");
+        
+        return com.example.quanlyphongtro.dto.HopDongResponse.fromEntity(hd);
+    }
 }

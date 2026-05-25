@@ -172,6 +172,7 @@ public class HoaDonService {
         hd.setTrangThai(TrangThaiHoaDon.CANCELLED);
         hd.setXoaLuc(ZonedDateTime.now());
         hoaDonRepository.save(hd);
+        logAudit(hd, "CANCEL");
     }
 
     @Transactional(readOnly = true)
@@ -772,4 +773,19 @@ public class HoaDonService {
             LocalDate denNgay,
             LocalDate hanTra
     ) {}
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+
+    private void logAudit(HoaDon hd, String hanhDong) {
+        if (auditLogRepository == null) return;
+        com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
+            .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+            .hanhDong(hanhDong)
+            .bangTacDong("hoa_don")
+            .banGhiId(hd.getId())
+            .taoLuc(java.time.ZonedDateTime.now())
+            .build();
+        auditLogRepository.save(log);
+    }
 }

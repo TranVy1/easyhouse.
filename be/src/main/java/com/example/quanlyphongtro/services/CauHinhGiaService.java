@@ -182,4 +182,21 @@ public class CauHinhGiaService {
             }
         }
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.services.PermissionService permissionService;
+
+    private void logAudit(CauHinhGia chg, String hanhDong) {
+        if (auditLogRepository == null) return;
+        com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
+            .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+            .hanhDong(hanhDong)
+            .bangTacDong("cau_hinh_gia")
+            .banGhiId(chg.getId())
+            .taoLuc(java.time.ZonedDateTime.now())
+            .build();
+        auditLogRepository.save(log);
+    }
 }

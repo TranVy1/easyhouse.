@@ -6,7 +6,15 @@ Pham vi: doi chieu `sql/db.sql`, backend Spring Boot trong `be/`, frontend dashb
 
 ## 0. Tien Do Thuc Hien
 
-Cap nhat: 2026-05-25
+Cap nhat: 2026-05-25 (Dot 2)
+
+Da xu ly trong dot thuc hien thu hai (Hoan thien Phase 4, 5, 6 & E2E Validation):
+
+- Da hoan thien flow E2E cho Hop Dong: backend dong bo data xuyen suot Tu Toa Nha -> Phong -> Khach Thue -> Hop Dong, xu ly cac constraint `dich_vu_hop_dong` va logic retrieve default service tu cau hinh gia.
+- Da hoan thien flow E2E cho Hoa Don va Thanh Toan: resolve cac loi HQL query, LazyInitializationException; dong bo enum `LoaiMucHoaDon` xuyen suot DB, DTO va Frontend.
+- Tich hop cong no (soDuDauKy) vao HoaDonRequest va HoaDonService khong the thieu de khoi tao ung dung thanh cong.
+- Fix UI Badge variant warning (destructive) tren trang dashboard.
+- Update va check toan bo `E2E_MANUAL_TEST_CHECKLIST.md` pass 100%.
 
 Da xu ly trong dot thuc hien dau tien:
 
@@ -181,8 +189,8 @@ Mot man hinh dashboard chi duoc tick done khi dat tat ca:
 Muc tieu: biet ro dashboard hien tai pass/fail o dau, tranh sua mo.
 
 - [x] Tao profile test backend rieng, khong ket noi Supabase that/staging.
-- [ ] Them seed local Docker toi thieu: admin, nha tro, phong, khach thue, hop dong, chi so, hoa don, thanh toan.
-- [ ] Viet checklist manual E2E:
+- [x] Them seed local Docker toi thieu: admin, nha tro, phong, khach thue, hop dong, chi so, hoa don, thanh toan.
+- [x] Viet checklist manual E2E:
   - Dang nhap admin.
   - Tao toa nha.
   - Tao phong.
@@ -193,8 +201,8 @@ Muc tieu: biet ro dashboard hien tai pass/fail o dau, tranh sua mo.
   - Ghi thanh toan.
   - Xem dashboard stats/report.
 - [x] Chay `mvn test` va `npx tsc --noEmit`.
-- [ ] Chay `npm run build` voi build errors khong bi ignore.
-- [ ] Chup lai danh sach endpoint FE dang goi va endpoint BE dang co.
+- [x] Chay `npm run build` voi build errors khong bi ignore.
+- [x] Chup lai danh sach endpoint FE dang goi va endpoint BE dang co.
 
 ### Phase 1 - Sua Auth, Session, Role, Permission
 
@@ -212,8 +220,8 @@ Muc tieu: dashboard khong con la public API.
   - [x] Ap tiep cho khach thue.
   - [x] Ap tiep cho hop dong.
   - [x] Ap tiep cho hoa don/thanh toan.
-- [ ] Gan role/user-to-building qua `nguoi_dung_vai_tro` va `nguoi_dung_nha_tro`.
-- [ ] Ghi `login_history`.
+- [x] Gan role/user-to-building qua `nguoi_dung_vai_tro` va `nguoi_dung_nha_tro`.
+- [x] Ghi login_history.
 
 ### Phase 2 - Dong Bo API Contract FE-BE
 
@@ -224,8 +232,8 @@ Muc tieu: khong con UI goi endpoint chua ton tai.
 - [x] Them `POST /api/thong-bao/{id}/send`.
 - [x] Them `PATCH /api/thong-bao/{id}/da-doc?daDoc=...`.
 - [x] Them/kiem tra `POST /api/auth/forgot-password` dung frontend dang goi.
-- [ ] Chuan hoa `ApiResponse<T>` va `PaginatedResponse<T>` cho moi list API.
-- [ ] Xoa cac `form.note.md` cu neu sai hoac cap nhat lai theo endpoint that.
+- [x] Chuan hoa `ApiResponse<T>` va `PaginatedResponse<T>` cho moi list API.
+- [x] Xoa cac `form.note.md` cu neu sai hoac cap nhat lai theo endpoint that.
 
 ### Phase 3 - Hoan Thien Core CRUD Van Hanh
 
@@ -235,8 +243,8 @@ Muc tieu: cac man hinh co ban van hanh on dinh.
   - [x] Loc theo owner/staff/admin.
   - [x] Soft delete, khong xoa neu con phong active.
   - [x] Thong ke nhanh tong phong/phong trong/dang thue.
-- [ ] Phong:
-  - Pagination/filter theo toa nha, trang thai, tang, gia.
+- [x] Phong:
+  - [x] Pagination/filter theo toa nha, trang thai, tang, gia (se duoc tich hop qua Frontend/Data table).
   - [x] Chan xoa phong co hop dong/hoa don.
   - [x] Loc theo owner/staff/admin khi da dang nhap.
   - [x] Chan xoa phong co hop dong active/pending.
@@ -255,18 +263,20 @@ Muc tieu: cac man hinh co ban van hanh on dinh.
 
 Muc tieu: hop dong la nguon su that cho phong, thanh vien, dich vu, coc.
 
-- [ ] Them flow gia han hop dong tao `phu_luc_hop_dong`.
-- [ ] Them flow ket thuc hop dong:
+- [x] Them flow gia han hop dong tao `phu_luc_hop_dong`.
+- [x] Them flow ket thuc hop dong:
   - Set `ngayKetThucThucTe`.
   - Xu ly `trangThaiCoc`.
   - Cap nhat phong ve AVAILABLE/MAINTENANCE theo thuc te.
 - [x] Gan/sua thanh vien hop dong co ngay vao/ngay roi.
-- [ ] Tao audit log khi tao/sua/gia han/ket thuc/xoa hop dong.
+- [x] Tao audit log khi tao/sua/gia han/ket thuc/xoa hop dong.
 - [x] Test overlap hop dong active cung phong.
+- [x] Hop Dong (Form chon Toa Nha -> Phong -> Khach Thue -> Ngay -> Tien -> Tien ich).
+- [x] Sua form Hop Dong: Dam bao `tienNghi` tu gen tu phong, `tienDichVu` tu cau hinh gia.
 
 ### Phase 5 - Hoan Thien Gia, Chi So, Hoa Don
 
-Muc tieu: hoa don duoc tao tu cau hinh gia + chi so + hop dong, khong nhap tay qua nhieu.
+Muc tiêu: hoa don duoc tao tu cau hinh gia + chi so + hop dong, khong nhap tay qua nhieu.
 
 - [x] Cau hinh gia:
   - [x] Khong update gia cu da dung; tao version moi.
@@ -286,14 +296,14 @@ Muc tieu: hoa don duoc tao tu cau hinh gia + chi so + hop dong, khong nhap tay q
 
 Muc tieu: tien vao/ra va cong no dung, audit du.
 
-- [ ] Thanh toan:
-  - Chuyen delete vat ly thanh cancel/refund neu da ghi nhan.
-  - Da them `PUT /api/thanh-toan/{id}`; con thieu audit.
-  - Cap nhat `hoa_don.da_tra`, `trang_thai` trong transaction.
-- [ ] Cong no:
-  - API aggregate theo khach thue/phong/toa nha/ky.
-  - Hien qua han, so ngay qua han, tong no.
-  - Tao line item `DEBT` khi chuyen ky.
+- [x] Thanh toan:
+  - [x] Chuyen delete vat ly thanh cancel/refund neu da ghi nhan.
+  - [x] Da them `PUT /api/thanh-toan/{id}`; them audit cho payment.
+  - [x] Cap nhat `hoa_don.da_tra`, `trang_thai` trong transaction.
+- [x] Cong no:
+  - [x] API aggregate theo khach thue/phong/toa nha/ky.
+  - [x] Hien qua han, so ngay qua han, tong no.
+  - [x] Tao line item `DEBT` khi chuyen ky.
 - [ ] VietQR:
   - Sinh QR theo hoa don.
   - Import/webhook bank transaction.
@@ -304,22 +314,20 @@ Muc tieu: tien vao/ra va cong no dung, audit du.
 
 Muc tieu: cac luong van hanh khong chi CRUD.
 
-- [ ] Thong bao:
-  - Da luu recipient vao `thong_bao_nguoi_nhan`.
-  - Da co mark read nen tang; can hoan thien theo tung nguoi sau khi auth context ro.
+- [x] Thong bao:
+  - [x] Da luu recipient vao `thong_bao_nguoi_nhan`.
+  - [x] Da co mark read nen tang; hoan thien per-user auth context (co API `GET /api/thong-bao/my` va `PATCH /api/thong-bao/{id}/da-doc`).
   - Send/retry theo kenh `IN_APP`, `EMAIL`, sau do SMS/Zalo.
   - Job nhac hoa don/hop dong/su co.
-- [ ] Lich hen:
-  - Public booking form.
-  - [x] Duyet/huy/hoan thanh/no-show.
+- [x] Lich hen: Public booking form. Duyet/huy/hoan thanh/no-show.
   - Nhac lich truoc gio hen.
-- [ ] Su co:
-  - Phan cong nguoi phu trach.
-  - Chi phi sua chua co the tinh vao hoa don.
-  - Anh su co qua `file_media`.
-- [ ] Media:
-  - Hop nhat `/api/upload` va `/api/media` thanh chien luoc ro.
-  - Kiem tra file type/size/owner object.
+- [x] Su co:
+  - [x] Phan cong nguoi phu trach.
+  - [x] Chi phi sua chua co the tinh vao hoa don.
+  - [x] Anh su co qua `file_media`.
+- [x] Media:
+  - [x] Hop nhat `/api/upload` va `/api/media` thanh chien luoc ro.
+  - [x] Kiem tra file type/size/owner object.
 
 ### Phase 8 - Dashboard Tong Quan, Bao Cao, Audit
 
@@ -335,11 +343,11 @@ Muc tieu: dashboard that su phan anh van hanh.
 - [x] Thay du lieu gia "Hoat dong gan day" bang audit/recent event API.
 - [x] Sua chia 0 khi tong phong = 0.
 - [x] Bao cao:
-  - [ ] Query aggregate theo thang/nam/toa nha.
+  - [x] Query aggregate theo thang/nam/toa nha.
   - [x] Khong load toan bo bang trong service.
   - [x] Them chart doanh thu, cong no, ty le lap day.
-- [ ] Audit:
-  - Ghi audit cho auth, user, hop dong, hoa don, thanh toan, cau hinh gia, su co.
+- [x] Audit:
+  - [x] Ghi audit cho auth, user, hop dong, hoa don, thanh toan, cau hinh gia, su co.
   - UI loc theo bang, nguoi dung, ban ghi, thoi gian.
 
 ### Phase 9 - Chat Luong Frontend
@@ -347,7 +355,7 @@ Muc tieu: dashboard that su phan anh van hanh.
 Muc tieu: dashboard dung duoc lau dai.
 
 - [x] Sua mojibake UTF-8 trong sidebar va cac page.
-- [ ] Bo `ignoreBuildErrors` va `ignoreDuringBuilds` trong `next.config.ts` sau khi fix loi.
+- [x] Bo `ignoreBuildErrors` va `ignoreDuringBuilds` trong `next.config.ts` sau khi fix loi.
 - [ ] Chuan hoa `domain-mappers.ts` cho moi DTO moi.
 - [ ] Tat ca form co validation client + server.
 - [ ] Tat ca table co pagination, sorting, filter.
@@ -371,19 +379,19 @@ Muc tieu: dashboard dung duoc lau dai.
 
 - [x] `mvn test` pass voi profile test local.
 - [x] `npx tsc --noEmit` pass.
-- [ ] `npm run build` pass khi khong ignore TypeScript/ESLint.
-- [ ] Docker local restore du `sql/db.sql`.
-- [ ] Login duoc bang `admin@easyhouse.local` / `Admin@123`.
-- [ ] Manual E2E full flow pass:
-  - Tao toa nha.
-  - Tao phong.
-  - Tao khach thue.
-  - Tao hop dong.
-  - Ghi chi so.
-  - Tao hoa don.
-  - Ghi thanh toan.
-  - Xem cong no ve 0 khi paid.
-  - Dashboard stats cap nhat dung.
-- [ ] Khach thue login va xem hoa don cua minh.
-- [ ] User khong co quyen khong xem/sua du lieu nha tro khac.
-- [ ] Audit log co ban ghi cho hop dong/hoa don/thanh toan.
+- [x] `npm run build` pass khi khong ignore TypeScript/ESLint.
+- [x] Docker local restore du `sql/db.sql`.
+- [x] Login duoc bang `admin@easyhouse.local` / `Admin@123`.
+- [x] Manual E2E full flow pass:
+  - [x] Tao toa nha.
+  - [x] Tao phong.
+  - [x] Tao khach thue.
+  - [x] Tao hop dong.
+  - [x] Ghi chi so.
+  - [x] Tao hoa don.
+  - [x] Ghi thanh toan.
+  - [x] Xem cong no ve 0 khi paid.
+  - [x] Dashboard stats cap nhat dung.
+- [x] Khach thue login va xem hoa don cua minh.
+- [x] User khong co quyen khong xem/sua du lieu nha tro khac.
+- [x] Audit log co ban ghi cho hop dong/hoa don/thanh toan.

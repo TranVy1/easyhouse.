@@ -105,6 +105,7 @@ public class ThanhToanService {
             // Ignore email error to prevent rollback of transaction
         }
 
+        logAudit(saved, "CREATE");
         return toResponse(saved, chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()));
     }
 
@@ -146,6 +147,7 @@ public class ThanhToanService {
         UUID newHoaDonId = saved.getHoaDon() != null ? saved.getHoaDon().getId() : null;
         if (newHoaDonId != null && !newHoaDonId.equals(oldHoaDonId)) recalculate(newHoaDonId);
 
+        logAudit(saved, "UPDATE");
         return toResponse(saved, newHoaDonId != null ? chiTietHoaDonRepository.findByHoaDonId(newHoaDonId) : Collections.emptyList());
     }
 
@@ -155,7 +157,11 @@ public class ThanhToanService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
         assertCanWriteHoaDon(tt.getHoaDon(), permissionService.requireCurrentUserId());
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
-        thanhToanRepository.delete(tt);
+        
+        // Chuyển delete vật lý thành cancel
+        tt.setTrangThai(TrangThaiThanhToan.CANCELLED);
+        thanhToanRepository.save(tt);
+        logAudit(tt, "CANCEL");
         if (hdId != null) recalculate(hdId);
     }
 
@@ -269,5 +275,20 @@ public class ThanhToanService {
         ThanhToanResponse response = ThanhToanResponse.fromEntity(thanhToan, chiTietList);
         response.setAnhBienLai(mediaService.firstUrl(LoaiDoiTuongMedia.PAYMENT, thanhToan.getId(), MediaService.PAYMENT_RECEIPT));
         return response;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+
+    private void logAudit(ThanhToan tt, String hanhDong) {
+        if (auditLogRepository == null) return;
+        com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
+            .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+            .hanhDong(hanhDong)
+            .bangTacDong("thanh_toan")
+            .banGhiId(tt.getId())
+            .taoLuc(ZonedDateTime.now())
+            .build();
+        auditLogRepository.save(log);
     }
 }

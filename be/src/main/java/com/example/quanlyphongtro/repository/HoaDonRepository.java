@@ -51,4 +51,10 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
         @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
         @Param("today") java.time.LocalDate today
     );
+
+    @Query("SELECT h.kyThang AS thang, h.kyNam AS nam, SUM(h.tongTien) AS doanhThu, SUM(h.daTra) AS daThu " +
+           "FROM HoaDon h WHERE h.xoaLuc IS NULL AND (h.kyNam > :nam OR (h.kyNam = :nam AND h.kyThang >= :thang)) " +
+           "GROUP BY h.kyNam, h.kyThang " +
+           "ORDER BY h.kyNam DESC, h.kyThang DESC")
+    List<com.example.quanlyphongtro.dto.DoanhThuTheoThang> getDoanhThuThongKe(@Param("nam") int nam, @Param("thang") int thang);
 }

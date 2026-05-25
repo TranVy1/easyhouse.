@@ -183,4 +183,20 @@ public class ThongBaoService {
             }
         };
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.services.PermissionService permissionService;
+
+    @Transactional(readOnly = true)
+    public List<ThongBaoResponse> getMyThongBao() {
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        
+        List<ThongBaoNguoiNhan> myRecipients = thongBaoNguoiNhanRepository.findByNguoiDungId(currentUserId);
+        List<UUID> myThongBaoIds = myRecipients.stream().map(r -> r.getThongBao().getId()).toList();
+        
+        return thongBaoRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream()
+                .filter(tb -> Boolean.TRUE.equals(tb.getGuiTatCa()) || myThongBaoIds.contains(tb.getId()))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
 }

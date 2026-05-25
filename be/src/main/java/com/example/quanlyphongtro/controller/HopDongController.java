@@ -85,4 +85,18 @@ public class HopDongController {
     private <T> ResponseEntity<ApiResponse<T>> badRequest(String message) {
         return ResponseEntity.badRequest().body(ApiResponse.error(message));
     }
+
+    @PutMapping("/{id}/ket-thuc")
+    public ResponseEntity<com.example.quanlyphongtro.dto.ApiResponse<com.example.quanlyphongtro.dto.HopDongResponse>> terminateContract(
+            @PathVariable java.util.UUID id,
+            @RequestBody com.example.quanlyphongtro.dto.KetThucHopDongRequest req) {
+        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.terminateContract(id, req), "Ket thuc hop dong thanh cong"));
+    }
+
+    @PutMapping("/{id}/gia-han")
+    public ResponseEntity<com.example.quanlyphongtro.dto.ApiResponse<com.example.quanlyphongtro.dto.HopDongResponse>> extendContract(
+            @PathVariable java.util.UUID id,
+            @RequestBody com.example.quanlyphongtro.dto.GiaHanHopDongRequest req) {
+        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.extendContract(id, req), "Gia han hop dong thanh cong"));
+    }
 }

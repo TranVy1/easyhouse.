@@ -78,4 +78,10 @@ public class ThongBaoController {
         try { thongBaoService.delete(id); return ApiResponse.success(null, "Xoa thong bao thanh cong"); }
         catch (Exception e) { return ApiResponse.error(e.getMessage()); }
     }
+
+    @GetMapping("/my")
+    public ApiResponse<List<ThongBaoResponse>> getMyThongBao() {
+        try { return ApiResponse.success(thongBaoService.getMyThongBao()); }
+        catch (Exception e) { return ApiResponse.error(e.getMessage()); }
+    }
 }

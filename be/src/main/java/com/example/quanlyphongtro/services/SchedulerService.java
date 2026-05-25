@@ -24,6 +24,7 @@ public class SchedulerService {
 
     private final HopDongRepository hopDongRepository;
     private final HoaDonRepository hoaDonRepository;
+    private final com.example.quanlyphongtro.repository.LichHenRepository lichHenRepository;
     private final ThongBaoService thongBaoService;
     private final EmailService emailService;
 
@@ -142,6 +143,29 @@ public class SchedulerService {
             } catch (Exception e) {
                 log.error("Lỗi xử lý hóa đơn quá hạn {}: {}", hd.getMaHoaDon(), e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Chay moi gio de quet lich hen trong vong 24h toi de gui email nhac nho.
+     */
+    @Scheduled(cron = "0 0 * * * ?")
+    @Transactional
+    public void checkUpcomingAppointments() {
+        log.info("Dang kiem tra lich hen sap dien ra...");
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
+        java.time.ZonedDateTime next24h = now.plusHours(24);
+        
+        List<com.example.quanlyphongtro.entity.LichHen> upcoming = lichHenRepository.findUpcomingAppointments(
+            List.of(com.example.quanlyphongtro.entity.TrangThaiLichHen.PENDING, com.example.quanlyphongtro.entity.TrangThaiLichHen.CONFIRMED),
+            now, next24h
+        );
+        
+        for (com.example.quanlyphongtro.entity.LichHen lh : upcoming) {
+            log.info("Gui nhac nho lich hen {} vao luc {}", lh.getId(), lh.getNgayHen());
+            emailService.sendAppointmentReminderEmail(lh);
+            lh.setDaGuiNhacNho(true);
+            lichHenRepository.save(lh);
         }
     }
 }
