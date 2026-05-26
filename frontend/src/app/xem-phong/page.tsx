@@ -48,23 +48,23 @@ export default function XemPhongPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedToaNha, setSelectedToaNha] = useState('');
   const [selectedTrangThai, setSelectedTrangThai] = useState('');
-  const [selectedPhong, setSelectedPhong] = useState<Phong | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [selectedPhong, setSelectedPhong] = useState<any>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '') => {
+  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', searchFilter = '') => {
     try {
       const params = new URLSearchParams();
       params.append('limit', '100');
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
+      if (searchFilter) params.append('search', searchFilter);
       
       const response = await fetch(`/api/public/phong?${params.toString()}`);
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setPhongList(result.data);
+          setPhongList(result.data.items || result.data);
         }
       }
     } catch (error) {
@@ -102,28 +102,25 @@ export default function XemPhongPage() {
   }, [fetchPhong, fetchToaNha]);
 
   useEffect(() => {
-    fetchPhong(selectedToaNha, selectedTrangThai);
-  }, [selectedToaNha, selectedTrangThai, fetchPhong]);
+    const timer = setTimeout(() => {
+      fetchPhong(selectedToaNha, selectedTrangThai, searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [selectedToaNha, selectedTrangThai, searchTerm, fetchPhong]);
 
   // Auto-open phong details when phong parameter is in URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const phongParam = urlParams.get('phong');
     if (phongParam && phongList.length > 0) {
-      const targetPhong = phongList.find(p => p.maPhong.toLowerCase() === phongParam.toLowerCase());
+      const targetPhong = phongList.find(p => (p.maPhong || p.ten || '').toLowerCase() === phongParam.toLowerCase());
       if (targetPhong) {
-        setSelectedPhong(targetPhong);
-        setShowDetails(true);
-        setSelectedImageIndex(0);
+        window.location.href = `/phong/${targetPhong._id || targetPhong.id}`;
       }
     }
   }, [phongList]);
 
-  const filteredPhong = phongList.filter(phong =>
-    phong.maPhong.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    phong.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getToaNhaTen(phong.toaNha as ToaNhaRef).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPhong = phongList;
 
   const getTrangThaiBadge = (trangThai: string) => {
     const variants = {
@@ -186,291 +183,7 @@ export default function XemPhongPage() {
     );
   }
 
-  if (showDetails && selectedPhong) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 relative">
-        {/* Polka dot background */}
-        <div className="absolute inset-0 opacity-15">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle, #6366f1 1.5px, transparent 1.5px)',
-            backgroundSize: '25px 25px'
-          }}></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 py-4 md:py-8">
-          {/* Header */}
-          <div className="mb-4 md:mb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDetails(false)}
-              className="mb-3 md:mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại danh sách
-            </Button>
-            
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-cyan-700 bg-clip-text text-transparent">
-                  Phòng {selectedPhong.maPhong}
-                </h1>
-                <p className="text-xs md:text-sm text-slate-600">
-                  {getToaNhaTen(selectedPhong.toaNha as ToaNhaRef)} - Tầng {selectedPhong.tang}
-                </p>
-              </div>
-              <div className="text-left md:text-right">
-                <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                  {formatCurrency(selectedPhong.giaThue)}
-                </div>
-                <div className="text-xs md:text-sm text-slate-500">/ tháng</div>
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-            {/* Thông tin chính */}
-            <div className="lg:col-span-2 space-y-4 md:space-y-6">
-              {/* Ảnh phòng */}
-              {selectedPhong.anhPhong && selectedPhong.anhPhong.length > 0 ? (
-                <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <CardTitle className="text-base md:text-lg bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">Hình ảnh phòng</CardTitle>
-                      <ImageCarousel
-                        images={selectedPhong.anhPhong}
-                        trigger={
-                          <Button variant="outline" size="sm" className="text-xs md:text-sm w-full sm:w-auto">
-                            <ZoomIn className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1 md:mr-2" />
-                            Xem toàn màn hình
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 md:p-6">
-                    <div className="space-y-3 md:space-y-4">
-                      {/* Hình lớn */}
-                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                            <div className="relative h-full w-full">
-                              <Image
-                                src={selectedPhong.anhPhong[selectedImageIndex]}
-                                alt={`Ảnh phòng ${selectedImageIndex + 1}`}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                className="object-cover"
-                              />
-                            </div>
-                      </div>
-                      
-                      {/* Các hình nhỏ */}
-                      <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                        {selectedPhong.anhPhong.map((image, index) => (
-                          <div 
-                            key={index} 
-                            className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                              index === selectedImageIndex 
-                                ? 'border-blue-500 ring-2 ring-blue-200' 
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                            onClick={() => setSelectedImageIndex(index)}
-                          >
-                            <div className="relative h-full w-full">
-                              <Image
-                                src={image}
-                                alt={`Ảnh phòng ${index + 1}`}
-                                fill
-                                sizes="25vw"
-                                className="object-cover"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12 p-4 md:p-6">
-                    <Home className="h-12 w-12 md:h-16 md:w-16 text-gray-400 mb-4" />
-                    <p className="text-sm md:text-base text-gray-500">Chưa có hình ảnh phòng</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Mô tả */}
-              {selectedPhong.moTa && (
-                <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">Mô tả</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 md:p-6">
-                    <p className="text-sm md:text-base text-gray-700 whitespace-pre-wrap">{selectedPhong.moTa}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tiện nghi */}
-              {selectedPhong.tienNghi && selectedPhong.tienNghi.length > 0 && (
-                <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">Tiện nghi</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 md:p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                      {selectedPhong.tienNghi.map((tienNghi) => (
-                        <div key={tienNghi} className="flex items-center space-x-2">
-                          <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500 flex-shrink-0" />
-                          <span className="text-xs md:text-sm truncate">{tienNghiLabels[tienNghi as keyof typeof tienNghiLabels] || tienNghi}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Thông tin chi tiết */}
-            <div className="space-y-4 md:space-y-6">
-              <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
-                <CardHeader className="p-4 md:p-6">
-                  <CardTitle className="text-base md:text-lg bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">Thông tin phòng</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Mã phòng:</span>
-                    <span className="font-medium">{selectedPhong.maPhong}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Tòa nhà:</span>
-                    <span className="font-medium truncate ml-2">
-                      {getToaNhaTen(selectedPhong.toaNha as ToaNhaRef)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Tầng:</span>
-                    <span className="font-medium">{selectedPhong.tang}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Diện tích:</span>
-                    <span className="font-medium">{selectedPhong.dienTich} m²</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Số người tối đa:</span>
-                    <span className="font-medium">{selectedPhong.soNguoiToiDa} người</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <span className="text-gray-600">Trạng thái:</span>
-                    {getTrangThaiBadge(selectedPhong.trangThai)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50/80 to-green-100/80 backdrop-blur-sm">
-                <CardHeader className="p-4 md:p-6">
-                  <CardTitle className="text-base md:text-lg bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">Giá thuê</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs md:text-sm text-gray-600">Giá thuê:</span>
-                    <span className="font-bold text-base md:text-lg text-green-600">
-                      {formatCurrency(selectedPhong.giaThue)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs md:text-sm text-gray-600">Tiền cọc:</span>
-                    <span className="text-sm md:text-base font-medium">
-                      {formatCurrency(selectedPhong.tienCoc)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {selectedPhong.trangThai === 'trong' && (
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50/80 to-emerald-100/80 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">Liên hệ thuê phòng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                    <p className="text-xs md:text-sm text-slate-600">
-                      Phòng này hiện đang trống và có thể cho thuê. Vui lòng liên hệ để biết thêm thông tin.
-                    </p>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300" 
-                      size="sm"
-                      onClick={() => setIsBookingOpen(true)}
-                    >
-                      <Phone className="h-4 w-4 mr-2" />
-                      Đặt lịch xem phòng
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {selectedPhong.trangThai === 'dangThue' && (
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50/80 to-amber-100/80 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-orange-700 to-amber-600 bg-clip-text text-transparent">Trạng thái phòng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                      <span className="text-sm md:text-base font-medium text-orange-600">Đang cho thuê</span>
-                    </div>
-                    <p className="text-xs md:text-sm text-gray-600">
-                      Phòng này hiện đang được cho thuê. Bạn có thể xem thông tin chi tiết và hình ảnh phòng.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {selectedPhong.trangThai === 'daDat' && (
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50/80 to-sky-100/80 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-blue-700 to-sky-600 bg-clip-text text-transparent">Trạng thái phòng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm md:text-base font-medium text-blue-600">Đã được đặt</span>
-                    </div>
-                    <p className="text-xs md:text-sm text-gray-600">
-                      Phòng này đã được đặt trước. Bạn có thể xem thông tin chi tiết và hình ảnh phòng.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {selectedPhong.trangThai === 'baoTri' && (
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50/80 to-rose-100/80 backdrop-blur-sm">
-                  <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-red-700 to-rose-600 bg-clip-text text-transparent">Trạng thái phòng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-sm md:text-base font-medium text-red-600">Đang bảo trì</span>
-                    </div>
-                    <p className="text-xs md:text-sm text-gray-600">
-                      Phòng này hiện đang được bảo trì và chưa thể cho thuê.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        <DatLichHenDialog 
-          isOpen={isBookingOpen} 
-          onClose={() => setIsBookingOpen(false)} 
-          phongId={selectedPhong._id || selectedPhong.id || ""} 
-          maPhong={selectedPhong.maPhong} 
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 relative">
@@ -685,22 +398,24 @@ export default function XemPhongPage() {
           {filteredPhong.map((phong) => (
             <Card key={phong._id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/90 backdrop-blur-sm hover:scale-[1.02] hover:bg-white/95">
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
-                {phong.anhPhong && phong.anhPhong.length > 0 ? (
+                {(phong.anhDaiDien || (phong.anhPhong && phong.anhPhong.length > 0)) ? (
                   <>
                     <div className="relative h-full w-full group-hover:scale-110 transition-transform duration-700">
                       <Image
-                        src={phong.anhPhong[0]}
-                        alt={`Phòng ${phong.maPhong}`}
+                        src={phong.anhDaiDien || phong.anhPhong?.[0]}
+                        alt={`Phòng ${phong.ten || phong.maPhong}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover"
                       />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <ImageCarousel
-                      images={phong.anhPhong}
-                      className="opacity-0 group-hover:opacity-100 transition-all duration-300"
-                    />
+                    {phong.anhPhong && phong.anhPhong.length > 0 && (
+                      <ImageCarousel
+                        images={phong.anhPhong}
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      />
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -714,15 +429,15 @@ export default function XemPhongPage() {
               
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base md:text-lg">
-                  <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">Phòng {phong.maPhong}</span>
+                  <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">Phòng {phong.ten || phong.maPhong}</span>
                   <span className="text-base md:text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                    {formatCurrency(phong.giaThue)}
+                    {formatCurrency(phong.giaHienTai || phong.giaThue)}
                   </span>
                 </CardTitle>
                 <CardDescription className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
                   <span className="flex items-center">
                     <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{getToaNhaTen(phong.toaNha as ToaNhaRef)}</span>
+                    <span className="truncate">{phong.tenNhaTro || getToaNhaTen(phong.toaNha as ToaNhaRef)}</span>
                   </span>
                   <span className="flex items-center">
                     <Square className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
@@ -742,32 +457,30 @@ export default function XemPhongPage() {
                   </p>
                 )}
                 
-                {phong.tienNghi && phong.tienNghi.length > 0 && (
+                {((phong.tienNghi?.length || 0) > 0 || (phong.tienIchNoiBat?.length || 0) > 0) && (
                   <div className="flex flex-wrap gap-1 mb-3 md:mb-4">
-                    {phong.tienNghi.slice(0, 3).map((tienNghi) => (
+                    {(phong.tienIchNoiBat || phong.tienNghi || []).slice(0, 3).map((tienNghi) => (
                       <Badge key={tienNghi} variant="outline" className="text-[10px] md:text-xs">
                         {tienNghiLabels[tienNghi as keyof typeof tienNghiLabels] || tienNghi}
                       </Badge>
                     ))}
-                    {phong.tienNghi.length > 3 && (
+                    {((phong.tienIchNoiBat?.length || 0) > 3 || (phong.tienNghi?.length || 0) > 3) && (
                       <Badge variant="outline" className="text-[10px] md:text-xs">
-                        +{phong.tienNghi.length - 3}
+                        +{((phong.tienIchNoiBat || phong.tienNghi || []).length) - 3}
                       </Badge>
                     )}
                   </div>
                 )}
 
-                <Button 
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 group" 
-                  onClick={() => {
-                    setSelectedPhong(phong);
-                    setShowDetails(true);
-                  }}
-                >
-                  <Eye className="h-3.5 w-3.5 md:h-4 md:w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                  Xem chi tiết
-                </Button>
+                <Link href={`/phong/${phong._id || phong.id}`} className="w-full block">
+                  <Button 
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 group" 
+                  >
+                    <Eye className="h-3.5 w-3.5 md:h-4 md:w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                    Xem chi tiết
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           ))}

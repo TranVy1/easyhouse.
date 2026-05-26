@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.Filter;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -23,6 +25,9 @@ class SecurityConfigTest {
 
     @Autowired
     private Filter springSecurityFilterChain;
+
+    @Autowired
+    private com.example.quanlyphongtro.services.JwtService jwtService;
 
     private MockMvc mockMvc;
 
@@ -50,5 +55,23 @@ class SecurityConfigTest {
         mockMvc.perform(post("/api/lich-hen")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest()); // Missing body results in 400, not 401/403
+    }
+
+    @Test
+    void landlordCannotAccessAdminUserApi() throws Exception {
+        String token = jwtService.generateAccessToken(UUID.randomUUID(), "landlord@example.com", "LANDLORD");
+
+        mockMvc.perform(get("/api/admin/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminCanAccessAdminUserApi() throws Exception {
+        String token = jwtService.generateAccessToken(UUID.randomUUID(), "admin@example.com", "ADMIN");
+
+        mockMvc.perform(get("/api/admin/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk());
     }
 }

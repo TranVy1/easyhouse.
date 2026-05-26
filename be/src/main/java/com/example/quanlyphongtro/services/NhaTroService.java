@@ -64,7 +64,7 @@ public class NhaTroService {
     }
 
     public NhaTroResponse getPublicNhaTroById(UUID id) {
-        NhaTro nt = nhaTroRepository.findById(id)
+        NhaTro nt = nhaTroRepository.findByIdAndXoaLucIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         return mapToResponse(nt);
     }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -22,6 +23,7 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     List<Phong> findByNhaTroIdAndTrangThai(UUID nhaTroId, TrangThaiPhong trangThai);
     List<Phong> findByNhaTroIdAndTangAndXoaLucIsNull(UUID nhaTroId, Integer tang);
     List<Phong> findByNhaTroIdAndKhuVucAndXoaLucIsNull(UUID nhaTroId, String khuVuc);
+    Optional<Phong> findByIdAndXoaLucIsNull(UUID id);
     long countByTrangThai(TrangThaiPhong trangThai);
     long countByNhaTroIdAndXoaLucIsNull(UUID nhaTroId);
     long countByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
@@ -39,4 +41,20 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
 
     @Query("SELECT COUNT(p) FROM Phong p WHERE p.trangThai = :trangThai AND p.nhaTro.id IN :nhaTroIds")
     long countByTrangThaiAndNhaTroIdIn(@Param("trangThai") com.example.quanlyphongtro.entity.TrangThaiPhong trangThai, @Param("nhaTroIds") List<UUID> nhaTroIds);
+
+    @Query("SELECT p FROM Phong p LEFT JOIN p.nhaTro nt " +
+           "WHERE p.xoaLuc IS NULL " +
+           "AND p.trangThai = com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE " +
+           "AND (cast(:nhaTroId as uuid) IS NULL OR nt.id = :nhaTroId) " +
+           "AND (:search IS NULL OR LOWER(p.ten) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(nt.tenNhaTro) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(nt.diaChi) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (cast(:minGia as bigdecimal) IS NULL OR p.giaHienTai >= :minGia) " +
+           "AND (cast(:maxGia as bigdecimal) IS NULL OR p.giaHienTai <= :maxGia) " +
+           "AND (cast(:minDienTich as bigdecimal) IS NULL OR p.dienTich >= :minDienTich)")
+    Page<Phong> findPublicRooms(
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("search") String search,
+            @Param("minGia") java.math.BigDecimal minGia,
+            @Param("maxGia") java.math.BigDecimal maxGia,
+            @Param("minDienTich") java.math.BigDecimal minDienTich,
+            Pageable pageable);
 }

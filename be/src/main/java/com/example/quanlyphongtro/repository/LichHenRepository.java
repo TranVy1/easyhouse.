@@ -18,4 +18,6 @@ public interface LichHenRepository extends JpaRepository<LichHen, UUID>, JpaSpec
         @org.springframework.data.repository.query.Param("start") java.time.ZonedDateTime start,
         @org.springframework.data.repository.query.Param("end") java.time.ZonedDateTime end
     );
+
+    long countBySoDienThoaiAndTrangThai(String soDienThoai, com.example.quanlyphongtro.entity.TrangThaiLichHen trangThai);
 }

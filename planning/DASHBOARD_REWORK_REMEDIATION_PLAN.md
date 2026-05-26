@@ -2,7 +2,7 @@
 
 Ngay lap: 2026-05-26
 
-Nguon: review lai implementation theo `planning/DASHBOARD_REWORK_IMPLEMENTATION_PLAN.md` sau commit `02937ff`.
+Nguon: review lai implementation theo ban lich su `02937ff:planning/DASHBOARD_REWORK_IMPLEMENTATION_PLAN.md`.
 
 Muc tieu: sua cac blocker con lai de dashboard dat dung Definition of Done: service enforce permission, billing/payment khong bi can thiep trai quyen, frontend dung API contract pagination, Docker local restore lap lai duoc, va ket qua test/E2E co bang chung.
 
@@ -61,27 +61,28 @@ Da implement:
 - `OPS-01`, `OPS-02`: su co dung pagination/cancel/audit/ownership; lich hen public luon `PENDING`, co transition va target-room permission.
 - `API-01`: them `frontend/src/lib/api-response.ts` va sua lookup/core pages bi vo boi paginated response.
 - `DB-01`: `docker-compose.easyhouse.yml` khoi tao PostgreSQL tu full `sql/db.sql`; README ghi lai cach reset/kiem tra admin.
+- Review follow-up: tenant chi co quyen doc du lieu phong qua hop dong `ACTIVE`; tenant tao su co khong the gia mao `khachThueId`/ghi truong quan tri; public detail khong tra phong/toa nha da soft-delete; trang media duoc guard `ADMIN` dong bo voi API.
 - Sua loi PostgreSQL phat hien khi E2E: nullable filter typed cho `su_co`, `khach_thue`, `phong`, `hop_dong`, `hoa_don`, `thanh_toan`; nullable UUID filter duoc bind bang `UUID`.
 - Sua mapping `inet` cho `login_history.ip_address` va `audit_log.ip_address` de dang nhap/audit chay tren PostgreSQL that.
 - `sql/db.sql` bo sung data A/B va account `ADMIN`, `LANDLORD`, `STAFF`, `TENANT` phuc vu permission E2E.
 
 Bang chung da chay:
 
-- `mvn test`: pass 61 tests sau cac sua doi backend va regression PostgreSQL.
+- `mvn clean test`: pass 81 tests sau cac sua doi backend va regression quyen follow-up.
 - `npx tsc --noEmit`: pass.
-- `npm.cmd run lint`: pass voi 36 warning ton tai, khong co error.
+- `npm.cmd run lint`: pass voi 33 warning ton tai, khong co error.
 - `npm.cmd run build`: pass; warning lint/hook con lai duoc ghi nhan la residual.
 - Da chay `docker-compose -f docker-compose.easyhouse.yml down -v` va `up -d postgres`; PostgreSQL restore full `sql/db.sql` tu volume rong thanh cong va healthy.
 - Database sau restore co 6 web account role (`ADMIN`, hai `LANDLORD`, `STAFF`, hai `TENANT`), 2 phong/2 hop dong/2 hoa don/2 chi so/2 su co/2 lich hen; staff chi gan Nha tro A.
 - API smoke that: staff chi list duoc phong/su co A; tenant chi list duoc hoa don/su co A; landlord A list duoc hop dong A va 2 payment A sau reconcile; admin doc audit, staff bi tu choi.
 - API cross-owner detail: landlord A bi tu choi meter/price/incident B; tenant A bi tu choi invoice B; staff bi tu choi price B va notification management.
-- Browser smoke bang Playwright/Firefox: admin render dashboard, su co A/B, thanh toan A va VietQR `E2E-TXN-A` da doi soat; staff render chi su co A va bi middleware chuyen khoi audit/VietQR; cac page da kiem tra khong co console error.
+- Browser smoke bang Playwright/Firefox: admin render dashboard, su co A/B, thanh toan A va VietQR `E2E-TXN-A` da doi soat; staff render chi su co A, khong thay menu Media va bi middleware chuyen khoi audit/VietQR/Media; cac page da kiem tra khong co console error.
 
 Residual de phase sau/khong chan hoan tat giai doan 1:
 
-- Media cross-owner chua duoc browser-test voi file Cloudinary that; unit test bao phu meter/payment va backend da enforce permission.
+- Media cross-owner chua duoc browser-test voi file Cloudinary that; unit test bao phu guard `ROOM`, `METER_READING`, `PAYMENT`, `INCIDENT` va backend da enforce permission.
 - Raw upload tam chua chuyen het sang object-bound `/api/media`; raw delete da khoa admin va file gan doi tuong duoc enforce permission.
-- Lint con 36 warning va mot so file cu con mojibake; khong gay fail build hay flow da smoke.
+- Lint con 33 warning va mot so file cu con mojibake; khong gay fail build hay flow da smoke.
 - Chua manual smoke tat ca form create/edit phu nhu notification recipient va upload anh that.
 
 ## 1. Chuan Hoa Permission Model Truoc Khi Sua Tung Module
@@ -107,10 +108,10 @@ Quyet dinh can chot:
 
 Checklist:
 
-- [ ] Chot tenant co duoc doc chi so dien nuoc, incident va receipt hay khong; neu khong can UI thi deny.
+- [x] Tenant duoc doc chi so, incident va receipt thuoc pham vi cua minh; quyen tren phong chi ton tai qua hop dong `ACTIVE`.
 - [ ] Them helper object-level neu can: `canReadChiSo`, `canWriteChiSo`, `canReadSuCo`, `canWriteSuCo`, `canReadPayment`, `canManageNotification`.
 - [ ] Thong nhat gia tri "admin sees all": dung `null` hoac explicit boolean, khong tron `null`, empty list va random UUID sentinel o service moi.
-- [ ] Them test owner/staff/tenant/cross-owner cho helper moi.
+- [x] Them test owner/staff/tenant/cross-owner cho helper moi, bao gom tenant khong con hop dong `ACTIVE`.
 
 Acceptance:
 
@@ -301,7 +302,7 @@ Checklist:
 - [x] Controller tra `ApiResponse<PaginatedResponse<SuCoResponse>>` voi filter server gom `page`, `limit`, `nhaTroId`, `phongId`, `trangThai`, `loaiSuCo`, `uuTien`/`mucDoUuTien`.
 - [x] Service dung repository query + `Pageable`; khong con `findAll...().stream().filter(...)`.
 - [x] Gan `nguoiBao` bang current user khi create.
-- [x] Tenant create qua `canReadPhong`, hien mapping tenant room dua tren hop dong trong `PermissionService`.
+- [x] Tenant create qua `canReadPhong`, backend derive `khachThue` tu hop dong `ACTIVE` va tu choi ID/truong quan tri gia mao.
 - [x] Tenant update chi incident do minh bao va chi truong khong phai admin khi `PENDING`.
 - [x] Khong cho doi `phongId`/`khachThueId` sau create.
 - [x] Delete chuyen `CANCELLED` va ghi audit.
@@ -457,7 +458,7 @@ Files:
 Checklist:
 
 - [x] Middleware va sidebar normalize role convention (`ADMIN`, `LANDLORD`, `STAFF`, `TENANT`) ke ca prefix `ROLE_`.
-- [x] An menu `audit-log`, `vietqr-doi-soat`, `thong-bao` management cho non-admin theo policy backend da chot.
+- [x] An menu `audit-log`, `vietqr-doi-soat`, `thong-bao`, `media` management cho non-admin theo policy backend da chot.
 - [x] Backend van la enforcement chinh; frontend chi giam loi UI.
 - [x] Sua mojibake text trong cac file cham vao o dot nay.
 - [x] Xu ly React hook warnings trong flow load pagination de tranh stale filters/page.
@@ -549,7 +550,7 @@ Moi phase nen commit rieng, vi du:
 Chi danh dau dashboard rework dat khi tat ca item duoi day duoc kiem chung:
 
 - [x] Khong con blocker P0/P1 trong bang baseline; residual manual-media/UI quality duoc tach ro.
-- [x] `mvn test` pass 61 tests, bao gom security, audit, notification, media va `BankTransactionServiceTest`.
+- [x] `mvn clean test` pass 81 tests, bao gom security role guard, tenant active-contract scope, public soft-delete, incident spoofing, media va `BankTransactionServiceTest`.
 - [x] `npx tsc --noEmit` pass.
 - [x] `npm.cmd run build` pass.
 - [x] Local Docker restore full `sql/db.sql` pass tu volume rong.

@@ -29,12 +29,20 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
     ngayHen: format(new Date(), "yyyy-MM-dd"),
     gioHen: "09:00",
     ghiChu: "",
+    honeypot: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.hoTen || !formData.soDienThoai || !formData.ngayHen || !formData.gioHen) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
+      return;
+    }
+
+    if (formData.honeypot) {
+      // Spam detected via honeypot
+      toast.success("Đặt lịch xem phòng thành công. Chúng tôi sẽ liên hệ lại sớm nhất.");
+      onClose();
       return;
     }
 
@@ -66,6 +74,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
           ngayHen: format(new Date(), "yyyy-MM-dd"),
           gioHen: "09:00",
           ghiChu: "",
+          honeypot: "",
         });
       } else {
         toast.error(data.message || "Đã xảy ra lỗi");
@@ -149,6 +158,23 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 onChange={(e) => setFormData({ ...formData, ghiChu: e.target.value })}
                 placeholder="Bạn có yêu cầu gì đặc biệt không?"
               />
+            </div>
+            
+            {/* Honeypot field - invisible to real users */}
+            <div className="hidden" aria-hidden="true">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="text"
+                tabIndex={-1}
+                value={formData.honeypot}
+                onChange={(e) => setFormData({ ...formData, honeypot: e.target.value })}
+                autoComplete="off"
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 mt-2">
+              Bằng việc gửi yêu cầu này, bạn đồng ý để chủ phòng/quản lý liên hệ qua số điện thoại và email đã cung cấp.
             </div>
           </div>
           <DialogFooter>

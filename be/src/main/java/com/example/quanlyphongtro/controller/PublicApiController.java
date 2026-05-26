@@ -35,28 +35,24 @@ public class PublicApiController {
     }
 
     @GetMapping("/phong")
-    public ApiResponse<List<PhongResponse>> getAllPhong(
+    public ApiResponse<com.example.quanlyphongtro.dto.PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse>> getAllPhong(
             @RequestParam(required = false) String toaNha,
-            @RequestParam(required = false) String trangThai) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) java.math.BigDecimal minGia,
+            @RequestParam(required = false) java.math.BigDecimal maxGia,
+            @RequestParam(required = false) java.math.BigDecimal minDienTich,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         
-        List<PhongResponse> phongs = phongService.getPublicAllPhong(toaNha, trangThai).stream()
-                .map(this::sanitizeForPublic)
-                .collect(Collectors.toList());
-        return ApiResponse.success(phongs);
+        return ApiResponse.success(phongService.getPublicAllPhong(toaNha, search, minGia, maxGia, minDienTich, page, limit));
     }
 
     @GetMapping("/phong/{id}")
-    public ApiResponse<PhongResponse> getPhongById(@PathVariable UUID id) {
+    public ApiResponse<com.example.quanlyphongtro.dto.PublicPhongDetailResponse> getPhongById(@PathVariable UUID id) {
         try {
-            PhongResponse phong = phongService.getPublicPhongById(id);
-            return ApiResponse.success(sanitizeForPublic(phong));
+            return ApiResponse.success(phongService.getPublicPhongById(id));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
-    }
-
-    private PhongResponse sanitizeForPublic(PhongResponse original) {
-        original.setHopDongHienTai(null); // Hide contract/tenant details
-        return original;
     }
 }

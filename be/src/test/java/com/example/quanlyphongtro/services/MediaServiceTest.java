@@ -12,6 +12,7 @@ import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.entity.LoaiDoiTuongMedia;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.SuCo;
 import com.example.quanlyphongtro.entity.ThanhToan;
 import com.example.quanlyphongtro.repository.AuditLogRepository;
 import com.example.quanlyphongtro.repository.ChiSoDienNuocRepository;
@@ -137,6 +138,114 @@ class MediaServiceTest {
 
         RuntimeException err = assertThrows(RuntimeException.class,
                 () -> service.uploadFile(file, "ROOM", roomId, null, null));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void uploadMeterReadingThrowsWhenCannotWriteRoom() {
+        UUID userId = UUID.randomUUID();
+        UUID readingId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "meter.png", "image/png", new byte[] { 1 });
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(chiSoDienNuocRepository.findById(readingId))
+                .thenReturn(Optional.of(ChiSoDienNuoc.builder().phong(Phong.builder().id(roomId).build()).build()));
+        when(permissionService.canWritePhong(userId, roomId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class,
+                () -> service.uploadFile(file, "METER_READING", readingId, null, null));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void getByDoiTuongThrowsWhenCannotReadPaymentInvoice() {
+        UUID userId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        UUID invoiceId = UUID.randomUUID();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(thanhToanRepository.findById(paymentId))
+                .thenReturn(Optional.of(ThanhToan.builder().hoaDon(HoaDon.builder().id(invoiceId).build()).build()));
+        when(permissionService.canReadHoaDon(userId, invoiceId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class,
+                () -> service.getByDoiTuong("PAYMENT", paymentId));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void deletePaymentThrowsWhenCannotWriteInvoice() {
+        UUID fileId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        UUID invoiceId = UUID.randomUUID();
+        FileMedia file = new FileMedia();
+        file.setId(fileId);
+        file.setDoiTuong(LoaiDoiTuongMedia.PAYMENT);
+        file.setDoiTuongId(paymentId);
+
+        when(fileMediaRepository.findById(fileId)).thenReturn(Optional.of(file));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(thanhToanRepository.findById(paymentId))
+                .thenReturn(Optional.of(ThanhToan.builder().hoaDon(HoaDon.builder().id(invoiceId).build()).build()));
+        when(permissionService.canWriteHoaDon(userId, invoiceId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class, () -> service.deleteFile(fileId));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void getByDoiTuongThrowsWhenCannotReadIncidentRoom() {
+        UUID userId = UUID.randomUUID();
+        UUID incidentId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(suCoRepository.findById(incidentId))
+                .thenReturn(Optional.of(SuCo.builder().phong(Phong.builder().id(roomId).build()).build()));
+        when(permissionService.canReadPhong(userId, roomId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class,
+                () -> service.getByDoiTuong("INCIDENT", incidentId));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void uploadIncidentThrowsWhenCannotWriteRoom() {
+        UUID userId = UUID.randomUUID();
+        UUID incidentId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "incident.png", "image/png", new byte[] { 1 });
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(suCoRepository.findById(incidentId))
+                .thenReturn(Optional.of(SuCo.builder().phong(Phong.builder().id(roomId).build()).build()));
+        when(permissionService.canWritePhong(userId, roomId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class,
+                () -> service.uploadFile(file, "INCIDENT", incidentId, null, null));
+        assertEquals("Khong co quyen", err.getMessage());
+    }
+
+    @Test
+    void deleteIncidentThrowsWhenCannotWriteRoom() {
+        UUID fileId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID incidentId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        FileMedia file = new FileMedia();
+        file.setId(fileId);
+        file.setDoiTuong(LoaiDoiTuongMedia.INCIDENT);
+        file.setDoiTuongId(incidentId);
+
+        when(fileMediaRepository.findById(fileId)).thenReturn(Optional.of(file));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(suCoRepository.findById(incidentId))
+                .thenReturn(Optional.of(SuCo.builder().phong(Phong.builder().id(roomId).build()).build()));
+        when(permissionService.canWritePhong(userId, roomId)).thenReturn(false);
+
+        RuntimeException err = assertThrows(RuntimeException.class, () -> service.deleteFile(fileId));
         assertEquals("Khong co quyen", err.getMessage());
     }
 }

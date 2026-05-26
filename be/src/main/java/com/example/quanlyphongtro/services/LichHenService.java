@@ -84,8 +84,42 @@ public class LichHenService {
         if (req.getPhongId() == null || req.getNgayHen() == null || req.getNgayHen().isBefore(java.time.ZonedDateTime.now())) {
             throw new RuntimeException("Thong tin lich hen khong hop le");
         }
+        
+        if (req.getHoTen() == null || req.getHoTen().trim().isEmpty() || req.getHoTen().length() > 100) {
+            throw new RuntimeException("Ho ten khong hop le");
+        }
+        
+        if (req.getSoDienThoai() == null || !req.getSoDienThoai().matches("^\\+?[0-9]{9,15}$")) {
+            throw new RuntimeException("So dien thoai khong hop le");
+        }
+        
+        if (req.getEmail() != null && !req.getEmail().trim().isEmpty() && !req.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+            throw new RuntimeException("Email khong hop le");
+        }
+
+        if (req.getGhiChu() != null && req.getGhiChu().length() > 500) {
+            throw new RuntimeException("Ghi chu qua dai (toi da 500 ky tu)");
+        }
+
         Phong phong = phongRepository.findById(req.getPhongId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+
+        if (phong.getXoaLuc() != null) {
+            throw new RuntimeException("Phong nay da bi xoa");
+        }
+
+        UUID currentUserId = permissionService.currentUserId().orElse(null);
+        if (currentUserId == null) {
+            if (phong.getTrangThai() != com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE) {
+                throw new RuntimeException("Phong nay khong cho phep dat lich (Khong o trang thai TRONG)");
+            }
+            
+            // Basic Anti-spam: Rate limit by phone number for public users
+            long pendingCount = lichHenRepository.countBySoDienThoaiAndTrangThai(req.getSoDienThoai(), TrangThaiLichHen.PENDING);
+            if (pendingCount >= 3) {
+                throw new RuntimeException("Ban co qua nhieu lich hen dang cho xac nhan. Vui long cho hoac lien he truc tiep.");
+            }
+        }
 
         LichHen lichHen = new LichHen();
         lichHen.setPhong(phong);
@@ -98,7 +132,7 @@ public class LichHenService {
         lichHen.setTrangThai(TrangThaiLichHen.PENDING);
 
         LichHen saved = lichHenRepository.save(lichHen);
-        logAudit(saved, "CREATE", permissionService.currentUserId().orElse(null));
+        logAudit(saved, "CREATE", currentUserId);
         return LichHenResponse.fromEntity(saved);
     }
 

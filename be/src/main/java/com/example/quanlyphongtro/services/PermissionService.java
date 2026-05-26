@@ -6,6 +6,7 @@ import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.HopDong;
 import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.entity.KhachThue;
+import com.example.quanlyphongtro.entity.TrangThaiHopDong;
 import com.example.quanlyphongtro.repository.NguoiDungNhaTroRepository;
 import com.example.quanlyphongtro.repository.NguoiDungVaiTroRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
@@ -105,7 +106,7 @@ public class PermissionService {
         if (phong == null) return false;
         
         // Tenant check
-        if (hopDongRepository.findByPhongIdAndXoaLucIsNull(phongId).stream()
+        if (hopDongRepository.findRoomOccupyingContracts(phongId, List.of(TrangThaiHopDong.ACTIVE)).stream()
                 .anyMatch(hd -> hd.getKhachThue() != null && hd.getKhachThue().getNguoiDung() != null 
                         && hd.getKhachThue().getNguoiDung().getId().equals(userId))) {
             return true;

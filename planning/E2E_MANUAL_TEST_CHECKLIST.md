@@ -12,9 +12,9 @@ Environment:
 
 Automated checks:
 
-- [x] Backend `mvn test`: 61 tests pass, 0 failure/error.
+- [x] Backend `mvn clean test`: 81 tests pass, 0 failure/error (rerun after permission/public-detail follow-up fixes).
 - [x] Frontend `npx tsc --noEmit`: pass.
-- [x] Frontend `npm.cmd run lint`: 0 error, con 36 warning da biet.
+- [x] Frontend `npm.cmd run lint`: 0 error, con 33 warning da biet.
 - [x] Frontend `npm.cmd run build`: pass voi cung warning residual.
 
 API permission/reconciliation evidence:
@@ -34,12 +34,13 @@ Browser smoke bang Playwright Firefox:
 - [x] Admin `/dashboard/vietqr-doi-soat` render `E2E-TXN-A` o trang thai da doi soat.
 - [x] Staff `/dashboard/su-co` chi render dong `Ro nuoc A`; lookup phong/khach thue/hop dong deu HTTP 200.
 - [x] Staff vao `/dashboard/audit-log` va `/dashboard/vietqr-doi-soat` bi middleware chuyen khoi trang protected.
+- [x] Staff khong thay lien ket Media trong menu `Van han`; truy cap truc tiep `/dashboard/media` bi middleware chuyen ve dang nhap voi `callbackUrl` trang bi cam.
 
 Chua smoke thu cong trong lan chay nay:
 
 - [ ] Upload/delete media that qua Cloudinary va kiem tra file cross-owner tren browser.
 - [ ] Tat ca modal create/edit cua contract, meter, appointment va notification recipient.
-- [ ] Don 36 lint warnings va sua cac chuoi mojibake cu con lai.
+- [ ] Don 33 lint warnings va sua cac chuoi mojibake cu con lai.
 
 This document provides a step-by-step checklist for manual end-to-end testing of the EasyHouse dashboard on a local environment.
 

@@ -9,11 +9,15 @@ import static org.mockito.Mockito.when;
 import com.example.quanlyphongtro.dto.SuCoRequest;
 import com.example.quanlyphongtro.dto.SuCoResponse;
 import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.KhachThue;
 import com.example.quanlyphongtro.entity.SuCo;
 import com.example.quanlyphongtro.entity.NguoiDung;
+import com.example.quanlyphongtro.entity.TrangThaiHopDong;
 import com.example.quanlyphongtro.entity.TrangThaiSuCo;
 import com.example.quanlyphongtro.repository.AuditLogRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
+import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.SuCoRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
@@ -38,6 +42,7 @@ class SuCoServiceTest {
     @Mock private SuCoRepository suCoRepository;
     @Mock private PhongRepository phongRepository;
     @Mock private KhachThueRepository khachThueRepository;
+    @Mock private HopDongRepository hopDongRepository;
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
     @Mock private AuditLogRepository auditLogRepository;
@@ -65,6 +70,50 @@ class SuCoServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.createSuCo(req));
         assertEquals("Khong co quyen bao cao su co cho phong nay", error.getMessage());
+    }
+
+    @Test
+    void createSuCoRejectsTenantSpoofingAnotherTenant() {
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        UUID ownTenantId = UUID.randomUUID();
+        UUID anotherTenantId = UUID.randomUUID();
+        KhachThue ownTenant = KhachThue.builder()
+                .id(ownTenantId)
+                .nguoiDung(NguoiDung.builder().id(userId).build())
+                .build();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canReadPhong(userId, phongId)).thenReturn(true);
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(false);
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(Phong.builder().id(phongId).build()));
+        when(hopDongRepository.findRoomOccupyingContracts(phongId, List.of(TrangThaiHopDong.ACTIVE)))
+                .thenReturn(List.of(HopDong.builder().khachThue(ownTenant).build()));
+
+        SuCoRequest req = new SuCoRequest();
+        req.setPhongId(phongId);
+        req.setKhachThueId(anotherTenantId);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.createSuCo(req));
+        assertEquals("Khong co quyen bao cao su co cho khach thue khac", error.getMessage());
+    }
+
+    @Test
+    void createSuCoRejectsTenantAdminFields() {
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canReadPhong(userId, phongId)).thenReturn(true);
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(false);
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(Phong.builder().id(phongId).build()));
+
+        SuCoRequest req = new SuCoRequest();
+        req.setPhongId(phongId);
+        req.setChiPhiSuaChua(BigDecimal.ONE);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.createSuCo(req));
+        assertEquals("Khong co quyen nhap ghi chu chu nha hoac chi phi su co", error.getMessage());
     }
 
     @Test

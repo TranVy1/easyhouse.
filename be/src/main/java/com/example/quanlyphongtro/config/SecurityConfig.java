@@ -41,7 +41,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/api/auth/**",
-                    "/api/hoa-don-public/**",
                     "/api/public/**",
                     "/actuator/**"
                 ).permitAll()

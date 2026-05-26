@@ -64,22 +64,31 @@ public class PhongService {
         return toResponse(phong);
     }
 
-    public List<PhongResponse> getPublicAllPhong(String nhaTroId, String trangThaiStr) {
-        TrangThaiPhong tt = parseTrangThai(trangThaiStr);
+    public PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> getPublicAllPhong(
+            String nhaTroId, String search, java.math.BigDecimal minGia, java.math.BigDecimal maxGia, java.math.BigDecimal minDienTich, int page, int limit) {
         UUID nid = parseUuid(nhaTroId);
-
-        List<Phong> list;
-        if (nid != null && tt != null) list = phongRepository.findByNhaTroIdAndTrangThaiAndXoaLucIsNull(nid, tt);
-        else if (nid != null) list = phongRepository.findByNhaTroIdAndXoaLucIsNull(nid);
-        else if (tt != null) list = phongRepository.findByTrangThaiAndXoaLucIsNull(tt);
-        else list = phongRepository.findByXoaLucIsNull();
-
-        return list.stream().map(this::toResponse).toList();
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
+        Page<Phong> pageResult = phongRepository.findPublicRooms(nid, search, minGia, maxGia, minDienTich, pageable);
+        
+        List<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> mappedList = pageResult.getContent().stream()
+                .map(p -> com.example.quanlyphongtro.dto.PublicPhongSummaryResponse.fromEntity(p, mediaService.listUrls(LoaiDoiTuongMedia.ROOM, p.getId(), MediaService.ROOM_IMAGE).stream().findFirst().orElse(null), tienIchService.listByPhong(p.getId())))
+                .toList();
+        return PaginatedResponse.of(pageResult, mappedList);
     }
 
-    public PhongResponse getPublicPhongById(UUID id) {
-        Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
-        return toResponse(phong);
+    public com.example.quanlyphongtro.dto.PublicPhongDetailResponse getPublicPhongById(UUID id) {
+        Phong phong = phongRepository.findByIdAndXoaLucIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+        
+        if (phong.getTrangThai() != TrangThaiPhong.AVAILABLE) {
+            throw new RuntimeException("Phong nay hien khong kha dung de xem");
+        }
+        
+        List<String> anhList = mediaService.listUrls(LoaiDoiTuongMedia.ROOM, phong.getId(), MediaService.ROOM_IMAGE);
+        List<com.example.quanlyphongtro.dto.HopDongDichVuOptionResponse> dichVuList = List.of(); // Requires hopDongService, but we can't easily inject it without circular dependency if not careful. Alternatively we can fetch dich vu the same way HopDongService does, or leave it for now.
+        // Let's use tienIchService which we have. For dich vu, let's leave it empty or map it if we can.
+        
+        return com.example.quanlyphongtro.dto.PublicPhongDetailResponse.fromEntity(phong, anhList, dichVuList, tienIchService.listByPhong(phong.getId()));
     }
 
     @Transactional

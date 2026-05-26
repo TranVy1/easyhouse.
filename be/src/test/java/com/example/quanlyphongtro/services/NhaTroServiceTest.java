@@ -71,4 +71,14 @@ class NhaTroServiceTest {
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.deleteNhaTro(nhaTroId));
         assertEquals("Khong the xoa nha tro dang co phong hoat dong", error.getMessage());
     }
+
+    @Test
+    void publicDetailRejectsSoftDeletedBuilding() {
+        UUID nhaTroId = UUID.randomUUID();
+        when(nhaTroRepository.findByIdAndXoaLucIsNull(nhaTroId)).thenReturn(Optional.empty());
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.getPublicNhaTroById(nhaTroId));
+
+        assertEquals("Khong tim thay nha tro", error.getMessage());
+    }
 }

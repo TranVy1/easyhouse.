@@ -42,6 +42,8 @@ public class AuthService {
     private final HoaDonRepository hoaDonRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final LoginHistoryRepository loginHistoryRepository;
+    private final SuCoRepository suCoRepository;
+    private final ThongBaoNguoiNhanRepository thongBaoNguoiNhanRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
@@ -354,6 +356,25 @@ public class AuthService {
                 .count();
         HoaDon latestInvoice = hoaDons.stream().findFirst().orElse(null);
 
+        long soSuCoDangMo = suCoRepository.countByNguoiBaoIdAndTrangThaiIn(
+                userId, 
+                List.of(TrangThaiSuCo.PENDING, TrangThaiSuCo.IN_PROGRESS)
+        );
+
+        long soThongBaoMoi = thongBaoNguoiNhanRepository.countByNguoiDungIdAndDaDocFalse(userId);
+
+        KhachThueDashboardResponse.LienHeNhaTro lienHe = null;
+        if (hopDong != null && hopDong.getPhong() != null && hopDong.getPhong().getNhaTro() != null) {
+            NguoiDung chuTro = hopDong.getPhong().getNhaTro().getChuTro();
+            if (chuTro != null) {
+                lienHe = KhachThueDashboardResponse.LienHeNhaTro.builder()
+                        .hoTen(chuTro.getHoTen())
+                        .soDienThoai(chuTro.getSoDienThoai())
+                        .email(chuTro.getEmail())
+                        .build();
+            }
+        }
+
         return KhachThueDashboardResponse.builder()
                 .khachThue(KhachThueDashboardResponse.TenantProfile.builder()
                         .hoTen(khachThue.getHoTen())
@@ -361,7 +382,10 @@ public class AuthService {
                         .build())
                 .hopDongHienTai(toTenantContract(hopDong))
                 .soHoaDonChuaThanhToan(unpaidCount)
+                .soSuCoDangMo(soSuCoDangMo)
+                .soThongBaoMoi(soThongBaoMoi)
                 .hoaDonGanNhat(toTenantInvoice(latestInvoice))
+                .lienHe(lienHe)
                 .build();
     }
 

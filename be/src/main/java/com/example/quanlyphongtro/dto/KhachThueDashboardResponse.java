@@ -12,7 +12,18 @@ public class KhachThueDashboardResponse {
     private TenantProfile khachThue;
     private TenantContract hopDongHienTai;
     private long soHoaDonChuaThanhToan;
+    private long soSuCoDangMo;
+    private long soThongBaoMoi;
     private TenantInvoice hoaDonGanNhat;
+    private LienHeNhaTro lienHe;
+
+    @Data
+    @Builder
+    public static class LienHeNhaTro {
+        private String hoTen;
+        private String soDienThoai;
+        private String email;
+    }
 
     @Data
     @Builder

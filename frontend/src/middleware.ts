@@ -34,6 +34,7 @@ export default withAuth(
           || req.nextUrl.pathname.startsWith('/dashboard/thong-bao')
           || req.nextUrl.pathname.startsWith('/dashboard/audit-log')
           || req.nextUrl.pathname.startsWith('/dashboard/vietqr-doi-soat')
+          || req.nextUrl.pathname.startsWith('/dashboard/media')
         ) {
           return role === 'ADMIN';
         }
@@ -60,7 +61,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/khach-thue/:path*',
+    '/khach-thue/dashboard/:path*',
     '/api/:path*'
   ]
 };

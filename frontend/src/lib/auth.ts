@@ -58,6 +58,59 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
       }
+    }),
+    CredentialsProvider({
+      id: 'tenant-credentials',
+      name: 'tenant-credentials',
+      credentials: {
+        soDienThoai: { label: 'Số điện thoại', type: 'text' },
+        matKhau: { label: 'Mật khẩu', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.soDienThoai || !credentials?.matKhau) {
+          return null;
+        }
+
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/auth/khach-thue/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              soDienThoai: credentials.soDienThoai,
+              matKhau: credentials.matKhau
+            })
+          });
+
+          if (res.ok) {
+            const result = await res.json();
+            if (result.success && result.data) {
+              const { token, refreshToken, khachThue } = result.data;
+              return {
+                id: khachThue.id || 'tenant',
+                email: khachThue.email || '',
+                name: khachThue.hoTen || 'Khách thuê',
+                role: 'TENANT',
+                phone: khachThue.soDienThoai || '',
+                avatar: khachThue.anhDaiDien || '',
+                accessToken: token,
+                refreshToken: refreshToken || '',
+                emailVerified: true,
+                accessTokenExpires: Date.now() + 60 * 60 * 1000,
+              };
+            }
+          }
+          
+          try {
+            const err = await res.json();
+            throw new Error(err.message || 'Đăng nhập thất bại');
+          } catch {
+            return null;
+          }
+        } catch (error) {
+          console.error('Tenant Auth error:', error);
+          return null;
+        }
+      }
     })
   ],
   session: {

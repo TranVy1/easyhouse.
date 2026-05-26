@@ -160,6 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         item.url !== "/dashboard/thong-bao"
         && item.url !== "/dashboard/audit-log"
         && item.url !== "/dashboard/vietqr-doi-soat"
+        && item.url !== "/dashboard/media"
       )
     }
 

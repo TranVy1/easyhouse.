@@ -166,6 +166,7 @@ export interface Phong {
   _id?: ID;
   nhaTroId?: ID;
   toaNha: ToaNhaRef;
+  tenNhaTro?: string;
   ten?: string;
   maPhong: string;
   khuVuc?: string;
@@ -177,7 +178,9 @@ export interface Phong {
   tienCoc: number;
   moTa?: string;
   anhPhong: string[];
+  anhDaiDien?: string;
   tienNghi: string[];
+  tienIchNoiBat?: string[];
   trangThai: TrangThaiPhong;
   soNguoiToiDa: number;
   ngayTao: DateLike;
@@ -249,7 +252,7 @@ export interface HopDong {
   maHopDong: string;
   phongId?: ID;
   phong: PhongRef;
-  khachThueId: ID[];
+  khachThueId: ID[] | any[];
   khachThueDaiDienId?: ID;
   nguoiDaiDien: KhachThueRef;
   thanhVien?: ThanhVienHopDong[];
@@ -346,6 +349,7 @@ export interface HoaDon {
   soDuDauKy?: number;
   tongTienPhatSinh?: number;
   chiTiet?: ChiTietHoaDon[];
+  chiTietHoaDon?: ChiTietHoaDon[];
   tienPhong: number;
   tienDien: number;
   soDien: number;
@@ -459,6 +463,41 @@ export interface FileMedia {
   metadata?: Record<string, unknown>;
   nguoiTaiLenId?: ID;
   taoLuc?: DateLike;
+}
+
+export interface TenantProfile extends Omit<KhachThue, 'hopDongHienTai'> {}
+export interface TenantContract extends Omit<HopDong, 'phong'> {
+  phong?: {
+    id?: ID;
+    _id?: ID;
+    maPhong?: string;
+    ten?: string;
+    giaThue?: number;
+    toaNha?: { 
+      id?: ID; 
+      _id?: ID; 
+      tenToaNha?: string; 
+      diaChi?: {
+        duong?: string;
+        phuong?: string;
+      }
+    };
+  };
+}
+export interface TenantInvoice extends Omit<HoaDon, 'hopDong' | 'khachThue'> {}
+
+export interface TenantDashboardData {
+  khachThue: TenantProfile;
+  hopDongHienTai?: TenantContract;
+  soHoaDonChuaThanhToan: number;
+  soSuCoDangMo: number;
+  soThongBaoMoi: number;
+  hoaDonGanNhat?: TenantInvoice;
+  lienHe?: {
+    hoTen: string;
+    soDienThoai: string;
+    email: string;
+  };
 }
 
 export interface BaoCaoTongQuan {

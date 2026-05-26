@@ -8,8 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.example.quanlyphongtro.entity.KhachThue;
+import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.NhaTro;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.NguoiDungNhaTro;
+import com.example.quanlyphongtro.entity.Phong;
+import com.example.quanlyphongtro.entity.TrangThaiHopDong;
 import com.example.quanlyphongtro.entity.VaiTroHeThong;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.NguoiDungNhaTroRepository;
@@ -19,6 +23,7 @@ import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,5 +142,39 @@ class PermissionServiceTest {
         when(khachThueRepository.findById(khachThueId)).thenReturn(Optional.of(khachThue));
 
         assertTrue(permissionService.canReadKhachThue(currentUserId, khachThueId));
+    }
+
+    @Test
+    void canReadPhongReturnsFalseWhenTenantHasNoActiveContract() {
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        UUID nhaTroId = UUID.randomUUID();
+        Phong phong = Phong.builder()
+                .id(phongId)
+                .nhaTro(NhaTro.builder().id(nhaTroId).chuTro(NguoiDung.builder().id(UUID.randomUUID()).build()).build())
+                .build();
+
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
+        when(hopDongRepository.findRoomOccupyingContracts(phongId, List.of(TrangThaiHopDong.ACTIVE)))
+                .thenReturn(List.of());
+
+        assertFalse(permissionService.canReadPhong(userId, phongId));
+    }
+
+    @Test
+    void canReadPhongReturnsTrueForTenantWithActiveContract() {
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        Phong phong = Phong.builder().id(phongId).build();
+        HopDong activeContract = HopDong.builder()
+                .trangThai(TrangThaiHopDong.ACTIVE)
+                .khachThue(KhachThue.builder().nguoiDung(NguoiDung.builder().id(userId).build()).build())
+                .build();
+
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
+        when(hopDongRepository.findRoomOccupyingContracts(phongId, List.of(TrangThaiHopDong.ACTIVE)))
+                .thenReturn(List.of(activeContract));
+
+        assertTrue(permissionService.canReadPhong(userId, phongId));
     }
 }

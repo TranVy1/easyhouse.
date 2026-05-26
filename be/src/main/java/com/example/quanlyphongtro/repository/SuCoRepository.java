@@ -37,4 +37,6 @@ public interface SuCoRepository extends JpaRepository<SuCo, UUID> {
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM SuCo s WHERE s.trangThai = :trangThai AND s.phong.nhaTro.id IN :nhaTroIds")
     long countByTrangThaiAndPhong_NhaTro_IdIn(@org.springframework.data.repository.query.Param("trangThai") TrangThaiSuCo trangThai, @org.springframework.data.repository.query.Param("nhaTroIds") List<UUID> nhaTroIds);
+
+    long countByNguoiBaoIdAndTrangThaiIn(UUID nguoiBaoId, List<TrangThaiSuCo> trangThais);
 }

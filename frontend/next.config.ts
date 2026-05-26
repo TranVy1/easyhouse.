@@ -139,6 +139,14 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/chi-so-dien-nuoc/:path*`
       },
       {
+        source: '/api/tenant',
+        destination: `${backendUrl}/api/tenant`
+      },
+      {
+        source: '/api/tenant/:path*',
+        destination: `${backendUrl}/api/tenant/:path*`
+      },
+      {
         source: '/api/admin/:path*',
         destination: `${backendUrl}/api/admin/:path*`
       },

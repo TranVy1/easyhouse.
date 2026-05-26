@@ -23,6 +23,7 @@ public class SuCoService {
     private final SuCoRepository suCoRepository;
     private final PhongRepository phongRepository;
     private final KhachThueRepository khachThueRepository;
+    private final HopDongRepository hopDongRepository;
     private final MediaService mediaService;
     private final PermissionService permissionService;
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
@@ -60,7 +61,19 @@ public class SuCoService {
         }
         Phong phong = req.getPhongId() != null ? phongRepository.findById(req.getPhongId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng")) : null;
-        KhachThue kt = req.getKhachThueId() != null ? khachThueRepository.findById(req.getKhachThueId()).orElse(null) : null;
+        boolean canManage = permissionService.canWritePhong(userId, req.getPhongId());
+        KhachThue kt;
+        if (canManage) {
+            kt = req.getKhachThueId() != null ? khachThueRepository.findById(req.getKhachThueId()).orElse(null) : null;
+        } else {
+            if (req.getGhiChuChuNha() != null || req.getChiPhiSuaChua() != null) {
+                throw new RuntimeException("Khong co quyen nhap ghi chu chu nha hoac chi phi su co");
+            }
+            kt = currentTenantForRoom(userId, req.getPhongId());
+            if (req.getKhachThueId() != null && !req.getKhachThueId().equals(kt.getId())) {
+                throw new RuntimeException("Khong co quyen bao cao su co cho khach thue khac");
+            }
+        }
 
         SuCo sc = SuCo.builder()
                 .phong(phong).khachThue(kt)
@@ -70,8 +83,8 @@ public class SuCoService {
                 .loaiSuCo(parseLoai(req.getLoaiSuCo()))
                 .uuTien(parseUuTien(req.getUuTien()))
                 .trangThai(TrangThaiSuCo.PENDING)
-                .ghiChuChuNha(req.getGhiChuChuNha())
-                .chiPhiSuaChua(req.getChiPhiSuaChua() != null ? req.getChiPhiSuaChua() : BigDecimal.ZERO)
+                .ghiChuChuNha(canManage ? req.getGhiChuChuNha() : null)
+                .chiPhiSuaChua(canManage && req.getChiPhiSuaChua() != null ? req.getChiPhiSuaChua() : BigDecimal.ZERO)
                 .build();
         SuCo saved = suCoRepository.save(sc);
         mediaService.replaceUrls(LoaiDoiTuongMedia.INCIDENT, saved.getId(), req.getAnhSuCo(), MediaService.INCIDENT_IMAGE);
@@ -143,6 +156,14 @@ public class SuCoService {
 
     private boolean isEmptyFilter(String filter) {
         return filter == null || filter.isBlank() || "all".equalsIgnoreCase(filter);
+    }
+
+    private KhachThue currentTenantForRoom(UUID userId, UUID phongId) {
+        return hopDongRepository.findRoomOccupyingContracts(phongId, List.of(TrangThaiHopDong.ACTIVE)).stream()
+                .map(HopDong::getKhachThue)
+                .filter(kt -> kt != null && kt.getNguoiDung() != null && userId.equals(kt.getNguoiDung().getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Chi khach thue dang thue phong moi duoc bao cao su co"));
     }
 
     private SuCoResponse toResponse(SuCo suCo) {
