@@ -15,10 +15,22 @@ public interface SuCoRepository extends JpaRepository<SuCo, UUID> {
     List<SuCo> findAllByOrderByTaoLucDesc();
 
     @org.springframework.data.jpa.repository.Query("SELECT s FROM SuCo s LEFT JOIN s.phong p " +
-           "WHERE (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds) " +
-           "AND (:phongId IS NULL OR p.id = cast(:phongId as uuid)) " +
-           "AND (:trangThai IS NULL OR s.trangThai = :trangThai)")
-    Page<SuCo> findAllAccessible(@org.springframework.data.repository.query.Param("isAdmin") boolean isAdmin, @org.springframework.data.repository.query.Param("nhaTroIds") List<UUID> nhaTroIds, @org.springframework.data.repository.query.Param("phongId") String phongId, @org.springframework.data.repository.query.Param("trangThai") TrangThaiSuCo trangThai, Pageable pageable);
+           "WHERE (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds OR s.nguoiBao.id = :userId) " +
+           "AND (cast(:nhaTroId as string) IS NULL OR p.nhaTro.id = :nhaTroId) " +
+           "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(s.trangThai as string) = :trangThai) " +
+           "AND (cast(:loaiSuCo as string) IS NULL OR cast(s.loaiSuCo as string) = :loaiSuCo) " +
+           "AND (cast(:uuTien as string) IS NULL OR cast(s.uuTien as string) = :uuTien)")
+    Page<SuCo> findAllAccessible(
+            @org.springframework.data.repository.query.Param("isAdmin") boolean isAdmin,
+            @org.springframework.data.repository.query.Param("userId") UUID userId,
+            @org.springframework.data.repository.query.Param("nhaTroIds") List<UUID> nhaTroIds,
+            @org.springframework.data.repository.query.Param("nhaTroId") UUID nhaTroId,
+            @org.springframework.data.repository.query.Param("phongId") UUID phongId,
+            @org.springframework.data.repository.query.Param("trangThai") String trangThai,
+            @org.springframework.data.repository.query.Param("loaiSuCo") String loaiSuCo,
+            @org.springframework.data.repository.query.Param("uuTien") String uuTien,
+            Pageable pageable);
     List<SuCo> findByTrangThaiOrderByTaoLucDesc(TrangThaiSuCo trangThai);
     List<SuCo> findByPhongIdOrderByTaoLucDesc(UUID phongId);
     long countByTrangThai(TrangThaiSuCo trangThai);

@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
+import { unwrapPageData } from "@/lib/api-response";
 
 interface TienIch {
   _id: string;
@@ -48,7 +49,7 @@ export function TienIchClient() {
       const res = await fetch("/api/tien-ich");
       const data: ApiResponse<TienIch[]> = await res.json();
       if (data.success) {
-        setTienIchList(data.data || []);
+        setTienIchList(unwrapPageData<TienIch>(data.data));
       }
     } catch (error) {
       console.error("Lỗi khi tải tiện ích:", error);

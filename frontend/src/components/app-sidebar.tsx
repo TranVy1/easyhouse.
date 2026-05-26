@@ -26,6 +26,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
+  const role = session?.user?.role?.replace(/^ROLE_/, '').toUpperCase()
   
   // Tạo navigation items dựa trên role
   const navMain = React.useMemo(() => {
@@ -142,7 +143,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ]
 
     // Thêm mục quản lý admin nếu là admin
-    if (session?.user?.role === 'admin' || session?.user?.role === 'ADMIN') {
+    if (role === 'ADMIN') {
       baseItems.splice(3, 0, {
         title: "Quản trị",
         url: "#",
@@ -154,10 +155,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ],
       })
+    } else {
+      baseItems[2].items = baseItems[2].items.filter(item =>
+        item.url !== "/dashboard/thong-bao"
+        && item.url !== "/dashboard/audit-log"
+        && item.url !== "/dashboard/vietqr-doi-soat"
+      )
     }
 
     return baseItems
-  }, [session?.user?.role])
+  }, [role])
 
   const userData = React.useMemo(() => ({
     name: session?.user?.name || "User",

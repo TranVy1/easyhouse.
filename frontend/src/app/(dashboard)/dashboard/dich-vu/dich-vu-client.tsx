@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DichVu, ApiResponse } from "@/types";
+import { unwrapPageData } from "@/lib/api-response";
 
 export function DichVuClient() {
   const [dichVuList, setDichVuList] = useState<DichVu[]>([]);
@@ -47,7 +48,7 @@ export function DichVuClient() {
       const res = await fetch("/api/dich-vu");
       const data: ApiResponse<DichVu[]> = await res.json();
       if (data.success) {
-        setDichVuList(data.data || []);
+        setDichVuList(unwrapPageData<DichVu>(data.data));
       }
     } catch (error) {
       console.error("Lỗi khi tải dịch vụ:", error);

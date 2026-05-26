@@ -134,4 +134,33 @@ class CauHinhGiaServiceTest {
         assertEquals(false, oldEntity.getDangApDung());
         assertEquals(LocalDate.of(2026, 5, 31), oldEntity.getHieuLucDen());
     }
+    @Test
+    void getByIdRequiresReadPermission() {
+        UUID id = UUID.randomUUID();
+        UUID nhaTroId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        CauHinhGia entity = CauHinhGia.builder()
+                .id(id)
+                .nhaTro(NhaTro.builder().id(nhaTroId).chuTro(NguoiDung.builder().id(ownerId).build()).build())
+                .build();
+        when(cauHinhGiaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canReadNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> service.getById(id));
+    }
+
+    @Test
+    void getApplicableRequiresReadPermission() {
+        UUID nhaTroId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        NhaTro nhaTro = NhaTro.builder().id(nhaTroId).chuTro(NguoiDung.builder().id(ownerId).build()).build();
+        when(nhaTroRepository.findById(nhaTroId)).thenReturn(Optional.of(nhaTro));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canReadNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> service.getApplicable(nhaTroId, "ELECTRICITY", LocalDate.now()));
+    }
 }

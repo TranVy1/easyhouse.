@@ -25,6 +25,7 @@ import { Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import { normalizeKhachThue, normalizePhong } from '@/lib/domain-mappers';
+import { unwrapPageData } from '@/lib/api-response';
 import {
   Command,
   CommandEmpty,
@@ -228,31 +229,31 @@ export default function ThemMoiHopDongPage() {
 
   const fetchData = async () => {
     try {
-      const phongResponse = await fetch('/api/phong');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100');
       const phongData = await phongResponse.json().catch(() => ({}));
       if (!phongResponse.ok || phongData.success === false) {
         throw new Error(phongData.message || 'Không tải được danh sách phòng');
       }
-      const availablePhong = (phongData.data || [])
+      const availablePhong = unwrapPageData<Phong>(phongData.data)
         .map(normalizePhong)
         .filter((phong: Phong) =>
           phong.trangThai === 'trong' || phong.trangThai === 'AVAILABLE' || phong.trangThai === 'daDat' || phong.trangThai === 'RESERVED'
         );
       setPhongList(availablePhong);
 
-      const khachThueResponse = await fetch('/api/khach-thue');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
       const khachThueData = await khachThueResponse.json().catch(() => ({}));
       if (!khachThueResponse.ok || khachThueData.success === false) {
         throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
       }
-      setKhachThueList((khachThueData.data || []).map(normalizeKhachThue));
+      setKhachThueList(unwrapPageData<KhachThue>(khachThueData.data).map(normalizeKhachThue));
 
-      const dichVuResponse = await fetch('/api/dich-vu');
+      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100');
       const dvData = await dichVuResponse.json().catch(() => ({}));
       if (!dichVuResponse.ok || dvData.success === false) {
         toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
       } else {
-        setGlobalDichVuList((dvData.data || []).map((dv: ApiDichVu) => ({
+        setGlobalDichVuList(unwrapPageData<ApiDichVu>(dvData.data).map((dv: ApiDichVu) => ({
           dichVuId: String(dv._id ?? dv.id ?? ''),
           ten: dv.tenDichVu ?? dv.ten ?? '',
           loaiTinhPhi: dv.loaiTinhPhi,

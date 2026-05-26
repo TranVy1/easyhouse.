@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Plus, Pencil, Trash2, Calendar as CalendarIcon, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { LichHen, Phong, ApiResponse } from "@/types";
+import { unwrapPageData } from "@/lib/api-response";
 
 export function LichHenClient() {
   const [lichHenList, setLichHenList] = useState<LichHen[]>([]);
@@ -62,7 +63,7 @@ export function LichHenClient() {
       
       const [lichHenRes, phongRes] = await Promise.all([
         fetch(`/api/lich-hen?${params.toString()}`),
-        fetch("/api/phong")
+        fetch("/api/phong?page=1&limit=100")
       ]);
       
       const lichHenData = await lichHenRes.json();
@@ -80,7 +81,7 @@ export function LichHenClient() {
         }
       }
       if (phongData.success) {
-        setPhongList(phongData.data || []);
+        setPhongList(unwrapPageData<Phong>(phongData.data));
       }
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu:", error);
@@ -192,8 +193,8 @@ export function LichHenClient() {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error("Lỗi khi xóa lịch hẹn:", error);
-      toast.error("Đã xảy ra lỗi khi xóa lịch hẹn");
+      console.error("Lỗi khi hủy lịch hẹn:", error);
+      toast.error("Đã xảy ra lỗi khi hủy lịch hẹn");
     }
   };
 
@@ -496,15 +497,15 @@ export function LichHenClient() {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận xóa</DialogTitle>
+            <DialogTitle>Xác nhận hủy lịch hẹn</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xóa lịch hẹn của khách <strong>{selectedLichHen?.hoTen}</strong>? 
+              Bạn có chắc chắn muốn hủy lịch hẹn của khách <strong>{selectedLichHen?.hoTen}</strong>? 
               Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Hủy</Button>
-            <Button variant="destructive" onClick={handleDelete}>Xóa</Button>
+            <Button variant="destructive" onClick={handleDelete}>Hủy lịch hẹn</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -21,9 +21,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
            "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
-           "AND (:hopDongId IS NULL OR h.hopDong.id = cast(:hopDongId as uuid)) " +
-           "AND (:trangThai IS NULL OR h.trangThai = :trangThai)")
-    Page<HoaDon> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("hopDongId") String hopDongId, @Param("trangThai") TrangThaiHoaDon trangThai, Pageable pageable);
+           "AND (cast(:hopDongId as string) IS NULL OR h.hopDong.id = :hopDongId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(h.trangThai as string) = :trangThai)")
+    Page<HoaDon> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("hopDongId") UUID hopDongId, @Param("trangThai") String trangThai, Pageable pageable);
 
     List<HoaDon> findByPhongIdAndXoaLucIsNull(UUID phongId);
 

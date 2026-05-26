@@ -159,11 +159,11 @@ export default function HopDongPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, readList, setCache]);
+  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, toaNhaFilter, readList]);
 
   useEffect(() => {
     fetchData(false);
-  }, [fetchData, statusFilter, toaNhaFilter, pagination.pageIndex, pagination.pageSize]);
+  }, [fetchData]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

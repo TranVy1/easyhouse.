@@ -2921,6 +2921,7 @@ COPY public.audit_log (id, nguoi_dung_id, hanh_dong, bang_tac_dong, ban_ghi_id, 
 --
 
 COPY public.bank_transaction (id, nha_tro_id, hoa_don_id, so_tien, noi_dung_chuyen_khoan, ma_giao_dich, ngan_hang, thoi_gian_giao_dich, payload, da_doi_soat, tao_luc) FROM stdin;
+bbbbbbbb-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	4100000.00	THANH TOAN HOA DON A	E2E-TXN-A	VCB	2026-05-25 09:00:00+07	{}	f	2026-05-25 09:00:00+07
 \.
 
 
@@ -2929,6 +2930,8 @@ COPY public.bank_transaction (id, nha_tro_id, hoa_don_id, so_tien, noi_dung_chuy
 --
 
 COPY public.cau_hinh_gia (id, nha_tro_id, dich_vu_id, loai, ten_hien_thi, loai_tinh_phi, don_gia, hieu_luc_tu, hieu_luc_den, dang_ap_dung, tao_luc, cap_nhat_luc) FROM stdin;
+ca000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	ELECTRICITY	Dien	FIXED	3500.00	2026-01-01	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
+ca000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	\N	ELECTRICITY	Dien	FIXED	4000.00	2026-01-01	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
 \.
 
 
@@ -2937,6 +2940,8 @@ COPY public.cau_hinh_gia (id, nha_tro_id, dich_vu_id, loai, ten_hien_thi, loai_t
 --
 
 COPY public.chi_so_dien_nuoc (id, phong_id, hop_dong_id, loai, ky_nam, ky_thang, ngay_ghi, chi_so_cu, chi_so_moi, anh_dong_ho, nguoi_ghi_id, trang_thai, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
+f0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	d0000000-0000-0000-0000-000000000001	ELECTRICITY	2026	5	2026-05-25	100	120	\N	22222222-2222-2222-2222-222222222222	DRAFT	E2E meter A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+f0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	d0000000-0000-0000-0000-000000000002	ELECTRICITY	2026	5	2026-05-25	200	215	\N	66666666-6666-6666-6666-666666666666	DRAFT	E2E meter B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
 \.
 
 
@@ -2945,6 +2950,8 @@ COPY public.chi_so_dien_nuoc (id, phong_id, hop_dong_id, loai, ky_nam, ky_thang,
 --
 
 COPY public.chi_tiet_hoa_don (id, hoa_don_id, dich_vu_id, chi_so_dien_nuoc_id, su_co_id, loai, mo_ta, so_luong, don_gia, thanh_tien, tao_luc) FROM stdin;
+cd000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	\N	\N	\N	ROOM	Tien phong A	1	4200000.00	4200000.00	2026-05-25 08:00:00+07
+cd000000-0000-0000-0000-000000000002	e0000000-0000-0000-0000-000000000002	\N	\N	\N	ROOM	Tien phong B	1	5000000.00	5000000.00	2026-05-25 08:00:00+07
 \.
 
 
@@ -2954,6 +2961,7 @@ COPY public.chi_tiet_hoa_don (id, hoa_don_id, dich_vu_id, chi_so_dien_nuoc_id, s
 
 COPY public.chu_tro (id, nguoi_dung_id, ten_cong_ty, so_cccd, ma_so_thue, so_tai_khoan, da_xac_minh, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
 55555555-5555-5555-5555-555555555555	44444444-4444-4444-4444-444444444444	Nha Tro Binh Dan	012345678912	\N	\N	t	2026-05-03 17:13:44.013465+00	2026-05-03 17:13:44.013465+00	\N
+77777777-7777-7777-7777-777777777777	66666666-6666-6666-6666-666666666666	Nha Tro Khu B	012345678913	\N	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
 \.
 
 
@@ -2970,6 +2978,8 @@ COPY public.dat_coc_phong (id, phong_id, khach_thue_id, hop_dong_id, so_tien_coc
 --
 
 COPY public.dich_vu (id, chu_tro_id, ten_dich_vu, loai_tinh_phi, don_vi, don_gia_mac_dinh, bat_buoc, tao_luc, cap_nhat_luc) FROM stdin;
+de000000-0000-0000-0000-000000000001	44444444-4444-4444-4444-444444444444	Internet	FIXED	thang	100000.00	f	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
+de000000-0000-0000-0000-000000000002	66666666-6666-6666-6666-666666666666	Internet	FIXED	thang	120000.00	f	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
 \.
 
 
@@ -3002,6 +3012,8 @@ COPY public.file_media (id, doi_tuong, doi_tuong_id, url, public_id, loai_file, 
 --
 
 COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_nam, ky_thang, tu_ngay, den_ngay, so_du_dau_ky, tong_tien_phat_sinh, tong_tien, da_tra, trang_thai, han_tra, ngay_lap_hoa_don, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+e0000000-0000-0000-0000-000000000001	d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-202605	2026	5	2026-05-01	2026-05-31	0.00	4200000.00	4200000.00	100000.00	PARTIAL	2026-06-05	2026-05-25 08:00:00+07	E2E invoice A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07	\N
+e0000000-0000-0000-0000-000000000002	d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-202605	2026	5	2026-05-01	2026-05-31	0.00	5000000.00	5000000.00	0.00	UNPAID	2026-06-05	2026-05-25 08:00:00+07	E2E invoice B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07	\N
 \.
 
 
@@ -3010,6 +3022,8 @@ COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_na
 --
 
 COPY public.hop_dong (id, phong_id, khach_thue_id, ma_hop_dong, ngay_bat_dau, ngay_ket_thuc, ngay_ket_thuc_thuc_te, gia_thue_hop_dong, tien_coc, trang_thai_coc, trang_thai, chu_ky_thanh_toan, ngay_thanh_toan_hang_thang, tu_dong_gia_han, chi_so_dien_ban_dau, chi_so_nuoc_ban_dau, noi_dung_hop_dong, file_pdf, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-001	2026-01-01	2027-01-01	\N	4200000.00	4200000.00	KEPT	ACTIVE	MONTHLY	5	f	100	10	Hop dong E2E A	\N	\N	2026-01-01 08:00:00+07	2026-01-01 08:00:00+07	\N
+d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-001	2026-01-01	2027-01-01	\N	5000000.00	5000000.00	KEPT	ACTIVE	MONTHLY	5	f	200	20	Hop dong E2E B	\N	\N	2026-01-01 08:00:00+07	2026-01-01 08:00:00+07	\N
 \.
 
 
@@ -3018,6 +3032,8 @@ COPY public.hop_dong (id, phong_id, khach_thue_id, ma_hop_dong, ngay_bat_dau, ng
 --
 
 COPY public.khach_thue (id, nguoi_dung_id, chu_tro_id, ho_ten, so_dien_thoai, email, so_cccd, ngay_sinh, gioi_tinh, dia_chi, que_quan, nghe_nghiep, ghi_chu, dang_hoat_dong, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	Tenant A	0900000003	tenant.a@easyhouse.local	012345678921	\N	\N	\N	\N	\N	E2E tenant A	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	66666666-6666-6666-6666-666666666666	Tenant B	0900000008	tenant.b@easyhouse.local	012345678922	\N	\N	\N	\N	\N	E2E tenant B	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
 \.
 
 
@@ -3026,6 +3042,8 @@ COPY public.khach_thue (id, nguoi_dung_id, chu_tro_id, ho_ten, so_dien_thoai, em
 --
 
 COPY public.lich_hen (id, phong_id, nguoi_dung_id, ho_ten, so_dien_thoai, email, ngay_hen, trang_thai, google_calendar_event_id, da_gui_nhac_nho, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
+ab000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	\N	Khach hen A	0901000001	guest.a@example.test	2026-06-02 09:00:00+07	PENDING	\N	f	E2E appointment A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+ab000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	\N	Khach hen B	0901000002	guest.b@example.test	2026-06-03 09:00:00+07	PENDING	\N	f	E2E appointment B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
 \.
 
 
@@ -3051,6 +3069,11 @@ COPY public.login_history (id, nguoi_dung_id, email, thanh_cong, ip_address, use
 
 COPY public.nguoi_dung (id, email, ho_ten, so_dien_thoai, anh_dai_dien, ngay_sinh, gioi_tinh, dia_chi, que_quan, so_cccd, trang_thai, so_lan_dang_nhap_sai, khoa_den_luc, lan_dang_nhap_cuoi, cau_hinh_2fa, tao_luc, cap_nhat_luc, xoa_luc, mat_khau) FROM stdin;
 00000000-0000-0000-0000-000000000001	admin@easyhouse.local	EasyHouse Admin	0900000000	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-05-24 09:53:13.171357+00	\N	2026-05-24 09:47:09.734324+00	2026-05-24 09:53:13.109794+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+44444444-4444-4444-4444-444444444444	landlord.a@easyhouse.local	Landlord A	0900000004	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+66666666-6666-6666-6666-666666666666	landlord.b@easyhouse.local	Landlord B	0900000006	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+22222222-2222-2222-2222-222222222222	staff.a@easyhouse.local	Staff A	0900000002	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+33333333-3333-3333-3333-333333333333	tenant.a@easyhouse.local	Tenant A	0900000003	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+88888888-8888-8888-8888-888888888888	tenant.b@easyhouse.local	Tenant B	0900000008	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
 \.
 
 
@@ -3059,6 +3082,7 @@ COPY public.nguoi_dung (id, email, ho_ten, so_dien_thoai, anh_dai_dien, ngay_sin
 --
 
 COPY public.nguoi_dung_nha_tro (id, nguoi_dung_id, nha_tro_id, vai_tro, co_quyen_xem, co_quyen_sua, co_quyen_thu_tien, tao_luc) FROM stdin;
+ad000000-0000-0000-0000-000000000001	22222222-2222-2222-2222-222222222222	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	STAFF	t	t	t	2026-05-24 09:00:00+07
 \.
 
 
@@ -3068,6 +3092,11 @@ COPY public.nguoi_dung_nha_tro (id, nguoi_dung_id, nha_tro_id, vai_tro, co_quyen
 
 COPY public.nguoi_dung_vai_tro (nguoi_dung_id, vai_tro_id, tao_luc) FROM stdin;
 00000000-0000-0000-0000-000000000001	64df4eeb-df51-468e-b2e1-911edc920d1a	2026-05-24 09:47:09.734324+00
+44444444-4444-4444-4444-444444444444	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 09:00:00+07
+66666666-6666-6666-6666-666666666666	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 09:00:00+07
+22222222-2222-2222-2222-222222222222	87418c2c-9142-4bc6-ae34-eabb13d46e6c	2026-05-24 09:00:00+07
+33333333-3333-3333-3333-333333333333	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 09:00:00+07
+88888888-8888-8888-8888-888888888888	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 09:00:00+07
 \.
 
 
@@ -3076,6 +3105,8 @@ COPY public.nguoi_dung_vai_tro (nguoi_dung_id, vai_tro_id, tao_luc) FROM stdin;
 --
 
 COPY public.nha_tro (id, chu_tro_id, ten, dia_chi, so_nha, duong, phuong, quan, thanh_pho, mo_ta, tien_nghi_chung, noi_quy, trang_thai, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	44444444-4444-4444-4444-444444444444	Nha tro A	1 Duong A	1	Duong A	Phuong A	Quan A	Ho Chi Minh	E2E owner A	\N	\N	ACTIVE	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	66666666-6666-6666-6666-666666666666	Nha tro B	2 Duong B	2	Duong B	Phuong B	Quan B	Ho Chi Minh	E2E owner B	\N	\N	ACTIVE	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
 \.
 
 
@@ -3084,6 +3115,8 @@ COPY public.nha_tro (id, chu_tro_id, ten, dia_chi, so_nha, duong, phuong, quan, 
 --
 
 COPY public.phong (id, nha_tro_id, ten, khu_vuc, tang, dien_tich, so_nguoi_toi_da, trang_thai, gia_hien_tai, tien_coc_mac_dinh, mo_ta, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+aaaaaaaa-aaaa-aaaa-aaaa-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	A101	A	1	25.00	2	RENTED	4200000.00	4200000.00	E2E room A	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+bbbbbbbb-bbbb-bbbb-bbbb-000000000001	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	B101	B	1	28.00	2	RENTED	5000000.00	5000000.00	E2E room B	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
 \.
 
 
@@ -3117,6 +3150,8 @@ b3cbefd0-f3fd-42cb-85e4-85b850977a72	00000000-0000-0000-0000-000000000001	eyJhbG
 --
 
 COPY public.su_co (id, phong_id, khach_thue_id, nguoi_bao_id, tieu_de, mo_ta, loai_su_co, uu_tien, trang_thai, nguoi_phu_trach_id, chi_phi_sua_chua, tinh_vao_hoa_don, ghi_chu_chu_nha, giai_quyet_luc, tao_luc, cap_nhat_luc) FROM stdin;
+ac000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	Ro nuoc A	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+ac000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	Ro nuoc B	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
 \.
 
 
@@ -3125,6 +3160,7 @@ COPY public.su_co (id, phong_id, khach_thue_id, nguoi_bao_id, tieu_de, mo_ta, lo
 --
 
 COPY public.thanh_toan (id, hoa_don_id, khach_thue_id, so_tien, ngay_thanh_toan, phuong_thuc_thanh_toan, ma_tham_chieu, external_transaction_id, trang_thai, nguoi_thanh_toan_id, nguoi_ghi_nhan_id, ghi_chu, tao_luc) FROM stdin;
+aa000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	cccccccc-cccc-cccc-cccc-000000000001	100000.00	2026-05-25 08:30:00+07	CASH	E2E-PAY-A	\N	SUCCESS	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	E2E payment A	2026-05-25 08:30:00+07
 \.
 
 

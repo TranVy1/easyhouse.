@@ -7,16 +7,13 @@ import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,20 +26,20 @@ public class SuCoService {
     private final MediaService mediaService;
     private final PermissionService permissionService;
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    private final NguoiDungRepository nguoiDungRepository;
 
-    public List<SuCoResponse> getAllSuCo(UUID nhaTroId, UUID phongId, String trangThai) {
+    public PaginatedResponse<SuCoResponse> getAllSuCo(
+            UUID nhaTroId, UUID phongId, String trangThai, String loaiSuCo, String uuTien, Pageable pageable) {
         UUID userId = permissionService.requireCurrentUserId();
-        
-        return suCoRepository.findAllByOrderByTaoLucDesc().stream()
-                .filter(sc -> sc.getPhong() != null)
-                .filter(sc -> {
-                    if (phongId != null && !sc.getPhong().getId().equals(phongId)) return false;
-                    if (nhaTroId != null && (sc.getPhong().getNhaTro() == null || !sc.getPhong().getNhaTro().getId().equals(nhaTroId))) return false;
-                    if (trangThai != null && !trangThai.isBlank() && !trangThai.equals("all") && sc.getTrangThai() != null && !sc.getTrangThai().name().equals(trangThai)) return false;
-                    return true;
-                })
-                .filter(sc -> permissionService.canReadPhong(userId, sc.getPhong().getId()))
-                .map(this::toResponse).collect(Collectors.toList());
+        boolean isAdmin = permissionService.isAdmin(userId);
+        List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+        List<UUID> scopedIds = accessibleIds == null ? List.of() : accessibleIds;
+        String status = isEmptyFilter(trangThai) ? null : TrangThaiSuCo.valueOf(trangThai).name();
+        String type = isEmptyFilter(loaiSuCo) ? null : LoaiSuCo.fromDbValue(loaiSuCo).getDbValue();
+        String priority = isEmptyFilter(uuTien) ? null : UuTien.fromDbValue(uuTien).getDbValue();
+        Page<SuCo> page = suCoRepository.findAllAccessible(
+                isAdmin, userId, scopedIds, nhaTroId, phongId, status, type, priority, pageable);
+        return PaginatedResponse.of(page, page.getContent().stream().map(this::toResponse).toList());
     }
 
     public SuCoResponse getSuCoById(UUID id) {
@@ -58,7 +55,7 @@ public class SuCoService {
     @Transactional
     public SuCoResponse createSuCo(SuCoRequest req) {
         UUID userId = permissionService.requireCurrentUserId();
-        if (req.getPhongId() != null && !permissionService.canReadPhong(userId, req.getPhongId())) {
+        if (req.getPhongId() == null || !permissionService.canReadPhong(userId, req.getPhongId())) {
             throw new RuntimeException("Khong co quyen bao cao su co cho phong nay");
         }
         Phong phong = req.getPhongId() != null ? phongRepository.findById(req.getPhongId())
@@ -67,6 +64,8 @@ public class SuCoService {
 
         SuCo sc = SuCo.builder()
                 .phong(phong).khachThue(kt)
+                .nguoiBao(nguoiDungRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai")))
                 .tieuDe(req.getTieuDe()).moTa(req.getMoTa())
                 .loaiSuCo(parseLoai(req.getLoaiSuCo()))
                 .uuTien(parseUuTien(req.getUuTien()))
@@ -76,6 +75,7 @@ public class SuCoService {
                 .build();
         SuCo saved = suCoRepository.save(sc);
         mediaService.replaceUrls(LoaiDoiTuongMedia.INCIDENT, saved.getId(), req.getAnhSuCo(), MediaService.INCIDENT_IMAGE);
+        logAudit(saved, "CREATE");
         return toResponse(saved);
     }
 
@@ -86,10 +86,8 @@ public class SuCoService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sự cố"));
         
         // Allow tenant to update their own incident if pending, otherwise require write permission
-        boolean isCreatorAndPending = false;
-        if (sc.getPhong() != null && permissionService.canReadPhong(userId, sc.getPhong().getId()) && sc.getTrangThai() == TrangThaiSuCo.PENDING) {
-            isCreatorAndPending = true; // Simplified: Tenant can update if they can read room and it's pending
-        }
+        boolean isCreatorAndPending = sc.getNguoiBao() != null && userId.equals(sc.getNguoiBao().getId())
+                && sc.getTrangThai() == TrangThaiSuCo.PENDING;
         
         if (!permissionService.canWritePhong(userId, sc.getPhong() != null ? sc.getPhong().getId() : null)) {
             if (!isCreatorAndPending) {
@@ -101,8 +99,12 @@ public class SuCoService {
             }
         }
         
-        if (req.getPhongId() != null) sc.setPhong(phongRepository.findById(req.getPhongId()).orElse(sc.getPhong()));
-        if (req.getKhachThueId() != null) sc.setKhachThue(khachThueRepository.findById(req.getKhachThueId()).orElse(sc.getKhachThue()));
+        if (req.getPhongId() != null && sc.getPhong() != null && !req.getPhongId().equals(sc.getPhong().getId())) {
+            throw new RuntimeException("Khong the doi phong cua su co sau khi tao");
+        }
+        if (req.getKhachThueId() != null && (sc.getKhachThue() == null || !req.getKhachThueId().equals(sc.getKhachThue().getId()))) {
+            throw new RuntimeException("Khong the doi khach thue cua su co sau khi tao");
+        }
         if (req.getTieuDe() != null) sc.setTieuDe(req.getTieuDe());
         if (req.getMoTa() != null) sc.setMoTa(req.getMoTa());
         if (req.getGhiChuChuNha() != null) sc.setGhiChuChuNha(req.getGhiChuChuNha());
@@ -116,6 +118,7 @@ public class SuCoService {
         }
         SuCo saved = suCoRepository.save(sc);
         mediaService.replaceUrls(LoaiDoiTuongMedia.INCIDENT, saved.getId(), req.getAnhSuCo(), MediaService.INCIDENT_IMAGE);
+        logAudit(saved, "UPDATE");
         return toResponse(saved);
     }
 
@@ -126,7 +129,9 @@ public class SuCoService {
         if (sc.getPhong() != null && !permissionService.canWritePhong(userId, sc.getPhong().getId())) {
             throw new RuntimeException("Khong co quyen xoa su co nay");
         }
-        suCoRepository.deleteById(id);
+        sc.setTrangThai(TrangThaiSuCo.CANCELLED);
+        SuCo saved = suCoRepository.save(sc);
+        logAudit(saved, "CANCEL");
     }
 
     private LoaiSuCo parseLoai(String s) {
@@ -134,6 +139,10 @@ public class SuCoService {
     }
     private UuTien parseUuTien(String s) {
         return UuTien.fromDbValue(s);
+    }
+
+    private boolean isEmptyFilter(String filter) {
+        return filter == null || filter.isBlank() || "all".equalsIgnoreCase(filter);
     }
 
     private SuCoResponse toResponse(SuCo suCo) {

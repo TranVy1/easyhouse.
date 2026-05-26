@@ -51,6 +51,7 @@ import { PhongImageUpload } from '@/components/ui/phong-image-upload';
 import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { unwrapPageData } from '@/lib/api-response';
 
 type PhongTenant = {
   _id: string;
@@ -59,7 +60,7 @@ type PhongTenant = {
 };
 
 export default function PhongPage() {
-  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
+  const { clearCache, isRefreshing, setIsRefreshing } = useCache<{
     phongList: Phong[];
     toaNhaList: ToaNha[];
   }>({ key: 'phong-data', duration: 300000 }); // 5 phút
@@ -88,7 +89,7 @@ export default function PhongPage() {
     document.title = 'Quản lý Phòng';
   }, []);
 
-  const fetchPhong = useCallback(async (forceRefresh = false, toaNhaFilter = '', trangThaiFilter = '', page = 1, limit = 10) => {
+  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', page = 1, limit = 10) => {
     try {
       setLoading(true);
 
@@ -122,12 +123,12 @@ export default function PhongPage() {
       }
 
       // Fetch toa nha
-      const toaNhaResponse = await fetch('/api/toa-nha');
+      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100');
       let toaNhaData: ToaNha[] = [];
       if (toaNhaResponse.ok) {
         const result = await toaNhaResponse.json();
         if (result.success) {
-          toaNhaData = result.data;
+          toaNhaData = unwrapPageData<ToaNha>(result.data);
           setToaNhaList(toaNhaData);
           toaNhaSuccess = true;
         }
@@ -146,11 +147,11 @@ export default function PhongPage() {
 
   const fetchToaNha = useCallback(async () => {
     try {
-      const response = await fetch('/api/toa-nha');
+      const response = await fetch('/api/toa-nha?page=1&limit=100');
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setToaNhaList(result.data);
+          setToaNhaList(unwrapPageData<ToaNha>(result.data));
         }
       }
     } catch (error) {
@@ -159,7 +160,7 @@ export default function PhongPage() {
   }, []);
 
   useEffect(() => {
-    fetchPhong(false, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+    fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
   }, [fetchPhong, selectedToaNha, selectedTrangThai, pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
@@ -168,7 +169,7 @@ export default function PhongPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize); // Force refresh
+    await fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
@@ -198,7 +199,7 @@ export default function PhongPage() {
         const result = await response.json();
         if (result.success) {
           clearCache();
-          await fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+          await fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
           toast.success('Xóa phòng thành công!');
         } else {
           toast.error(result.message || 'Có lỗi xảy ra khi xóa phòng');
@@ -292,7 +293,7 @@ export default function PhongPage() {
                 onSuccess={() => {
                   clearCache();
                   setIsDialogOpen(false);
-                  fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+                  fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
                   toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
                 }}
               />

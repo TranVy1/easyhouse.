@@ -39,6 +39,7 @@ import { ImageUpload } from '@/components/ui/image-upload'; import {
 import { ThanhToan, HoaDon } from '@/types';
 import { toast } from 'sonner';
 import { ThanhToanDataTable } from './table';
+import { unwrapPageData } from '@/lib/api-response';
 
 // Type cho ThanhToan đã được populate
 type ThanhToanPopulated = Omit<ThanhToan, 'hoaDon'> & {
@@ -109,9 +110,9 @@ export default function ThanhToanPage() {
       }
 
       // Fetch hoa don từ API để hiển thị thông tin
-      const hoaDonResponse = await fetch('/api/hoa-don');
+      const hoaDonResponse = await fetch('/api/hoa-don?page=1&limit=100');
       const hoaDonData = hoaDonResponse.ok ? await hoaDonResponse.json() : { data: [] };
-      const hoaDons = hoaDonData.data || [];
+      const hoaDons = unwrapPageData<HoaDon>(hoaDonData.data);
       setHoaDonList(hoaDons);
 
       setCache({

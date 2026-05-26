@@ -42,7 +42,7 @@ public class PhongService {
 
         UUID userId = permissionService.currentUserId().orElse(null);
         boolean isAdmin = userId != null && permissionService.isAdmin(userId);
-        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        List<UUID> nhaTroIds = List.of();
         if (!isAdmin && userId != null) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
             if (!accessibleIds.isEmpty()) {
@@ -51,7 +51,8 @@ public class PhongService {
         }
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
-        Page<Phong> pageResult = phongRepository.findAllAccessible(nid, tt, isAdmin, nhaTroIds, pageable);
+        Page<Phong> pageResult = phongRepository.findAllAccessible(
+                nid, tt != null ? tt.name() : null, isAdmin, nhaTroIds, pageable);
         
         List<PhongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
         return PaginatedResponse.of(pageResult, mappedList);

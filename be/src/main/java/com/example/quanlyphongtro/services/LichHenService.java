@@ -81,6 +81,9 @@ public class LichHenService {
 
     @Transactional
     public LichHenResponse create(LichHenRequest req) {
+        if (req.getPhongId() == null || req.getNgayHen() == null || req.getNgayHen().isBefore(java.time.ZonedDateTime.now())) {
+            throw new RuntimeException("Thong tin lich hen khong hop le");
+        }
         Phong phong = phongRepository.findById(req.getPhongId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
@@ -92,15 +95,10 @@ public class LichHenService {
         lichHen.setNgayHen(req.getNgayHen());
         lichHen.setGhiChu(req.getGhiChu());
         
-        if (req.getTrangThai() != null) {
-            lichHen.setTrangThai(TrangThaiLichHen.valueOf(req.getTrangThai()));
-        } else {
-            lichHen.setTrangThai(TrangThaiLichHen.PENDING);
-        }
+        lichHen.setTrangThai(TrangThaiLichHen.PENDING);
 
         LichHen saved = lichHenRepository.save(lichHen);
-        // Note: create is public (no logged-in user required), audit only if user present
-        permissionService.currentUserId().ifPresent(uid -> logAudit(saved, "CREATE", uid));
+        logAudit(saved, "CREATE", permissionService.currentUserId().orElse(null));
         return LichHenResponse.fromEntity(saved);
     }
 
@@ -114,6 +112,9 @@ public class LichHenService {
         }
 
         if (req.getPhongId() != null && !req.getPhongId().equals(lichHen.getPhong().getId())) {
+            if (!permissionService.canWritePhong(userId, req.getPhongId())) {
+                throw new RuntimeException("Khong co quyen chuyen lich hen sang phong nay");
+            }
             Phong phong = phongRepository.findById(req.getPhongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
             lichHen.setPhong(phong);
@@ -125,7 +126,9 @@ public class LichHenService {
         if (req.getNgayHen() != null) lichHen.setNgayHen(req.getNgayHen());
         if (req.getGhiChu() != null) lichHen.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) {
-            lichHen.setTrangThai(TrangThaiLichHen.valueOf(req.getTrangThai()));
+            TrangThaiLichHen targetStatus = TrangThaiLichHen.valueOf(req.getTrangThai());
+            validateTransition(lichHen.getTrangThai(), targetStatus);
+            lichHen.setTrangThai(targetStatus);
         }
 
         LichHen saved = lichHenRepository.save(lichHen);
@@ -142,7 +145,9 @@ public class LichHenService {
             throw new RuntimeException("Khong co quyen cap nhat trang thai lich hen nay");
         }
         
-        lichHen.setTrangThai(TrangThaiLichHen.valueOf(status));
+        TrangThaiLichHen targetStatus = TrangThaiLichHen.valueOf(status);
+        validateTransition(lichHen.getTrangThai(), targetStatus);
+        lichHen.setTrangThai(targetStatus);
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "UPDATE_STATUS", userId);
         return LichHenResponse.fromEntity(saved);
@@ -156,14 +161,28 @@ public class LichHenService {
         if (lichHen.getPhong() != null && !permissionService.canWritePhong(userId, lichHen.getPhong().getId())) {
             throw new RuntimeException("Khong co quyen xoa lich hen nay");
         }
-        logAudit(lichHen, "DELETE", userId);
-        lichHenRepository.deleteById(id);
+        if (lichHen.getTrangThai() != TrangThaiLichHen.CANCELLED) {
+            validateTransition(lichHen.getTrangThai(), TrangThaiLichHen.CANCELLED);
+            lichHen.setTrangThai(TrangThaiLichHen.CANCELLED);
+            lichHenRepository.save(lichHen);
+        }
+        logAudit(lichHen, "CANCEL", userId);
+    }
+
+    private void validateTransition(TrangThaiLichHen current, TrangThaiLichHen target) {
+        boolean valid = current == TrangThaiLichHen.PENDING
+                && (target == TrangThaiLichHen.CONFIRMED || target == TrangThaiLichHen.CANCELLED);
+        valid = valid || current == TrangThaiLichHen.CONFIRMED
+                && (target == TrangThaiLichHen.COMPLETED || target == TrangThaiLichHen.NO_SHOW || target == TrangThaiLichHen.CANCELLED);
+        if (!valid) {
+            throw new RuntimeException("Chuyen trang thai lich hen khong hop le");
+        }
     }
 
     private void logAudit(LichHen lh, String hanhDong, UUID userId) {
         try {
             com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
-                .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(userId).build())
+                .nguoiDung(userId == null ? null : com.example.quanlyphongtro.entity.NguoiDung.builder().id(userId).build())
                 .hanhDong(hanhDong)
                 .bangTacDong("lich_hen")
                 .banGhiId(lh.getId())

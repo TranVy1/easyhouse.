@@ -7,14 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -41,7 +33,6 @@ import {
   Calendar,
   Users,
   Eye,
-  Filter,
   CheckCircle,
   Clock,
   RefreshCw,
@@ -56,8 +47,8 @@ import { SuCo, Phong,  KhachThue,
   TrangThaiSuCo 
 } from '@/types';
 import { SuCoImageUpload } from '@/components/ui/su-co-image-upload';
-import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { SuCoDataTable } from './table';
+import { unwrapPageData } from '@/lib/api-response';
 
 export default function SuCoPage() {
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
@@ -112,7 +103,6 @@ export default function SuCoPage() {
       if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
       if (typeFilter && typeFilter !== 'all') params.append('loaiSuCo', typeFilter);
       if (priorityFilter && priorityFilter !== 'all') params.append('mucDoUuTien', priorityFilter);
-      // NOTE: backend may not support all these filters right now, but we'll pass them anyway.
       
       const suCoResponse = await fetch(`/api/su-co?${params.toString()}`);
       const suCoData = await suCoResponse.json();
@@ -128,21 +118,21 @@ export default function SuCoPage() {
       }
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100');
       const phongData = await phongResponse.json();
-      const phongs = phongData.success ? phongData.data : [];
+      const phongs = phongData.success ? unwrapPageData<Phong>(phongData.data) : [];
       setPhongList(phongs);
 
       // Fetch khách thuê từ API
-      const khachThueResponse = await fetch('/api/khach-thue');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
       const khachThueData = await khachThueResponse.json();
-      const khachThues = khachThueData.success ? khachThueData.data : [];
+      const khachThues = khachThueData.success ? unwrapPageData<KhachThue>(khachThueData.data) : [];
       setKhachThueList(khachThues);
 
       // Fetch hợp đồng từ API
-      const hopDongResponse = await fetch('/api/hop-dong');
+      const hopDongResponse = await fetch('/api/hop-dong?page=1&limit=100');
       const hopDongData = await hopDongResponse.json();
-      const hopDongs = hopDongData.success ? hopDongData.data : [];
+      const hopDongs = hopDongData.success ? unwrapPageData<HopDong>(hopDongData.data) : [];
       setHopDongList(hopDongs);
       
       setCache({
@@ -160,7 +150,7 @@ export default function SuCoPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, typeFilter, priorityFilter]);
 
   useEffect(() => {
     fetchData(false);
@@ -232,14 +222,6 @@ export default function SuCoPage() {
     }
   };
 
-  const getPhongName = (phong: string | { maPhong: string }) => {
-    if (typeof phong === 'string') {
-      const phongObj = phongList.find(p => p._id === phong);
-      return phongObj?.maPhong || 'Không xác định';
-    }
-    return phong?.maPhong || 'Không xác định';
-  };
-
   const getKhachThueName = (khachThue: string | { hoTen: string }) => {
     if (typeof khachThue === 'string') {
       const khachThueObj = khachThueList.find(k => k._id === khachThue);
@@ -264,14 +246,14 @@ export default function SuCoPage() {
       if (result.success) {
         clearCache();
         setSuCoList(prev => prev.filter(suCo => suCo._id !== id));
-        toast.success('Xóa sự cố thành công');
+        toast.success('Hủy sự cố thành công');
       } else {
         console.error('Error deleting su co:', result.message);
         toast.error('Có lỗi xảy ra: ' + result.message);
       }
     } catch (error) {
       console.error('Error deleting su co:', error);
-      toast.error('Có lỗi xảy ra khi xóa sự cố');
+      toast.error('Có lỗi xảy ra khi hủy sự cố');
     }
   };
 
@@ -360,7 +342,6 @@ export default function SuCoPage() {
             <SuCoForm 
               suCo={editingSuCo}
               phongList={phongList}
-              khachThueList={khachThueList}
               hopDongList={hopDongList}
               getKhachThueName={getKhachThueName}
               onClose={() => setIsDialogOpen(false)}
@@ -631,7 +612,6 @@ export default function SuCoPage() {
 function SuCoForm({ 
   suCo, 
   phongList,
-  khachThueList,
   hopDongList,
   getKhachThueName,
   onClose, 
@@ -639,7 +619,6 @@ function SuCoForm({
 }: { 
   suCo: SuCo | null;
   phongList: Phong[];
-  khachThueList: KhachThue[];
   hopDongList: HopDong[];
   getKhachThueName: (khachThue: string | { hoTen: string }) => string;
   onClose: () => void;

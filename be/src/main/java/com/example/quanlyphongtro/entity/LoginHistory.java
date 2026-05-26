@@ -2,8 +2,7 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.ColumnTransformer;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -28,8 +27,8 @@ public class LoginHistory {
     @Column(nullable = false)
     private Boolean thanhCong;
 
-    @JdbcTypeCode(SqlTypes.OTHER)
-    @Column(columnDefinition = "inet")
+    @Column(name = "ip_address", columnDefinition = "inet")
+    @ColumnTransformer(read = "host(ip_address)", write = "cast(? as inet)")
     private String ipAddress;
 
     private String userAgent;

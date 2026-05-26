@@ -17,6 +17,16 @@ Seed login:
 - Email: `admin@easyhouse.local`
 - Password: `Admin@123`
 
+Role verification accounts use the same password `Admin@123`:
+
+- Landlord A: `landlord.a@easyhouse.local`, owns `Nha tro A`.
+- Landlord B: `landlord.b@easyhouse.local`, owns `Nha tro B`.
+- Staff A: `staff.a@easyhouse.local`, assigned only to `Nha tro A`.
+- Tenant A: `tenant.a@easyhouse.local`, contracted in room `A101`.
+- Tenant B: `tenant.b@easyhouse.local`, contracted in room `B101`.
+
+The dump includes separate A/B contracts, invoices, meter readings, incidents and appointments for access-scope checks.
+
 Use detached mode:
 
 ```powershell
@@ -48,6 +58,7 @@ docker compose -f docker-compose.easyhouse.yml up --build
 
 Notes:
 
-- Local DB init creates PostgreSQL enum types needed by Hibernate. Tables are created/updated by Spring `ddl-auto=update`.
-- Seed data only runs automatically on first DB volume creation. To re-run it on the current DB: `Get-Content docker/postgres/init/02-easyhouse-seed.sql -Raw | docker exec -i easyhouse-postgres psql -U easyhouse -d easyhouse`.
+- Local DB initialization restores the complete `sql/db.sql` dump, including schema and seed data. Backend runs with `ddl-auto=none`.
+- `sql/db.sql` runs only when PostgreSQL creates a new volume. To apply the latest dump, use the reset commands above.
+- After restore, verify web login with `admin@easyhouse.local` / `Admin@123` and role `ADMIN`.
 - Cloudinary and SMTP are placeholder values. Upload/register email flows need real secrets if you test those paths.

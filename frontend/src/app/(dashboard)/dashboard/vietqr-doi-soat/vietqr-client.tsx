@@ -22,7 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { BankTransaction, ApiResponse, HoaDon } from "@/types";
+import { BankTransaction, ApiResponse, HoaDon, PaginatedResponse } from "@/types";
+import { unwrapPageData } from "@/lib/api-response";
 
 interface PageData {
   content: BankTransaction[];
@@ -106,11 +107,11 @@ export function VietQRClient() {
     // Fetch unpaid bills (hoá đơn chưa thanh toán đủ)
     try {
       setIsHoaDonLoading(true);
-      const res = await fetch('/api/hoa-don');
-      const data: ApiResponse<HoaDon[]> = await res.json();
+      const res = await fetch('/api/hoa-don?page=1&limit=100');
+      const data: ApiResponse<PaginatedResponse<HoaDon>> = await res.json();
       if (data.success && data.data) {
         // Chỉ lấy những hóa đơn có tổng tiền > đã trả
-        const unpaidBills = data.data.filter(h => (h.tongTien || 0) > (h.daTra || 0));
+        const unpaidBills = unwrapPageData(data.data).filter(h => (h.tongTien || 0) > (h.daTra || 0));
         setHoaDons(unpaidBills);
       }
     } catch (error) {

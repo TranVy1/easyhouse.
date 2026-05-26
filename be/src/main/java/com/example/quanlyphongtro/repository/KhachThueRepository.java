@@ -29,8 +29,8 @@ public interface KhachThueRepository extends JpaRepository<KhachThue, UUID> {
            "     OR k.nguoiDung.id = :userId " +
            "     OR k.chuTro.id = :userId " +
            "     OR p.nhaTro.id IN :nhaTroIds) " +
-           "AND (:trangThai IS NULL OR " +
-           "    (:trangThai = 'dangThue' AND hd.id IS NOT NULL) OR " +
-           "    (:trangThai = 'daKetThuc' AND hd.id IS NULL))")
+           "AND (cast(:trangThai as string) IS NULL OR " +
+           "    (cast(:trangThai as string) = 'dangThue' AND hd.id IS NOT NULL) OR " +
+           "    (cast(:trangThai as string) = 'daKetThuc' AND hd.id IS NULL))")
     Page<KhachThue> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("trangThai") String trangThai, Pageable pageable);
 }

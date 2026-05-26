@@ -30,9 +30,9 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
 
     @Query("SELECT p FROM Phong p WHERE p.xoaLuc IS NULL " +
            "AND (cast(:nhaTroId as uuid) IS NULL OR p.nhaTro.id = :nhaTroId) " +
-           "AND (:trangThai IS NULL OR p.trangThai = :trangThai) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(p.trangThai as string) = :trangThai) " +
            "AND (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds)")
-    Page<Phong> findAllAccessible(@Param("nhaTroId") UUID nhaTroId, @Param("trangThai") TrangThaiPhong trangThai, @Param("isAdmin") boolean isAdmin, @Param("nhaTroIds") List<UUID> nhaTroIds, Pageable pageable);
+    Page<Phong> findAllAccessible(@Param("nhaTroId") UUID nhaTroId, @Param("trangThai") String trangThai, @Param("isAdmin") boolean isAdmin, @Param("nhaTroIds") List<UUID> nhaTroIds, Pageable pageable);
 
     @Query("SELECT COUNT(p) FROM Phong p WHERE p.nhaTro.id IN :nhaTroIds")
     long countByNhaTroIdIn(@Param("nhaTroIds") List<UUID> nhaTroIds);

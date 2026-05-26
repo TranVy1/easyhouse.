@@ -30,10 +30,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Trash2, Search, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChiSoDienNuoc, LoaiChiSo, TrangThaiChiSo } from '@/types';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { unwrapPageData } from '@/lib/api-response';
 
 export default function ChiSoDienNuocPage() {
   const [data, setData] = useState<ChiSoDienNuoc[]>([]);
@@ -93,10 +94,10 @@ export default function ChiSoDienNuocPage() {
 
   const fetchPhong = useCallback(async () => {
     try {
-      const res = await fetch('/api/phong');
+      const res = await fetch('/api/phong?page=1&limit=100');
       if (res.ok) {
         const json = await res.json();
-        setPhongList(json.data || []);
+        setPhongList(unwrapPageData(json.data));
       }
     } catch (error) {
       console.error('Failed to fetch phong', error);
@@ -181,16 +182,16 @@ export default function ChiSoDienNuocPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa chỉ số này?')) return;
+    if (!confirm('Bạn có chắc chắn muốn hủy chỉ số này?')) return;
     
     try {
       const res = await fetch(`/api/chi-so-dien-nuoc/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Xóa thất bại');
+      if (!res.ok) throw new Error('Hủy thất bại');
       
-      toast.success('Đã xóa chỉ số');
+      toast.success('Đã hủy chỉ số');
       fetchData();
     } catch (error: unknown) {
-      toast.error((error as Error).message || 'Xóa thất bại');
+      toast.error((error as Error).message || 'Hủy thất bại');
     }
   };
 

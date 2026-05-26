@@ -101,11 +101,14 @@ public class ChiSoDienNuocService {
     public ChiSoDienNuocResponse getById(UUID id) {
         ChiSoDienNuoc chiSo = chiSoDienNuocRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chỉ số"));
+        assertCanRead(chiSo);
         return mapToResponse(chiSo);
     }
 
     @Transactional
     public ChiSoDienNuocResponse create(ChiSoDienNuocRequest request) {
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWrite(userId, request.getPhongId());
         Phong phong = phongRepository.findById(request.getPhongId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
@@ -126,6 +129,10 @@ public class ChiSoDienNuocService {
         if (request.getHopDongId() != null) {
             HopDong hopDong = hopDongRepository.findById(request.getHopDongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+            validateHopDongPhong(hopDong, phong);
+            if (!permissionService.canWriteHopDong(userId, hopDong.getId())) {
+                throw new RuntimeException("Khong co quyen thay doi hop dong nay");
+            }
             chiSo.setHopDong(hopDong);
         } else {
             // Find active contract for the room
@@ -143,11 +150,14 @@ public class ChiSoDienNuocService {
         chiSo.setChiSoMoi(request.getChiSoMoi());
         chiSo.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : TrangThaiChiSo.DRAFT);
         chiSo.setGhiChu(request.getGhiChu());
+        chiSo.setNguoiGhi(nguoiDungRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai")));
 
         ChiSoDienNuoc saved = chiSoDienNuocRepository.save(chiSo);
         if (request.getAnhDongHo() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
         }
+        logAudit(saved, "CREATE");
         return mapToResponse(saved);
     }
 
@@ -156,8 +166,19 @@ public class ChiSoDienNuocService {
         ChiSoDienNuoc chiSo = chiSoDienNuocRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chỉ số"));
 
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWrite(userId, chiSo.getPhong() != null ? chiSo.getPhong().getId() : null);
+
         if (chiSo.getTrangThai() == TrangThaiChiSo.BILLED && request.getTrangThai() != TrangThaiChiSo.CANCELLED) {
             throw new RuntimeException("Không thể sửa chỉ số đã được lập hóa đơn");
+        }
+        if (chiSo.getTrangThai() == TrangThaiChiSo.BILLED) {
+            chiSo.setTrangThai(TrangThaiChiSo.CANCELLED);
+            chiSo.setNguoiGhi(nguoiDungRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai")));
+            ChiSoDienNuoc cancelled = chiSoDienNuocRepository.save(chiSo);
+            logAudit(cancelled, "CANCEL");
+            return mapToResponse(cancelled);
         }
 
         if (request.getChiSoMoi() < request.getChiSoCu()) {
@@ -167,6 +188,10 @@ public class ChiSoDienNuocService {
         if (request.getHopDongId() != null) {
             HopDong hopDong = hopDongRepository.findById(request.getHopDongId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+            validateHopDongPhong(hopDong, chiSo.getPhong());
+            if (!permissionService.canWriteHopDong(userId, hopDong.getId())) {
+                throw new RuntimeException("Khong co quyen thay doi hop dong nay");
+            }
             chiSo.setHopDong(hopDong);
         } else if (chiSo.getHopDong() == null && chiSo.getPhong() != null) {
             // Find active contract for the room
@@ -184,11 +209,14 @@ public class ChiSoDienNuocService {
         chiSo.setChiSoMoi(request.getChiSoMoi());
         if (request.getTrangThai() != null) chiSo.setTrangThai(request.getTrangThai());
         chiSo.setGhiChu(request.getGhiChu());
+        chiSo.setNguoiGhi(nguoiDungRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai")));
 
         ChiSoDienNuoc saved = chiSoDienNuocRepository.save(chiSo);
         if (request.getAnhDongHo() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
         }
+        logAudit(saved, "UPDATE");
         return mapToResponse(saved);
     }
 
@@ -199,7 +227,42 @@ public class ChiSoDienNuocService {
         if (chiSo.getTrangThai() == TrangThaiChiSo.BILLED) {
             throw new RuntimeException("Không thể xóa chỉ số đã được lập hóa đơn. Chỉ có thể Hủy.");
         }
-        chiSoDienNuocRepository.deleteById(id);
+        UUID userId = permissionService.requireCurrentUserId();
+        assertCanWrite(userId, chiSo.getPhong() != null ? chiSo.getPhong().getId() : null);
+        chiSo.setTrangThai(TrangThaiChiSo.CANCELLED);
+        chiSo.setNguoiGhi(nguoiDungRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai")));
+        ChiSoDienNuoc cancelled = chiSoDienNuocRepository.save(chiSo);
+        logAudit(cancelled, "CANCEL");
+    }
+
+    private void assertCanRead(ChiSoDienNuoc chiSo) {
+        UUID phongId = chiSo.getPhong() != null ? chiSo.getPhong().getId() : null;
+        if (phongId == null || !permissionService.canReadPhong(permissionService.requireCurrentUserId(), phongId)) {
+            throw new RuntimeException("Khong co quyen truy cap chi so nay");
+        }
+    }
+
+    private void assertCanWrite(UUID userId, UUID phongId) {
+        if (phongId == null || !permissionService.canWritePhong(userId, phongId)) {
+            throw new RuntimeException("Khong co quyen thay doi chi so nay");
+        }
+    }
+
+    private void validateHopDongPhong(HopDong hopDong, Phong phong) {
+        if (phong == null || hopDong.getPhong() == null || !phong.getId().equals(hopDong.getPhong().getId())) {
+            throw new RuntimeException("Hop dong khong thuoc phong cua chi so");
+        }
+    }
+
+    private void logAudit(ChiSoDienNuoc chiSo, String action) {
+        auditLogRepository.save(com.example.quanlyphongtro.entity.AuditLog.builder()
+                .nguoiDung(NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+                .hanhDong(action)
+                .bangTacDong("chi_so_dien_nuoc")
+                .banGhiId(chiSo.getId())
+                .taoLuc(java.time.ZonedDateTime.now())
+                .build());
     }
 
     private ChiSoDienNuocResponse mapToResponse(ChiSoDienNuoc entity) {

@@ -47,7 +47,7 @@ public class HopDongService {
     public PaginatedResponse<HopDongResponse> getAll(String phongId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
-        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        List<UUID> nhaTroIds = List.of();
         if (!isAdmin) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
             if (!accessibleIds.isEmpty()) {
@@ -60,10 +60,11 @@ public class HopDongService {
             try { tt = TrangThaiHopDong.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
         }
         
-        String pid = (phongId == null || phongId.isBlank() || phongId.equals("all")) ? null : phongId;
+        UUID pid = parseOptionalUuid(phongId);
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
-        Page<HopDong> pageResult = hopDongRepository.findAllAccessible(isAdmin, userId, nhaTroIds, pid, tt, pageable);
+        Page<HopDong> pageResult = hopDongRepository.findAllAccessible(
+                isAdmin, userId, nhaTroIds, pid, tt != null ? tt.name() : null, pageable);
         
         List<HopDongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
         return PaginatedResponse.of(pageResult, mappedList);
@@ -354,6 +355,17 @@ public class HopDongService {
                 }
             }
         };
+    }
+
+    private UUID parseOptionalUuid(String value) {
+        if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("ID khong hop le");
+        }
     }
 
     private TrangThaiCocHopDong parseCocStatus(String s) {

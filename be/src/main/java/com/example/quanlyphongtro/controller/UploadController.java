@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.services.CloudinaryService;
+import com.example.quanlyphongtro.services.PermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -18,10 +19,12 @@ import java.util.Map;
 public class UploadController {
 
     private final CloudinaryService cloudinaryService;
+    private final PermissionService permissionService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
+            permissionService.requireCurrentUserId();
             log.info("Received upload request for file: {}", file.getOriginalFilename());
 
             // Validate file
@@ -64,6 +67,7 @@ public class UploadController {
     @DeleteMapping("/{publicId}")
     public ApiResponse<String> deleteFile(@PathVariable String publicId) {
         try {
+            permissionService.requireAdmin();
             log.info("Received delete request for file: {}", publicId);
 
             String result = cloudinaryService.deleteFile(publicId);
@@ -81,6 +85,7 @@ public class UploadController {
     @DeleteMapping
     public ApiResponse<String> deleteFileByQuery(@RequestParam("publicId") String publicId) {
         try {
+            permissionService.requireAdmin();
             log.info("Received delete request by query for file: {}", publicId);
 
             String result = cloudinaryService.deleteFile(publicId);

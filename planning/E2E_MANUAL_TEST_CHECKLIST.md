@@ -1,5 +1,46 @@
 # EasyHouse Manual E2E Test Checklist
 
+## Remediation Verification Run - 2026-05-26
+
+Day la lan chay moi cho `DASHBOARD_REWORK_REMEDIATION_PLAN.md`; cac checkbox cu phia duoi khong duoc dung lam bang chung cho dot remediation nay.
+
+Environment:
+
+- [x] Da reset Docker volume va restore full `sql/db.sql`; PostgreSQL container healthy.
+- [x] Backend va frontend Docker da khoi dong.
+- [x] Database co account `admin`, `landlord.a`, `landlord.b`, `staff.a`, `tenant.a`, `tenant.b` (password web test: `Admin@123`) va data phan tach Nha tro A/B.
+
+Automated checks:
+
+- [x] Backend `mvn test`: 61 tests pass, 0 failure/error.
+- [x] Frontend `npx tsc --noEmit`: pass.
+- [x] Frontend `npm.cmd run lint`: 0 error, con 36 warning da biet.
+- [x] Frontend `npm.cmd run build`: pass voi cung warning residual.
+
+API permission/reconciliation evidence:
+
+- [x] `ADMIN`: login thanh cong; `GET /api/audit-log` thanh cong.
+- [x] `STAFF A`: list phong va su co chi co du lieu A; `GET /api/audit-log` bi tu choi; pricing B va notification management bi tu choi.
+- [x] `LANDLORD A`: doc meter A thanh cong; meter B, pricing B va incident B bi tu choi.
+- [x] `TENANT A`: list/chi tiet hoa don A thanh cong; invoice B bi tu choi; list su co loc chi co A.
+- [x] VietQR manual match da tao payment `4.100.000` cho `HD-A-202605`, hoa don A thanh `PAID`, transaction `E2E-TXN-A` thanh da doi soat.
+- [x] Public appointment payload gui trang thai khac van duoc luu `PENDING`.
+
+Browser smoke bang Playwright Firefox:
+
+- [x] Admin dang nhap va dashboard render; recent audit/activity hien thi.
+- [x] Admin `/dashboard/su-co` render hai dong A/B, lookup tra thanh cong, khong console error.
+- [x] Admin `/dashboard/thanh-toan` render hai payment A, gom payment tu VietQR.
+- [x] Admin `/dashboard/vietqr-doi-soat` render `E2E-TXN-A` o trang thai da doi soat.
+- [x] Staff `/dashboard/su-co` chi render dong `Ro nuoc A`; lookup phong/khach thue/hop dong deu HTTP 200.
+- [x] Staff vao `/dashboard/audit-log` va `/dashboard/vietqr-doi-soat` bi middleware chuyen khoi trang protected.
+
+Chua smoke thu cong trong lan chay nay:
+
+- [ ] Upload/delete media that qua Cloudinary va kiem tra file cross-owner tren browser.
+- [ ] Tat ca modal create/edit cua contract, meter, appointment va notification recipient.
+- [ ] Don 36 lint warnings va sua cac chuoi mojibake cu con lai.
+
 This document provides a step-by-step checklist for manual end-to-end testing of the EasyHouse dashboard on a local environment.
 
 ## Prerequisites

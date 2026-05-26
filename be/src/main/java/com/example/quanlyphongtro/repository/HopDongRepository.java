@@ -23,9 +23,9 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
 
     @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p " +
            "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
-           "AND (:phongId IS NULL OR p.id = cast(:phongId as uuid)) " +
-           "AND (:trangThai IS NULL OR hd.trangThai = :trangThai)")
-    Page<HopDong> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("phongId") String phongId, @Param("trangThai") TrangThaiHopDong trangThai, Pageable pageable);
+           "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(hd.trangThai as string) = :trangThai)")
+    Page<HopDong> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("phongId") UUID phongId, @Param("trangThai") String trangThai, Pageable pageable);
 
     List<HopDong> findByPhongIdAndXoaLucIsNull(UUID phongId);
 

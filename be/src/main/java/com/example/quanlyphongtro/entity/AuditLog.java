@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.time.ZonedDateTime;
@@ -37,8 +38,8 @@ public class AuditLog {
     @Column(columnDefinition = "jsonb")
     private String duLieuMoi;
 
-    @JdbcTypeCode(SqlTypes.OTHER)
-    @Column(columnDefinition = "inet")
+    @Column(name = "ip_address", columnDefinition = "inet")
+    @ColumnTransformer(read = "host(ip_address)", write = "cast(? as inet)")
     private String ipAddress;
     private String userAgent;
 

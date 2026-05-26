@@ -25,20 +25,28 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        const role = typeof token?.role === 'string'
+          ? token.role.replace(/^ROLE_/, '').toUpperCase()
+          : '';
         // Protect admin routes
-        if (req.nextUrl.pathname.startsWith('/dashboard/quan-ly-tai-khoan')) {
-          return token?.role === 'ADMIN' || token?.role === 'ROLE_ADMIN';
+        if (
+          req.nextUrl.pathname.startsWith('/dashboard/quan-ly-tai-khoan')
+          || req.nextUrl.pathname.startsWith('/dashboard/thong-bao')
+          || req.nextUrl.pathname.startsWith('/dashboard/audit-log')
+          || req.nextUrl.pathname.startsWith('/dashboard/vietqr-doi-soat')
+        ) {
+          return role === 'ADMIN';
         }
         // Protect cau-hinh-gia route
         if (req.nextUrl.pathname.startsWith('/dashboard/cau-hinh-gia')) {
-          return token?.role === 'ADMIN' || token?.role === 'ROLE_ADMIN' || token?.role === 'LANDLORD' || token?.role === 'STAFF';
+          return ['ADMIN', 'LANDLORD', 'STAFF'].includes(role);
         }
         // Protect dashboard routes
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
-          return !!token && token.role !== 'TENANT';
+          return !!token && role !== 'TENANT';
         }
         if (req.nextUrl.pathname.startsWith('/khach-thue/dashboard')) {
-          return !!token && token.role === 'TENANT';
+          return !!token && role === 'TENANT';
         }
         if (req.nextUrl.pathname.startsWith('/api/')) {
           return true;

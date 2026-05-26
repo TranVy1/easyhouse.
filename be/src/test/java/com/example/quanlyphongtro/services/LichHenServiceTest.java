@@ -13,6 +13,7 @@ import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.TrangThaiLichHen;
 import com.example.quanlyphongtro.repository.LichHenRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.AuditLogRepository;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +30,7 @@ class LichHenServiceTest {
     @Mock private LichHenRepository lichHenRepository;
     @Mock private PhongRepository phongRepository;
     @Mock private PermissionService permissionService;
+    @Mock private AuditLogRepository auditLogRepository;
 
     @InjectMocks
     private LichHenService service;
@@ -54,13 +56,14 @@ class LichHenServiceTest {
         req.setHoTen("Guest");
         req.setSoDienThoai("0900000000");
         req.setNgayHen(ZonedDateTime.now().plusDays(1));
+        req.setTrangThai("CONFIRMED");
 
         LichHenResponse res = service.create(req);
         
         assertEquals("Guest", res.getHoTen());
         assertEquals("PENDING", res.getTrangThai());
-        // Verify no auth check is made
         verify(permissionService, org.mockito.Mockito.never()).requireCurrentUserId();
+        verify(auditLogRepository).save(any());
     }
 
     @Test
@@ -97,5 +100,46 @@ class LichHenServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.update(id, new LichHenRequest()));
         assertEquals("Khong co quyen cap nhat lich hen nay", error.getMessage());
+    }
+
+    @Test
+    void updateRejectsInvalidStatusTransition() {
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        LichHen lichHen = new LichHen();
+        lichHen.setId(id);
+        lichHen.setPhong(Phong.builder().id(phongId).build());
+        lichHen.setTrangThai(TrangThaiLichHen.PENDING);
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(lichHenRepository.findById(id)).thenReturn(Optional.of(lichHen));
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(true);
+
+        LichHenRequest request = new LichHenRequest();
+        request.setTrangThai("COMPLETED");
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.update(id, request));
+        assertEquals("Chuyen trang thai lich hen khong hop le", error.getMessage());
+    }
+
+    @Test
+    void updateRejectsMovingAppointmentToUnauthorizedRoom() {
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID oldRoomId = UUID.randomUUID();
+        UUID newRoomId = UUID.randomUUID();
+        LichHen lichHen = new LichHen();
+        lichHen.setId(id);
+        lichHen.setPhong(Phong.builder().id(oldRoomId).build());
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(lichHenRepository.findById(id)).thenReturn(Optional.of(lichHen));
+        when(permissionService.canWritePhong(userId, oldRoomId)).thenReturn(true);
+        when(permissionService.canWritePhong(userId, newRoomId)).thenReturn(false);
+
+        LichHenRequest request = new LichHenRequest();
+        request.setPhongId(newRoomId);
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.update(id, request));
+        assertEquals("Khong co quyen chuyen lich hen sang phong nay", error.getMessage());
     }
 }

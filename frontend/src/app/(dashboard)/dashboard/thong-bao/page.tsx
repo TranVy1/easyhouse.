@@ -52,6 +52,7 @@ import {
 import { ThongBao, ToaNha, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { useCache } from '@/hooks/use-cache';
+import { unwrapPageData } from '@/lib/api-response';
 
 const getId = (value: unknown): string | undefined => {
   if (!value) return undefined;
@@ -133,21 +134,21 @@ export default function ThongBaoPage() {
       setThongBaoList(thongBaos);
 
       // Fetch tòa nhà từ API
-      const toaNhaResponse = await fetch('/api/toa-nha');
+      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100');
       const toaNhaData = toaNhaResponse.ok ? await toaNhaResponse.json() : { data: [] };
-      const toaNhas = toaNhaData.success ? toaNhaData.data : [];
+      const toaNhas = toaNhaData.success ? unwrapPageData<ToaNha>(toaNhaData.data) : [];
       setToaNhaList(toaNhas);
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100');
       const phongData = phongResponse.ok ? await phongResponse.json() : { data: [] };
-      const phongs = phongData.success ? phongData.data : [];
+      const phongs = phongData.success ? unwrapPageData<Phong>(phongData.data) : [];
       setPhongList(phongs);
 
       // Fetch khách thuê từ API
-      const khachThueResponse = await fetch('/api/khach-thue');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
       const khachThueData = khachThueResponse.ok ? await khachThueResponse.json() : { data: [] };
-      const khachThues = khachThueData.success ? khachThueData.data : [];
+      const khachThues = khachThueData.success ? unwrapPageData<KhachThue>(khachThueData.data) : [];
       setKhachThueList(khachThues);
 
       setCache({

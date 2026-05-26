@@ -40,7 +40,6 @@ import {
   Calendar, 
   Info,
   RefreshCw,
-  Sliders,
   DollarSign,
   ChevronLeft,
   ChevronRight,
@@ -49,6 +48,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ToaNha, CauHinhGia, LoaiMucHoaDon, LoaiTinhPhi } from '@/types';
+import { unwrapPageData } from '@/lib/api-response';
 
 // Map LoaiMucHoaDon enums to Vietnamese labels
 const LOAI_MUC_LABEL: Record<LoaiMucHoaDon, string> = {
@@ -96,11 +96,11 @@ export default function CauHinhGiaPage() {
   const fetchToaNhas = useCallback(async () => {
     try {
       setLoadingToaNhas(true);
-      const response = await fetch('/api/toa-nha');
+      const response = await fetch('/api/toa-nha?page=1&limit=100');
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          const list: ToaNha[] = result.data;
+          const list = unwrapPageData<ToaNha>(result.data);
           setToaNhaList(list);
           if (list.length > 0) {
             setSelectedToaNhaId(list[0]._id || list[0].id || '');

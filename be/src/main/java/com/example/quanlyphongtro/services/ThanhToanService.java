@@ -38,7 +38,7 @@ public class ThanhToanService {
     public PaginatedResponse<ThanhToanResponse> getAll(String hoaDonId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
-        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        List<UUID> nhaTroIds = List.of();
         if (!isAdmin) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
             if (!accessibleIds.isEmpty()) {
@@ -51,10 +51,11 @@ public class ThanhToanService {
             try { tt = TrangThaiThanhToan.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
         }
         
-        String hid = (hoaDonId == null || hoaDonId.isBlank() || hoaDonId.equals("all")) ? null : hoaDonId;
+        UUID hid = parseOptionalUuid(hoaDonId);
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "ngayThanhToan"));
-        Page<ThanhToan> pageResult = thanhToanRepository.findAllAccessible(isAdmin, userId, nhaTroIds, hid, tt, pageable);
+        Page<ThanhToan> pageResult = thanhToanRepository.findAllAccessible(
+                isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, pageable);
         
         List<ThanhToanResponse> res = new ArrayList<>();
         for (ThanhToan hd : pageResult.getContent()) {
@@ -133,6 +134,29 @@ public class ThanhToanService {
 
         logAudit(saved, "CREATE");
         return toResponse(saved, chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId()));
+    }
+
+    @Transactional
+    public void recordBankTransactionMatch(BankTransaction transaction, HoaDon hoaDon) {
+        String externalId = "BANK:" + transaction.getId();
+        if (thanhToanRepository.findByExternalTransactionId(externalId).isPresent()) {
+            throw new RuntimeException("Giao dich nay da tao thanh toan");
+        }
+        ThanhToan payment = ThanhToan.builder()
+                .hoaDon(hoaDon)
+                .khachThue(hoaDon.getKhachThue())
+                .soTien(transaction.getSoTien())
+                .phuongThucThanhToan(PhuongThucThanhToan.VIETQR)
+                .maThamChieu(transaction.getMaGiaoDich())
+                .externalTransactionId(externalId)
+                .ngayThanhToan(transaction.getThoiGianGiaoDich())
+                .nguoiGhiNhan(NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+                .trangThai(TrangThaiThanhToan.SUCCESS)
+                .ghiChu("VietQR manual match")
+                .build();
+        ThanhToan saved = thanhToanRepository.save(payment);
+        recalculate(hoaDon.getId());
+        logAudit(saved, "MANUAL_MATCH");
     }
 
     @Transactional
@@ -325,6 +349,17 @@ public class ThanhToanService {
             return TrangThaiThanhToan.valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
         } catch (Exception e) {
             throw new RuntimeException("Trạng thái thanh toán không hợp lệ: " + value);
+        }
+    }
+
+    private UUID parseOptionalUuid(String value) {
+        if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("ID khong hop le");
         }
     }
 }

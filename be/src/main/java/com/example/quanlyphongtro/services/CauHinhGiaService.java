@@ -71,10 +71,15 @@ public class CauHinhGiaService {
     }
 
     public CauHinhGiaResponse getById(UUID id) {
-        return CauHinhGiaResponse.fromEntity(findById(id));
+        CauHinhGia entity = findById(id);
+        checkReadPermission(entity);
+        return CauHinhGiaResponse.fromEntity(entity);
     }
 
     public CauHinhGiaResponse getApplicable(UUID nhaTroId, String loaiRaw, LocalDate ngayApDung) {
+        NhaTro nhaTro = nhaTroRepository.findById(nhaTroId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        checkReadPermission(CauHinhGia.builder().nhaTro(nhaTro).build());
         LoaiMucHoaDon loai = parseLoai(loaiRaw, true);
         LocalDate effectiveDate = ngayApDung != null ? ngayApDung : LocalDate.now();
         return cauHinhGiaRepository.findApplicable(nhaTroId, loai, effectiveDate).stream()

@@ -177,12 +177,11 @@ export default function HoaDonPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, monthFilter, yearFilter]);
 
   useEffect(() => {
     fetchData(false);
-  }, [fetchData, statusFilter, monthFilter, yearFilter, pagination.pageIndex, pagination.pageSize]);
-
+  }, [fetchData]);
 
   // Debug hopDongList state
   useEffect(() => {

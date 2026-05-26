@@ -49,7 +49,7 @@ public class HoaDonService {
     public PaginatedResponse<HoaDonResponse> getAll(String hopDongId, String trangThaiStr, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
-        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        List<UUID> nhaTroIds = List.of();
         if (!isAdmin) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
             if (!accessibleIds.isEmpty()) {
@@ -62,10 +62,11 @@ public class HoaDonService {
             try { tt = TrangThaiHoaDon.valueOf(trangThaiStr.toUpperCase()); } catch (Exception ignored) {}
         }
         
-        String hid = (hopDongId == null || hopDongId.isBlank() || hopDongId.equals("all")) ? null : hopDongId;
+        UUID hid = parseOptionalUuid(hopDongId);
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
-        Page<HoaDon> pageResult = hoaDonRepository.findAllAccessible(isAdmin, userId, nhaTroIds, hid, tt, pageable);
+        Page<HoaDon> pageResult = hoaDonRepository.findAllAccessible(
+                isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, pageable);
         
         List<HoaDonResponse> res = new ArrayList<>();
         for (HoaDon hd : pageResult.getContent()) {
@@ -728,6 +729,17 @@ public class HoaDonService {
                 }
             }
         };
+    }
+
+    private UUID parseOptionalUuid(String value) {
+        if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("ID khong hop le");
+        }
     }
 
     private TrangThaiHoaDon resolveInvoiceStatus(TrangThaiHoaDon requested, BigDecimal paid, BigDecimal total, LocalDate hanTra) {

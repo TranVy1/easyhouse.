@@ -3,23 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   Building2, 
   DoorOpen, 
-  Users, 
-  Receipt, 
   AlertTriangle, 
   TrendingUp,
   Calendar,
   Clock
 } from 'lucide-react';
 import { DashboardStats, AuditLog } from '@/types';
+import { useSession } from 'next-auth/react';
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentLogs, setRecentLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const role = session?.user?.role?.replace(/^ROLE_/, '').toUpperCase();
 
   useEffect(() => {
     document.title = 'Dashboard';
@@ -28,10 +28,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, logsRes] = await Promise.all([
-          fetch('/api/dashboard/stats'),
-          fetch('/api/audit-log?size=5')
-        ]);
+        const statsRes = await fetch('/api/dashboard/stats');
         
         if (statsRes.ok) {
           const result = await statsRes.json();
@@ -40,7 +37,8 @@ export default function DashboardPage() {
           }
         }
 
-        if (logsRes.ok) {
+        if (role === 'ADMIN') {
+          const logsRes = await fetch('/api/audit-log?size=5');
           const result = await logsRes.json();
           if (result.success && result.data && result.data.content) {
             setRecentLogs(result.data.content);
@@ -54,7 +52,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [role]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {

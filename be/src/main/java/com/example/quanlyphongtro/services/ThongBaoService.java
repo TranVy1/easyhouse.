@@ -32,6 +32,7 @@ public class ThongBaoService {
 
     @Transactional(readOnly = true)
     public PaginatedResponse<ThongBaoResponse> getAll(org.springframework.data.domain.Pageable pageable) {
+        permissionService.requireAdmin();
         org.springframework.data.domain.Page<ThongBao> page = thongBaoRepository.findByXoaLucIsNullOrderByTaoLucDesc(pageable);
         List<ThongBaoResponse> mappedData = page.getContent().stream()
                 .map(this::toResponse)
@@ -41,6 +42,7 @@ public class ThongBaoService {
 
     @Transactional(readOnly = true)
     public ThongBaoResponse getById(UUID id) {
+        permissionService.requireAdmin();
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         return toResponse(tb);
@@ -48,6 +50,7 @@ public class ThongBaoService {
 
     @Transactional
     public ThongBaoResponse create(ThongBaoRequest req) {
+        permissionService.requireAdmin();
         LoaiThongBao loai = parseLoai(req.getLoai(), LoaiThongBao.SYSTEM);
 
         ThongBao tb = ThongBao.builder()
@@ -56,14 +59,17 @@ public class ThongBaoService {
                 .loai(loai)
                 .kenh(KenhThongBao.IN_APP)
                 .guiTatCa(req.getNguoiNhan() == null || req.getNguoiNhan().isEmpty())
+                .nguoiGui(nguoiDungRepository.findById(permissionService.requireCurrentUserId()).orElse(null))
                 .build();
         ThongBao saved = thongBaoRepository.save(tb);
         replaceRecipients(saved, req.getNguoiNhan());
+        logAudit(saved, "CREATE");
         return toResponse(saved);
     }
 
     @Transactional
     public ThongBaoResponse update(UUID id, ThongBaoRequest req) {
+        permissionService.requireAdmin();
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         if (req.getTieuDe() != null) tb.setTieuDe(req.getTieuDe());
@@ -73,11 +79,14 @@ public class ThongBaoService {
             tb.setGuiTatCa(req.getNguoiNhan().isEmpty());
             replaceRecipients(tb, req.getNguoiNhan());
         }
-        return toResponse(thongBaoRepository.save(tb));
+        ThongBao saved = thongBaoRepository.save(tb);
+        logAudit(saved, "UPDATE");
+        return toResponse(saved);
     }
 
     @Transactional
     public ThongBaoResponse send(UUID id) {
+        permissionService.requireAdmin();
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         List<ThongBaoNguoiNhan> recipients = thongBaoNguoiNhanRepository.findByThongBaoId(id);
@@ -87,6 +96,7 @@ public class ThongBaoService {
             recipient.setLoiGui(null);
         }
         thongBaoNguoiNhanRepository.saveAll(recipients);
+        logAudit(tb, "SEND");
         return toResponse(tb);
     }
 
@@ -95,23 +105,24 @@ public class ThongBaoService {
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         
-        UUID targetUserId = nguoiDungId;
-        if (targetUserId == null) {
-            targetUserId = permissionService.requireCurrentUserId();
-        } else {
-            // If they provided a user ID, they must either be that user or an admin
-            if (!targetUserId.equals(permissionService.requireCurrentUserId()) && !permissionService.isAdmin(permissionService.requireCurrentUserId())) {
-                throw new RuntimeException("Khong co quyen danh dau da doc cho nguoi dung khac");
-            }
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        UUID targetUserId = nguoiDungId != null ? nguoiDungId : currentUserId;
+        if (!targetUserId.equals(currentUserId)) {
+            throw new RuntimeException("Khong co quyen danh dau da doc cho nguoi dung khac");
         }
         
         NguoiDung nguoiDung = resolveNguoiDungForRecipient(targetUserId);
         ThongBaoNguoiNhan recipient = thongBaoNguoiNhanRepository.findByThongBaoIdAndNguoiDungId(id, nguoiDung.getId())
-                .orElseGet(() -> ThongBaoNguoiNhan.builder()
+                .orElseGet(() -> {
+                    if (!Boolean.TRUE.equals(tb.getGuiTatCa())) {
+                        throw new RuntimeException("Thong bao nay khong gui den nguoi dung hien tai");
+                    }
+                    return ThongBaoNguoiNhan.builder()
                         .thongBao(tb)
                         .nguoiDung(nguoiDung)
                         .daDoc(false)
-                        .build());
+                        .build();
+                });
         recipient.setDaDoc(daDoc);
         recipient.setDocLuc(daDoc ? ZonedDateTime.now() : null);
         thongBaoNguoiNhanRepository.save(recipient);
@@ -120,10 +131,12 @@ public class ThongBaoService {
 
     @Transactional
     public void delete(UUID id) {
+        permissionService.requireAdmin();
         ThongBao tb = thongBaoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         tb.setXoaLuc(ZonedDateTime.now());
         thongBaoRepository.save(tb);
+        logAudit(tb, "DELETE");
     }
 
     private void replaceRecipients(ThongBao thongBao, List<UUID> nguoiNhanIds) {
@@ -190,6 +203,19 @@ public class ThongBaoService {
 
     @org.springframework.beans.factory.annotation.Autowired
     private com.example.quanlyphongtro.services.PermissionService permissionService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+
+    private void logAudit(ThongBao thongBao, String action) {
+        if (auditLogRepository == null) return;
+        auditLogRepository.save(com.example.quanlyphongtro.entity.AuditLog.builder()
+                .nguoiDung(NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+                .hanhDong(action)
+                .bangTacDong("thong_bao")
+                .banGhiId(thongBao.getId())
+                .taoLuc(ZonedDateTime.now())
+                .build());
+    }
 
     @Transactional(readOnly = true)
     public PaginatedResponse<ThongBaoResponse> getMyThongBao(org.springframework.data.domain.Pageable pageable) {

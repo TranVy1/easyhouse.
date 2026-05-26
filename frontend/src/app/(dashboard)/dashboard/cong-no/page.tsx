@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -48,7 +48,7 @@ export default function CongNoPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -79,11 +79,11 @@ export default function CongNoPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
     fetchData();
-  }, [pagination.pageIndex, pagination.pageSize]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (!search.trim()) {

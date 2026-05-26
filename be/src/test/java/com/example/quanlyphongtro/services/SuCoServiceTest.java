@@ -10,12 +10,15 @@ import com.example.quanlyphongtro.dto.SuCoRequest;
 import com.example.quanlyphongtro.dto.SuCoResponse;
 import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.SuCo;
+import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiSuCo;
 import com.example.quanlyphongtro.repository.AuditLogRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.SuCoRepository;
+import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +41,7 @@ class SuCoServiceTest {
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
     @Mock private AuditLogRepository auditLogRepository;
+    @Mock private NguoiDungRepository nguoiDungRepository;
 
     @InjectMocks
     private SuCoService service;
@@ -69,13 +76,13 @@ class SuCoServiceTest {
         SuCo sc = SuCo.builder()
                 .id(id)
                 .phong(Phong.builder().id(phongId).build())
+                .nguoiBao(NguoiDung.builder().id(userId).build())
                 .trangThai(TrangThaiSuCo.PENDING)
                 .build();
                 
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(suCoRepository.findById(id)).thenReturn(Optional.of(sc));
         // Tenant can read, but cannot write
-        when(permissionService.canReadPhong(userId, phongId)).thenReturn(true);
         when(permissionService.canWritePhong(userId, phongId)).thenReturn(false);
 
         SuCoRequest req = new SuCoRequest();
@@ -83,6 +90,32 @@ class SuCoServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.updateSuCo(id, req));
         assertEquals("Khong co quyen cap nhat trang thai hoac chi phi su co", error.getMessage());
+    }
+
+    @Test
+    void updateSuCoThrowsWhenTenantUpdatesIncidentOfAnotherTenant() {
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID anotherUserId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        
+        SuCo sc = SuCo.builder()
+                .id(id)
+                .phong(Phong.builder().id(phongId).build())
+                .nguoiBao(NguoiDung.builder().id(anotherUserId).build())
+                .trangThai(TrangThaiSuCo.PENDING)
+                .build();
+                
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(suCoRepository.findById(id)).thenReturn(Optional.of(sc));
+        // User cannot write to room
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(false);
+
+        SuCoRequest req = new SuCoRequest();
+        req.setMoTa("New description");
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.updateSuCo(id, req));
+        assertEquals("Khong co quyen cap nhat su co nay", error.getMessage());
     }
 
     @Test
@@ -111,5 +144,25 @@ class SuCoServiceTest {
         assertEquals("RESOLVED", res.getTrangThai());
         assertEquals(BigDecimal.valueOf(500000), res.getChiPhiSuaChua());
         assertEquals("Fixed", res.getGhiChuChuNha());
+    }
+
+    @Test
+    void getAllKeepsTenantOwnedIncidentsVisibleWithoutBuildingScopeAndPassesFilters() {
+        UUID userId = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(false);
+        when(permissionService.getAllAccessibleNhaTroIds(userId)).thenReturn(List.of());
+        when(suCoRepository.findAllAccessible(
+                false, userId, List.of(), null, null, "PENDING",
+                "dien_nuoc", "cao", pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        service.getAllSuCo(null, null, "PENDING", "DIEN_NUOC", "CAO", pageable);
+
+        verify(suCoRepository).findAllAccessible(
+                false, userId, List.of(), null, null, "PENDING",
+                "dien_nuoc", "cao", pageable);
     }
 }

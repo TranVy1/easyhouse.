@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -20,12 +19,21 @@ public class SuCoController {
     private final SuCoService suCoService;
 
     @GetMapping
-    public ApiResponse<List<SuCoResponse>> getAll(
+    public ApiResponse<PaginatedResponse<SuCoResponse>> getAll(
             @RequestParam(required = false) UUID nhaTroId,
             @RequestParam(required = false) UUID phongId,
-            @RequestParam(required = false) String trangThai) {
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String loaiSuCo,
+            @RequestParam(required = false) String uuTien,
+            @RequestParam(required = false) String mucDoUuTien,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "taoLuc,desc") String sort) {
         try {
-            return ApiResponse.success(suCoService.getAllSuCo(nhaTroId, phongId, trangThai));
+            org.springframework.data.domain.Pageable pageable =
+                    com.example.quanlyphongtro.utils.PaginationUtils.createPageable(page, limit, sort);
+            String priority = uuTien != null ? uuTien : mucDoUuTien;
+            return ApiResponse.success(suCoService.getAllSuCo(nhaTroId, phongId, trangThai, loaiSuCo, priority, pageable));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
