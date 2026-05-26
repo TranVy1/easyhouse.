@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Upload, Trash2, File, Image as ImageIcon, Video, FileText, Download } from "lucide-react";
+import { Upload, Trash2, File, Image as ImageIcon, Video, FileText, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -40,6 +40,9 @@ export function MediaClient() {
     doiTuong: "OTHER",
     doiTuongId: "",
   });
+
+  // Client-side pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
   const fetchData = async () => {
     try {
@@ -146,6 +149,14 @@ export function MediaClient() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Pagination calculation
+  const totalElements = mediaList.length;
+  const totalPages = Math.ceil(totalElements / pagination.pageSize);
+  const paginatedMediaList = mediaList.slice(
+    pagination.pageIndex * pagination.pageSize,
+    (pagination.pageIndex + 1) * pagination.pageSize
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -179,7 +190,7 @@ export function MediaClient() {
                 <TableCell colSpan={5} className="text-center py-10 text-gray-500">Chưa có file nào</TableCell>
               </TableRow>
             ) : (
-              mediaList.map((media) => (
+              paginatedMediaList.map((media) => (
                 <TableRow key={media._id || media.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -223,6 +234,77 @@ export function MediaClient() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between px-2">
+        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+          Hiển thị {paginatedMediaList.length} / {totalElements} file
+        </div>
+        <div className="flex w-full items-center gap-8 lg:w-fit">
+          <div className="hidden items-center gap-2 lg:flex">
+            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              Số hàng mỗi trang
+            </Label>
+            <Select
+              value={`${pagination.pageSize}`}
+              onValueChange={(value) => {
+                setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+              }}
+            >
+              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectValue placeholder={pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex w-fit items-center justify-center text-sm font-medium">
+            Trang {pagination.pageIndex + 1} / {totalPages || 1}
+          </div>
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+              disabled={pagination.pageIndex === 0}
+            >
+              <span className="sr-only">Trang đầu</span>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="size-8 p-0"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+              disabled={pagination.pageIndex === 0}
+            >
+              <span className="sr-only">Trang trước</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="size-8 p-0"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+              disabled={pagination.pageIndex >= totalPages - 1}
+            >
+              <span className="sr-only">Trang sau</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+              disabled={pagination.pageIndex >= totalPages - 1}
+            >
+              <span className="sr-only">Trang cuối</span>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>

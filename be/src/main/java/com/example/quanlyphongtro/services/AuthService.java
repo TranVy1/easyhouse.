@@ -45,6 +45,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final AuditLogRepository auditLogRepository;
 
     private static final String TEMP_PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -87,6 +88,7 @@ public class AuthService {
         String role = resolveRole(savedUser);
         String accessToken = jwtService.generateAccessToken(savedUser.getId(), savedUser.getEmail(), role);
         String refreshToken = createRefreshToken(savedUser);
+        logAudit(savedUser, "REGISTER");
 
         return AuthResponse.builder()
                 .id(savedUser.getId())
@@ -158,6 +160,7 @@ public class AuthService {
         String role = resolveRole(user);
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), role);
         String refreshToken = createRefreshToken(user);
+        logAudit(user, "LOGIN");
 
         boolean verified = user.getTrangThai() == TrangThaiNguoiDung.ACTIVE;
 
@@ -480,6 +483,21 @@ public class AuthService {
             loginHistoryRepository.save(history);
         } catch (Exception e) {
             log.warn("Could not save login history: {}", e.getMessage());
+        }
+    }
+
+    private void logAudit(NguoiDung user, String hanhDong) {
+        try {
+            AuditLog log = AuditLog.builder()
+                .nguoiDung(user)
+                .hanhDong(hanhDong)
+                .bangTacDong("nguoi_dung")
+                .banGhiId(user.getId())
+                .taoLuc(ZonedDateTime.now())
+                .build();
+            auditLogRepository.save(log);
+        } catch (Exception e) {
+            log.warn("Could not save audit log for {}: {}", hanhDong, e.getMessage());
         }
     }
 }

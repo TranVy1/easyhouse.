@@ -79,40 +79,44 @@ export default function PhongPage() {
   const [viewingTenants, setViewingTenants] = useState<PhongTenant[]>([]);
   const [viewingTenantsPhongName, setViewingTenantsPhongName] = useState('');
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Phòng';
   }, []);
 
-  const fetchPhong = useCallback(async (forceRefresh = false, toaNhaFilter = '', trangThaiFilter = '') => {
+  const fetchPhong = useCallback(async (forceRefresh = false, toaNhaFilter = '', trangThaiFilter = '', page = 1, limit = 10) => {
     try {
       setLoading(true);
-
-      // Thử load từ cache trước (nếu không force refresh)
-      if (!forceRefresh) {
-        const cachedData = getCache();
-        if (cachedData) {
-          setPhongList(cachedData.phongList || []);
-          setToaNhaList(cachedData.toaNhaList || []);
-          setLoading(false);
-          return;
-        }
-      }
 
       let phongSuccess = false;
       let toaNhaSuccess = false;
 
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
 
       // Fetch phong
-      const response = await fetch(`/api/phong?${params.toString()}&limit=100`);
+      const response = await fetch(`/api/phong?${params.toString()}`);
       let phongData: Phong[] = [];
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          phongData = result.data;
+          phongData = Array.isArray(result.data) ? result.data : (result.data?.data || []);
           setPhongList(phongData);
+          if (result.data && !Array.isArray(result.data)) {
+            setTotalElements(result.data.total || 0);
+            setTotalPages(result.data.totalPages || 0);
+          } else {
+            setTotalElements(phongData.length);
+            setTotalPages(1);
+          }
           phongSuccess = true;
         }
       }
@@ -129,19 +133,16 @@ export default function PhongPage() {
         }
       }
 
-      // Lưu cache với data mới nếu cả 2 thành công
+      // Remove caching for now since pagination makes it complex
       if (phongSuccess && toaNhaSuccess) {
-        setCache({
-          phongList: phongData,
-          toaNhaList: toaNhaData,
-        });
+        // Not setting cache for paginated lists
       }
     } catch (error) {
       console.error('Error fetching phong:', error);
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, []);
 
   const fetchToaNha = useCallback(async () => {
     try {
@@ -158,23 +159,24 @@ export default function PhongPage() {
   }, []);
 
   useEffect(() => {
-    fetchPhong();
+    fetchPhong(false, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+  }, [fetchPhong, selectedToaNha, selectedTrangThai, pagination.pageIndex, pagination.pageSize]);
+
+  useEffect(() => {
     fetchToaNha();
-  }, [fetchPhong, fetchToaNha]);
+  }, [fetchToaNha]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchPhong(true, selectedToaNha, selectedTrangThai); // Force refresh
+    await fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize); // Force refresh
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
   useEffect(() => {
-    // Khi filter thay đổi, cần force refresh để lấy data mới theo filter
-    if (selectedToaNha || selectedTrangThai) {
-      fetchPhong(true, selectedToaNha, selectedTrangThai);
-    }
-  }, [selectedToaNha, selectedTrangThai, fetchPhong]);
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [selectedToaNha, selectedTrangThai]);
 
   const filteredPhong = phongList.filter(phong =>
     phong.maPhong.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -196,7 +198,7 @@ export default function PhongPage() {
         const result = await response.json();
         if (result.success) {
           clearCache();
-          setPhongList(prev => prev.filter(phong => phong._id !== id));
+          await fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
           toast.success('Xóa phòng thành công!');
         } else {
           toast.error(result.message || 'Có lỗi xảy ra khi xóa phòng');
@@ -290,7 +292,7 @@ export default function PhongPage() {
                 onSuccess={() => {
                   clearCache();
                   setIsDialogOpen(false);
-                  fetchPhong(true, selectedToaNha, selectedTrangThai);
+                  fetchPhong(true, selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
                   toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
                 }}
               />
@@ -305,7 +307,7 @@ export default function PhongPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng số phòng</p>
-              <p className="text-lg md:text-xl font-bold">{phongList.length}</p>
+              <p className="text-lg md:text-xl font-bold">{totalElements}</p>
             </div>
             <Home className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
           </div>
@@ -371,6 +373,10 @@ export default function PhongPage() {
             selectedTrangThai={selectedTrangThai}
             onTrangThaiChange={setSelectedTrangThai}
             allToaNhaList={toaNhaList}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

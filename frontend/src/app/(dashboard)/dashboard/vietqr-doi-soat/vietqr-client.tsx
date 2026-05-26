@@ -17,22 +17,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, History, Eye, User, FileText, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { BankTransaction, ApiResponse, HoaDon } from "@/types";
 
 interface PageData {
   content: BankTransaction[];
-  pageable: any;
+  pageable: unknown;
   totalPages: number;
   totalElements: number;
   last: boolean;
   size: number;
   number: number;
-  sort: any;
+  sort: unknown;
   numberOfElements: number;
   first: boolean;
   empty: boolean;

@@ -704,7 +704,22 @@ CREATE TYPE public.loai_muc_hoa_don AS ENUM (
     'MAINTENANCE',
     'DEBT',
     'DISCOUNT',
-    'OTHER'
+    'OTHER',
+    'BALCONY',
+    'TRASH',
+    'AIR_CONDITIONER',
+    'WASHING_MACHINE',
+    'REFRIGERATOR',
+    'WATER_HEATER',
+    'BED',
+    'WARDROBE',
+    'TABLE_CHAIR',
+    'KITCHEN',
+    'KITCHEN_SHELF',
+    'CLEANING',
+    'LAUNDRY',
+    'SMART_LOCK',
+    'SECURITY_CAMERA'
 );
 
 
@@ -2355,7 +2370,7 @@ CREATE TABLE public.chi_tiet_hoa_don (
 --
 
 CREATE TABLE public.chu_tro (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     nguoi_dung_id uuid,
     ten_cong_ty character varying(255),
     so_cccd character varying(50) NOT NULL,

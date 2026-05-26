@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<string>('light');
+  const [, setTheme] = useState<string>('light');
 
   useEffect(() => {
     // Initial load

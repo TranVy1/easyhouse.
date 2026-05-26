@@ -58,58 +58,63 @@ export default function KhachThuePage() {
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Khách thuê';
   }, []);
 
-  const fetchKhachThue = useCallback(async (forceRefresh = false, trangThai = '') => {
+  const fetchKhachThue = useCallback(async (forceRefresh = false, trangThai = '', page = 1, limit = 10) => {
     try {
       setLoading(true);
       
-      // Thử load từ cache trước
-      if (!forceRefresh) {
-        const cachedData = getCache();
-        if (cachedData) {
-          setKhachThueList(cachedData.khachThueList || []);
-          setLoading(false);
-          return;
-        }
-      }
-      
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
       if (trangThai && trangThai !== 'all') params.append('trangThai', trangThai);
       
-      const response = await fetch(`/api/khach-thue?${params.toString()}&limit=100`);
+      const response = await fetch(`/api/khach-thue?${params.toString()}`);
       let khachThueData: KhachThue[] = [];
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          khachThueData = result.data;
+          khachThueData = Array.isArray(result.data) ? result.data : (result.data?.data || []);
           setKhachThueList(khachThueData);
+          if (result.data && !Array.isArray(result.data)) {
+            setTotalElements(result.data.total || 0);
+            setTotalPages(result.data.totalPages || 0);
+          } else {
+            setTotalElements(khachThueData.length);
+            setTotalPages(1);
+          }
         }
-      }
-      
-      // Lưu cache với data mới
-      if (khachThueData.length > 0) {
-        setCache({ khachThueList: khachThueData });
       }
     } catch (error) {
       console.error('Error fetching khach thue:', error);
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, []);
 
   useEffect(() => {
-    fetchKhachThue(false, selectedTrangThai);
-  }, [fetchKhachThue, selectedTrangThai]);
+    fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+  }, [fetchKhachThue, selectedTrangThai, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchKhachThue(true, selectedTrangThai);
+    await fetchKhachThue(true, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
+
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [selectedTrangThai]);
 
   const filteredKhachThue = khachThueList.filter(khachThue =>
     (khachThue.hoTen?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -135,7 +140,7 @@ export default function KhachThuePage() {
           const result = await response.json();
           if (result.success) {
             clearCache();
-            setKhachThueList(prev => prev.filter(khachThue => khachThue._id !== id));
+            await fetchKhachThue(true, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
             toast.success('Xóa khách thuê thành công!');
           } else {
             toast.error(result.message || 'Có lỗi xảy ra');
@@ -210,18 +215,11 @@ export default function KhachThuePage() {
                   clearCache();
                 setIsDialogOpen(false);
                 if (newKhachThue) {
-                  if (editingKhachThue) {
-                    // Cập nhật khách thuê hiện có
-                    setKhachThueList(prev => prev.map(kt => 
-                      kt._id === editingKhachThue._id ? newKhachThue : kt
-                    ));
-                  } else {
-                    // Thêm khách thuê mới
-                    setKhachThueList(prev => [newKhachThue, ...prev]);
-                  }
+                  // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
+                  fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
                 } else {
                   // Fallback: refresh data nếu không có dữ liệu trả về
-                  fetchKhachThue(false, selectedTrangThai);
+                  fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
                 }
                 toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
               }}
@@ -239,7 +237,7 @@ export default function KhachThuePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng khách thuê</p>
-              <p className="text-base md:text-2xl font-bold">{khachThueList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <Users className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -300,6 +298,10 @@ export default function KhachThuePage() {
             onSearchChange={setSearchTerm}
             selectedTrangThai={selectedTrangThai}
             onTrangThaiChange={setSelectedTrangThai}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

@@ -212,7 +212,7 @@ export default function DashboardPage() {
                 badgeVariant = "outline";
               }
               
-              const formatTime = (dateStr: any) => {
+              const formatTime = (dateStr: string | Date | undefined | null) => {
                 if (!dateStr) return '';
                 const date = new Date(dateStr);
                 return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString('vi-VN');

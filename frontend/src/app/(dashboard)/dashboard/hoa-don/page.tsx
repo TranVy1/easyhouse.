@@ -100,6 +100,11 @@ export default function HoaDonPage() {
   const [paymentHoaDon, setPaymentHoaDon] = useState<HoaDon | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Hóa đơn';
   }, []);
@@ -122,10 +127,26 @@ export default function HoaDonPage() {
       }
       
       // Fetch hóa đơn từ API
-      const hoaDonResponse = await fetch('/api/hoa-don');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
+      if (monthFilter && monthFilter !== 'all') params.append('thang', monthFilter);
+      if (yearFilter && yearFilter !== 'all') params.append('nam', yearFilter);
+
+      const hoaDonResponse = await fetch(`/api/hoa-don?${params.toString()}`);
       const hoaDonData = hoaDonResponse.ok ? await hoaDonResponse.json() : { data: [] };
-      const hoaDons = hoaDonData.data || [];
+      const hoaDons = Array.isArray(hoaDonData.data) ? hoaDonData.data : (hoaDonData.data?.data || []);
       setHoaDonList(hoaDons);
+      
+      if (hoaDonData.data && !Array.isArray(hoaDonData.data)) {
+        setTotalElements(hoaDonData.data.total || 0);
+        setTotalPages(hoaDonData.data.totalPages || 0);
+      } else {
+        setTotalElements(hoaDons.length);
+        setTotalPages(1);
+      }
 
       // Fetch form data (hop dong, phong, khach thue) từ API
       const formDataResponse = await fetch('/api/hoa-don/form-data');
@@ -159,8 +180,8 @@ export default function HoaDonPage() {
   }, [getCache, setCache]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(false);
+  }, [fetchData, statusFilter, monthFilter, yearFilter, pagination.pageIndex, pagination.pageSize]);
 
 
   // Debug hopDongList state
@@ -175,14 +196,16 @@ export default function HoaDonPage() {
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [statusFilter, monthFilter, yearFilter]);
+
   const filteredHoaDon = hoaDonList.filter(hoaDon => {
     const matchesSearch = hoaDon.maHoaDon.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          hoaDon.ghiChu?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || hoaDon.trangThai === statusFilter;
-    const matchesMonth = monthFilter === 'all' || hoaDon.thang.toString() === monthFilter;
-    const matchesYear = yearFilter === 'all' || hoaDon.nam.toString() === yearFilter;
     
-    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -579,7 +602,7 @@ export default function HoaDonPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng hóa đơn</p>
-              <p className="text-base md:text-2xl font-bold">{hoaDonList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <Receipt className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -653,6 +676,10 @@ export default function HoaDonPage() {
             onYearChange={setYearFilter}
             getMonthOptions={getMonthOptions}
             getYearOptions={getYearOptions}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

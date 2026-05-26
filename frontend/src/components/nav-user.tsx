@@ -2,7 +2,6 @@
 
 import { signOut } from "next-auth/react"
 import {
-  BadgeCheck,
   ChevronsUpDown,
   LogOut,
   Settings,

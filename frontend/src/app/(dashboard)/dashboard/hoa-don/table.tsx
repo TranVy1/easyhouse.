@@ -417,10 +417,14 @@ type HoaDonDataTableProps = HoaDonTableProps & {
   onYearChange?: (value: string) => void
   getMonthOptions?: () => number[]
   getYearOptions?: () => number[]
+  pageCount?: number
+  totalElements?: number
+  pagination?: { pageIndex: number; pageSize: number }
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
 }
 
 export function HoaDonDataTable(props: HoaDonDataTableProps) {
-  const { data: initialData, onDeleteMultiple, searchTerm, onSearchChange, statusFilter, onStatusChange, monthFilter, onMonthChange, yearFilter, onYearChange, getMonthOptions, getYearOptions, ...tableProps } = props
+  const { data: initialData, onDeleteMultiple, searchTerm, onSearchChange, statusFilter, onStatusChange, monthFilter, onMonthChange, yearFilter, onYearChange, getMonthOptions, getYearOptions, pageCount, totalElements, pagination: externalPagination, onPaginationChange, ...tableProps } = props
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -429,10 +433,24 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
     []
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
+  const [internalPagination, setInternalPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   })
+  
+  const pagination = externalPagination || internalPagination
+  
+  const handlePaginationChange = React.useCallback(
+    (updater: import("@tanstack/react-table").PaginationState | ((old: import("@tanstack/react-table").PaginationState) => import("@tanstack/react-table").PaginationState)) => {
+      const newPagination = typeof updater === 'function' ? updater(pagination) : updater
+      if (onPaginationChange) {
+        onPaginationChange(newPagination)
+      } else {
+        setInternalPagination(newPagination)
+      }
+    },
+    [pagination, onPaginationChange]
+  )
   
   // Sync data when prop changes
   React.useEffect(() => {
@@ -465,11 +483,13 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
     },
     getRowId: (row) => row._id!,
     enableRowSelection: true,
+    manualPagination: pageCount !== undefined,
+    pageCount: pageCount,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -668,9 +688,9 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
       <div className="flex items-center justify-between px-4">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
           {selectedCount > 0 ? (
-            <>Đã chọn {selectedCount} trong {table.getFilteredRowModel().rows.length} hàng</>
+            <>Đã chọn {selectedCount} trong {totalElements !== undefined ? totalElements : table.getFilteredRowModel().rows.length} hàng</>
           ) : (
-            <>Hiển thị {table.getFilteredRowModel().rows.length} hàng</>
+            <>Hiển thị {totalElements !== undefined ? totalElements : table.getFilteredRowModel().rows.length} hàng</>
           )}
         </div>
         <div className="flex w-full items-center gap-8 lg:w-fit">

@@ -29,7 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Search, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Plus, Pencil, Trash2, Search, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChiSoDienNuoc, LoaiChiSo, TrangThaiChiSo } from '@/types';
 import { ImageUpload } from '@/components/ui/image-upload';
@@ -37,12 +38,17 @@ import { ImageUpload } from '@/components/ui/image-upload';
 export default function ChiSoDienNuocPage() {
   const [data, setData] = useState<ChiSoDienNuoc[]>([]);
   const [loading, setLoading] = useState(true);
-  const [phongList, setPhongList] = useState<any[]>([]);
+  const [phongList, setPhongList] = useState<Array<{ _id?: string; id?: string; maPhong?: string; ten?: string; }>>([]);
 
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,16 +67,29 @@ export default function ChiSoDienNuocPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/chi-so-dien-nuoc');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      const res = await fetch(`/api/chi-so-dien-nuoc?${params.toString()}`);
       if (!res.ok) throw new Error('Không thể tải dữ liệu chỉ số');
       const json = await res.json();
-      setData(json.data || []);
-    } catch (error: any) {
-      toast.error(error.message || 'Không thể tải dữ liệu chỉ số');
+      
+      if (json.data && !Array.isArray(json.data)) {
+        setData(json.data.data || []);
+        setTotalElements(json.data.total || 0);
+        setTotalPages(json.data.totalPages || 0);
+      } else {
+        setData(json.data || []);
+        setTotalElements((json.data || []).length);
+        setTotalPages(1);
+      }
+    } catch (error: unknown) {
+      toast.error((error as Error).message || 'Không thể tải dữ liệu chỉ số');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   const fetchPhong = useCallback(async () => {
     try {
@@ -93,7 +112,7 @@ export default function ChiSoDienNuocPage() {
     if (item) {
       setEditingId(item._id || item.id || null);
       setFormData({
-        phongId: (item.phong as any)?._id || (item.phong as any)?.id || item.phong || '',
+        phongId: (item.phong as { _id?: string, id?: string })?._id || (item.phong as { _id?: string, id?: string })?.id || (typeof item.phong === 'string' ? item.phong : ''),
         loai: item.loai || 'ELECTRICITY',
         kyNam: item.kyNam || new Date().getFullYear(),
         kyThang: item.kyThang || new Date().getMonth() + 1,
@@ -154,8 +173,8 @@ export default function ChiSoDienNuocPage() {
       
       setIsDialogOpen(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || 'Lưu thất bại');
+    } catch (error: unknown) {
+      toast.error((error as Error).message || 'Lưu thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -170,8 +189,8 @@ export default function ChiSoDienNuocPage() {
       
       toast.success('Đã xóa chỉ số');
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || 'Xóa thất bại');
+    } catch (error: unknown) {
+      toast.error((error as Error).message || 'Xóa thất bại');
     }
   };
 
@@ -223,7 +242,7 @@ export default function ChiSoDienNuocPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {phongList.map(p => (
-                        <SelectItem key={p._id || p.id} value={p._id || p.id}>
+                        <SelectItem key={p._id || p.id || "unknown"} value={p._id || p.id || ""}>
                           {p.maPhong || p.ten}
                         </SelectItem>
                       ))}
@@ -397,7 +416,7 @@ export default function ChiSoDienNuocPage() {
                         {item.kyThang}/{item.kyNam}
                       </TableCell>
                       <TableCell>
-                        {(item.phong as any)?.maPhong || (item.phong as any)?.ten || 'N/A'}
+                        {(item.phong as { maPhong?: string, ten?: string })?.maPhong || (item.phong as { maPhong?: string, ten?: string })?.ten || 'N/A'}
                       </TableCell>
                       <TableCell>
                         {item.loai === 'ELECTRICITY' ? 'Điện' : 'Nước'}
@@ -450,6 +469,78 @@ export default function ChiSoDienNuocPage() {
               </TableBody>
             </Table>
           </div>
+          
+          <div className="flex items-center justify-between mt-4 px-2">
+            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+              Hiển thị {data.length} / {totalElements} chỉ số
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                  Số hàng mỗi trang
+                </Label>
+                <Select
+                  value={`${pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                    <SelectValue placeholder={pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
+                Trang {pagination.pageIndex + 1} / {totalPages || 1}
+              </div>
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang đầu</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang trước</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang sau</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang cuối</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
         </CardContent>
       </Card>
     </div>

@@ -41,7 +41,11 @@ import {
   Info,
   RefreshCw,
   Sliders,
-  DollarSign
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ToaNha, CauHinhGia, LoaiMucHoaDon, LoaiTinhPhi } from '@/types';
@@ -80,6 +84,11 @@ export default function CauHinhGiaPage() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
   
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingConfig, setEditingConfig] = useState<CauHinhGia | null>(null);
 
@@ -107,15 +116,34 @@ export default function CauHinhGiaPage() {
   }, []);
 
   // Fetch configurations for selected building
-  const fetchConfigs = useCallback(async (nhaTroId: string) => {
+  const fetchConfigs = useCallback(async (nhaTroId: string, pageIndex: number, pageSize: number, loaiFilter: string, statusFilter: string) => {
     if (!nhaTroId) return;
     try {
       setLoadingConfigs(true);
-      const response = await fetch(`/api/cau-hinh-gia?nhaTroId=${nhaTroId}`);
+      const params = new URLSearchParams({
+        nhaTroId,
+        page: (pageIndex + 1).toString(),
+        limit: pageSize.toString()
+      });
+      if (loaiFilter && loaiFilter !== 'ALL') params.append('loai', loaiFilter);
+      if (statusFilter === 'ACTIVE') params.append('dangApDung', 'true');
+      if (statusFilter === 'INACTIVE') params.append('dangApDung', 'false');
+
+      const response = await fetch(`/api/cau-hinh-gia?${params.toString()}`);
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setCauHinhGiaList(result.data || []);
+          let cauHinhGiaData = [];
+          if (result.data && !Array.isArray(result.data)) {
+            cauHinhGiaData = result.data.data || [];
+            setTotalElements(result.data.total || 0);
+            setTotalPages(result.data.totalPages || 0);
+          } else {
+            cauHinhGiaData = result.data || [];
+            setTotalElements(cauHinhGiaData.length);
+            setTotalPages(1);
+          }
+          setCauHinhGiaList(cauHinhGiaData);
         }
       }
     } catch (error) {
@@ -133,13 +161,13 @@ export default function CauHinhGiaPage() {
 
   useEffect(() => {
     if (selectedToaNhaId) {
-      fetchConfigs(selectedToaNhaId);
+      fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
     }
-  }, [selectedToaNhaId, fetchConfigs]);
+  }, [selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter, fetchConfigs]);
 
   const handleRefresh = async () => {
     if (selectedToaNhaId) {
-      await fetchConfigs(selectedToaNhaId);
+      await fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
       toast.success('Đã tải lại cấu hình giá mới nhất');
     }
   };
@@ -159,7 +187,7 @@ export default function CauHinhGiaPage() {
         if (result.success) {
           toast.success('Đã ngưng áp dụng cấu hình giá này!');
           if (selectedToaNhaId) {
-            fetchConfigs(selectedToaNhaId);
+            fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
           }
         } else {
           toast.error(result.message || 'Lỗi khi ngưng áp dụng cấu hình giá');
@@ -178,18 +206,12 @@ export default function CauHinhGiaPage() {
     }).format(amount);
   };
 
-  // Filter configurations
+  // Filter configurations for search (client-side search only, server-side filtering handled above)
   const filteredConfigs = cauHinhGiaList.filter((config) => {
     const matchesSearch = config.tenHienThi.toLowerCase().includes(searchTerm.toLowerCase()) ||
       LOAI_MUC_LABEL[config.loai]?.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesCategory = selectedCategoryFilter === 'ALL' || config.loai === selectedCategoryFilter;
-    
-    const matchesStatus = selectedStatusFilter === 'ALL' || 
-      (selectedStatusFilter === 'ACTIVE' && config.dangApDung) ||
-      (selectedStatusFilter === 'INACTIVE' && !config.dangApDung);
-
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch;
   });
 
   if (loadingToaNhas) {
@@ -247,7 +269,7 @@ export default function CauHinhGiaPage() {
                 onSuccess={() => {
                   setIsDialogOpen(false);
                   if (selectedToaNhaId) {
-                    fetchConfigs(selectedToaNhaId);
+                    fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
                   }
                 }}
               />
@@ -410,6 +432,78 @@ export default function CauHinhGiaPage() {
                 </Table>
               </div>
             )}
+            
+            <div className="flex items-center justify-between p-4 border-t">
+              <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                Hiển thị {filteredConfigs.length} / {totalElements} cấu hình
+              </div>
+              <div className="flex w-full items-center gap-8 lg:w-fit">
+                <div className="hidden items-center gap-2 lg:flex">
+                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                    Số hàng mỗi trang
+                  </Label>
+                  <Select
+                    value={`${pagination.pageSize}`}
+                    onValueChange={(value) => {
+                      setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                      <SelectValue placeholder={pagination.pageSize} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      {[10, 20, 30, 40, 50].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                  Trang {pagination.pageIndex + 1} / {totalPages || 1}
+                </div>
+                <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                  <Button
+                    variant="outline"
+                    className="hidden h-8 w-8 p-0 lg:flex"
+                    onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+                    disabled={pagination.pageIndex === 0}
+                  >
+                    <span className="sr-only">Trang đầu</span>
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="size-8 p-0"
+                    onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+                    disabled={pagination.pageIndex === 0}
+                  >
+                    <span className="sr-only">Trang trước</span>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="size-8 p-0"
+                    onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+                    disabled={pagination.pageIndex >= totalPages - 1}
+                  >
+                    <span className="sr-only">Trang sau</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="hidden h-8 w-8 p-0 lg:flex"
+                    onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+                    disabled={pagination.pageIndex >= totalPages - 1}
+                  >
+                    <span className="sr-only">Trang cuối</span>
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
           </CardContent>
         </Card>
       </div>

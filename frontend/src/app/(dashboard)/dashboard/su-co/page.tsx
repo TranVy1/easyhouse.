@@ -79,6 +79,11 @@ export default function SuCoPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSuCo, setEditingSuCo] = useState<SuCo | null>(null);
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Sự cố';
   }, []);
@@ -100,10 +105,27 @@ export default function SuCoPage() {
       }
       
       // Fetch sự cố từ API
-      const suCoResponse = await fetch('/api/su-co');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
+      if (typeFilter && typeFilter !== 'all') params.append('loaiSuCo', typeFilter);
+      if (priorityFilter && priorityFilter !== 'all') params.append('mucDoUuTien', priorityFilter);
+      // NOTE: backend may not support all these filters right now, but we'll pass them anyway.
+      
+      const suCoResponse = await fetch(`/api/su-co?${params.toString()}`);
       const suCoData = await suCoResponse.json();
-      const suCos = suCoData.success ? suCoData.data : [];
+      const suCos = suCoData.success ? (Array.isArray(suCoData.data) ? suCoData.data : (suCoData.data?.data || [])) : [];
       setSuCoList(suCos);
+      
+      if (suCoData.success && suCoData.data && !Array.isArray(suCoData.data)) {
+        setTotalElements(suCoData.data.total || 0);
+        setTotalPages(suCoData.data.totalPages || 0);
+      } else {
+        setTotalElements(suCos.length);
+        setTotalPages(1);
+      }
 
       // Fetch phòng từ API
       const phongResponse = await fetch('/api/phong');
@@ -141,8 +163,8 @@ export default function SuCoPage() {
   }, [getCache, setCache]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(false);
+  }, [fetchData, statusFilter, typeFilter, priorityFilter, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -151,14 +173,16 @@ export default function SuCoPage() {
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [statusFilter, typeFilter, priorityFilter]);
+
   const filteredSuCo = suCoList.filter(suCo => {
     const matchesSearch = suCo.tieuDe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          suCo.moTa?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || suCo.trangThai === statusFilter;
-    const matchesType = typeFilter === 'all' || suCo.loaiSuCo === typeFilter;
-    const matchesPriority = priorityFilter === 'all' || suCo.mucDoUuTien === priorityFilter;
     
-    return matchesSearch && matchesStatus && matchesType && matchesPriority;
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -357,7 +381,7 @@ export default function SuCoPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng sự cố</p>
-              <p className="text-base md:text-2xl font-bold">{suCoList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -424,6 +448,10 @@ export default function SuCoPage() {
             onTypeChange={setTypeFilter}
             priorityFilter={priorityFilter}
             onPriorityChange={setPriorityFilter}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

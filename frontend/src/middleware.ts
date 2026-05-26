@@ -29,6 +29,10 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith('/dashboard/quan-ly-tai-khoan')) {
           return token?.role === 'ADMIN' || token?.role === 'ROLE_ADMIN';
         }
+        // Protect cau-hinh-gia route
+        if (req.nextUrl.pathname.startsWith('/dashboard/cau-hinh-gia')) {
+          return token?.role === 'ADMIN' || token?.role === 'ROLE_ADMIN' || token?.role === 'LANDLORD' || token?.role === 'STAFF';
+        }
         // Protect dashboard routes
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
           return !!token && token.role !== 'TENANT';
@@ -39,7 +43,7 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith('/api/')) {
           return true;
         }
-        return true;
+        return !!token;
       },
     },
   }
@@ -48,6 +52,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/khach-thue/:path*',
     '/api/:path*'
   ]
 };

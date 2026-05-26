@@ -6,14 +6,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+
 import {
   Dialog,
   DialogContent,
@@ -23,13 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -48,12 +35,10 @@ import {
 import { 
   Plus, 
   Search, 
-  Edit, 
-  Trash2, 
+  Edit,  
   Building2, 
   MapPin,
   Users,
-  Eye,
   RefreshCw,
   Copy,
   Check,
@@ -67,37 +52,39 @@ import { toast } from 'sonner';
 import { ToaNhaDataTable } from './table';
 
 export default function ToaNhaPage() {
-  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
+  const { clearCache, isRefreshing, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingToaNha, setEditingToaNha] = useState<ToaNha | null>(null);
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     document.title = 'Quản lý Tòa nhà';
   }, []);
 
-  const fetchToaNha = useCallback(async (forceRefresh = false) => {
+  const fetchToaNha = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       
-      if (!forceRefresh) {
-        const cachedData = getCache();
-        if (cachedData) {
-          setToaNhaList(cachedData.toaNhaList || []);
-          setLoading(false);
-          return;
-        }
-      }
-      
-      const response = await fetch('/api/toa-nha');
+      const response = await fetch(`/api/toa-nha?page=${page}&limit=${limit}`);
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
           const toaNhas = Array.isArray(result.data) ? result.data : (result.data?.data || []);
           setToaNhaList(toaNhas);
-          setCache({ toaNhaList: toaNhas });
+          if (result.data && !Array.isArray(result.data)) {
+            setTotalElements(result.data.total || 0);
+            setTotalPages(result.data.totalPages || 0);
+          } else {
+            setTotalElements(toaNhas.length);
+            setTotalPages(1);
+          }
         }
       }
     } catch (error) {
@@ -105,15 +92,15 @@ export default function ToaNhaPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, []);
 
   useEffect(() => {
-    fetchToaNha();
-  }, [fetchToaNha]);
+    fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
+  }, [fetchToaNha, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchToaNha(true);
+    await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
@@ -139,7 +126,7 @@ export default function ToaNhaPage() {
         const result = await response.json();
         if (result.success) {
           clearCache();
-          setToaNhaList(prev => prev.filter(toaNha => toaNha._id !== id));
+          await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
           toast.success('Xóa tòa nhà thành công!');
         } else {
           toast.error(result.message || 'Có lỗi xảy ra khi xóa tòa nhà');
@@ -214,7 +201,7 @@ export default function ToaNhaPage() {
               onSuccess={() => {
                 clearCache();
                 setIsDialogOpen(false);
-                fetchToaNha(true);
+                fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
                 toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
               }}
             />
@@ -229,7 +216,7 @@ export default function ToaNhaPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng tòa nhà</p>
-              <p className="text-base md:text-2xl font-bold">{toaNhaList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <Building2 className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -285,6 +272,10 @@ export default function ToaNhaPage() {
             onDelete={handleDelete}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

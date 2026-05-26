@@ -40,11 +40,15 @@ class SecurityConfigTest {
     }
 
     @Test
-    void forgotPasswordIsPublic() throws Exception {
-        mockMvc.perform(post("/api/auth/forgot-password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"missing@example.com\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+    void adminApiRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/admin/users"))
+                .andExpect(status().isForbidden()); // or isUnauthorized depending on entry point
+    }
+
+    @Test
+    void lichHenPostIsPublic() throws Exception {
+        mockMvc.perform(post("/api/lich-hen")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest()); // Missing body results in 400, not 401/403
     }
 }

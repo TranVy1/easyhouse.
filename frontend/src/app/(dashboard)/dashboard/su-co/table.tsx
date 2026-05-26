@@ -33,7 +33,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  CircleCheck,
   AlertCircle,
   Clock,
   Users,
@@ -56,7 +55,6 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
-import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -317,6 +315,7 @@ const createColumns = (props: SuCoTableProps): ColumnDef<SuCo>[] => [
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
               {images.map((img, i) => (
                 <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
                 </div>
               ))}
@@ -458,10 +457,14 @@ type SuCoDataTableProps = SuCoTableProps & {
   onTypeChange?: (value: string) => void
   priorityFilter?: string
   onPriorityChange?: (value: string) => void
+  pageCount?: number
+  totalElements?: number
+  pagination?: { pageIndex: number; pageSize: number }
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
 }
 
 export function SuCoDataTable(props: SuCoDataTableProps) {
-  const { data: initialData, searchTerm, onSearchChange, statusFilter, onStatusFilterChange, typeFilter, onTypeChange, priorityFilter, onPriorityChange, ...tableProps } = props
+  const { data: initialData, searchTerm, onSearchChange, statusFilter, onStatusFilterChange, typeFilter, onTypeChange, priorityFilter, onPriorityChange, pageCount, totalElements, pagination: externalPagination, onPaginationChange, ...tableProps } = props
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -470,10 +473,24 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
     []
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
+  const [internalPagination, setInternalPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   })
+  
+  const pagination = externalPagination || internalPagination
+  
+  const handlePaginationChange = React.useCallback(
+    (updater: { pageIndex: number; pageSize: number } | ((old: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
+      const newPagination = typeof updater === 'function' ? updater(pagination) : updater
+      if (onPaginationChange) {
+        onPaginationChange(newPagination)
+      } else {
+        setInternalPagination(newPagination)
+      }
+    },
+    [pagination, onPaginationChange]
+  )
   
   // Sync data when prop changes
   React.useEffect(() => {
@@ -506,11 +523,13 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
     },
     getRowId: (row) => row._id!,
     enableRowSelection: true,
+    manualPagination: pageCount !== undefined,
+    pageCount: pageCount,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -680,9 +699,9 @@ export function SuCoDataTable(props: SuCoDataTableProps) {
       <div className="flex items-center justify-between px-4">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
           {selectedCount > 0 ? (
-            <>Đã chọn {selectedCount} trong {table.getFilteredRowModel().rows.length} hàng</>
+            <>Đã chọn {selectedCount} trong {totalElements !== undefined ? totalElements : table.getFilteredRowModel().rows.length} hàng</>
           ) : (
-            <>Hiển thị {table.getFilteredRowModel().rows.length} hàng</>
+            <>Hiển thị {totalElements !== undefined ? totalElements : table.getFilteredRowModel().rows.length} hàng</>
           )}
         </div>
         <div className="flex w-full items-center gap-8 lg:w-fit">

@@ -291,7 +291,7 @@ export default function ChinhSuaHopDongPage() {
       }
 
       // Fetch phong data
-      const phongResponse = await fetch('/api/phong?limit=100');
+      const phongResponse = await fetch('/api/phong');
       const phongData = await phongResponse.json().catch(() => ({}));
       if (!phongResponse.ok || phongData.success === false) {
         throw new Error(phongData.message || 'Không tải được danh sách phòng');
@@ -299,7 +299,7 @@ export default function ChinhSuaHopDongPage() {
       setPhongList((phongData.data || []).map(normalizePhong));
 
       // Fetch khach thue data
-      const khachThueResponse = await fetch('/api/khach-thue?limit=100');
+      const khachThueResponse = await fetch('/api/khach-thue');
       const khachThueData = await khachThueResponse.json().catch(() => ({}));
       if (!khachThueResponse.ok || khachThueData.success === false) {
         throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');

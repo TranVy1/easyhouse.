@@ -43,7 +43,11 @@ import {
   Send,
   Building2,
   Home,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { ThongBao, ToaNha, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
@@ -77,6 +81,11 @@ export default function ThongBaoPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingThongBao, setEditingThongBao] = useState<ThongBao | null>(null);
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Thông báo';
   }, []);
@@ -100,9 +109,27 @@ export default function ThongBaoPage() {
       }
 
       // Fetch thông báo từ API
-      const thongBaoResponse = await fetch('/api/thong-bao');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (typeFilter && typeFilter !== 'all') params.append('loai', typeFilter);
+      
+      const thongBaoResponse = await fetch(`/api/thong-bao?${params.toString()}`);
       const thongBaoData = thongBaoResponse.ok ? await thongBaoResponse.json() : { data: [] };
-      const thongBaos = thongBaoData.success ? thongBaoData.data : [];
+      
+      let thongBaos = [];
+      if (thongBaoData.success) {
+        if (thongBaoData.data && !Array.isArray(thongBaoData.data)) {
+          thongBaos = thongBaoData.data.data || [];
+          setTotalElements(thongBaoData.data.total || 0);
+          setTotalPages(thongBaoData.data.totalPages || 0);
+        } else {
+          thongBaos = thongBaoData.data || [];
+          setTotalElements(thongBaos.length);
+          setTotalPages(1);
+        }
+      }
       setThongBaoList(thongBaos);
 
       // Fetch tòa nhà từ API
@@ -138,11 +165,16 @@ export default function ThongBaoPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, typeFilter]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(false, false);
+  }, [fetchData, typeFilter, pagination.pageIndex, pagination.pageSize]);
+
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [typeFilter]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -152,11 +184,10 @@ export default function ThongBaoPage() {
   };
 
   const filteredThongBao = thongBaoList.filter(thongBao => {
-    const matchesSearch = thongBao.tieuDe.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      thongBao.noiDung.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || thongBao.loai === typeFilter;
+    const matchesSearch = thongBao.tieuDe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      thongBao.noiDung?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesType;
+    return matchesSearch;
   });
 
   const getTypeBadge = (type: string) => {
@@ -366,7 +397,7 @@ export default function ThongBaoPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng thông báo</p>
-              <p className="text-base md:text-2xl font-bold">{thongBaoList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <Bell className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -543,6 +574,78 @@ export default function ThongBaoPage() {
               </TableBody>
             </Table>
           </div>
+          
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+              Hiển thị {filteredThongBao.length} / {totalElements} thông báo
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                  Số hàng mỗi trang
+                </Label>
+                <Select
+                  value={`${pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                    <SelectValue placeholder={pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
+                Trang {pagination.pageIndex + 1} / {totalPages || 1}
+              </div>
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang đầu</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang trước</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang sau</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang cuối</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
         </CardContent>
       </Card>
 

@@ -26,6 +26,7 @@ public class UserService {
     private final NhaTroRepository nhaTroRepository;
     private final NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
     private final PermissionService permissionService;
+    private final AuditLogRepository auditLogRepository;
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
@@ -64,7 +65,9 @@ public class UserService {
                 .trangThai(Boolean.FALSE.equals(request.getIsActive()) ? TrangThaiNguoiDung.INACTIVE : TrangThaiNguoiDung.ACTIVE)
                 .build();
 
-        return mapToUserResponse(nguoiDungRepository.save(user));
+        NguoiDung saved = nguoiDungRepository.save(user);
+        logAudit(saved, "CREATE");
+        return mapToUserResponse(saved);
     }
 
     @Transactional
@@ -82,7 +85,9 @@ public class UserService {
         if (request.getIsActive() != null) {
             user.setTrangThai(request.getIsActive() ? TrangThaiNguoiDung.ACTIVE : TrangThaiNguoiDung.INACTIVE);
         }
-        return mapToUserResponse(nguoiDungRepository.save(user));
+        NguoiDung saved = nguoiDungRepository.save(user);
+        logAudit(saved, "UPDATE");
+        return mapToUserResponse(saved);
     }
 
     @Transactional
@@ -91,6 +96,7 @@ public class UserService {
         NguoiDung user = findActiveUser(id);
         user.setXoaLuc(ZonedDateTime.now());
         nguoiDungRepository.save(user);
+        logAudit(user, "DELETE");
     }
 
     @Transactional(readOnly = true)
@@ -224,6 +230,22 @@ public class UserService {
                         .build();
                 nguoiDungNhaTroRepository.save(ndnt);
             }
+        }
+    }
+
+    private void logAudit(NguoiDung targetUser, String hanhDong) {
+        try {
+            UUID adminId = permissionService.requireCurrentUserId();
+            AuditLog log = AuditLog.builder()
+                .nguoiDung(NguoiDung.builder().id(adminId).build())
+                .hanhDong(hanhDong)
+                .bangTacDong("nguoi_dung")
+                .banGhiId(targetUser.getId())
+                .taoLuc(ZonedDateTime.now())
+                .build();
+            auditLogRepository.save(log);
+        } catch (Exception ignored) {
+            // Audit should not break admin flow
         }
     }
 }

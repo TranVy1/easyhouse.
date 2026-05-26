@@ -69,6 +69,11 @@ export default function HopDongPage() {
   const [extendTarget, setExtendTarget] = useState<HopDong | null>(null);
   const [extendDate, setExtendDate] = useState('');
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Hợp đồng';
   }, []);
@@ -94,24 +99,43 @@ export default function HopDongPage() {
     try {
       setLoading(true);
       
-      // Thử load từ cache trước (nếu không force refresh)
+      // Thử load từ cache trước cho danh mục phụ (nếu không force refresh)
       if (!forceRefresh) {
         const cachedData = getCache();
-        if (cachedData) {
-          setHopDongList(cachedData.hopDongList || []);
-          setPhongList(cachedData.phongList || []);
+        if (cachedData && cachedData.phongList && cachedData.phongList.length > 0) {
+          setPhongList(cachedData.phongList);
           setKhachThueList(cachedData.khachThueList || []);
           setToaNhaList(cachedData.toaNhaList || []);
-          setLoading(false);
-          return true;
         }
       }
       
-      const [hopDongs, phongs, khachThues, toaNhas] = await Promise.all([
-        readList('/api/hop-dong?limit=100', 'danh sách hợp đồng', normalizeHopDong),
-        readList('/api/phong?limit=100', 'danh sách phòng', normalizePhong),
-        readList('/api/khach-thue?limit=100', 'danh sách khách thuê', normalizeKhachThue),
-        readList('/api/toa-nha?limit=100', 'danh sách tòa nhà', normalizeToaNha),
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
+      if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
+
+      const response = await fetch(`/api/hop-dong?${params.toString()}`);
+      let hopDongs: HopDong[] = [];
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          hopDongs = Array.isArray(result.data) ? result.data : (result.data?.data || []).map(normalizeHopDong);
+          if (result.data && !Array.isArray(result.data)) {
+            setTotalElements(result.data.total || 0);
+            setTotalPages(result.data.totalPages || 0);
+          } else {
+            setTotalElements(hopDongs.length);
+            setTotalPages(1);
+          }
+        }
+      }
+
+      const [phongs, khachThues, toaNhas] = await Promise.all([
+        readList('/api/phong', 'danh sách phòng', normalizePhong),
+        readList('/api/khach-thue', 'danh sách khách thuê', normalizeKhachThue),
+        readList('/api/toa-nha', 'danh sách tòa nhà', normalizeToaNha),
       ]);
 
       setHopDongList(hopDongs);
@@ -138,8 +162,8 @@ export default function HopDongPage() {
   }, [getCache, readList, setCache]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(false);
+  }, [fetchData, statusFilter, toaNhaFilter, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -150,6 +174,11 @@ export default function HopDongPage() {
     }
   };
 
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [statusFilter, toaNhaFilter]);
+
 
   const normalizeStatus = (status?: string) => hopDongStatusFromDb(status || 'nhap');
   const isActiveStatus = (status?: string) => normalizeStatus(status) === 'hoatDong';
@@ -159,20 +188,8 @@ export default function HopDongPage() {
     const matchesSearch = !keyword ||
       (hopDong.maHopDong || '').toLowerCase().includes(keyword) ||
       (hopDong.dieuKhoan || '').toLowerCase().includes(keyword);
-    const matchesStatus = statusFilter === 'all' || normalizeStatus(hopDong.trangThai) === statusFilter;
     
-    // Filter by toa nha
-    let matchesToaNha = true;
-    if (toaNhaFilter !== 'all') {
-      if (typeof hopDong.phong === 'object' && (hopDong.phong as { toaNha: { _id: string } })?.toaNha) {
-        matchesToaNha = ((hopDong.phong as { toaNha: { _id: string } }).toaNha)._id === toaNhaFilter;
-      } else {
-        const phong = phongList.find(p => p._id === hopDong.phong);
-        matchesToaNha = phong?.toaNha === toaNhaFilter;
-      }
-    }
-    
-    return matchesSearch && matchesStatus && matchesToaNha;
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -1236,7 +1253,7 @@ export default function HopDongPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng hợp đồng</p>
-              <p className="text-base md:text-2xl font-bold">{hopDongList.length}</p>
+              <p className="text-xl md:text-2xl font-bold">{totalElements}</p>
             </div>
             <FileText className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -1307,6 +1324,10 @@ export default function HopDongPage() {
             toaNhaFilter={toaNhaFilter}
             onToaNhaChange={setToaNhaFilter}
             allToaNhaList={toaNhaList}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>

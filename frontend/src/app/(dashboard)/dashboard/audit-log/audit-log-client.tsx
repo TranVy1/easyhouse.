@@ -26,13 +26,13 @@ import { AuditLog, ApiResponse } from "@/types";
 
 interface PageData {
   content: AuditLog[];
-  pageable: any;
+  pageable: Record<string, unknown>;
   totalPages: number;
   totalElements: number;
   last: boolean;
   size: number;
   number: number;
-  sort: any;
+  sort: Record<string, unknown>;
   numberOfElements: number;
   first: boolean;
   empty: boolean;

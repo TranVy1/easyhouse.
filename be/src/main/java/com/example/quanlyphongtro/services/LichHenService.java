@@ -31,6 +31,7 @@ public class LichHenService {
     private final LichHenRepository lichHenRepository;
     private final PhongRepository phongRepository;
     private final PermissionService permissionService;
+    private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
 
     public PaginatedResponse<LichHenResponse> getAll(UUID nhaTroId, UUID phongId, String trangThai, Pageable pageable) {
         UUID userId = permissionService.requireCurrentUserId();
@@ -97,7 +98,10 @@ public class LichHenService {
             lichHen.setTrangThai(TrangThaiLichHen.PENDING);
         }
 
-        return LichHenResponse.fromEntity(lichHenRepository.save(lichHen));
+        LichHen saved = lichHenRepository.save(lichHen);
+        // Note: create is public (no logged-in user required), audit only if user present
+        permissionService.currentUserId().ifPresent(uid -> logAudit(saved, "CREATE", uid));
+        return LichHenResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -124,7 +128,9 @@ public class LichHenService {
             lichHen.setTrangThai(TrangThaiLichHen.valueOf(req.getTrangThai()));
         }
 
-        return LichHenResponse.fromEntity(lichHenRepository.save(lichHen));
+        LichHen saved = lichHenRepository.save(lichHen);
+        logAudit(saved, "UPDATE", userId);
+        return LichHenResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -137,7 +143,9 @@ public class LichHenService {
         }
         
         lichHen.setTrangThai(TrangThaiLichHen.valueOf(status));
-        return LichHenResponse.fromEntity(lichHenRepository.save(lichHen));
+        LichHen saved = lichHenRepository.save(lichHen);
+        logAudit(saved, "UPDATE_STATUS", userId);
+        return LichHenResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -148,6 +156,22 @@ public class LichHenService {
         if (lichHen.getPhong() != null && !permissionService.canWritePhong(userId, lichHen.getPhong().getId())) {
             throw new RuntimeException("Khong co quyen xoa lich hen nay");
         }
+        logAudit(lichHen, "DELETE", userId);
         lichHenRepository.deleteById(id);
+    }
+
+    private void logAudit(LichHen lh, String hanhDong, UUID userId) {
+        try {
+            com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
+                .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(userId).build())
+                .hanhDong(hanhDong)
+                .bangTacDong("lich_hen")
+                .banGhiId(lh.getId())
+                .taoLuc(java.time.ZonedDateTime.now())
+                .build();
+            auditLogRepository.save(log);
+        } catch (Exception e) {
+            // Silently fail – audit should not break business flow
+        }
     }
 }

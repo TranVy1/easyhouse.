@@ -4,18 +4,11 @@ import * as React from "react"
 import { useSession } from "next-auth/react"
 import {
   Building2,
-  DoorOpen,
-  Users,
-  FileText,
   Receipt,
-  CreditCard,
   AlertTriangle,
-  Bell,
   Settings,
   Shield,
-  Home,
   Building,
-  Globe,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"

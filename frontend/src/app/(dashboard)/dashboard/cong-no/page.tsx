@@ -13,7 +13,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileText, Loader2, Search, Bell } from 'lucide-react';
+import { FileText, Loader2, Search, Bell, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 interface CongNoData {
@@ -26,7 +34,7 @@ interface CongNoData {
   soDienThoai: string | null;
   tongNo: number;
   noQuaHan: number;
-  danhSachHoaDonNo: any[];
+  danhSachHoaDonNo: Record<string, unknown>[];
 }
 
 export default function CongNoPage() {
@@ -34,17 +42,40 @@ export default function CongNoPage() {
   const [filteredData, setFilteredData] = useState<CongNoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/cong-no');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      // Currently API doesn't support search natively, but we can pass it if we add it later
+      
+      const res = await fetch(`/api/cong-no?${params.toString()}`);
       if (!res.ok) throw new Error('Không thể tải dữ liệu công nợ');
       const json = await res.json();
-      setData(json.data || []);
-      setFilteredData(json.data || []);
-    } catch (error: any) {
-      toast.error(error.message || 'Lỗi tải dữ liệu');
+      
+      let congNoData = [];
+      if (json.data && !Array.isArray(json.data)) {
+        congNoData = json.data.data || [];
+        setTotalElements(json.data.total || 0);
+        setTotalPages(json.data.totalPages || 0);
+      } else {
+        congNoData = json.data || [];
+        setTotalElements(congNoData.length);
+        setTotalPages(1);
+      }
+      
+      setData(congNoData);
+      setFilteredData(congNoData);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Lỗi tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -52,7 +83,7 @@ export default function CongNoPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
     if (!search.trim()) {
@@ -177,6 +208,77 @@ export default function CongNoPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+          
+          <div className="flex items-center justify-between mt-4 px-2">
+            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+              Hiển thị {filteredData.length} / {totalElements} công nợ
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                  Số hàng mỗi trang
+                </Label>
+                <Select
+                  value={`${pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                    <SelectValue placeholder={pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
+                Trang {pagination.pageIndex + 1} / {totalPages || 1}
+              </div>
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang đầu</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Trang trước</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 p-0"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang sau</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+                  disabled={pagination.pageIndex >= totalPages - 1}
+                >
+                  <span className="sr-only">Trang cuối</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

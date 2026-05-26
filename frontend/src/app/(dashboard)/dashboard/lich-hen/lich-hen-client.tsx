@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Plus, Pencil, Trash2, Calendar as CalendarIcon, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, Calendar as CalendarIcon, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -47,19 +47,37 @@ export function LichHenClient() {
     trangThai: "PENDING"
   });
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      
       const [lichHenRes, phongRes] = await Promise.all([
-        fetch("/api/lich-hen"),
-        fetch("/api/phong?limit=100")
+        fetch(`/api/lich-hen?${params.toString()}`),
+        fetch("/api/phong")
       ]);
       
       const lichHenData = await lichHenRes.json();
       const phongData = await phongRes.json();
       
       if (lichHenData.success) {
-        setLichHenList(lichHenData.data || []);
+        if (lichHenData.data && !Array.isArray(lichHenData.data)) {
+          setLichHenList(lichHenData.data.data || []);
+          setTotalElements(lichHenData.data.total || 0);
+          setTotalPages(lichHenData.data.totalPages || 0);
+        } else {
+          setLichHenList(lichHenData.data || []);
+          setTotalElements((lichHenData.data || []).length);
+          setTotalPages(1);
+        }
       }
       if (phongData.success) {
         setPhongList(phongData.data || []);
@@ -74,14 +92,15 @@ export function LichHenClient() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   const handleOpenDialog = (lichHen?: LichHen) => {
     if (lichHen) {
       setSelectedLichHen(lichHen);
       const date = new Date(lichHen.ngayHen);
       setFormData({
-        phongId: lichHen.phongId || (lichHen.phong as any)?._id || "",
+        phongId: lichHen.phongId || (lichHen.phong as { _id?: string })?._id || "",
         hoTen: lichHen.hoTen || "",
         soDienThoai: lichHen.soDienThoai || "",
         email: lichHen.email || "",
@@ -257,7 +276,7 @@ export function LichHenClient() {
                     <div className="text-xs text-gray-500">{lh.soDienThoai}</div>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium">{(lh.phong as any)?.maPhong || getPhongName(lh.phongId)}</span>
+                    <span className="font-medium">{(lh.phong as { maPhong?: string })?.maPhong || getPhongName(lh.phongId)}</span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-sm">
@@ -294,6 +313,77 @@ export function LichHenClient() {
         </Table>
       </div>
 
+      <div className="flex items-center justify-between px-2">
+        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+          Hiển thị {lichHenList.length} / {totalElements} lịch hẹn
+        </div>
+        <div className="flex w-full items-center gap-8 lg:w-fit">
+          <div className="hidden items-center gap-2 lg:flex">
+            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              Số hàng mỗi trang
+            </Label>
+            <Select
+              value={`${pagination.pageSize}`}
+              onValueChange={(value) => {
+                setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
+              }}
+            >
+              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectValue placeholder={pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex w-fit items-center justify-center text-sm font-medium">
+            Trang {pagination.pageIndex + 1} / {totalPages || 1}
+          </div>
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
+              disabled={pagination.pageIndex === 0}
+            >
+              <span className="sr-only">Trang đầu</span>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="size-8 p-0"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+              disabled={pagination.pageIndex === 0}
+            >
+              <span className="sr-only">Trang trước</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="size-8 p-0"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
+              disabled={pagination.pageIndex >= totalPages - 1}
+            >
+              <span className="sr-only">Trang sau</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
+              disabled={pagination.pageIndex >= totalPages - 1}
+            >
+              <span className="sr-only">Trang cuối</span>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
@@ -315,7 +405,7 @@ export function LichHenClient() {
                 <SelectContent>
                   {phongList.map((phong) => (
                     <SelectItem key={phong._id} value={phong._id!}>
-                      {phong.maPhong} - {(phong.toaNha as any)?.tenToaNha || "N/A"}
+                      {phong.maPhong} - {(phong.toaNha as { tenToaNha?: string })?.tenToaNha || "N/A"}
                     </SelectItem>
                   ))}
                 </SelectContent>

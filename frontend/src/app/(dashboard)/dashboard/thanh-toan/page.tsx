@@ -7,14 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,23 +24,17 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ImageUpload } from '@/components/ui/image-upload';
-import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  CreditCard, 
+import { ImageUpload } from '@/components/ui/image-upload'; import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  CreditCard,
   Calendar,
   Users,
-  Eye,
-  Filter,
-  Download,
   Receipt,
   RefreshCw,
-  FileText,
-  Copy
+  FileText
 } from 'lucide-react';
 import { ThanhToan, HoaDon } from '@/types';
 import { toast } from 'sonner';
@@ -63,11 +49,11 @@ type HoaDonPhongPopulated = { maPhong?: string };
 type HoaDonKhachThuePopulated = { hoTen?: string };
 
 export default function ThanhToanPage() {
-  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ 
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     thanhToanList: ThanhToanPopulated[];
     hoaDonList: HoaDon[];
   }>({ key: 'thanh-toan-data', duration: 300000 });
-  
+
   const [thanhToanList, setThanhToanList] = useState<ThanhToanPopulated[]>([]);
   const [hoaDonList, setHoaDonList] = useState<HoaDon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +63,11 @@ export default function ThanhToanPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingThanhToan, setEditingThanhToan] = useState<ThanhToanPopulated | null>(null);
 
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     document.title = 'Quản lý Thanh toán';
   }, []);
@@ -84,7 +75,7 @@ export default function ThanhToanPage() {
   const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
-      
+
       if (!forceRefresh) {
         const cachedData = getCache();
         if (cachedData) {
@@ -94,19 +85,35 @@ export default function ThanhToanPage() {
           return;
         }
       }
-      
+
       // Fetch thanh toan từ API
-      const thanhToanResponse = await fetch('/api/thanh-toan');
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (methodFilter && methodFilter !== 'all') params.append('phuongThuc', methodFilter);
+      // NOTE: dateFilter mapping might be more complex, basic API pass for now
+      // If we implement backend date filtering, we add it here.
+
+      const thanhToanResponse = await fetch(`/api/thanh-toan?${params.toString()}`);
       const thanhToanData = thanhToanResponse.ok ? await thanhToanResponse.json() : { data: [] };
-      const thanhToans = thanhToanData.data || [];
+      const thanhToans = Array.isArray(thanhToanData.data) ? thanhToanData.data : (thanhToanData.data?.data || []);
       setThanhToanList(thanhToans);
+
+      if (thanhToanData.data && !Array.isArray(thanhToanData.data)) {
+        setTotalElements(thanhToanData.data.total || 0);
+        setTotalPages(thanhToanData.data.totalPages || 0);
+      } else {
+        setTotalElements(thanhToans.length);
+        setTotalPages(1);
+      }
 
       // Fetch hoa don từ API để hiển thị thông tin
       const hoaDonResponse = await fetch('/api/hoa-don');
       const hoaDonData = hoaDonResponse.ok ? await hoaDonResponse.json() : { data: [] };
       const hoaDons = hoaDonData.data || [];
       setHoaDonList(hoaDons);
-      
+
       setCache({
         thanhToanList: thanhToans,
         hoaDonList: hoaDons,
@@ -116,11 +123,11 @@ export default function ThanhToanPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache]);
+  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, methodFilter]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(false);
+  }, [fetchData, methodFilter, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -129,16 +136,20 @@ export default function ThanhToanPage() {
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [methodFilter]);
+
   const filteredThanhToan = thanhToanList.filter(thanhToan => {
     const matchesSearch = thanhToan.ghiChu?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         thanhToan.thongTinChuyenKhoan?.soGiaoDich?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMethod = methodFilter === 'all' || thanhToan.phuongThuc === methodFilter;
-    const matchesDate = dateFilter === 'all' || 
-                       (dateFilter === 'today' && isToday(thanhToan.ngayThanhToan)) ||
-                       (dateFilter === 'week' && isThisWeek(thanhToan.ngayThanhToan)) ||
-                       (dateFilter === 'month' && isThisMonth(thanhToan.ngayThanhToan));
-    
-    return matchesSearch && matchesMethod && matchesDate;
+      thanhToan.thongTinChuyenKhoan?.soGiaoDich?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDate = dateFilter === 'all' ||
+      (dateFilter === 'today' && isToday(new Date(thanhToan.ngayThanhToan))) ||
+      (dateFilter === 'week' && isThisWeek(new Date(thanhToan.ngayThanhToan))) ||
+      (dateFilter === 'month' && isThisMonth(new Date(thanhToan.ngayThanhToan)));
+
+    return matchesSearch && matchesDate;
   });
 
   const getMethodBadge = (method: string) => {
@@ -156,20 +167,20 @@ export default function ThanhToanPage() {
 
   const getHoaDonInfo = (hoaDon: string | HoaDon) => {
     console.log('getHoaDonInfo called with:', hoaDon, 'type:', typeof hoaDon);
-    
+
     // Nếu hoaDon là object (đã được populate), lấy maHoaDon trực tiếp
     if (typeof hoaDon === 'object' && hoaDon?.maHoaDon) {
       console.log('Returning populated maHoaDon:', hoaDon.maHoaDon);
       return hoaDon.maHoaDon;
     }
-    
+
     // Nếu hoaDon là string (ID), tìm trong hoaDonList
     if (typeof hoaDon === 'string') {
       const hoaDonItem = hoaDonList.find(h => h._id === hoaDon);
       console.log('Found hoaDon in list:', hoaDonItem?.maHoaDon);
       return hoaDonItem?.maHoaDon || 'Không xác định';
     }
-    
+
     console.log('Returning default: Không xác định');
     return 'Không xác định';
   };
@@ -212,7 +223,7 @@ export default function ThanhToanPage() {
         clearCache();
         setThanhToanList(prev => prev.filter(thanhToan => thanhToan._id !== id));
         toast.success('Xóa thanh toán thành công');
-      } else{
+      } else {
         const errorData = await response.json();
         toast.error('Có lỗi xảy ra: ' + (errorData.message || 'Không thể xóa thanh toán'));
       }
@@ -248,7 +259,7 @@ export default function ThanhToanPage() {
           <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả giao dịch thanh toán</p>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
@@ -266,28 +277,28 @@ export default function ThanhToanPage() {
                 <span className="sm:hidden">Thêm</span>
               </Button>
             </DialogTrigger>
-          <DialogContent className="w-[95vw] md:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingThanhToan ? 'Chỉnh sửa thanh toán' : 'Thêm thanh toán mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingThanhToan ? 'Cập nhật thông tin thanh toán' : 'Nhập thông tin thanh toán mới'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <ThanhToanForm 
-              thanhToan={editingThanhToan}
-              hoaDonList={hoaDonList}
-              onClose={() => setIsDialogOpen(false)}
-              onSuccess={() => {
-                clearCache();
-                setIsDialogOpen(false);
-                fetchData(true);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+            <DialogContent className="w-[95vw] md:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingThanhToan ? 'Chỉnh sửa thanh toán' : 'Thêm thanh toán mới'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingThanhToan ? 'Cập nhật thông tin thanh toán' : 'Nhập thông tin thanh toán mới'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <ThanhToanForm
+                thanhToan={editingThanhToan}
+                hoaDonList={hoaDonList}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={() => {
+                  clearCache();
+                  setIsDialogOpen(false);
+                  fetchData(true);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -297,7 +308,7 @@ export default function ThanhToanPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng giao dịch</p>
-              <p className="text-base md:text-2xl font-bold">{thanhToanList.length}</p>
+              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
             </div>
             <CreditCard className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
           </div>
@@ -361,6 +372,10 @@ export default function ThanhToanPage() {
             onMethodChange={setMethodFilter}
             dateFilter={dateFilter}
             onDateChange={setDateFilter}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
           />
         </CardContent>
       </Card>
@@ -371,7 +386,7 @@ export default function ThanhToanPage() {
           <h2 className="text-lg font-semibold">Danh sách thanh toán</h2>
           <span className="text-sm text-gray-500">{filteredThanhToan.length} giao dịch</span>
         </div>
-        
+
         {/* Mobile Filters */}
         <div className="space-y-2 mb-4">
           <div className="relative">
@@ -415,7 +430,7 @@ export default function ThanhToanPage() {
             const hoaDonInfo = typeof thanhToan.hoaDon === 'object' ? (thanhToan.hoaDon as HoaDon) : null;
             const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as unknown as HoaDonPhongPopulated) : null;
             const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as unknown as HoaDonKhachThuePopulated) : null;
-            
+
             return (
               <Card key={thanhToan._id} className="p-4">
                 <div className="space-y-3">
@@ -524,19 +539,19 @@ export default function ThanhToanPage() {
 }
 
 // Form component for adding/editing thanh toan
-function ThanhToanForm({ 
-  thanhToan, 
+function ThanhToanForm({
+  thanhToan,
   hoaDonList,
-  onClose, 
-  onSuccess 
-}: { 
+  onClose,
+  onSuccess
+}: {
   thanhToan: ThanhToanPopulated | null;
   hoaDonList: HoaDon[];
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
-    hoaDon: thanhToan?.hoaDon ? 
+    hoaDon: thanhToan?.hoaDon ?
       (typeof thanhToan.hoaDon === 'string' ? thanhToan.hoaDon : (thanhToan.hoaDon as HoaDon)._id || '') : '',
     soTien: thanhToan?.soTien || 0,
     phuongThuc: thanhToan?.phuongThuc || 'tienMat',
@@ -577,7 +592,7 @@ function ThanhToanForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const requestData = {
         hoaDonId: formData.hoaDon,
@@ -591,12 +606,12 @@ function ThanhToanForm({
         ghiChu: formData.ghiChu,
         anhBienLai: formData.anhBienLai
       };
-      
+
       console.log('Submitting:', requestData);
-      
+
       const url = thanhToan ? `/api/thanh-toan/${thanhToan._id}` : '/api/thanh-toan';
       const method = thanhToan ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -678,7 +693,7 @@ function ThanhToanForm({
               className="text-sm"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="soGiaoDich" className="text-xs md:text-sm">Số giao dịch</Label>
             <Input
