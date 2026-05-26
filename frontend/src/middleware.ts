@@ -5,6 +5,16 @@ export default withAuth(
   function middleware(req: NextRequestWithAuth) {
     const requestHeaders = new Headers(req.headers);
     const accessToken = req.nextauth.token?.accessToken;
+    const role = typeof req.nextauth.token?.role === 'string'
+      ? req.nextauth.token.role.replace(/^ROLE_/, '').toUpperCase()
+      : '';
+
+    if (
+      req.nextUrl.pathname.startsWith('/khach-thue/dashboard') &&
+      (!req.nextauth.token || role !== 'TENANT')
+    ) {
+      return NextResponse.redirect(new URL('/khach-thue/dang-nhap', req.url));
+    }
 
     if (
       req.nextUrl.pathname.startsWith('/api/') &&
@@ -47,7 +57,7 @@ export default withAuth(
           return !!token && role !== 'TENANT';
         }
         if (req.nextUrl.pathname.startsWith('/khach-thue/dashboard')) {
-          return !!token && role === 'TENANT';
+          return true;
         }
         if (req.nextUrl.pathname.startsWith('/api/')) {
           return true;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useTenantDashboard } from '../context';
 
 export default function TenantProfilePage() {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const { refreshData } = useTenantDashboard();
   
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,12 @@ export default function TenantProfilePage() {
     phone: '',
     email: '',
     avatar: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   useEffect(() => {
@@ -131,11 +137,45 @@ export default function TenantProfilePage() {
       } else {
         throw new Error(result.error || 'Lỗi cập nhật hồ sơ');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Lỗi cập nhật:', error);
-      toast.error(error.message || 'Có lỗi xảy ra');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.accessToken) return;
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp');
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.accessToken}`
+        },
+        body: JSON.stringify({
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+      const result = await res.json();
+      if (!result.success) {
+        throw new Error(result.message || result.error || 'Đổi mật khẩu thất bại');
+      }
+      toast.success('Đổi mật khẩu thành công');
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Đổi mật khẩu thất bại');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -258,12 +298,43 @@ export default function TenantProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg text-sm text-orange-800">
-                <p className="mb-2 font-medium">Bảo mật tài khoản</p>
-                <p className="opacity-90">
-                  Việc thay đổi mật khẩu hiện được quản lý bởi hệ thống xác thực. Vui lòng liên hệ quản lý nếu bạn cần cấp lại mật khẩu.
-                </p>
-              </div>
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="oldPassword">Mật khẩu hiện tại</Label>
+                  <Input
+                    id="oldPassword"
+                    type="password"
+                    value={passwordData.oldPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    minLength={8}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirmPassword">Nhập lại mật khẩu mới</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    minLength={8}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    required
+                  />
+                </div>
+                <Button type="submit" variant="outline" disabled={changingPassword} className="w-full">
+                  {changingPassword ? 'Đang đổi mật khẩu...' : 'Đổi mật khẩu'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 

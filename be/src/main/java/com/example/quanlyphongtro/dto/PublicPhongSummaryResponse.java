@@ -1,5 +1,6 @@
 package com.example.quanlyphongtro.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import com.example.quanlyphongtro.entity.TrangThaiPhong;
 @Data
 @Builder
 public class PublicPhongSummaryResponse {
+    @JsonProperty("_id")
     private UUID _id;
     private String ten;
     private BigDecimal giaHienTai;

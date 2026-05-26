@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Phone, Lock, LogIn, Home } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function KhachThueDangNhapPage() {
+function KhachThueDangNhapContent() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     soDienThoai: '',
@@ -69,6 +69,7 @@ export default function KhachThueDangNhapPage() {
                   id="soDienThoai"
                   type="tel"
                   placeholder="0123456789"
+                  autoComplete="tel"
                   value={formData.soDienThoai}
                   onChange={(e) => setFormData(prev => ({ ...prev, soDienThoai: e.target.value }))}
                   className="pl-10"
@@ -84,6 +85,7 @@ export default function KhachThueDangNhapPage() {
                 <Input
                   id="matKhau"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Nhập mật khẩu"
                   value={formData.matKhau}
                   onChange={(e) => setFormData(prev => ({ ...prev, matKhau: e.target.value }))}
@@ -115,6 +117,14 @@ export default function KhachThueDangNhapPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function KhachThueDangNhapPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" />}>
+      <KhachThueDangNhapContent />
+    </Suspense>
   );
 }
 

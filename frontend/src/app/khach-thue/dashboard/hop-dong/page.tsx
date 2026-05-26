@@ -10,7 +10,7 @@ import { HopDong, TenantContract } from '@/types';
 import Link from 'next/link';
 
 export default function TenantContractsPage() {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const [contracts, setContracts] = useState<TenantContract[]>([]);
   const [loading, setLoading] = useState(true);
 

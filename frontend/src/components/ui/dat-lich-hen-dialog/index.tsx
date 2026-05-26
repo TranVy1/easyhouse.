@@ -60,6 +60,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
           email: formData.email,
           ngayHen: ngayHenIso,
           ghiChu: formData.ghiChu,
+          honeypot: formData.honeypot,
         }),
       });
 

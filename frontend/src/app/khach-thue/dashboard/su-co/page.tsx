@@ -15,7 +15,7 @@ import { SuCo } from '@/types';
 import { useTenantDashboard } from '../context';
 
 export default function TenantIncidentsPage() {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const { data: dashboardData } = useTenantDashboard();
   const [incidents, setIncidents] = useState<SuCo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,9 +132,9 @@ export default function TenantIncidentsPage() {
       } else {
         throw new Error(result.error || 'Lỗi gửi báo cáo');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Lỗi báo cáo:', error);
-      toast.error(error.message || 'Có lỗi xảy ra');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
     } finally {
       setSubmitting(false);
     }

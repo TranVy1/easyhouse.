@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Home, FileText, AlertCircle, User, LogOut, Menu, X } from 'lucide-react';
@@ -9,13 +9,19 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { TenantProvider, useTenantDashboard } from './context';
 
-// Navigation component that uses context
-function TenantNavigation({ 
-  pathname, 
-  handleLogout, 
-  isMobileMenuOpen, 
-  setIsMobileMenuOpen 
-}: any) {
+interface TenantNavigationProps {
+  pathname: string;
+  handleLogout: () => void;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+}
+
+function TenantNavigation({
+  pathname,
+  handleLogout,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen
+}: TenantNavigationProps) {
   const { data } = useTenantDashboard();
   
   const navigation = [
@@ -159,19 +165,20 @@ function TenantNavigation({
 
 // Removed local data interface
 
-export default function KhachThueDashboardLayout({
+function KhachThueDashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession({
+  const sessionState = useSession({
     required: true,
     onUnauthenticated() {
       router.push('/khach-thue/dang-nhap');
     },
   });
+  const status = sessionState?.status ?? 'loading';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -186,15 +193,6 @@ export default function KhachThueDashboardLayout({
       </div>
     );
   }
-
-  const khachThue = session?.user;
-
-  const navigation = [
-    { name: 'Tổng quan', href: '/khach-thue/dashboard', icon: Home },
-    { name: 'Hóa đơn', href: '/khach-thue/dashboard/hoa-don', icon: FileText },
-    { name: 'Sự cố', href: '/khach-thue/dashboard/su-co', icon: AlertCircle },
-    { name: 'Thông tin cá nhân', href: '/khach-thue/dashboard/thong-tin', icon: User },
-  ];
 
   return (
     <TenantProvider>
@@ -214,6 +212,18 @@ export default function KhachThueDashboardLayout({
         </main>
       </div>
     </TenantProvider>
+  );
+}
+
+export default function KhachThueDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SessionProvider>
+      <KhachThueDashboardLayoutContent>{children}</KhachThueDashboardLayoutContent>
+    </SessionProvider>
   );
 }
 

@@ -330,9 +330,11 @@ public class AuthService {
 
         saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), true, ipAddress, userAgent, null);
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), "TENANT");
+        String refreshToken = createRefreshToken(user);
 
         return KhachThueLoginResponse.builder()
                 .token(accessToken)
+                .refreshToken(refreshToken)
                 .khachThue(KhachThueResponse.fromEntity(khachThue))
                 .build();
     }
@@ -525,4 +527,3 @@ public class AuthService {
         }
     }
 }
-

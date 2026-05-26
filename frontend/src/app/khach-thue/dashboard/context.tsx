@@ -18,7 +18,7 @@ const TenantContext = createContext<TenantContextType>({
 });
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const [data, setData] = useState<TenantDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 

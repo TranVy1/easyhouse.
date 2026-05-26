@@ -97,7 +97,7 @@ public class ThanhToanService {
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         UUID userId = permissionService.requireCurrentUserId();
-        assertCanCreatePayment(hoaDon, userId);
+        assertCanWriteHoaDon(hoaDon, userId);
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
             throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
         }
@@ -105,9 +105,8 @@ public class ThanhToanService {
             throw new RuntimeException("Số tiền thanh toán phải lớn hơn 0");
         }
 
-        boolean isStaffOrAdmin = canWriteHoaDon(hoaDon, userId);
-        TrangThaiThanhToan status = isStaffOrAdmin ? TrangThaiThanhToan.SUCCESS : TrangThaiThanhToan.PENDING;
-        if (isStaffOrAdmin && req.getTrangThai() != null) {
+        TrangThaiThanhToan status = TrangThaiThanhToan.SUCCESS;
+        if (req.getTrangThai() != null) {
             status = parseTrangThai(req.getTrangThai());
         }
 
@@ -238,12 +237,6 @@ public class ThanhToanService {
     private void assertCanWriteHoaDon(HoaDon hoaDon, UUID userId) {
         if (!canWriteHoaDon(hoaDon, userId)) {
             throw new RuntimeException("Ban khong co quyen sua thanh toan nay");
-        }
-    }
-
-    private void assertCanCreatePayment(HoaDon hoaDon, UUID userId) {
-        if (!canWriteHoaDon(hoaDon, userId) && !isTenantInvoiceOwner(hoaDon, userId)) {
-            throw new RuntimeException("Ban khong co quyen ghi nhan thanh toan cho hoa don nay");
         }
     }
 

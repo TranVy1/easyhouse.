@@ -20,11 +20,26 @@ import Link from 'next/link';
 import { ImageCarousel } from '@/components/ui/image-carousel';
 import { DatLichHenDialog } from '@/components/ui/dat-lich-hen-dialog';
 
+interface PublicPhongDetail {
+  _id: string;
+  ten: string;
+  tang?: number;
+  giaHienTai: number;
+  tienCocMacDinh: number;
+  dienTich: number;
+  soNguoiToiDa: number;
+  trangThai: string;
+  moTa?: string;
+  anhList: string[];
+  tienIchList: string[];
+  nhaTro?: { tenNhaTro?: string };
+}
+
 export default function PhongDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const { id } = unwrappedParams;
   
-  const [phong, setPhong] = useState<any>(null);
+  const [phong, setPhong] = useState<PublicPhongDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isBookingOpen, setIsBookingOpen] = useState(false);

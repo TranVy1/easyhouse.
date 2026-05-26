@@ -46,7 +46,7 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
            "WHERE p.xoaLuc IS NULL " +
            "AND p.trangThai = com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE " +
            "AND (cast(:nhaTroId as uuid) IS NULL OR nt.id = :nhaTroId) " +
-           "AND (:search IS NULL OR LOWER(p.ten) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(nt.tenNhaTro) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(nt.diaChi) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(p.ten) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(nt.ten) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(nt.diaChi) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))) " +
            "AND (cast(:minGia as bigdecimal) IS NULL OR p.giaHienTai >= :minGia) " +
            "AND (cast(:maxGia as bigdecimal) IS NULL OR p.giaHienTai <= :maxGia) " +
            "AND (cast(:minDienTich as bigdecimal) IS NULL OR p.dienTich >= :minDienTich)")

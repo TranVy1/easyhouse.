@@ -73,7 +73,7 @@ class ThanhToanServiceTest {
     }
 
     @Test
-    void createAllowsTenantInvoiceOwner() {
+    void createRejectsTenantInvoiceOwner() {
         UUID tenantUserId = UUID.randomUUID();
         UUID ownerId = UUID.randomUUID();
         UUID nhaTroId = UUID.randomUUID();
@@ -86,16 +86,9 @@ class ThanhToanServiceTest {
 
         when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
         when(permissionService.requireCurrentUserId()).thenReturn(tenantUserId);
-        when(thanhToanRepository.save(org.mockito.ArgumentMatchers.any(ThanhToan.class))).thenAnswer(invocation -> {
-            ThanhToan thanhToan = invocation.getArgument(0);
-            thanhToan.setId(UUID.randomUUID());
-            return thanhToan;
-        });
-        when(thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId)).thenReturn(java.util.List.of());
-        when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
-        when(chiTietHoaDonRepository.findByHoaDonId(hoaDonId)).thenReturn(java.util.List.of());
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
 
-        service.create(request);
+        assertEquals("Ban khong co quyen sua thanh toan nay", error.getMessage());
     }
 
     private HoaDon invoice(UUID ownerId, UUID nhaTroId, UUID tenantUserId) {

@@ -35,6 +35,7 @@ class AdminUserServiceTest {
     @Mock private NhaTroRepository nhaTroRepository;
     @Mock private NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
     @Mock private PermissionService permissionService;
+    @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     @Mock private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
 
     private UserService userService;
@@ -48,7 +49,8 @@ class AdminUserServiceTest {
                 nhaTroRepository,
                 nguoiDungNhaTroRepository,
                 permissionService,
-                auditLogRepository
+                auditLogRepository,
+                passwordEncoder
         );
     }
 

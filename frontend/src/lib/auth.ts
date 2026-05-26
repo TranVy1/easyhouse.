@@ -86,7 +86,7 @@ export const authOptions: NextAuthOptions = {
             if (result.success && result.data) {
               const { token, refreshToken, khachThue } = result.data;
               return {
-                id: khachThue.id || 'tenant',
+                id: khachThue._id || khachThue.id || 'tenant',
                 email: khachThue.email || '',
                 name: khachThue.hoTen || 'Khách thuê',
                 role: 'TENANT',

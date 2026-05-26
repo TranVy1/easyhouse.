@@ -11,6 +11,7 @@ import com.example.quanlyphongtro.dto.LichHenResponse;
 import com.example.quanlyphongtro.entity.LichHen;
 import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.TrangThaiLichHen;
+import com.example.quanlyphongtro.entity.TrangThaiPhong;
 import com.example.quanlyphongtro.repository.LichHenRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.AuditLogRepository;
@@ -42,7 +43,7 @@ class LichHenServiceTest {
     @Test
     void createIsPublicAndDoesNotRequireAuth() {
         UUID phongId = UUID.randomUUID();
-        Phong phong = Phong.builder().id(phongId).build();
+        Phong phong = Phong.builder().id(phongId).trangThai(TrangThaiPhong.AVAILABLE).build();
 
         when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
         when(lichHenRepository.save(any(LichHen.class))).thenAnswer(i -> {
@@ -64,6 +65,16 @@ class LichHenServiceTest {
         assertEquals("PENDING", res.getTrangThai());
         verify(permissionService, org.mockito.Mockito.never()).requireCurrentUserId();
         verify(auditLogRepository).save(any());
+    }
+
+    @Test
+    void createRejectsHoneypotSubmission() {
+        LichHenRequest req = new LichHenRequest();
+        req.setHoneypot("filled-by-bot");
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req, "127.0.0.1"));
+
+        assertEquals("Yeu cau dat lich khong hop le", error.getMessage());
     }
 
     @Test

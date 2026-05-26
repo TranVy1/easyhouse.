@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.NhaTroRequest;
 import com.example.quanlyphongtro.dto.NhaTroResponse;
+import com.example.quanlyphongtro.dto.PublicNhaTroSummaryResponse;
 import com.example.quanlyphongtro.entity.NhaTro;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
@@ -58,15 +59,15 @@ public class NhaTroService {
         return mapToResponse(nt);
     }
 
-    public List<NhaTroResponse> getPublicAllNhaTro() {
+    public List<PublicNhaTroSummaryResponse> getPublicAllNhaTro() {
         List<NhaTro> nhaTroList = nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc();
-        return nhaTroList.stream().map(this::mapToResponse).toList();
+        return nhaTroList.stream().map(PublicNhaTroSummaryResponse::fromEntity).toList();
     }
 
-    public NhaTroResponse getPublicNhaTroById(UUID id) {
+    public PublicNhaTroSummaryResponse getPublicNhaTroById(UUID id) {
         NhaTro nt = nhaTroRepository.findByIdAndXoaLucIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
-        return mapToResponse(nt);
+        return PublicNhaTroSummaryResponse.fromEntity(nt);
     }
 
     @Transactional

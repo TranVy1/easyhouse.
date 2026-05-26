@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.quanlyphongtro.dto.UserRoleAssignmentRequest;
@@ -27,6 +28,7 @@ public class UserService {
     private final NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
     private final PermissionService permissionService;
     private final AuditLogRepository auditLogRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
@@ -125,8 +127,20 @@ public class UserService {
         return mapToUserResponse(nguoiDungRepository.save(user));
     }
 
-    public void changePassword(String email, ChangePasswordRequest request) {
-        throw new RuntimeException("Mat khau duoc quan ly boi nha cung cap xac thuc ben ngoai");
+    @Transactional
+    public void changePassword(UUID id, ChangePasswordRequest request) {
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Vui long nhap day du mat khau hien tai va mat khau moi");
+        }
+        if (request.getNewPassword().length() < 8) {
+            throw new RuntimeException("Mat khau moi phai co it nhat 8 ky tu");
+        }
+        NguoiDung user = findActiveUser(id);
+        if (user.getMatKhau() == null || !passwordEncoder.matches(request.getOldPassword(), user.getMatKhau())) {
+            throw new RuntimeException("Mat khau hien tai khong dung");
+        }
+        user.setMatKhau(passwordEncoder.encode(request.getNewPassword()));
+        nguoiDungRepository.save(user);
     }
 
     private void applyProfileRequest(NguoiDung user, UserRequest request) {

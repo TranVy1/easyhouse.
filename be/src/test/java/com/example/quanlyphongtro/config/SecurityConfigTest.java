@@ -58,6 +58,12 @@ class SecurityConfigTest {
     }
 
     @Test
+    void publicInvoiceUuidRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/hoa-don-public/" + UUID.randomUUID()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void landlordCannotAccessAdminUserApi() throws Exception {
         String token = jwtService.generateAccessToken(UUID.randomUUID(), "landlord@example.com", "LANDLORD");
 

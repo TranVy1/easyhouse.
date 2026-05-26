@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +36,7 @@ public class LichHenService {
     private final PhongRepository phongRepository;
     private final PermissionService permissionService;
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    private final ConcurrentMap<String, List<Instant>> publicRequestsByIp = new ConcurrentHashMap<>();
 
     public PaginatedResponse<LichHenResponse> getAll(UUID nhaTroId, UUID phongId, String trangThai, Pageable pageable) {
         UUID userId = permissionService.requireCurrentUserId();
@@ -81,6 +86,14 @@ public class LichHenService {
 
     @Transactional
     public LichHenResponse create(LichHenRequest req) {
+        return create(req, null);
+    }
+
+    @Transactional
+    public LichHenResponse create(LichHenRequest req, String sourceIp) {
+        if (req.getHoneypot() != null && !req.getHoneypot().isBlank()) {
+            throw new RuntimeException("Yeu cau dat lich khong hop le");
+        }
         if (req.getPhongId() == null || req.getNgayHen() == null || req.getNgayHen().isBefore(java.time.ZonedDateTime.now())) {
             throw new RuntimeException("Thong tin lich hen khong hop le");
         }
@@ -119,6 +132,7 @@ public class LichHenService {
             if (pendingCount >= 3) {
                 throw new RuntimeException("Ban co qua nhieu lich hen dang cho xac nhan. Vui long cho hoac lien he truc tiep.");
             }
+            enforcePublicIpRateLimit(sourceIp);
         }
 
         LichHen lichHen = new LichHen();
@@ -134,6 +148,21 @@ public class LichHenService {
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "CREATE", currentUserId);
         return LichHenResponse.fromEntity(saved);
+    }
+
+    private void enforcePublicIpRateLimit(String sourceIp) {
+        if (sourceIp == null || sourceIp.isBlank()) {
+            return;
+        }
+        Instant cutoff = Instant.now().minus(15, ChronoUnit.MINUTES);
+        List<Instant> requestTimes = publicRequestsByIp.computeIfAbsent(sourceIp, key -> new ArrayList<>());
+        synchronized (requestTimes) {
+            requestTimes.removeIf(time -> time.isBefore(cutoff));
+            if (requestTimes.size() >= 5) {
+                throw new RuntimeException("Ban da gui qua nhieu yeu cau. Vui long thu lai sau.");
+            }
+            requestTimes.add(Instant.now());
+        }
     }
 
     @Transactional

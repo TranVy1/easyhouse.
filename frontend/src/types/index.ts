@@ -252,7 +252,7 @@ export interface HopDong {
   maHopDong: string;
   phongId?: ID;
   phong: PhongRef;
-  khachThueId: ID[] | any[];
+  khachThueId: Array<ID | (Pick<KhachThue, 'hoTen'> & { _id: ID })>;
   khachThueDaiDienId?: ID;
   nguoiDaiDien: KhachThueRef;
   thanhVien?: ThanhVienHopDong[];
@@ -465,7 +465,7 @@ export interface FileMedia {
   taoLuc?: DateLike;
 }
 
-export interface TenantProfile extends Omit<KhachThue, 'hopDongHienTai'> {}
+export type TenantProfile = Omit<KhachThue, 'hopDongHienTai'>;
 export interface TenantContract extends Omit<HopDong, 'phong'> {
   phong?: {
     id?: ID;
@@ -484,7 +484,7 @@ export interface TenantContract extends Omit<HopDong, 'phong'> {
     };
   };
 }
-export interface TenantInvoice extends Omit<HoaDon, 'hopDong' | 'khachThue'> {}
+export type TenantInvoice = Omit<HoaDon, 'hopDong' | 'khachThue'>;
 
 export interface TenantDashboardData {
   khachThue: TenantProfile;

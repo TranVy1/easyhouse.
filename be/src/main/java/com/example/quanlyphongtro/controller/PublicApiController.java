@@ -1,8 +1,7 @@
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.ApiResponse;
-import com.example.quanlyphongtro.dto.NhaTroResponse;
-import com.example.quanlyphongtro.dto.PhongResponse;
+import com.example.quanlyphongtro.dto.PublicNhaTroSummaryResponse;
 import com.example.quanlyphongtro.services.NhaTroService;
 import com.example.quanlyphongtro.services.PhongService;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +20,12 @@ public class PublicApiController {
     private final PhongService phongService;
 
     @GetMapping("/toa-nha")
-    public ApiResponse<List<NhaTroResponse>> getAllNhaTro() {
+    public ApiResponse<List<PublicNhaTroSummaryResponse>> getAllNhaTro() {
         return ApiResponse.success(nhaTroService.getPublicAllNhaTro());
     }
 
     @GetMapping("/toa-nha/{id}")
-    public ApiResponse<NhaTroResponse> getNhaTroById(@PathVariable UUID id) {
+    public ApiResponse<PublicNhaTroSummaryResponse> getNhaTroById(@PathVariable UUID id) {
         try {
             return ApiResponse.success(nhaTroService.getPublicNhaTroById(id));
         } catch (Exception e) {

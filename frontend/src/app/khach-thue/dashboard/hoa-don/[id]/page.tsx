@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, FileText, CheckCircle2, Clock, Upload, Banknote, QrCode } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Clock, Banknote } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { HoaDon, ThanhToan } from '@/types';
@@ -14,14 +14,10 @@ import Link from 'next/link';
 export default function TenantInvoiceDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const [invoice, setInvoice] = useState<HoaDon | null>(null);
   const [payments, setPayments] = useState<ThanhToan[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Upload states
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (session?.accessToken && id) {
@@ -50,81 +46,6 @@ export default function TenantInvoiceDetailPage() {
       toast.error('Có lỗi xảy ra');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        toast.error('Kích thước ảnh tối đa là 5MB');
-        return;
-      }
-      setFile(selectedFile);
-    }
-  };
-
-  const handleSubmitPayment = async () => {
-    if (!file) {
-      toast.error('Vui lòng chọn ảnh ủy nhiệm chi');
-      return;
-    }
-    
-    if (!invoice || !session?.accessToken) return;
-
-    try {
-      setUploading(true);
-      
-      // 1. Upload ảnh lên Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.accessToken}`
-        },
-        body: formData
-      });
-      
-      const uploadData = await uploadRes.json();
-      if (!uploadData.success) {
-        throw new Error(uploadData.error || 'Lỗi upload ảnh');
-      }
-      
-      const imageUrl = uploadData.data.secure_url || uploadData.data.url;
-      
-      // 2. Gửi thông tin thanh toán
-      const paymentData = {
-        hoaDonId: invoice.id || invoice._id,
-        soTien: invoice.conLai,
-        phuongThuc: 'chuyenKhoan',
-        anhBienLai: imageUrl,
-        ghiChu: 'Khách thuê tải lên từ portal'
-      };
-      
-      const paymentRes = await fetch('/api/thanh-toan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.accessToken}`
-        },
-        body: JSON.stringify(paymentData)
-      });
-      
-      const paymentResult = await paymentRes.json();
-      if (paymentResult.success) {
-        toast.success('Gửi ủy nhiệm chi thành công! Quản lý sẽ duyệt trong thời gian sớm nhất.');
-        setFile(null);
-        fetchInvoiceDetail(); // Reload data
-      } else {
-        throw new Error(paymentResult.error || 'Lỗi lưu thanh toán');
-      }
-    } catch (error: any) {
-      console.error('Lỗi thanh toán:', error);
-      toast.error(error.message || 'Có lỗi xảy ra khi tải lên');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -190,8 +111,6 @@ export default function TenantInvoiceDetailPage() {
 
   const trangThai = invoice.trangThai as string;
   const isPaid = trangThai === 'PAID' || trangThai === 'daThanhToan' || trangThai === 'thanhToanDu';
-  const hasPendingPayment = payments.some(p => p.trangThai === 'PENDING');
-
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-24 md:pb-8">
       <Button variant="ghost" size="sm" asChild className="mb-4">
@@ -272,67 +191,23 @@ export default function TenantInvoiceDetailPage() {
         </Card>
 
         <div className="space-y-6">
-          {/* Thanh toán / Upload UNC */}
+          {/* Thanh toán do quản lý ghi nhận sau khi đối soát. */}
           {!isPaid && (
             <Card className="border-orange-200 bg-orange-50/50">
               <CardHeader className="pb-3 border-b border-orange-100">
                 <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
                   <Banknote className="h-5 w-5" />
-                  Xác nhận thanh toán
+                  Hướng dẫn thanh toán
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
-                {hasPendingPayment ? (
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <div className="bg-yellow-100 p-3 rounded-full text-yellow-600 mb-3">
-                      <Clock className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900">Đang chờ quản lý duyệt</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Bạn đã tải lên ủy nhiệm chi. Vui lòng chờ quản lý xác nhận khoản thanh toán này.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-white p-4 rounded-lg border text-center">
-                      <p className="text-sm text-gray-600 mb-2">Số tiền cần chuyển khoản:</p>
-                      <p className="text-2xl font-bold text-red-600 mb-2">{formatCurrency(invoice.conLai)}</p>
-                      <p className="text-xs text-gray-500 italic">Vui lòng chuyển khoản cho chủ nhà/quản lý sau đó tải ảnh biên lai lên đây.</p>
-                    </div>
-
-                    <div className="space-y-3 mt-4">
-                      <label className="text-sm font-medium text-gray-700">Tải lên biên lai (UNC)</label>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="w-full text-sm text-gray-500
-                              file:mr-4 file:py-2 file:px-4
-                              file:rounded-md file:border-0
-                              file:text-sm file:font-semibold
-                              file:bg-blue-50 file:text-blue-700
-                              hover:file:bg-blue-100 border rounded-md"
-                          />
-                        </div>
-                      </div>
-                      {file && (
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" /> Đã chọn file: {file.name}
-                        </p>
-                      )}
-                    </div>
-                    <Button 
-                      className="w-full mt-2" 
-                      disabled={!file || uploading} 
-                      onClick={handleSubmitPayment}
-                    >
-                      {uploading ? 'Đang gửi...' : 'Gửi xác nhận thanh toán'}
-                      {!uploading && <Upload className="ml-2 h-4 w-4" />}
-                    </Button>
-                  </>
-                )}
+                <div className="bg-white p-4 rounded-lg border text-center">
+                  <p className="text-sm text-gray-600 mb-2">Số tiền cần chuyển khoản:</p>
+                  <p className="text-2xl font-bold text-red-600 mb-2">{formatCurrency(invoice.conLai)}</p>
+                  <p className="text-xs text-gray-500">
+                    Vui lòng chuyển khoản theo hướng dẫn của quản lý. Giao dịch sẽ xuất hiện tại đây sau khi được đối soát.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

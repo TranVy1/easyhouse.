@@ -11,7 +11,7 @@ import { HoaDon } from '@/types';
 import Link from 'next/link';
 
 export default function TenantInvoicesPage() {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const [invoices, setInvoices] = useState<HoaDon[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -11,7 +11,7 @@ import { ThongBao } from '@/types';
 import { useTenantDashboard } from '../context';
 
 export default function TenantNotificationsPage() {
-  const { data: session } = useSession();
+  const session = useSession()?.data;
   const { refreshData } = useTenantDashboard();
   const [notifications, setNotifications] = useState<ThongBao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +115,7 @@ export default function TenantNotificationsPage() {
 
   const isRead = (notification: ThongBao) => {
     if (!currentUserId || !notification.daDoc) return false;
-    return notification.daDoc.includes(currentUserId as any); // Type array cast might be needed depending on type definition
+    return notification.daDoc.includes(currentUserId);
   };
 
   const getIcon = (type: string) => {

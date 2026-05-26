@@ -19,18 +19,13 @@ import {
   MapPin, 
   Users, 
   Square, 
-  Phone,
   Eye,
   ArrowLeft,
-  Star,
-  ZoomIn
 } from 'lucide-react';
 import { Phong, ToaNha } from '@/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ImageCarousel } from '@/components/ui/image-carousel';
-
-import { DatLichHenDialog } from '@/components/ui/dat-lich-hen-dialog';
 
 type ToaNhaRef = string | { tenToaNha?: string };
 
@@ -48,10 +43,6 @@ export default function XemPhongPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedToaNha, setSelectedToaNha] = useState('');
   const [selectedTrangThai, setSelectedTrangThai] = useState('');
-  const [selectedPhong, setSelectedPhong] = useState<any>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-
   const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', searchFilter = '') => {
     try {
       const params = new URLSearchParams();
@@ -64,7 +55,7 @@ export default function XemPhongPage() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setPhongList(result.data.items || result.data);
+          setPhongList(result.data.data || []);
         }
       }
     } catch (error) {
@@ -361,7 +352,7 @@ export default function XemPhongPage() {
               <div>
                 <p className="text-[10px] md:text-xs font-medium text-emerald-600">Phòng trống</p>
                 <p className="text-base md:text-2xl font-bold text-emerald-700">
-                  {phongList.filter(p => p.trangThai === 'trong').length}
+                  {phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length}
                 </p>
               </div>
               <Users className="h-3 w-3 md:h-4 md:w-4 text-emerald-500" />

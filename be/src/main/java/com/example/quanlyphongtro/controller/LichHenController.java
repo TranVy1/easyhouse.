@@ -5,6 +5,7 @@ import com.example.quanlyphongtro.dto.LichHenRequest;
 import com.example.quanlyphongtro.dto.LichHenResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.LichHenService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,8 +48,8 @@ public class LichHenController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<LichHenResponse>> create(@RequestBody LichHenRequest req) {
-        LichHenResponse data = lichHenService.create(req);
+    public ResponseEntity<ApiResponse<LichHenResponse>> create(@RequestBody LichHenRequest req, HttpServletRequest request) {
+        LichHenResponse data = lichHenService.create(req, request.getRemoteAddr());
         return ResponseEntity.ok(ApiResponse.<LichHenResponse>builder()
                 .success(true)
                 .message("Tạo lịch hẹn thành công")

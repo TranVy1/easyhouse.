@@ -46,8 +46,9 @@ public class UserController {
     @PostMapping("/change-password")
     public ApiResponse<String> changePassword(Authentication authentication, @RequestBody ChangePasswordRequest request) {
         try {
-            requireUserId(authentication);
-            return ApiResponse.error("Mat khau duoc quan ly boi nha cung cap xac thuc. Vui long dung luong quen mat khau.");
+            UUID userId = requireUserId(authentication);
+            userService.changePassword(userId, request);
+            return ApiResponse.success(null, "Doi mat khau thanh cong");
         } catch (Exception e) {
             return ApiResponse.error("Doi mat khau that bai: " + e.getMessage());
         }
