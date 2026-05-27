@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,8 @@ export default function ChinhSuaHopDongPage() {
   const router = useRouter();
   const params = useParams();
   const hopDongId = params.id as string;
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
 
   const [hopDong, setHopDong] = useState<HopDong | null>(null);
   const [phongList, setPhongList] = useState<Phong[]>([]);
@@ -201,7 +204,9 @@ export default function ChinhSuaHopDongPage() {
       return;
     }
     try {
-      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`);
+      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const result = response.ok ? await response.json() : { data: [] };
       const options = (result.data || []).map((item: DichVuOption) => ({
         ...item,
@@ -234,16 +239,18 @@ export default function ChinhSuaHopDongPage() {
   };
 
   useEffect(() => {
-    if (hopDongId) {
+    if (hopDongId && accessToken) {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hopDongId]);
+  }, [accessToken, hopDongId]);
 
   const fetchData = async () => {
     try {
       // Fetch hợp đồng chi tiết theo ID
-      const hopDongResponse = await fetch(`/api/hop-dong/${hopDongId}`);
+      const hopDongResponse = await fetch(`/api/hop-dong/${hopDongId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (hopDongResponse.ok) {
         const hopDongData = await hopDongResponse.json().catch(() => ({}));
         if (hopDongData.success === false) {
@@ -292,7 +299,9 @@ export default function ChinhSuaHopDongPage() {
       }
 
       // Fetch phong data
-      const phongResponse = await fetch('/api/phong?page=1&limit=100');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const phongData = await phongResponse.json().catch(() => ({}));
       if (!phongResponse.ok || phongData.success === false) {
         throw new Error(phongData.message || 'Không tải được danh sách phòng');
@@ -300,7 +309,9 @@ export default function ChinhSuaHopDongPage() {
       setPhongList(unwrapPageData<Phong>(phongData.data).map(normalizePhong));
 
       // Fetch khach thue data
-      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const khachThueData = await khachThueResponse.json().catch(() => ({}));
       if (!khachThueResponse.ok || khachThueData.success === false) {
         throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
@@ -308,7 +319,9 @@ export default function ChinhSuaHopDongPage() {
       setKhachThueList(unwrapPageData<KhachThue>(khachThueData.data).map(normalizeKhachThue));
 
       // Fetch dich vu data
-      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100');
+      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const dvData = await dichVuResponse.json().catch(() => ({}));
       if (!dichVuResponse.ok || dvData.success === false) {
         toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
@@ -425,6 +438,7 @@ export default function ChinhSuaHopDongPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           ...formData,

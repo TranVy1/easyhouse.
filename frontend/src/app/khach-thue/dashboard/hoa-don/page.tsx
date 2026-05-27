@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Calendar, DollarSign, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, Calendar, ArrowRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { HoaDon } from '@/types';
@@ -12,21 +12,16 @@ import Link from 'next/link';
 
 export default function TenantInvoicesPage() {
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const [invoices, setInvoices] = useState<HoaDon[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      fetchInvoices();
-    }
-  }, [session]);
-
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/tenant/hoa-don', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -41,7 +36,13 @@ export default function TenantInvoicesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      void fetchInvoices();
+    }
+  }, [accessToken, fetchInvoices]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);

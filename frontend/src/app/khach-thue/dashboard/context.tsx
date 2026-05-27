@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { TenantDashboardData } from '@/types';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -8,12 +8,14 @@ import { toast } from 'sonner';
 interface TenantContextType {
   data: TenantDashboardData | null;
   loading: boolean;
+  error: string | null;
   refreshData: () => Promise<void>;
 }
 
 const TenantContext = createContext<TenantContextType>({
   data: null,
   loading: true,
+  error: null,
   refreshData: async () => {},
 });
 
@@ -21,11 +23,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const session = useSession()?.data;
   const [data, setData] = useState<TenantDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     if (!session?.accessToken) return;
     try {
       setLoading(true);
+      setError(null);
       const res = await fetch('/api/auth/khach-thue/me', {
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
@@ -34,14 +38,18 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       const result = await res.json();
       if (result.success) {
         setData(result.data);
+      } else {
+        throw new Error(result.message || 'Không tải được thông tin cư dân');
       }
     } catch (error) {
       console.error('Lỗi khi tải thông tin:', error);
-      toast.error('Có lỗi xảy ra khi tải dữ liệu');
+      const message = error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải dữ liệu';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.accessToken]);
 
   useEffect(() => {
     if (session?.accessToken) {
@@ -49,10 +57,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } else if (session === null) {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, refreshData]);
 
   return (
-    <TenantContext.Provider value={{ data, loading, refreshData }}>
+    <TenantContext.Provider value={{ data, loading, error, refreshData }}>
       {children}
     </TenantContext.Provider>
   );

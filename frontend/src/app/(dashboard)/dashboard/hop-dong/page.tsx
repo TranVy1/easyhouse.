@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,7 @@ import { saveAs } from 'file-saver';
 
 export default function HopDongPage() {
   const router = useRouter();
+  const accessToken = useSession()?.data?.accessToken;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hopDongList: HopDong[];
     phongList: Phong[];
@@ -60,6 +62,7 @@ export default function HopDongPage() {
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [toaNhaFilter, setToaNhaFilter] = useState<string>('all');
   const [viewingHopDong, setViewingHopDong] = useState<HopDong | null>(null);
@@ -79,7 +82,9 @@ export default function HopDongPage() {
   }, []);
 
   const readList = useCallback(async <T,>(url: string, label: string, mapper: (item: unknown) => T): Promise<T[]> => {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    });
     let result: { success?: boolean; message?: string; data?: unknown } = {};
     try {
       result = await response.json();
@@ -91,9 +96,10 @@ export default function HopDongPage() {
       throw new Error(result.message || `Không tải được ${label}`);
     }
 
-    const items = Array.isArray(result.data) ? result.data : [];
+    const rawData = result.data as unknown[] | { data?: unknown[] } | undefined;
+    const items = Array.isArray(rawData) ? rawData : (rawData?.data || []);
     return items.map(mapper);
-  }, []);
+  }, [accessToken]);
 
   const fetchData = useCallback(async (forceRefresh = false): Promise<boolean> => {
     try {
@@ -115,8 +121,11 @@ export default function HopDongPage() {
       });
       if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
+      if (appliedSearch) params.append('search', appliedSearch);
 
-      const response = await fetch(`/api/hop-dong?${params.toString()}`);
+      const response = await fetch(`/api/hop-dong?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       let hopDongs: HopDong[] = [];
       if (response.ok) {
         const result = await response.json();
@@ -159,7 +168,7 @@ export default function HopDongPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, toaNhaFilter, readList]);
+  }, [accessToken, getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, toaNhaFilter, appliedSearch, readList]);
 
   useEffect(() => {
     fetchData(false);
@@ -177,20 +186,17 @@ export default function HopDongPage() {
   useEffect(() => {
     // Reset pagination when filter changes
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [statusFilter, toaNhaFilter]);
+  }, [statusFilter, toaNhaFilter, appliedSearch]);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setAppliedSearch(searchTerm.trim()), 350);
+    return () => window.clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   const normalizeStatus = (status?: string) => hopDongStatusFromDb(status || 'nhap');
   const isActiveStatus = (status?: string) => normalizeStatus(status) === 'hoatDong';
 
-  const filteredHopDong = hopDongList.filter(hopDong => {
-    const keyword = searchTerm.trim().toLowerCase();
-    const matchesSearch = !keyword ||
-      (hopDong.maHopDong || '').toLowerCase().includes(keyword) ||
-      (hopDong.dieuKhoan || '').toLowerCase().includes(keyword);
-    
-    return matchesSearch;
-  });
+  const filteredHopDong = hopDongList;
 
   const getStatusBadge = (status: string) => {
     switch (normalizeStatus(status)) {
@@ -285,6 +291,7 @@ export default function HopDongPage() {
     try {
       const response = await fetch(`/api/hop-dong/${id}`, {
         method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
       const result = await response.json().catch(() => ({}));
       
@@ -898,6 +905,7 @@ export default function HopDongPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           ngayKetThuc: nextEndDate,
@@ -936,6 +944,7 @@ export default function HopDongPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           trangThai: 'daHuy',

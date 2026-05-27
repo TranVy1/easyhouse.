@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { Upload, Trash2, File, Image as ImageIcon, Video, FileText, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +26,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { FileMedia, ApiResponse } from "@/types";
+import { useSession } from "next-auth/react";
 
 export function MediaClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [mediaList, setMediaList] = useState<FileMedia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -44,10 +46,12 @@ export function MediaClient() {
   // Client-side pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/media");
+      const res = await fetch("/api/media", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<FileMedia[]> = await res.json();
       
       if (data.success) {
@@ -59,11 +63,11 @@ export function MediaClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (accessToken) fetchData();
+  }, [accessToken, fetchData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -93,6 +97,7 @@ export function MediaClient() {
 
       const res = await fetch("/api/media", {
         method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: uploadData,
       });
 
@@ -118,6 +123,7 @@ export function MediaClient() {
     try {
       const res = await fetch(`/api/media/${selectedMedia._id || selectedMedia.id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data: ApiResponse<void> = await res.json();
       

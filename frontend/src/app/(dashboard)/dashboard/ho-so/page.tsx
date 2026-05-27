@@ -1,16 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -21,14 +18,11 @@ import {
 } from "@/components/ui/select";
 import { 
   User, 
-  Mail, 
   Phone, 
   MapPin, 
   Calendar, 
-  Shield, 
   Edit3, 
   Save, 
-  X,
   Camera,
   Key,
   Bell
@@ -64,7 +58,7 @@ interface Ward {
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
-  const router = useRouter();
+  const accessToken = session?.accessToken;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -96,12 +90,6 @@ export default function ProfilePage() {
     document.title = 'Hồ sơ cá nhân';
     fetchProvinces();
   }, []);
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchProfile();
-    }
-  }, [session]);
 
   // Fetch Provinces
   const fetchProvinces = async () => {
@@ -189,11 +177,11 @@ export default function ProfilePage() {
     }
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/user/profile', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       if (response.ok) {
@@ -214,7 +202,13 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (session?.user) {
+      void fetchProfile();
+    }
+  }, [session?.user, fetchProfile]);
 
   const handleSave = async () => {
     setSaving(true);

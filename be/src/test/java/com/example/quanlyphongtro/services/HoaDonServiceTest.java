@@ -20,7 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class HoaDonServiceTest {
@@ -227,6 +231,31 @@ class HoaDonServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.getById(hoaDonId));
         assertEquals("Ban khong co quyen xem hoa don nay", error.getMessage());
+    }
+
+    @Test
+    void getAllPassesSearchAndPeriodFiltersToRepository() {
+        when(permissionService.requireCurrentUserId()).thenReturn(ownerId);
+        when(permissionService.isAdmin(ownerId)).thenReturn(true);
+        when(hoaDonRepository.findAllAccessible(
+                eq(true), eq(ownerId), eq(List.of()), isNull(), eq("UNPAID"), eq("HD-05"), eq(5), eq(2026), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        service.getAll(null, "UNPAID", " HD-05 ", 5, 2026, 1, 10);
+
+        verify(hoaDonRepository).findAllAccessible(
+                eq(true), eq(ownerId), eq(List.of()), isNull(), eq("UNPAID"), eq("HD-05"), eq(5), eq(2026), any(Pageable.class));
+    }
+
+    @Test
+    void getAllRejectsInvalidInvoiceMonth() {
+        when(permissionService.requireCurrentUserId()).thenReturn(ownerId);
+        when(permissionService.isAdmin(ownerId)).thenReturn(true);
+
+        RuntimeException error = assertThrows(RuntimeException.class,
+                () -> service.getAll(null, null, null, 13, 2026, 1, 10));
+
+        assertEquals("Tháng hóa đơn không hợp lệ", error.getMessage());
     }
 
     private void stubCanWriteInvoice() {

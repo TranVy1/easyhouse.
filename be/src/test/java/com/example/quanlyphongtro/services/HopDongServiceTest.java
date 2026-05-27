@@ -2,6 +2,9 @@ package com.example.quanlyphongtro.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.quanlyphongtro.dto.HopDongRequest;
@@ -17,6 +20,7 @@ import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.ThanhVienHopDongRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class HopDongServiceTest {
@@ -103,5 +109,23 @@ class HopDongServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
         assertEquals("Ban khong co quyen sua hop dong trong nha tro nay", error.getMessage());
+    }
+
+    @Test
+    void getAllPassesBuildingAndNormalizedSearchToRepository() {
+        UUID userId = UUID.randomUUID();
+        UUID nhaTroId = UUID.randomUUID();
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(true);
+        when(hopDongRepository.findAllAccessible(
+                eq(true), eq(userId), org.mockito.ArgumentMatchers.<List<UUID>>any(), eq(null),
+                eq(nhaTroId), eq("ACTIVE"), eq("HD-A01"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        service.getAll(null, nhaTroId.toString(), "ACTIVE", " HD-A01 ", 1, 10);
+
+        verify(hopDongRepository).findAllAccessible(
+                eq(true), eq(userId), org.mockito.ArgumentMatchers.<List<UUID>>any(), eq(null),
+                eq(nhaTroId), eq("ACTIVE"), eq("HD-A01"), any(Pageable.class));
     }
 }

@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,6 +16,8 @@ import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,5 +85,22 @@ class KhachThueServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.getKhachThueById(khachThueId));
         assertEquals("Ban khong co quyen xem khach thue nay", error.getMessage());
+    }
+
+    @Test
+    void getAllPassesNormalizedSearchToRepository() {
+        UUID userId = UUID.randomUUID();
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(true);
+        when(khachThueRepository.findAllAccessible(
+                eq(true), eq(userId), org.mockito.ArgumentMatchers.<List<UUID>>any(),
+                eq("dangThue"), eq("Nguyen A"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        service.getAllKhachThue("dangThue", " Nguyen A ", 1, 10);
+
+        verify(khachThueRepository).findAllAccessible(
+                eq(true), eq(userId), org.mockito.ArgumentMatchers.<List<UUID>>any(),
+                eq("dangThue"), eq("Nguyen A"), any(Pageable.class));
     }
 }

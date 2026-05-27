@@ -34,7 +34,7 @@ public class NhaTroService {
     private final NguoiDungRepository nguoiDungRepository;
     private final PermissionService permissionService;
 
-    public PaginatedResponse<NhaTroResponse> getAllNhaTro(int page, int limit) {
+    public PaginatedResponse<NhaTroResponse> getAllNhaTro(String search, int page, int limit) {
         UUID userId = permissionService.currentUserId().orElse(null);
         boolean isAdmin = userId != null && permissionService.isAdmin(userId);
         List<UUID> nhaTroIds = List.of(UUID.randomUUID());
@@ -45,8 +45,9 @@ public class NhaTroService {
             }
         }
 
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
-        Page<NhaTro> pageResult = nhaTroRepository.findAllAccessible(isAdmin, nhaTroIds, pageable);
+        Page<NhaTro> pageResult = nhaTroRepository.findAllAccessible(isAdmin, nhaTroIds, normalizedSearch, pageable);
         
         List<NhaTroResponse> mappedList = pageResult.getContent().stream().map(this::mapToResponse).toList();
         return PaginatedResponse.of(pageResult, mappedList);

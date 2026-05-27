@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { ThongBao, ToaNha, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 import { useCache } from '@/hooks/use-cache';
 import { unwrapPageData } from '@/lib/api-response';
 
@@ -65,6 +66,8 @@ const getId = (value: unknown): string | undefined => {
 };
 
 export default function ThongBaoPage() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     thongBaoList: ThongBao[];
     toaNhaList: ToaNha[];
@@ -116,7 +119,9 @@ export default function ThongBaoPage() {
       });
       if (typeFilter && typeFilter !== 'all') params.append('loai', typeFilter);
       
-      const thongBaoResponse = await fetch(`/api/thong-bao?${params.toString()}`);
+      const thongBaoResponse = await fetch(`/api/thong-bao?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const thongBaoData = thongBaoResponse.ok ? await thongBaoResponse.json() : { data: [] };
       
       let thongBaos = [];
@@ -134,19 +139,25 @@ export default function ThongBaoPage() {
       setThongBaoList(thongBaos);
 
       // Fetch tòa nhà từ API
-      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100');
+      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const toaNhaData = toaNhaResponse.ok ? await toaNhaResponse.json() : { data: [] };
       const toaNhas = toaNhaData.success ? unwrapPageData<ToaNha>(toaNhaData.data) : [];
       setToaNhaList(toaNhas);
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong?page=1&limit=100');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const phongData = phongResponse.ok ? await phongResponse.json() : { data: [] };
       const phongs = phongData.success ? unwrapPageData<Phong>(phongData.data) : [];
       setPhongList(phongs);
 
       // Fetch khách thuê từ API
-      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const khachThueData = khachThueResponse.ok ? await khachThueResponse.json() : { data: [] };
       const khachThues = khachThueData.success ? unwrapPageData<KhachThue>(khachThueData.data) : [];
       setKhachThueList(khachThues);
@@ -166,7 +177,7 @@ export default function ThongBaoPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, typeFilter]);
+  }, [accessToken, getCache, setCache, pagination.pageIndex, pagination.pageSize, typeFilter]);
 
   useEffect(() => {
     fetchData(false, false);
@@ -262,6 +273,7 @@ export default function ThongBaoPage() {
       try {
         const response = await fetch(`/api/thong-bao/${id}`, {
           method: 'DELETE',
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
         const result = await response.json();
 
@@ -285,6 +297,7 @@ export default function ThongBaoPage() {
     try {
       const response = await fetch(`/api/thong-bao/${thongBao._id}/send`, {
         method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const result = await response.json();
 
@@ -308,6 +321,7 @@ export default function ThongBaoPage() {
     try {
       const response = await fetch(`/api/thong-bao/${thongBao._id}/da-doc?daDoc=${daDoc}`, {
         method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const result = await response.json();
 
@@ -807,6 +821,8 @@ function ThongBaoForm({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [formData, setFormData] = useState({
     tieuDe: thongBao?.tieuDe || '',
     noiDung: thongBao?.noiDung || '',
@@ -854,6 +870,7 @@ function ThongBaoForm({
         method,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(payload),
       });

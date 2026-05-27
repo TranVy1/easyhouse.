@@ -46,7 +46,14 @@ public class HoaDonService {
     private final EmailService emailService;
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<HoaDonResponse> getAll(String hopDongId, String trangThaiStr, int page, int limit) {
+    public PaginatedResponse<HoaDonResponse> getAll(
+            String hopDongId,
+            String trangThaiStr,
+            String search,
+            Integer kyThang,
+            Integer kyNam,
+            int page,
+            int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
         List<UUID> nhaTroIds = List.of();
@@ -63,10 +70,17 @@ public class HoaDonService {
         }
         
         UUID hid = parseOptionalUuid(hopDongId);
+        if (kyThang != null && (kyThang < 1 || kyThang > 12)) {
+            throw new RuntimeException("Tháng hóa đơn không hợp lệ");
+        }
+        if (kyNam != null && (kyNam < 2000 || kyNam > 2100)) {
+            throw new RuntimeException("Năm hóa đơn không hợp lệ");
+        }
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<HoaDon> pageResult = hoaDonRepository.findAllAccessible(
-                isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, pageable);
+                isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, normalizedSearch, kyThang, kyNam, pageable);
         
         List<HoaDonResponse> res = new ArrayList<>();
         for (HoaDon hd : pageResult.getContent()) {

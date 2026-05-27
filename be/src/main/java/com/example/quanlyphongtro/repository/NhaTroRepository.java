@@ -18,6 +18,14 @@ public interface NhaTroRepository extends JpaRepository<NhaTro, UUID> {
     List<NhaTro> findByXoaLucIsNullOrderByTaoLucDesc();
     Optional<NhaTro> findByIdAndXoaLucIsNull(UUID id);
     
-    @Query("SELECT n FROM NhaTro n WHERE n.xoaLuc IS NULL AND (:isAdmin = true OR n.id IN :nhaTroIds)")
-    Page<NhaTro> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("nhaTroIds") List<UUID> nhaTroIds, Pageable pageable);
+    @Query("SELECT n FROM NhaTro n WHERE n.xoaLuc IS NULL AND (:isAdmin = true OR n.id IN :nhaTroIds) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(n.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(n.diaChi, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(n.phuong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(n.quan, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+    Page<NhaTro> findAllAccessible(
+            @Param("isAdmin") boolean isAdmin,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            @Param("search") String search,
+            Pageable pageable);
 }

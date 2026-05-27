@@ -1,31 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Home, Calendar, DollarSign, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Home, Calendar, DollarSign, FileText, CheckCircle2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { HopDong, TenantContract } from '@/types';
-import Link from 'next/link';
+import { TenantContract } from '@/types';
 
 export default function TenantContractsPage() {
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const [contracts, setContracts] = useState<TenantContract[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      fetchContracts();
-    }
-  }, [session]);
-
-  const fetchContracts = async () => {
+  const fetchContracts = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/tenant/hop-dong', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -40,7 +34,13 @@ export default function TenantContractsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      void fetchContracts();
+    }
+  }, [accessToken, fetchContracts]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);

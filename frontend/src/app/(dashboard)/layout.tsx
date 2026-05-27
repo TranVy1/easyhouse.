@@ -42,10 +42,10 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải...</p>
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Đang chuẩn bị không gian quản lý...</p>
         </div>
       </div>
     );
@@ -58,18 +58,22 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-hidden">
-        <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
+      <SidebarInset className="overflow-hidden bg-background">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b bg-background/92 px-4 backdrop-blur md:px-6">
           <PageProgress />
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-6" />
-          <DynamicBreadcrumb />
+          <Separator orientation="vertical" className="mx-1 h-5" />
+          <div className="min-w-0 overflow-hidden">
+            <DynamicBreadcrumb />
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          {children}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-[1440px] p-4 md:p-6 lg:p-8">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>

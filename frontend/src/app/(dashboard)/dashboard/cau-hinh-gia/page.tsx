@@ -49,6 +49,7 @@ import {
 import { toast } from 'sonner';
 import { ToaNha, CauHinhGia, LoaiMucHoaDon, LoaiTinhPhi } from '@/types';
 import { unwrapPageData } from '@/lib/api-response';
+import { useSession } from 'next-auth/react';
 
 // Map LoaiMucHoaDon enums to Vietnamese labels
 const LOAI_MUC_LABEL: Record<LoaiMucHoaDon, string> = {
@@ -75,6 +76,8 @@ const LOAI_TINH_PHI_LABEL: Record<LoaiTinhPhi, string> = {
 };
 
 export default function CauHinhGiaPage() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [selectedToaNhaId, setSelectedToaNhaId] = useState<string>('');
   const [cauHinhGiaList, setCauHinhGiaList] = useState<CauHinhGia[]>([]);
@@ -96,7 +99,9 @@ export default function CauHinhGiaPage() {
   const fetchToaNhas = useCallback(async () => {
     try {
       setLoadingToaNhas(true);
-      const response = await fetch('/api/toa-nha?page=1&limit=100');
+      const response = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
@@ -113,7 +118,7 @@ export default function CauHinhGiaPage() {
     } finally {
       setLoadingToaNhas(false);
     }
-  }, []);
+  }, [accessToken]);
 
   // Fetch configurations for selected building
   const fetchConfigs = useCallback(async (nhaTroId: string, pageIndex: number, pageSize: number, loaiFilter: string, statusFilter: string) => {
@@ -129,7 +134,9 @@ export default function CauHinhGiaPage() {
       if (statusFilter === 'ACTIVE') params.append('dangApDung', 'true');
       if (statusFilter === 'INACTIVE') params.append('dangApDung', 'false');
 
-      const response = await fetch(`/api/cau-hinh-gia?${params.toString()}`);
+      const response = await fetch(`/api/cau-hinh-gia?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -152,12 +159,12 @@ export default function CauHinhGiaPage() {
     } finally {
       setLoadingConfigs(false);
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     document.title = 'Cấu hình giá dịch vụ';
-    fetchToaNhas();
-  }, [fetchToaNhas]);
+    if (accessToken) fetchToaNhas();
+  }, [accessToken, fetchToaNhas]);
 
   useEffect(() => {
     if (selectedToaNhaId) {
@@ -181,6 +188,7 @@ export default function CauHinhGiaPage() {
     try {
       const response = await fetch(`/api/cau-hinh-gia/${id}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {
         const result = await response.json();
@@ -521,6 +529,8 @@ interface FormProps {
 }
 
 function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: FormProps) {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const getTodayString = () => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -578,6 +588,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         method,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(payload),
       });

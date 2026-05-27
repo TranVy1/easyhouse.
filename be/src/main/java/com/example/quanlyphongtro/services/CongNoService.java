@@ -28,7 +28,7 @@ public class CongNoService {
     private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<CongNoResponse> getTongNo(Pageable pageable) {
+    public PaginatedResponse<CongNoResponse> getTongNo(Pageable pageable, String search, boolean overdueOnly) {
         UUID currentUserId = permissionService.requireCurrentUserId();
         List<UUID> nhaTroIds = permissionService.getAllAccessibleNhaTroIds(currentUserId);
         
@@ -88,6 +88,22 @@ public class CongNoService {
                     .build());
         }
 
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        if (!normalizedSearch.isEmpty()) {
+            result = result.stream()
+                    .filter(item -> containsIgnoreCase(item.getMaPhong(), normalizedSearch)
+                            || containsIgnoreCase(item.getTenToaNha(), normalizedSearch)
+                            || containsIgnoreCase(item.getTenKhachThue(), normalizedSearch)
+                            || containsIgnoreCase(item.getSoDienThoai(), normalizedSearch))
+                    .collect(Collectors.toList());
+        }
+
+        if (overdueOnly) {
+            result = result.stream()
+                    .filter(item -> item.getNoQuaHan().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList());
+        }
+
         // Sort by tongNo descending
         result.sort((a, b) -> b.getTongNo().compareTo(a.getTongNo()));
         
@@ -101,5 +117,9 @@ public class CongNoService {
         
         Page<CongNoResponse> page = new PageImpl<>(pageContent, pageable, totalElements);
         return PaginatedResponse.of(page, pageContent);
+    }
+
+    private boolean containsIgnoreCase(String value, String normalizedSearch) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(normalizedSearch);
     }
 }

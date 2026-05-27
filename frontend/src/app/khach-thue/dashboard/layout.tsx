@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, FileText, AlertCircle, User, LogOut, Menu, X } from 'lucide-react';
+import { Home, FileText, AlertCircle, User, LogOut, Menu, X, Bell, ScrollText } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { TenantProvider, useTenantDashboard } from './context';
@@ -27,8 +27,9 @@ function TenantNavigation({
   const navigation = [
     { name: 'Tổng quan', href: '/khach-thue/dashboard', icon: Home, badge: 0 },
     { name: 'Hóa đơn', href: '/khach-thue/dashboard/hoa-don', icon: FileText, badge: data?.soHoaDonChuaThanhToan || 0 },
+    { name: 'Hợp đồng', href: '/khach-thue/dashboard/hop-dong', icon: ScrollText, badge: 0 },
     { name: 'Sự cố', href: '/khach-thue/dashboard/su-co', icon: AlertCircle, badge: data?.soSuCoDangMo || 0 },
-    { name: 'Thông báo', href: '/khach-thue/dashboard/thong-bao', icon: AlertCircle, badge: data?.soThongBaoMoi || 0 }, // using alert circle for now, maybe Bell is better
+    { name: 'Thông báo', href: '/khach-thue/dashboard/thong-bao', icon: Bell, badge: data?.soThongBaoMoi || 0 },
     { name: 'Tài khoản', href: '/khach-thue/dashboard/thong-tin', icon: User, badge: 0 },
   ];
 
@@ -140,14 +141,21 @@ function TenantNavigation({
               <p className="text-lg text-blue-700 font-medium">{data?.khachThue?.hoTen}</p>
             </div>
             <div className="space-y-2">
-              <Link 
-                href="/khach-thue/dashboard/thong-tin"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
-              >
-                <User className="h-5 w-5 text-gray-600" />
-                <span className="font-medium text-gray-700">Tài khoản cá nhân</span>
-              </Link>
+              {navigation.slice(4).map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                  >
+                    <Icon className="h-5 w-5 text-gray-600" />
+                    <span className="font-medium text-gray-700">{item.name}</span>
+                    {item.badge > 0 && <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{item.badge}</span>}
+                  </Link>
+                );
+              })}
               <button 
                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600"

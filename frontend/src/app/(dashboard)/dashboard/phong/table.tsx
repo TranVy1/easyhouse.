@@ -40,7 +40,6 @@ import {
   Ban,
   Search,
   User,
-  Users,
   Copy,
   ExternalLink,
 } from "lucide-react"

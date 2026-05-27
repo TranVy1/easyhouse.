@@ -36,7 +36,7 @@ public class PhongService {
     private final TienIchService tienIchService;
     private final PermissionService permissionService;
 
-    public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, int page, int limit) {
+    public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, String search, int page, int limit) {
         TrangThaiPhong tt = parseTrangThai(trangThaiStr);
         UUID nid = parseUuid(nhaTroId);
 
@@ -50,9 +50,10 @@ public class PhongService {
             }
         }
 
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<Phong> pageResult = phongRepository.findAllAccessible(
-                nid, tt != null ? tt.name() : null, isAdmin, nhaTroIds, pageable);
+                nid, tt != null ? tt.name() : null, normalizedSearch, isAdmin, nhaTroIds, pageable);
         
         List<PhongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
         return PaginatedResponse.of(pageResult, mappedList);
@@ -113,7 +114,14 @@ public class PhongService {
                 .soNguoiToiDa(req.getSoNguoiToiDa() != null ? req.getSoNguoiToiDa() : 2)
                 .trangThai(parseTrangThai(req.getTrangThai()) != null ? parseTrangThai(req.getTrangThai()) : TrangThaiPhong.AVAILABLE)
                 .build();
-        Phong saved = phongRepository.saveAndFlush(p);
+        
+        Phong saved;
+        try {
+            saved = phongRepository.saveAndFlush(p);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new RuntimeException("Ten phong da ton tai trong toa nha nay");
+        }
+        
         mediaService.replaceUrls(LoaiDoiTuongMedia.ROOM, saved.getId(), req.getAnhPhong(), MediaService.ROOM_IMAGE);
         tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi());
         return toResponse(saved);
@@ -150,7 +158,13 @@ public class PhongService {
         TrangThaiPhong tt = parseTrangThai(req.getTrangThai());
         if (tt != null) p.setTrangThai(tt);
 
-        Phong saved = phongRepository.saveAndFlush(p);
+        Phong saved;
+        try {
+            saved = phongRepository.saveAndFlush(p);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new RuntimeException("Ten phong da ton tai trong toa nha nay");
+        }
+        
         mediaService.replaceUrls(LoaiDoiTuongMedia.ROOM, saved.getId(), req.getAnhPhong(), MediaService.ROOM_IMAGE);
         tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi());
         return toResponse(saved);

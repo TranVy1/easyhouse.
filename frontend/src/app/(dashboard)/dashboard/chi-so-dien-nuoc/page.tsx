@@ -1,18 +1,27 @@
-'use client';
+"use client"
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import { useSession } from "next-auth/react"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Bolt,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Droplets,
+  FileCheck2,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react"
+import { toast } from "sonner"
+
+import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { ImageUpload } from "@/components/ui/image-upload"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -20,530 +29,575 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Trash2, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { toast } from 'sonner';
-import { ChiSoDienNuoc, LoaiChiSo, TrangThaiChiSo } from '@/types';
-import { ImageUpload } from '@/components/ui/image-upload';
-import { unwrapPageData } from '@/lib/api-response';
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { unwrapPageData } from "@/lib/api-response"
+import type { ApiResponse, ChiSoDienNuoc, LoaiChiSo, PaginatedResponse, Phong, TrangThaiChiSo } from "@/types"
+
+type ReadingFormData = {
+  phongId: string
+  loai: LoaiChiSo
+  kyNam: number
+  kyThang: number
+  ngayGhi: string
+  chiSoCu: number
+  chiSoMoi: number
+  trangThai: "DRAFT" | "CONFIRMED"
+  ghiChu: string
+  anhDongHo: string
+}
+
+const today = new Date()
+
+const blankForm = (): ReadingFormData => ({
+  phongId: "",
+  loai: "ELECTRICITY",
+  kyNam: today.getFullYear(),
+  kyThang: today.getMonth() + 1,
+  ngayGhi: today.toISOString().slice(0, 10),
+  chiSoCu: 0,
+  chiSoMoi: 0,
+  trangThai: "DRAFT",
+  ghiChu: "",
+  anhDongHo: "",
+})
+
+const readingId = (item: ChiSoDienNuoc) => item._id || item.id || ""
+
+const roomName = (item: ChiSoDienNuoc) => {
+  if (typeof item.phong === "object" && item.phong !== null) {
+    return item.phong.maPhong || item.phong.ten || "Chưa xác định"
+  }
+  return "Chưa xác định"
+}
+
+function statusBadge(status?: TrangThaiChiSo) {
+  switch (status) {
+    case "CONFIRMED":
+      return <Badge className="border-transparent bg-blue-100 text-blue-800">Đã chốt</Badge>
+    case "BILLED":
+      return <Badge className="border-transparent bg-emerald-100 text-emerald-800">Đã lên hóa đơn</Badge>
+    case "CANCELLED":
+      return <Badge variant="secondary">Đã hủy</Badge>
+    default:
+      return <Badge variant="outline">Bản nháp</Badge>
+  }
+}
+
+function ReadingSkeleton() {
+  return (
+    <div className="space-y-6" aria-label="Đang tải chỉ số điện nước">
+      <div className="h-20 animate-pulse rounded-xl bg-muted" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="h-32 animate-pulse rounded-xl bg-muted" />
+        ))}
+      </div>
+      <div className="h-[420px] animate-pulse rounded-xl bg-muted" />
+    </div>
+  )
+}
 
 export default function ChiSoDienNuocPage() {
-  const [data, setData] = useState<ChiSoDienNuoc[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [phongList, setPhongList] = useState<Array<{ _id?: string; id?: string; maPhong?: string; ten?: string; }>>([]);
-
-  // Dialog state
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  // Pagination state
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-
-  // Form state
-  const [formData, setFormData] = useState({
-    phongId: '',
-    loai: 'ELECTRICITY' as LoaiChiSo,
-    kyNam: new Date().getFullYear(),
-    kyThang: new Date().getMonth() + 1,
-    ngayGhi: new Date().toISOString().split('T')[0],
-    chiSoCu: 0,
-    chiSoMoi: 0,
-    trangThai: 'DRAFT' as TrangThaiChiSo,
-    ghiChu: '',
-    anhDongHo: '',
-  });
-
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: (pagination.pageIndex + 1).toString(),
-        limit: pagination.pageSize.toString()
-      });
-      const res = await fetch(`/api/chi-so-dien-nuoc?${params.toString()}`);
-      if (!res.ok) throw new Error('Không thể tải dữ liệu chỉ số');
-      const json = await res.json();
-      
-      if (json.data && !Array.isArray(json.data)) {
-        setData(json.data.data || []);
-        setTotalElements(json.data.total || 0);
-        setTotalPages(json.data.totalPages || 0);
-      } else {
-        setData(json.data || []);
-        setTotalElements((json.data || []).length);
-        setTotalPages(1);
-      }
-    } catch (error: unknown) {
-      toast.error((error as Error).message || 'Không thể tải dữ liệu chỉ số');
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.pageIndex, pagination.pageSize]);
-
-  const fetchPhong = useCallback(async () => {
-    try {
-      const res = await fetch('/api/phong?page=1&limit=100');
-      if (res.ok) {
-        const json = await res.json();
-        setPhongList(unwrapPageData(json.data));
-      }
-    } catch (error) {
-      console.error('Failed to fetch phong', error);
-    }
-  }, []);
+  const accessToken = useSession()?.data?.accessToken
+  const [data, setData] = useState<ChiSoDienNuoc[]>([])
+  const [rooms, setRooms] = useState<Phong[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [editing, setEditing] = useState<ChiSoDienNuoc | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<ChiSoDienNuoc | null>(null)
+  const [formData, setFormData] = useState<ReadingFormData>(blankForm)
+  const [filters, setFilters] = useState({
+    phongId: "all",
+    loai: "all",
+    trangThai: "all",
+    kyThang: String(today.getMonth() + 1),
+    kyNam: String(today.getFullYear()),
+  })
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [totalElements, setTotalElements] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
-    fetchData();
-    fetchPhong();
-  }, [fetchData, fetchPhong]);
+    document.title = "Chỉ số điện nước | EasyHouse"
+  }, [])
 
-  const handleOpenDialog = (item?: ChiSoDienNuoc) => {
-    if (item) {
-      setEditingId(item._id || item.id || null);
-      setFormData({
-        phongId: (item.phong as { _id?: string, id?: string })?._id || (item.phong as { _id?: string, id?: string })?.id || (typeof item.phong === 'string' ? item.phong : ''),
-        loai: item.loai || 'ELECTRICITY',
-        kyNam: item.kyNam || new Date().getFullYear(),
-        kyThang: item.kyThang || new Date().getMonth() + 1,
-        ngayGhi: item.ngayGhi ? new Date(item.ngayGhi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        chiSoCu: item.chiSoCu || 0,
-        chiSoMoi: item.chiSoMoi || 0,
-        trangThai: item.trangThai || 'DRAFT',
-        ghiChu: item.ghiChu || '',
-        anhDongHo: item.anhDongHo || '',
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        phongId: '',
-        loai: 'ELECTRICITY',
-        kyNam: new Date().getFullYear(),
-        kyThang: new Date().getMonth() + 1,
-        ngayGhi: new Date().toISOString().split('T')[0],
-        chiSoCu: 0,
-        chiSoMoi: 0,
-        trangThai: 'DRAFT',
-        ghiChu: '',
-        anhDongHo: '',
-      });
-    }
-    setIsDialogOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.chiSoMoi < formData.chiSoCu) {
-      toast.error('Chỉ số mới không được nhỏ hơn chỉ số cũ');
-      return;
-    }
-    
-    if (!formData.phongId) {
-      toast.error('Vui lòng chọn phòng');
-      return;
-    }
-
+  const fetchRooms = useCallback(async () => {
     try {
-      setIsSubmitting(true);
-      const url = editingId ? `/api/chi-so-dien-nuoc/${editingId}` : '/api/chi-so-dien-nuoc';
-      const method = editingId ? 'PUT' : 'POST';
+      const response = await fetch("/api/phong?page=1&limit=100", {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result: ApiResponse<Phong[] | PaginatedResponse<Phong>> = await response.json()
+      if (response.ok && result.success) setRooms(unwrapPageData(result.data))
+    } catch {
+      setRooms([])
+    }
+  }, [accessToken])
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Lưu thất bại');
+  const fetchReadings = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
       }
+      setError(null)
 
-      toast.success(editingId ? 'Cập nhật chỉ số thành công' : 'Thêm mới chỉ số thành công');
-      
-      setIsDialogOpen(false);
-      fetchData();
-    } catch (error: unknown) {
-      toast.error((error as Error).message || 'Lưu thất bại');
-    } finally {
-      setIsSubmitting(false);
+      try {
+        const params = new URLSearchParams({
+          page: String(pagination.pageIndex + 1),
+          limit: String(pagination.pageSize),
+          sort: "kyNam,desc",
+        })
+        if (filters.phongId !== "all") params.set("phongId", filters.phongId)
+        if (filters.loai !== "all") params.set("loai", filters.loai)
+        if (filters.trangThai !== "all") params.set("trangThai", filters.trangThai)
+        if (filters.kyThang !== "all") params.set("kyThang", filters.kyThang)
+        if (filters.kyNam !== "all") params.set("kyNam", filters.kyNam)
+
+        const response = await fetch(`/api/chi-so-dien-nuoc?${params.toString()}`, {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        })
+        const result: ApiResponse<PaginatedResponse<ChiSoDienNuoc>> = await response.json()
+        if (!response.ok || !result.success || !result.data) {
+          throw new Error(result.message || "Không thể tải dữ liệu chỉ số.")
+        }
+        setData(result.data.data || [])
+        setTotalElements(result.data.total || 0)
+        setTotalPages(result.data.totalPages || 0)
+      } catch (requestError) {
+        setData([])
+        setError(requestError instanceof Error ? requestError.message : "Không thể kết nối máy chủ.")
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
+      }
+    },
+    [accessToken, filters, pagination.pageIndex, pagination.pageSize],
+  )
+
+  useEffect(() => {
+    fetchRooms()
+  }, [fetchRooms])
+
+  useEffect(() => {
+    fetchReadings()
+  }, [fetchReadings])
+
+  const pageTotals = useMemo(
+    () => ({
+      electricity: data.filter((item) => item.loai === "ELECTRICITY").reduce((sum, item) => sum + (item.tieuThu || 0), 0),
+      water: data.filter((item) => item.loai === "WATER").reduce((sum, item) => sum + (item.tieuThu || 0), 0),
+      confirmed: data.filter((item) => item.trangThai === "CONFIRMED" || item.trangThai === "BILLED").length,
+    }),
+    [data],
+  )
+
+  const updateFilter = (key: keyof typeof filters, value: string) => {
+    setPagination((current) => ({ ...current, pageIndex: 0 }))
+    setFilters((current) => ({ ...current, [key]: value }))
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setFormData({
+      ...blankForm(),
+      kyThang: filters.kyThang === "all" ? today.getMonth() + 1 : Number(filters.kyThang),
+      kyNam: filters.kyNam === "all" ? today.getFullYear() : Number(filters.kyNam),
+      phongId: filters.phongId === "all" ? "" : filters.phongId,
+      loai: filters.loai === "WATER" ? "WATER" : "ELECTRICITY",
+    })
+    setFormOpen(true)
+  }
+
+  const openEdit = (item: ChiSoDienNuoc) => {
+    setEditing(item)
+    setFormData({
+      phongId: typeof item.phong === "string" ? item.phong : item.phong._id || item.phong.id || "",
+      loai: item.loai || "ELECTRICITY",
+      kyNam: item.kyNam || today.getFullYear(),
+      kyThang: item.kyThang || today.getMonth() + 1,
+      ngayGhi: item.ngayGhi ? new Date(item.ngayGhi).toISOString().slice(0, 10) : today.toISOString().slice(0, 10),
+      chiSoCu: item.chiSoCu || 0,
+      chiSoMoi: item.chiSoMoi || 0,
+      trangThai: item.trangThai === "CONFIRMED" ? "CONFIRMED" : "DRAFT",
+      ghiChu: item.ghiChu || "",
+      anhDongHo: item.anhDongHo || "",
+    })
+    setFormOpen(true)
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!formData.phongId) {
+      toast.error("Vui lòng chọn phòng.")
+      return
     }
-  };
+    if (formData.chiSoMoi < formData.chiSoCu) {
+      toast.error("Chỉ số mới không được nhỏ hơn chỉ số cũ.")
+      return
+    }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn hủy chỉ số này?')) return;
-    
+    setSubmitting(true)
     try {
-      const res = await fetch(`/api/chi-so-dien-nuoc/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Hủy thất bại');
-      
-      toast.success('Đã hủy chỉ số');
-      fetchData();
-    } catch (error: unknown) {
-      toast.error((error as Error).message || 'Hủy thất bại');
+      const id = editing ? readingId(editing) : ""
+      const response = await fetch(id ? `/api/chi-so-dien-nuoc/${id}` : "/api/chi-so-dien-nuoc", {
+        method: id ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify(formData),
+      })
+      const result: ApiResponse<ChiSoDienNuoc> = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.message || "Không thể lưu chỉ số.")
+      toast.success(id ? "Đã cập nhật chỉ số." : "Đã ghi chỉ số mới.")
+      setFormOpen(false)
+      await fetchReadings(true)
+    } catch (submitError) {
+      toast.error(submitError instanceof Error ? submitError.message : "Không thể lưu chỉ số.")
+    } finally {
+      setSubmitting(false)
     }
-  };
+  }
 
-  const getTrangThaiBadge = (status: TrangThaiChiSo) => {
-    switch (status) {
-      case 'DRAFT': return <Badge variant="outline">Bản nháp</Badge>;
-      case 'CONFIRMED': return <Badge className="bg-blue-500 hover:bg-blue-600">Đã chốt</Badge>;
-      case 'BILLED': return <Badge className="bg-green-500 hover:bg-green-600">Đã lên hóa đơn</Badge>;
-      case 'CANCELLED': return <Badge variant="destructive">Đã hủy</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
+  const handleCancel = async () => {
+    if (!cancelTarget) return
+
+    setSubmitting(true)
+    try {
+      const id = readingId(cancelTarget)
+      const isBilled = cancelTarget.trangThai === "BILLED"
+      const response = await fetch(`/api/chi-so-dien-nuoc/${id}`, {
+        method: isBilled ? "PUT" : "DELETE",
+        headers: {
+          ...(isBilled ? { "Content-Type": "application/json" } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: isBilled ? JSON.stringify({ trangThai: "CANCELLED" }) : undefined,
+      })
+      const result: ApiResponse<unknown> = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.message || "Không thể hủy chỉ số.")
+      toast.success("Đã hủy chỉ số.")
+      setCancelTarget(null)
+      await fetchReadings(true)
+    } catch (cancelError) {
+      toast.error(cancelError instanceof Error ? cancelError.message : "Không thể hủy chỉ số.")
+    } finally {
+      setSubmitting(false)
     }
-  };
+  }
+
+  if (loading) return <ReadingSkeleton />
+
+  if (error) {
+    return <ErrorState title="Không tải được chỉ số" description={error} onRetry={() => fetchReadings()} />
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto w-full">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Chốt chỉ số điện nước</h1>
-          <p className="text-muted-foreground mt-2">
-            Ghi nhận và quản lý chỉ số tiêu thụ hàng tháng của các phòng
-          </p>
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Ghi chỉ số mới
+    <div className="space-y-6 lg:space-y-8">
+      <DashboardPageHeader
+        eyebrow="Thu tiền"
+        title="Chỉ số điện nước"
+        description="Ghi và chốt số đo trước khi lập hóa đơn; bản ghi đã lên hóa đơn được khóa chỉnh sửa."
+        actions={
+          <>
+            <Button variant="outline" onClick={() => fetchReadings(true)} disabled={refreshing}>
+              <RefreshCw className={refreshing ? "animate-spin" : ""} />
+              {refreshing ? "Đang tải" : "Làm mới"}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{editingId ? 'Cập nhật chỉ số' : 'Ghi chỉ số mới'}</DialogTitle>
-              <DialogDescription>
-                Nhập thông tin chỉ số điện nước cho kỳ thanh toán.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleSubmit} className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phòng</label>
-                  <Select 
-                    value={formData.phongId} 
-                    onValueChange={(v) => setFormData({...formData, phongId: v})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn phòng" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {phongList.map(p => (
-                        <SelectItem key={p._id || p.id || "unknown"} value={p._id || p.id || ""}>
-                          {p.maPhong || p.ten}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Loại chỉ số</label>
-                  <Select 
-                    value={formData.loai} 
-                    onValueChange={(v: LoaiChiSo) => setFormData({...formData, loai: v})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Loại" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ELECTRICITY">Điện</SelectItem>
-                      <SelectItem value="WATER">Nước</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Kỳ (Tháng)</label>
-                  <Input 
-                    type="number" 
-                    min={1} max={12}
-                    value={formData.kyThang} 
-                    onChange={e => setFormData({...formData, kyThang: parseInt(e.target.value) || 1})} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Năm</label>
-                  <Input 
-                    type="number" 
-                    min={2000}
-                    value={formData.kyNam} 
-                    onChange={e => setFormData({...formData, kyNam: parseInt(e.target.value) || 2024})} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Chỉ số cũ</label>
-                  <Input 
-                    type="number" 
-                    min={0}
-                    value={formData.chiSoCu} 
-                    onChange={e => setFormData({...formData, chiSoCu: parseInt(e.target.value) || 0})} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Chỉ số mới</label>
-                  <Input 
-                    type="number" 
-                    min={0}
-                    value={formData.chiSoMoi} 
-                    onChange={e => setFormData({...formData, chiSoMoi: parseInt(e.target.value) || 0})} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tiêu thụ (Tự tính)</label>
-                  <Input 
-                    type="number" 
-                    disabled
-                    value={Math.max(0, formData.chiSoMoi - formData.chiSoCu)} 
-                  />
-                </div>
+            <Button onClick={openCreate}>
+              <Plus />
+              Ghi chỉ số
+            </Button>
+          </>
+        }
+      />
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Trạng thái</label>
-                  <Select 
-                    value={formData.trangThai} 
-                    onValueChange={(v: TrangThaiChiSo) => setFormData({...formData, trangThai: v})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DRAFT">Bản nháp</SelectItem>
-                      <SelectItem value="CONFIRMED">Đã chốt</SelectItem>
-                      <SelectItem value="BILLED">Đã lên hóa đơn</SelectItem>
-                      <SelectItem value="CANCELLED">Đã hủy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ngày ghi</label>
-                <Input 
-                  type="date" 
-                  value={formData.ngayGhi} 
-                  onChange={e => setFormData({...formData, ngayGhi: e.target.value})} 
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ghi chú</label>
-                <Input 
-                  value={formData.ghiChu} 
-                  onChange={e => setFormData({...formData, ghiChu: e.target.value})} 
-                  placeholder="Ghi chú thêm..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <ImageUpload
-                  imageUrl={formData.anhDongHo}
-                  onImageChange={url => setFormData({...formData, anhDongHo: url})}
-                  label={formData.loai === 'ELECTRICITY' ? 'Ảnh đồng hồ điện' : 'Ảnh đồng hồ nước'}
-                  placeholder="Chọn ảnh đồng hồ"
-                />
-              </div>
-              
-              <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Hủy
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingId ? 'Lưu thay đổi' : 'Thêm chỉ số'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Bản ghi phù hợp" value={totalElements} hint="Theo bộ lọc hiện tại" icon={CalendarDays} />
+        <MetricCard label="Điện trên trang" value={`${pageTotals.electricity} kWh`} hint="Tiêu thụ trang đang xem" icon={Bolt} tone="warning" />
+        <MetricCard label="Nước trên trang" value={`${pageTotals.water} m3`} hint="Tiêu thụ trang đang xem" icon={Droplets} tone="default" />
+        <MetricCard label="Đã chốt / lập HĐ" value={pageTotals.confirmed} hint="Bản ghi trên trang" icon={FileCheck2} tone="success" />
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Danh sách chỉ số</CardTitle>
-          <CardDescription>Tổng quan các chỉ số điện nước đã ghi</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kỳ</TableHead>
-                  <TableHead>Phòng</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead className="text-right">CS Cũ</TableHead>
-                  <TableHead className="text-right">CS Mới</TableHead>
-                  <TableHead className="text-right">Tiêu thụ</TableHead>
-                  <TableHead className="text-center">Ảnh</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                    </TableCell>
-                  </TableRow>
-                ) : data.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      Chưa có dữ liệu chỉ số nào.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.map((item) => (
-                    <TableRow key={item._id || item.id}>
-                      <TableCell className="font-medium">
-                        {item.kyThang}/{item.kyNam}
-                      </TableCell>
-                      <TableCell>
-                        {(item.phong as { maPhong?: string, ten?: string })?.maPhong || (item.phong as { maPhong?: string, ten?: string })?.ten || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {item.loai === 'ELECTRICITY' ? 'Điện' : 'Nước'}
-                      </TableCell>
-                      <TableCell className="text-right">{item.chiSoCu}</TableCell>
-                      <TableCell className="text-right font-medium">{item.chiSoMoi}</TableCell>
-                      <TableCell className="text-right font-bold text-primary">
-                        {item.tieuThu || (item.chiSoMoi && item.chiSoCu ? item.chiSoMoi - item.chiSoCu : 0)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.anhDongHo ? (
-                          <a 
-                            href={item.anhDongHo} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="inline-flex items-center justify-center text-blue-500 hover:text-blue-600 hover:underline gap-1 text-sm font-medium"
-                          >
-                            <ImageIcon className="h-4 w-4" />
-                            Xem ảnh
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Không có</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {getTrangThaiBadge(item.trangThai || 'DRAFT')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleOpenDialog(item)}
-                          disabled={item.trangThai === 'BILLED'}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => handleDelete(item._id || item.id as string)}
-                          disabled={item.trangThai === 'BILLED'}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b p-5 md:p-6">
+          <CardTitle className="text-lg">Danh sách chỉ số</CardTitle>
+          <CardDescription className="mt-1">Lọc theo kỳ, phòng, loại và trạng thái trên toàn bộ dữ liệu được phép truy cập.</CardDescription>
+          <div className="grid gap-2 pt-4 sm:grid-cols-2 lg:grid-cols-5">
+            <Select value={filters.phongId} onValueChange={(value) => updateFilter("phongId", value)}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Phòng" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả phòng</SelectItem>
+                {rooms.map((room) => (
+                  <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filters.loai} onValueChange={(value) => updateFilter("loai", value)}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Điện và nước</SelectItem>
+                <SelectItem value="ELECTRICITY">Điện</SelectItem>
+                <SelectItem value="WATER">Nước</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filters.trangThai} onValueChange={(value) => updateFilter("trangThai", value)}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Mọi trạng thái</SelectItem>
+                <SelectItem value="DRAFT">Bản nháp</SelectItem>
+                <SelectItem value="CONFIRMED">Đã chốt</SelectItem>
+                <SelectItem value="BILLED">Đã lên hóa đơn</SelectItem>
+                <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filters.kyThang} onValueChange={(value) => updateFilter("kyThang", value)}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả tháng</SelectItem>
+                {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
+                  <SelectItem key={month} value={String(month)}>Tháng {month}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              min={2020}
+              value={filters.kyNam === "all" ? "" : filters.kyNam}
+              placeholder="Năm"
+              onChange={(event) => updateFilter("kyNam", event.target.value || "all")}
+            />
           </div>
-          
-          <div className="flex items-center justify-between mt-4 px-2">
-            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-              Hiển thị {data.length} / {totalElements} chỉ số
-            </div>
-            <div className="flex w-full items-center gap-8 lg:w-fit">
-              <div className="hidden items-center gap-2 lg:flex">
-                <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                  Số hàng mỗi trang
-                </Label>
-                <Select
-                  value={`${pagination.pageSize}`}
-                  onValueChange={(value) => {
-                    setPagination(prev => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
-                  }}
-                >
-                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                    <SelectValue placeholder={pagination.pageSize} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    {[10, 20, 30, 40, 50].map((pageSize) => (
-                      <SelectItem key={pageSize} value={`${pageSize}`}>
-                        {pageSize}
-                      </SelectItem>
+        </CardHeader>
+        <CardContent className="p-4 md:p-6">
+          {data.length === 0 ? (
+            <EmptyState title="Chưa có chỉ số phù hợp" description="Đổi bộ lọc hoặc ghi chỉ số mới cho kỳ đang chọn." />
+          ) : (
+            <>
+              <div className="hidden overflow-hidden rounded-xl border md:block">
+                <Table>
+                  <TableHeader className="bg-muted/60">
+                    <TableRow>
+                      <TableHead>Kỳ / Phòng</TableHead>
+                      <TableHead>Loại</TableHead>
+                      <TableHead className="text-right">Chỉ số cũ</TableHead>
+                      <TableHead className="text-right">Chỉ số mới</TableHead>
+                      <TableHead className="text-right">Tiêu thụ</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead className="text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.map((item) => (
+                      <TableRow key={readingId(item)}>
+                        <TableCell>
+                          <p className="font-medium">{item.kyThang}/{item.kyNam}</p>
+                          <p className="text-xs text-muted-foreground">{roomName(item)}</p>
+                        </TableCell>
+                        <TableCell>{item.loai === "ELECTRICITY" ? "Điện" : "Nước"}</TableCell>
+                        <TableCell className="text-right">{item.chiSoCu || 0}</TableCell>
+                        <TableCell className="text-right">{item.chiSoMoi || 0}</TableCell>
+                        <TableCell className="text-right font-semibold">{item.tieuThu || 0}</TableCell>
+                        <TableCell>{statusBadge(item.trangThai)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            {item.anhDongHo ? (
+                              <Button asChild size="icon-sm" variant="ghost">
+                                <a href={item.anhDongHo} target="_blank" rel="noopener noreferrer" aria-label="Xem ảnh đồng hồ">
+                                  <ImageIcon />
+                                </a>
+                              </Button>
+                            ) : null}
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              onClick={() => openEdit(item)}
+                              disabled={item.trangThai === "BILLED" || item.trangThai === "CANCELLED"}
+                              aria-label="Chỉnh sửa"
+                            >
+                              <Pencil />
+                            </Button>
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              className="text-destructive"
+                              onClick={() => setCancelTarget(item)}
+                              disabled={item.trangThai === "CANCELLED"}
+                              aria-label="Hủy bản ghi"
+                            >
+                              <Trash2 />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="space-y-3 md:hidden">
+                {data.map((item) => (
+                  <article key={readingId(item)} className="rounded-xl border p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium">{roomName(item)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.loai === "ELECTRICITY" ? "Điện" : "Nước"} · Kỳ {item.kyThang}/{item.kyNam}
+                        </p>
+                      </div>
+                      {statusBadge(item.trangThai)}
+                    </div>
+                    <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-muted/50 p-3 text-center text-sm">
+                      <div><p className="text-xs text-muted-foreground">Cũ</p><p className="mt-1 font-medium">{item.chiSoCu || 0}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Mới</p><p className="mt-1 font-medium">{item.chiSoMoi || 0}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Dùng</p><p className="mt-1 font-semibold text-primary">{item.tieuThu || 0}</p></div>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => openEdit(item)} disabled={item.trangThai === "BILLED" || item.trangThai === "CANCELLED"}>
+                        Chỉnh sửa
+                      </Button>
+                      <Button variant="outline" className="flex-1 text-destructive" onClick={() => setCancelTarget(item)} disabled={item.trangThai === "CANCELLED"}>
+                        Hủy
+                      </Button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
+          {totalPages > 0 ? (
+            <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">Hiển thị {data.length} / {totalElements} bản ghi</p>
+              <div className="flex items-center justify-between gap-3">
+                <Select value={String(pagination.pageSize)} onValueChange={(value) => setPagination({ pageIndex: 0, pageSize: Number(value) })}>
+                  <SelectTrigger size="sm" className="w-24"><SelectValue /></SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 50].map((size) => <SelectItem key={size} value={String(size)}>{size} dòng</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm font-medium">Trang {pagination.pageIndex + 1} / {totalPages}</span>
+                <div className="flex gap-1">
+                  <Button size="icon-sm" variant="outline" disabled={pagination.pageIndex === 0} onClick={() => setPagination((current) => ({ ...current, pageIndex: current.pageIndex - 1 }))}>
+                    <ChevronLeft />
+                    <span className="sr-only">Trang trước</span>
+                  </Button>
+                  <Button size="icon-sm" variant="outline" disabled={pagination.pageIndex + 1 >= totalPages} onClick={() => setPagination((current) => ({ ...current, pageIndex: current.pageIndex + 1 }))}>
+                    <ChevronRight />
+                    <span className="sr-only">Trang sau</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Cập nhật chỉ số" : "Ghi chỉ số mới"}</DialogTitle>
+            <DialogDescription>
+              Chỉ lưu nháp hoặc chốt số đo tại đây. Trạng thái lập hóa đơn được cập nhật tự động.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Phòng</Label>
+                <Select value={formData.phongId} onValueChange={(value) => setFormData((current) => ({ ...current, phongId: value }))} disabled={Boolean(editing)}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Chọn phòng" /></SelectTrigger>
+                  <SelectContent>
+                    {rooms.map((room) => <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Trang {pagination.pageIndex + 1} / {totalPages || 1}
+              <div className="space-y-2">
+                <Label>Loại chỉ số</Label>
+                <Select value={formData.loai} onValueChange={(value: LoaiChiSo) => setFormData((current) => ({ ...current, loai: value }))} disabled={Boolean(editing)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="ELECTRICITY">Điện</SelectItem><SelectItem value="WATER">Nước</SelectItem></SelectContent>
+                </Select>
               </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
-                  disabled={pagination.pageIndex === 0}
-                >
-                  <span className="sr-only">Trang đầu</span>
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8 p-0"
-                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
-                  disabled={pagination.pageIndex === 0}
-                >
-                  <span className="sr-only">Trang trước</span>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8 p-0"
-                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1) }))}
-                  disabled={pagination.pageIndex >= totalPages - 1}
-                >
-                  <span className="sr-only">Trang sau</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
-                  disabled={pagination.pageIndex >= totalPages - 1}
-                >
-                  <span className="sr-only">Trang cuối</span>
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
+              <div className="space-y-2">
+                <Label>Tháng</Label>
+                <Input type="number" min={1} max={12} value={formData.kyThang} onChange={(event) => setFormData((current) => ({ ...current, kyThang: Number(event.target.value) }))} disabled={Boolean(editing)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Năm</Label>
+                <Input type="number" min={2020} value={formData.kyNam} onChange={(event) => setFormData((current) => ({ ...current, kyNam: Number(event.target.value) }))} disabled={Boolean(editing)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Chỉ số cũ</Label>
+                <Input type="number" min={0} value={formData.chiSoCu} onChange={(event) => setFormData((current) => ({ ...current, chiSoCu: Number(event.target.value) }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Chỉ số mới</Label>
+                <Input type="number" min={0} value={formData.chiSoMoi} onChange={(event) => setFormData((current) => ({ ...current, chiSoMoi: Number(event.target.value) }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Tiêu thụ</Label>
+                <Input value={Math.max(0, formData.chiSoMoi - formData.chiSoCu)} disabled />
+              </div>
+              <div className="space-y-2">
+                <Label>Trạng thái</Label>
+                <Select value={formData.trangThai} onValueChange={(value: "DRAFT" | "CONFIRMED") => setFormData((current) => ({ ...current, trangThai: value }))}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="DRAFT">Lưu nháp</SelectItem><SelectItem value="CONFIRMED">Chốt chỉ số</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Ngày ghi</Label>
+                <Input type="date" value={formData.ngayGhi} onChange={(event) => setFormData((current) => ({ ...current, ngayGhi: event.target.value }))} />
               </div>
             </div>
-          </div>
-          
-        </CardContent>
-      </Card>
+            <div className="space-y-2">
+              <Label>Ghi chú</Label>
+              <Textarea value={formData.ghiChu} onChange={(event) => setFormData((current) => ({ ...current, ghiChu: event.target.value }))} placeholder="Ghi chú khi đọc đồng hồ..." />
+            </div>
+            <ImageUpload imageUrl={formData.anhDongHo} onImageChange={(url) => setFormData((current) => ({ ...current, anhDongHo: url }))} label={formData.loai === "ELECTRICITY" ? "Ảnh đồng hồ điện" : "Ảnh đồng hồ nước"} />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>Hủy</Button>
+              <Button type="submit" disabled={submitting}>{submitting ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Ghi chỉ số"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(cancelTarget)} onOpenChange={(open) => !open && setCancelTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hủy bản ghi chỉ số?</DialogTitle>
+            <DialogDescription>
+              Bản ghi {cancelTarget ? roomName(cancelTarget) : ""} kỳ {cancelTarget?.kyThang}/{cancelTarget?.kyNam} sẽ được chuyển sang trạng thái đã hủy và giữ lại để đối soát.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)}>Giữ lại</Button>
+            <Button variant="destructive" onClick={handleCancel} disabled={submitting}>{submitting ? "Đang hủy..." : "Xác nhận hủy"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  );
+  )
 }

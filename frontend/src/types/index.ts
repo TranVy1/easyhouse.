@@ -276,6 +276,7 @@ export interface HopDong {
   trangThai: TrangThaiHopDong;
   fileHopDong?: string;
   filePdf?: string;
+  ghiChu?: string;
   chuKyChuTro?: string;
   chuKyKhachThue?: string;
   ngayTao: DateLike;

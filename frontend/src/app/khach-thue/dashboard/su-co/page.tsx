@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertTriangle, Clock, Wrench, CheckCircle2, Upload, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Clock, Wrench } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { SuCo } from '@/types';
@@ -16,6 +17,7 @@ import { useTenantDashboard } from '../context';
 
 export default function TenantIncidentsPage() {
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const { data: dashboardData } = useTenantDashboard();
   const [incidents, setIncidents] = useState<SuCo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,18 +32,12 @@ export default function TenantIncidentsPage() {
   });
   const [file, setFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      fetchIncidents();
-    }
-  }, [session]);
-
-  const fetchIncidents = async () => {
+  const fetchIncidents = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/tenant/su-co', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -56,7 +52,13 @@ export default function TenantIncidentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      void fetchIncidents();
+    }
+  }, [accessToken, fetchIncidents]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -349,13 +351,12 @@ export default function TenantIncidentsPage() {
                       <div className="flex gap-2 overflow-x-auto pb-2">
                         {incident.anhSuCo.map((url, i) => (
                           <div key={i} className="h-16 w-16 rounded overflow-hidden shrink-0 border relative">
-                            <img 
+                            <Image
                               src={url} 
                               alt="Sự cố" 
-                              className="w-full h-full object-cover" 
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=No+Image';
-                              }}
+                              fill
+                              sizes="64px"
+                              className="object-cover"
                             />
                           </div>
                         ))}

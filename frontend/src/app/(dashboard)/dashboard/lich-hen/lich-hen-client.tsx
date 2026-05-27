@@ -28,8 +28,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { LichHen, Phong, ApiResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { useSession } from "next-auth/react";
 
 export function LichHenClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [lichHenList, setLichHenList] = useState<LichHen[]>([]);
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,8 +65,12 @@ export function LichHenClient() {
       });
       
       const [lichHenRes, phongRes] = await Promise.all([
-        fetch(`/api/lich-hen?${params.toString()}`),
-        fetch("/api/phong?page=1&limit=100")
+        fetch(`/api/lich-hen?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        fetch("/api/phong?page=1&limit=100", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
       ]);
       
       const lichHenData = await lichHenRes.json();
@@ -92,9 +99,9 @@ export function LichHenClient() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (accessToken) fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex, pagination.pageSize]);
+  }, [accessToken, pagination.pageIndex, pagination.pageSize]);
 
   const handleOpenDialog = (lichHen?: LichHen) => {
     if (lichHen) {
@@ -158,7 +165,10 @@ export function LichHenClient() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -182,6 +192,7 @@ export function LichHenClient() {
     try {
       const res = await fetch(`/api/lich-hen/${selectedLichHen._id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data: ApiResponse<void> = await res.json();
       
@@ -202,7 +213,10 @@ export function LichHenClient() {
     try {
       const res = await fetch(`/api/lich-hen/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ trangThai: status }),
       });
       const data: ApiResponse<LichHen> = await res.json();

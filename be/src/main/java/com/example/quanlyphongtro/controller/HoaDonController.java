@@ -36,10 +36,14 @@ public class HoaDonController {
     public ResponseEntity<ApiResponse<PaginatedResponse<HoaDonResponse>>> getAll(
             @RequestParam(required = false) String hopDongId,
             @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer kyThang,
+            @RequestParam(required = false) Integer kyNam,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAll(hopDongId, trangThai, page, limit)));
+            return ResponseEntity.ok(ApiResponse.success(
+                    hoaDonService.getAll(hopDongId, trangThai, search, kyThang, kyNam, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

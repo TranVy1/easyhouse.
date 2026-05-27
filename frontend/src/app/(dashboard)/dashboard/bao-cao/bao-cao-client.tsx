@@ -2,22 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { BaoCaoTongQuan, ApiResponse } from "@/types";
-import { DollarSign, Percent, AlertCircle, FileText, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { DollarSign, Percent, AlertCircle, FileText } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export function BaoCaoClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [baoCao, setBaoCao] = useState<BaoCaoTongQuan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBaoCao = async () => {
       try {
-        const res = await fetch("/api/bao-cao/tong-quan");
+        const res = await fetch("/api/bao-cao/tong-quan", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         const data: ApiResponse<BaoCaoTongQuan> = await res.json();
         
         if (data.success) {
@@ -34,8 +38,8 @@ export function BaoCaoClient() {
       }
     };
 
-    fetchBaoCao();
-  }, []);
+    if (accessToken) fetchBaoCao();
+  }, [accessToken]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {

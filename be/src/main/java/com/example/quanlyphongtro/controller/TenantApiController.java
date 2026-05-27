@@ -36,7 +36,8 @@ public class TenantApiController {
         try {
             // HoaDonService.getAll is already secured to only return invoices accessible by the current user.
             // For a tenant, it will return invoices where khachThue.nguoiDung.id = currentUserId.
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAll(null, trangThai, page, limit)));
+            return ResponseEntity.ok(ApiResponse.success(
+                    hoaDonService.getAll(null, trangThai, null, null, null, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }
@@ -83,7 +84,7 @@ public class TenantApiController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(null, trangThai, page, limit)));
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(null, null, trangThai, null, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

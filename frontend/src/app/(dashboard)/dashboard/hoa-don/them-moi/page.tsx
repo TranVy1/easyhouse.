@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,8 @@ const getKhachThueName = (khachThueId: string | KhachThue, khachThueList: KhachT
 
 export default function ThemMoiHoaDonPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [hopDongList, setHopDongList] = useState<HopDong[]>([]);
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
@@ -106,14 +109,19 @@ export default function ThemMoiHoaDonPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (!accessToken) return;
     fetchFormData();
     // Tự động sinh mã hóa đơn khi trang load
     setFormData(prev => ({ ...prev, maHoaDon: generateInvoiceCode() }));
-  }, []);
+  // fetchFormData is declared below to preserve the legacy form initialization order.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   const fetchFormData = async () => {
     try {
-      const formDataResponse = await fetch('/api/hoa-don/form-data');
+      const formDataResponse = await fetch('/api/hoa-don/form-data', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (formDataResponse.ok) {
         const formData = await formDataResponse.json();
         console.log('Form data loaded:', formData.data);
@@ -133,7 +141,9 @@ export default function ThemMoiHoaDonPage() {
 
   const fetchLatestElectricityReading = useCallback(async (hopDongId: string, thang: number, nam: number) => {
     try {
-      const response = await fetch(`/api/hoa-don/latest-reading?hopDong=${hopDongId}&thang=${thang}&nam=${nam}`);
+      const response = await fetch(`/api/hoa-don/latest-reading?hopDong=${hopDongId}&thang=${thang}&nam=${nam}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -150,7 +160,7 @@ export default function ThemMoiHoaDonPage() {
     } catch (error) {
       console.error('Error fetching latest electricity reading:', error);
     }
-  }, []);
+  }, [accessToken]);
 
   // Helper: trích xuất UUID string từ object hoặc string
   const extractId = (value: unknown): string => {
@@ -301,6 +311,7 @@ export default function ThemMoiHoaDonPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(requestData),
       });
@@ -465,7 +476,7 @@ export default function ThemMoiHoaDonPage() {
                                   const dateObj = new Date(date);
                                   if (isNaN(dateObj.getTime())) return 'N/A';
                                   return dateObj.toLocaleDateString('vi-VN');
-                                } catch (error) {
+                                } catch {
                                   return 'N/A';
                                 }
                               };

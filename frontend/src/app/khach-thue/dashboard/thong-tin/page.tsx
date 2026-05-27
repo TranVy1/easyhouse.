@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { useTenantDashboard } from '../context';
 
 export default function TenantProfilePage() {
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const { refreshData } = useTenantDashboard();
   
   const [loading, setLoading] = useState(true);
@@ -31,18 +33,12 @@ export default function TenantProfilePage() {
     confirmPassword: ''
   });
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      fetchProfile();
-    }
-  }, [session]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/user/profile', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -62,7 +58,13 @@ export default function TenantProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      void fetchProfile();
+    }
+  }, [accessToken, fetchProfile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -204,15 +206,14 @@ export default function TenantProfilePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b">
                 <div className="relative group">
-                  <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
+                  <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
                     {formData.avatar ? (
-                      <img 
+                      <Image
                         src={formData.avatar} 
                         alt="Avatar" 
-                        className="h-full w-full object-cover" 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Avatar';
-                        }}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
                       />
                     ) : (
                       <User className="h-10 w-10 text-gray-400" />

@@ -31,11 +31,13 @@ public class HopDongController {
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<HopDongResponse>>> getAll(
             @RequestParam(required = false) String phongId,
+            @RequestParam(required = false) String toaNha,
             @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, trangThai, page, limit)));
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, toaNha, trangThai, search, page, limit)));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

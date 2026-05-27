@@ -53,7 +53,6 @@ export function NavMain({
       <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          // Khi sidebar collapsed và không phải mobile, dùng DropdownMenu
           if (state === "collapsed" && !isMobile) {
             return (
               <SidebarMenuItem key={item.title}>
@@ -113,12 +112,15 @@ export function NavMain({
             <Collapsible
               key={item.title}
               asChild
-              defaultOpen={item.isActive}
+              defaultOpen={item.items?.some((subItem) => pathname.startsWith(subItem.url))}
               className="group/collapsible"
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    className={item.items?.some((subItem) => pathname.startsWith(subItem.url)) ? "text-primary" : ""}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,8 @@ export default function ChinhSuaHoaDonPage() {
   const router = useRouter();
   const params = useParams();
   const hoaDonId = params.id as string;
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
 
   const [hoaDon, setHoaDon] = useState<HoaDon | null>(null);
   const [hopDongList, setHopDongList] = useState<HopDong[]>([]);
@@ -94,7 +97,9 @@ export default function ChinhSuaHoaDonPage() {
   const fetchData = useCallback(async () => {
     try {
       // Fetch hóa đơn chi tiết theo ID
-      const hoaDonResponse = await fetch(`/api/hoa-don/${hoaDonId}`);
+      const hoaDonResponse = await fetch(`/api/hoa-don/${hoaDonId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (hoaDonResponse.ok) {
         const hoaDonData = await hoaDonResponse.json();
         const hoaDonItem = hoaDonData.data;
@@ -148,7 +153,9 @@ export default function ChinhSuaHoaDonPage() {
       }
 
       // Fetch form data (hop dong, phong, khach thue)
-      const formDataResponse = await fetch('/api/hoa-don/form-data');
+      const formDataResponse = await fetch('/api/hoa-don/form-data', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (formDataResponse.ok) {
         const formData = await formDataResponse.json();
         console.log('Form data loaded:', formData.data);
@@ -165,13 +172,13 @@ export default function ChinhSuaHoaDonPage() {
     } finally {
       setLoading(false);
     }
-  }, [hoaDonId, router]);
+  }, [accessToken, hoaDonId, router]);
 
   useEffect(() => {
-    if (hoaDonId) {
+    if (hoaDonId && accessToken) {
       fetchData();
     }
-  }, [hoaDonId, fetchData]);
+  }, [accessToken, hoaDonId, fetchData]);
 
   const calculateTotal = useCallback(() => {
     const totalPhiDichVu = formData.phiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
@@ -229,6 +236,7 @@ export default function ChinhSuaHoaDonPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(requestData),
       });

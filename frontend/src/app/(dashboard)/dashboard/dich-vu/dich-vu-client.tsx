@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,8 +26,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DichVu, ApiResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { useSession } from "next-auth/react";
 
 export function DichVuClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [dichVuList, setDichVuList] = useState<DichVu[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,10 +45,12 @@ export function DichVuClient() {
     batBuoc: false
   });
 
-  const fetchDichVu = async () => {
+  const fetchDichVu = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/dich-vu");
+      const res = await fetch("/api/dich-vu", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<DichVu[]> = await res.json();
       if (data.success) {
         setDichVuList(unwrapPageData<DichVu>(data.data));
@@ -56,11 +61,11 @@ export function DichVuClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchDichVu();
-  }, []);
+    if (accessToken) fetchDichVu();
+  }, [accessToken, fetchDichVu]);
 
   const handleOpenDialog = (dichVu?: DichVu) => {
     if (dichVu) {
@@ -92,7 +97,10 @@ export function DichVuClient() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -116,6 +124,7 @@ export function DichVuClient() {
     try {
       const res = await fetch(`/api/dich-vu/${selectedDichVu._id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data: ApiResponse<void> = await res.json();
       

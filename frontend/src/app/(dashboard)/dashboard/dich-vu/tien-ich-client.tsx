@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { useSession } from "next-auth/react";
 
 interface TienIch {
   _id: string;
@@ -32,6 +33,8 @@ interface TienIch {
 }
 
 export function TienIchClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [tienIchList, setTienIchList] = useState<TienIch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,10 +46,12 @@ export function TienIchClient() {
     bieuTuong: ""
   });
 
-  const fetchTienIch = async () => {
+  const fetchTienIch = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/tien-ich");
+      const res = await fetch("/api/tien-ich", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<TienIch[]> = await res.json();
       if (data.success) {
         setTienIchList(unwrapPageData<TienIch>(data.data));
@@ -57,11 +62,11 @@ export function TienIchClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchTienIch();
-  }, []);
+    if (accessToken) fetchTienIch();
+  }, [accessToken, fetchTienIch]);
 
   const handleOpenDialog = (tienIch?: TienIch) => {
     if (tienIch) {
@@ -87,7 +92,10 @@ export function TienIchClient() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -111,6 +119,7 @@ export function TienIchClient() {
     try {
       const res = await fetch(`/api/tien-ich/${selectedTienIch._id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data: ApiResponse<void> = await res.json();
       

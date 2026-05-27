@@ -28,6 +28,16 @@ const routeNameMap: Record<string, string> = {
   "ho-so": "Hồ sơ",
   "cai-dat": "Cài đặt",
   "quan-ly-tai-khoan": "Quản lý tài khoản",
+  "dich-vu": "Dịch vụ & tiện ích",
+  "cau-hinh-gia": "Cấu hình giá",
+  "chi-so-dien-nuoc": "Chỉ số điện nước",
+  "cong-no": "Công nợ",
+  "lich-hen": "Lịch hẹn",
+  "media": "Media",
+  "bao-cao": "Báo cáo",
+  "audit-log": "Nhật ký hệ thống",
+  "vietqr-doi-soat": "Đối soát VietQR",
+  "xem-web": "Xem website",
   "them-moi": "Thêm mới",
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,22 +16,17 @@ export default function TenantInvoiceDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const [invoice, setInvoice] = useState<HoaDon | null>(null);
   const [payments, setPayments] = useState<ThanhToan[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.accessToken && id) {
-      fetchInvoiceDetail();
-    }
-  }, [session, id]);
-
-  const fetchInvoiceDetail = async () => {
+  const fetchInvoiceDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/tenant/hoa-don/${id}`, {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -47,7 +43,13 @@ export default function TenantInvoiceDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken, id, router]);
+
+  useEffect(() => {
+    if (accessToken && id) {
+      void fetchInvoiceDetail();
+    }
+  }, [accessToken, id, fetchInvoiceDetail]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
@@ -242,14 +244,13 @@ export default function TenantInvoiceDetailPage() {
                       )}
                       
                       {payment.anhBienLai && (
-                        <div className="mt-2 h-20 w-20 rounded overflow-hidden border">
-                          <img 
+                        <div className="relative mt-2 h-20 w-20 overflow-hidden rounded border">
+                          <Image
                             src={payment.anhBienLai} 
                             alt="Biên lai" 
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=No+Image';
-                            }}
+                            fill
+                            sizes="80px"
+                            className="object-cover"
                           />
                         </div>
                       )}

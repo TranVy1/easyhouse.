@@ -20,10 +20,11 @@ public class NhaTroController {
 
     @GetMapping
     public ApiResponse<PaginatedResponse<NhaTroResponse>> getAll(
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ApiResponse.success(nhaTroService.getAllNhaTro(page, limit));
+        return ApiResponse.success(nhaTroService.getAllNhaTro(search, page, limit));
     }
 
     @GetMapping("/{id}")

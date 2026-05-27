@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
@@ -60,6 +61,7 @@ type PhongTenant = {
 };
 
 export default function PhongPage() {
+  const accessToken = useSession()?.data?.accessToken;
   const { clearCache, isRefreshing, setIsRefreshing } = useCache<{
     phongList: Phong[];
     toaNhaList: ToaNha[];
@@ -69,6 +71,7 @@ export default function PhongPage() {
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [selectedToaNha, setSelectedToaNha] = useState('');
   const [selectedTrangThai, setSelectedTrangThai] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,7 +92,7 @@ export default function PhongPage() {
     document.title = 'Quản lý Phòng';
   }, []);
 
-  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', page = 1, limit = 10) => {
+  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', search = '', page = 1, limit = 10) => {
     try {
       setLoading(true);
 
@@ -102,9 +105,12 @@ export default function PhongPage() {
       });
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
+      if (search) params.append('search', search);
 
       // Fetch phong
-      const response = await fetch(`/api/phong?${params.toString()}`);
+      const response = await fetch(`/api/phong?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       let phongData: Phong[] = [];
       if (response.ok) {
         const result = await response.json();
@@ -123,7 +129,9 @@ export default function PhongPage() {
       }
 
       // Fetch toa nha
-      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100');
+      const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       let toaNhaData: ToaNha[] = [];
       if (toaNhaResponse.ok) {
         const result = await toaNhaResponse.json();
@@ -143,11 +151,13 @@ export default function PhongPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   const fetchToaNha = useCallback(async () => {
     try {
-      const response = await fetch('/api/toa-nha?page=1&limit=100');
+      const response = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -157,11 +167,19 @@ export default function PhongPage() {
     } catch (error) {
       console.error('Error fetching toa nha:', error);
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
-  }, [fetchPhong, selectedToaNha, selectedTrangThai, pagination.pageIndex, pagination.pageSize]);
+    fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+  }, [fetchPhong, selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex, pagination.pageSize]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchToaNha();
@@ -169,7 +187,7 @@ export default function PhongPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+    await fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
@@ -179,10 +197,7 @@ export default function PhongPage() {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, [selectedToaNha, selectedTrangThai]);
 
-  const filteredPhong = phongList.filter(phong =>
-    phong.maPhong.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    phong.moTa?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPhong = phongList;
 
   const handleEdit = (phong: Phong) => {
     setEditingPhong(phong);
@@ -193,13 +208,14 @@ export default function PhongPage() {
     try {
       const response = await fetch(`/api/phong/${id}`, {
         method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
           clearCache();
-          await fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+          await fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
           toast.success('Xóa phòng thành công!');
         } else {
           toast.error(result.message || 'Có lỗi xảy ra khi xóa phòng');
@@ -293,7 +309,7 @@ export default function PhongPage() {
                 onSuccess={() => {
                   clearCache();
                   setIsDialogOpen(false);
-                  fetchPhong(selectedToaNha, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+                  fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
                   toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
                 }}
               />
@@ -745,6 +761,7 @@ function PhongForm({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const accessToken = useSession()?.data?.accessToken;
   // Helper function để lấy toaNha ID
   const getToaNhaId = (toaNha: string | { _id: string }) => {
     if (typeof toaNha === 'object' && toaNha !== null) {
@@ -870,6 +887,7 @@ function PhongForm({
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(payload),
       });

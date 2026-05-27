@@ -9,14 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -40,10 +31,8 @@ import {
   Edit, 
   Trash2, 
   Shield, 
-  Mail, 
   Phone,
   Calendar,
-  MoreHorizontal,
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -124,7 +113,9 @@ export default function AccountManagementPage() {
         }
       }
       
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${session?.accessToken}` },
+      });
       if (response.ok) {
         const payload = await response.json();
         if (payload.success === false) {
@@ -158,6 +149,7 @@ export default function AccountManagementPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.accessToken}`,
         },
         body: JSON.stringify(createUserData),
       });
@@ -197,6 +189,7 @@ export default function AccountManagementPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.accessToken}`,
         },
         body: JSON.stringify(editUserData),
       });
@@ -228,6 +221,7 @@ export default function AccountManagementPage() {
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.accessToken}` },
       });
 
       if (response.ok) {

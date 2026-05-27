@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle2, Clock, Info, FileText, Banknote, AlertTriangle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -12,27 +11,18 @@ import { useTenantDashboard } from '../context';
 
 export default function TenantNotificationsPage() {
   const session = useSession()?.data;
+  const accessToken = session?.accessToken;
   const { refreshData } = useTenantDashboard();
   const [notifications, setNotifications] = useState<ThongBao[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      // Get user ID from session if possible, or fetch overview
-      if (session.user?.id) {
-        setCurrentUserId(session.user.id);
-      }
-      fetchNotifications();
-    }
-  }, [session]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/tenant/thong-bao?limit=50', {
         headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       const data = await res.json();
@@ -47,7 +37,16 @@ export default function TenantNotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      if (session?.user?.id) {
+        setCurrentUserId(session.user.id);
+      }
+      void fetchNotifications();
+    }
+  }, [accessToken, session?.user?.id, fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     try {

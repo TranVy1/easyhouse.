@@ -40,7 +40,6 @@ import {
   Calendar,
   Search,
   Home,
-  Building2,
   Key,
   Check,
   X,

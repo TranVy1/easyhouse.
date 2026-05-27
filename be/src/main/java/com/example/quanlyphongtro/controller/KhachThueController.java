@@ -22,9 +22,10 @@ public class KhachThueController {
     @GetMapping
     public ApiResponse<PaginatedResponse<KhachThueResponse>> getAll(
             @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
-        return ApiResponse.success(khachThueService.getAllKhachThue(trangThai, page, limit));
+        return ApiResponse.success(khachThueService.getAllKhachThue(trangThai, search, page, limit));
     }
 
     @GetMapping("/{id}")

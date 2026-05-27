@@ -40,27 +40,46 @@ export default function XemPhongPage() {
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedToaNha, setSelectedToaNha] = useState('');
-  const [selectedTrangThai, setSelectedTrangThai] = useState('');
-  const fetchPhong = useCallback(async (toaNhaFilter = '', trangThaiFilter = '', searchFilter = '') => {
+  const [minGia, setMinGia] = useState('');
+  const [maxGia, setMaxGia] = useState('');
+  const [minDienTich, setMinDienTich] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const fetchPhong = useCallback(async (
+    toaNhaFilter = '',
+    searchFilter = '',
+    minGiaFilter = '',
+    maxGiaFilter = '',
+    minDienTichFilter = '',
+    requestedPage = 1,
+  ) => {
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '100');
+      setLoading(true);
+      setError('');
+      const params = new URLSearchParams({ page: requestedPage.toString(), limit: '12' });
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
-      if (trangThaiFilter && trangThaiFilter !== 'all') params.append('trangThai', trangThaiFilter);
       if (searchFilter) params.append('search', searchFilter);
+      if (minGiaFilter) params.append('minGia', minGiaFilter);
+      if (maxGiaFilter) params.append('maxGia', maxGiaFilter);
+      if (minDienTichFilter) params.append('minDienTich', minDienTichFilter);
       
       const response = await fetch(`/api/public/phong?${params.toString()}`);
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setPhongList(result.data.data || []);
-        }
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Không tải được danh sách phòng');
       }
+      setPhongList(result.data.data || []);
+      setTotalElements(result.data.total || 0);
+      setTotalPages(result.data.totalPages || 0);
     } catch (error) {
       console.error('Error fetching phong:', error);
-      toast.error('Có lỗi xảy ra khi tải danh sách phòng');
+      const message = error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải danh sách phòng';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -81,7 +100,6 @@ export default function XemPhongPage() {
   }, []);
 
   useEffect(() => {
-    fetchPhong();
     fetchToaNha();
     
     // Check for phong parameter in URL
@@ -90,14 +108,18 @@ export default function XemPhongPage() {
     if (phongParam) {
       setSearchTerm(phongParam);
     }
-  }, [fetchPhong, fetchToaNha]);
+  }, [fetchToaNha]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchPhong(selectedToaNha, selectedTrangThai, searchTerm);
-    }, 500);
+      fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page);
+    }, 350);
     return () => clearTimeout(timer);
-  }, [selectedToaNha, selectedTrangThai, searchTerm, fetchPhong]);
+  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich, page, fetchPhong]);
 
   // Auto-open phong details when phong parameter is in URL
   useEffect(() => {
@@ -230,7 +252,7 @@ export default function XemPhongPage() {
                 </div>
 
                 {/* Search and filter grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
                   {/* Search input */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
@@ -271,40 +293,22 @@ export default function XemPhongPage() {
                     </div>
                   </div>
 
-                  {/* Status filter */}
+                  {/* Minimum price */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative">
-                        <Select value={selectedTrangThai} onValueChange={setSelectedTrangThai}>
-                          <SelectTrigger className="h-12 text-sm border-0 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                          <SelectContent className="border-0 shadow-xl rounded-xl bg-white/95 backdrop-blur-md">
-                            <SelectItem value="all" className="text-sm hover:bg-slate-50">Tất cả trạng thái</SelectItem>
-                            <SelectItem value="trong" className="text-sm hover:bg-emerald-50 text-emerald-700">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                Trống
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="daDat" className="text-sm hover:bg-blue-50 text-blue-700">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                Đã đặt
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="dangThue" className="text-sm hover:bg-orange-50 text-orange-700">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                Đang thuê
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Giá từ</label>
+                    <Input type="number" min="0" placeholder="2.000.000" value={minGia} onChange={(e) => setMinGia(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
+                  </div>
+
+                  {/* Maximum price */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Giá đến</label>
+                    <Input type="number" min="0" placeholder="5.000.000" value={maxGia} onChange={(e) => setMaxGia(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
+                  </div>
+
+                  {/* Minimum area */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Diện tích từ (m2)</label>
+                    <Input type="number" min="0" placeholder="20" value={minDienTich} onChange={(e) => setMinDienTich(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
                   </div>
                 </div>
 
@@ -312,16 +316,18 @@ export default function XemPhongPage() {
                 <div className="mt-6 pt-6 border-t border-slate-200/50">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">
-                      Hiển thị <span className="font-semibold text-slate-800">{filteredPhong.length}</span> trong <span className="font-semibold text-slate-800">{phongList.length}</span> phòng
+                      Hiển thị <span className="font-semibold text-slate-800">{filteredPhong.length}</span> trong <span className="font-semibold text-slate-800">{totalElements}</span> phòng trống phù hợp
                     </p>
-                    {(searchTerm || selectedToaNha || selectedTrangThai) && (
+                    {(searchTerm || selectedToaNha || minGia || maxGia || minDienTich) && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
                           setSearchTerm('');
                           setSelectedToaNha('');
-                          setSelectedTrangThai('');
+                          setMinGia('');
+                          setMaxGia('');
+                          setMinDienTich('');
                         }}
                         className="text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                       >
@@ -335,57 +341,40 @@ export default function XemPhongPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-4 md:mb-8">
-          <Card className="p-3 md:p-4 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100 hover:shadow-xl transition-all duration-300 hover:scale-105">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-8">
+          <Card className="p-4 border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-xs font-medium text-indigo-600">Tổng số phòng</p>
-                <p className="text-base md:text-2xl font-bold text-indigo-800">{phongList.length}</p>
+                <p className="text-xs font-medium text-slate-500">Phòng trống phù hợp</p>
+                <p className="text-2xl font-bold text-slate-900">{totalElements}</p>
               </div>
-              <Home className="h-3 w-3 md:h-4 md:w-4 text-indigo-500" />
+              <Home className="h-5 w-5 text-emerald-600" />
             </div>
           </Card>
-
-          <Card className="p-3 md:p-4 border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <Card className="p-4 border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-xs font-medium text-emerald-600">Phòng trống</p>
-                <p className="text-base md:text-2xl font-bold text-emerald-700">
-                  {phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length}
-                </p>
+                <p className="text-xs font-medium text-slate-500">Tòa nhà đang hiển thị</p>
+                <p className="text-2xl font-bold text-slate-900">{selectedToaNha && selectedToaNha !== 'all' ? '1' : toaNhaList.length}</p>
               </div>
-              <Users className="h-3 w-3 md:h-4 md:w-4 text-emerald-500" />
-            </div>
-          </Card>
-
-          <Card className="p-3 md:p-4 border-0 shadow-lg bg-gradient-to-br from-sky-50 to-blue-100 hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] md:text-xs font-medium text-sky-600">Đang thuê</p>
-                <p className="text-base md:text-2xl font-bold text-sky-700">
-                  {phongList.filter(p => p.trangThai === 'dangThue').length}
-                </p>
-              </div>
-              <Users className="h-3 w-3 md:h-4 md:w-4 text-sky-500" />
-            </div>
-          </Card>
-
-          <Card className="p-3 md:p-4 border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-100 hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] md:text-xs font-medium text-amber-600">Đã đặt</p>
-                <p className="text-base md:text-2xl font-bold text-amber-700">
-                  {phongList.filter(p => p.trangThai === 'daDat').length}
-                </p>
-              </div>
-              <Users className="h-3 w-3 md:h-4 md:w-4 text-amber-500" />
+              <MapPin className="h-5 w-5 text-slate-600" />
             </div>
           </Card>
         </div>
 
+        {error && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={() => fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page)}>
+                Thử lại
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Room Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {!error && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredPhong.map((phong) => (
             <Card key={phong._id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/90 backdrop-blur-sm hover:scale-[1.02] hover:bg-white/95">
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
@@ -475,9 +464,9 @@ export default function XemPhongPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </div>}
 
-        {filteredPhong.length === 0 && (
+        {!error && filteredPhong.length === 0 && (
           <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
             <CardContent className="flex flex-col items-center justify-center py-12 p-4 md:p-6">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
@@ -491,6 +480,18 @@ export default function XemPhongPage() {
               </p>
             </CardContent>
           </Card>
+        )}
+
+        {!error && totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <Button variant="outline" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
+              Trang trước
+            </Button>
+            <span className="text-sm text-slate-600">Trang {page} / {totalPages}</span>
+            <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)}>
+              Trang sau
+            </Button>
+          </div>
         )}
       </div>
     </div>

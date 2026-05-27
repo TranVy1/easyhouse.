@@ -29,10 +29,15 @@ public class ThanhToanController {
     public ApiResponse<PaginatedResponse<ThanhToanResponse>> getAll(
             @RequestParam(required = false) String hoaDonId,
             @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String phuongThuc,
+            @RequestParam(required = false) String tuNgay,
+            @RequestParam(required = false) String denNgay,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            return ApiResponse.success(thanhToanService.getAll(hoaDonId, trangThai, page, limit));
+            return ApiResponse.success(thanhToanService.getAll(
+                    hoaDonId, trangThai, search, phuongThuc, tuNgay, denNgay, page, limit));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

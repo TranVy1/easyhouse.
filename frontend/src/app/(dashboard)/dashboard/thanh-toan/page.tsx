@@ -1,11 +1,29 @@
-'use client';
+"use client"
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { useCache } from '@/hooks/use-cache';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react"
+import Link from "next/link"
+import { useSession } from "next-auth/react"
+import {
+  Banknote,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  FileCheck2,
+  Pencil,
+  Plus,
+  ReceiptText,
+  RefreshCw,
+  Search,
+  Trash2,
+} from "lucide-react"
+import { toast } from "sonner"
+
+import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { ImageUpload } from "@/components/ui/image-upload"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -13,740 +31,681 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ImageUpload } from '@/components/ui/image-upload'; import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  CreditCard,
-  Calendar,
-  Users,
-  Receipt,
-  RefreshCw,
-  FileText
-} from 'lucide-react';
-import { ThanhToan, HoaDon } from '@/types';
-import { toast } from 'sonner';
-import { ThanhToanDataTable } from './table';
-import { unwrapPageData } from '@/lib/api-response';
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { unwrapPageData } from "@/lib/api-response"
+import type {
+  ApiResponse,
+  HoaDon,
+  PaginatedResponse,
+  PhuongThucThanhToanDb,
+  ThanhToan,
+  TrangThaiThanhToan,
+} from "@/types"
 
-// Type cho ThanhToan đã được populate
-type ThanhToanPopulated = Omit<ThanhToan, 'hoaDon'> & {
-  hoaDon: string | HoaDon;
-};
+type PaymentRecord = Omit<ThanhToan, "hoaDon" | "ngayThanhToan" | "phuongThuc"> & {
+  hoaDon: string | HoaDon
+  ngayThanhToan: string
+  phuongThuc?: PhuongThucThanhToanDb
+}
 
-type HoaDonPhongPopulated = { maPhong?: string };
-type HoaDonKhachThuePopulated = { hoTen?: string };
+type PaymentForm = {
+  hoaDonId: string
+  soTien: string
+  phuongThuc: PhuongThucThanhToanDb
+  ngayThanhToan: string
+  trangThai: "SUCCESS" | "PENDING"
+  nganHang: string
+  soGiaoDich: string
+  ghiChu: string
+  anhBienLai: string
+}
+
+const today = new Date().toISOString().slice(0, 10)
+
+const blankForm = (): PaymentForm => ({
+  hoaDonId: "",
+  soTien: "",
+  phuongThuc: "CASH",
+  ngayThanhToan: today,
+  trangThai: "SUCCESS",
+  nganHang: "",
+  soGiaoDich: "",
+  ghiChu: "",
+  anhBienLai: "",
+})
+
+const currency = (amount?: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount || 0)
+
+const paymentId = (item: PaymentRecord) => item._id || item.id || ""
+
+function paymentMethod(item: PaymentRecord) {
+  return item.phuongThucThanhToan || item.phuongThuc || "CASH"
+}
+
+function methodLabel(method: PhuongThucThanhToanDb | undefined) {
+  switch (method) {
+    case "BANK_TRANSFER":
+      return "Chuyển khoản"
+    case "VIETQR":
+      return "VietQR"
+    case "MOMO":
+      return "MoMo"
+    case "ZALOPAY":
+      return "ZaloPay"
+    case "OTHER":
+      return "Khác"
+    default:
+      return "Tiền mặt"
+  }
+}
+
+function StatusBadge({ status }: { status?: TrangThaiThanhToan }) {
+  switch (status) {
+    case "SUCCESS":
+      return <Badge className="border-transparent bg-emerald-100 text-emerald-800">Đã thu</Badge>
+    case "PENDING":
+      return <Badge className="border-transparent bg-amber-100 text-amber-800">Chờ xác nhận</Badge>
+    case "FAILED":
+      return <Badge className="border-transparent bg-red-100 text-red-800">Thất bại</Badge>
+    case "REFUNDED":
+      return <Badge className="border-transparent bg-blue-100 text-blue-800">Đã hoàn</Badge>
+    default:
+      return <Badge variant="secondary">Đã hủy</Badge>
+  }
+}
+
+function PaymentSkeleton() {
+  return (
+    <div className="space-y-6" aria-label="Đang tải thanh toán">
+      <div className="h-20 animate-pulse rounded-xl bg-muted" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="h-32 animate-pulse rounded-xl bg-muted" />
+        ))}
+      </div>
+      <div className="h-[420px] animate-pulse rounded-xl bg-muted" />
+    </div>
+  )
+}
 
 export default function ThanhToanPage() {
-  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
-    thanhToanList: ThanhToanPopulated[];
-    hoaDonList: HoaDon[];
-  }>({ key: 'thanh-toan-data', duration: 300000 });
-
-  const [thanhToanList, setThanhToanList] = useState<ThanhToanPopulated[]>([]);
-  const [hoaDonList, setHoaDonList] = useState<HoaDon[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [methodFilter, setMethodFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingThanhToan, setEditingThanhToan] = useState<ThanhToanPopulated | null>(null);
-
-  // Pagination state
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const accessToken = useSession()?.data?.accessToken
+  const preselectedInvoiceConsumed = useRef(false)
+  const [data, setData] = useState<PaymentRecord[]>([])
+  const [invoices, setInvoices] = useState<HoaDon[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState("")
+  const [search, setSearch] = useState("")
+  const [filters, setFilters] = useState({
+    phuongThuc: "all",
+    trangThai: "all",
+    tuNgay: "",
+    denNgay: "",
+  })
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [formOpen, setFormOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [editing, setEditing] = useState<PaymentRecord | null>(null)
+  const [formData, setFormData] = useState<PaymentForm>(blankForm)
+  const [cancelTarget, setCancelTarget] = useState<PaymentRecord | null>(null)
 
   useEffect(() => {
-    document.title = 'Quản lý Thanh toán';
-  }, []);
+    document.title = "Thanh toán | EasyHouse"
+  }, [])
 
-  const fetchData = useCallback(async (forceRefresh = false) => {
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearch(searchInput.trim())
+      setPagination((current) => ({ ...current, pageIndex: 0 }))
+    }, 350)
+    return () => window.clearTimeout(timeout)
+  }, [searchInput])
+
+  const fetchInvoices = useCallback(async () => {
     try {
-      setLoading(true);
+      const response = await fetch("/api/hoa-don?page=1&limit=100", {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result: ApiResponse<HoaDon[] | PaginatedResponse<HoaDon>> = await response.json()
+      if (response.ok && result.success) {
+        setInvoices(unwrapPageData(result.data))
+      }
+    } catch {
+      setInvoices([])
+    }
+  }, [accessToken])
 
-      if (!forceRefresh) {
-        const cachedData = getCache();
-        if (cachedData) {
-          setThanhToanList(cachedData.thanhToanList || []);
-          setHoaDonList(cachedData.hoaDonList || []);
-          setLoading(false);
-          return;
+  const fetchPayments = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
+      setError(null)
+      try {
+        const params = new URLSearchParams({
+          page: String(pagination.pageIndex + 1),
+          limit: String(pagination.pageSize),
+        })
+        if (search) params.set("search", search)
+        if (filters.phuongThuc !== "all") params.set("phuongThuc", filters.phuongThuc)
+        if (filters.trangThai !== "all") params.set("trangThai", filters.trangThai)
+        if (filters.tuNgay) params.set("tuNgay", filters.tuNgay)
+        if (filters.denNgay) params.set("denNgay", filters.denNgay)
+
+        const response = await fetch(`/api/thanh-toan?${params.toString()}`, {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        })
+        const result: ApiResponse<PaginatedResponse<PaymentRecord>> = await response.json()
+        if (!response.ok || !result.success || !result.data) {
+          throw new Error(result.message || "Không thể tải danh sách thanh toán")
         }
+        setData(result.data.data || [])
+        setTotal(result.data.total || 0)
+        setTotalPages(Math.max(result.data.totalPages || 1, 1))
+      } catch (fetchError) {
+        setError(fetchError instanceof Error ? fetchError.message : "Không thể tải danh sách thanh toán")
+        setData([])
+        setTotal(0)
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
       }
-
-      // Fetch thanh toan từ API
-      const params = new URLSearchParams({
-        page: (pagination.pageIndex + 1).toString(),
-        limit: pagination.pageSize.toString()
-      });
-      if (methodFilter && methodFilter !== 'all') params.append('phuongThuc', methodFilter);
-      // NOTE: dateFilter mapping might be more complex, basic API pass for now
-      // If we implement backend date filtering, we add it here.
-
-      const thanhToanResponse = await fetch(`/api/thanh-toan?${params.toString()}`);
-      const thanhToanData = thanhToanResponse.ok ? await thanhToanResponse.json() : { data: [] };
-      const thanhToans = Array.isArray(thanhToanData.data) ? thanhToanData.data : (thanhToanData.data?.data || []);
-      setThanhToanList(thanhToans);
-
-      if (thanhToanData.data && !Array.isArray(thanhToanData.data)) {
-        setTotalElements(thanhToanData.data.total || 0);
-        setTotalPages(thanhToanData.data.totalPages || 0);
-      } else {
-        setTotalElements(thanhToans.length);
-        setTotalPages(1);
-      }
-
-      // Fetch hoa don từ API để hiển thị thông tin
-      const hoaDonResponse = await fetch('/api/hoa-don?page=1&limit=100');
-      const hoaDonData = hoaDonResponse.ok ? await hoaDonResponse.json() : { data: [] };
-      const hoaDons = unwrapPageData<HoaDon>(hoaDonData.data);
-      setHoaDonList(hoaDons);
-
-      setCache({
-        thanhToanList: thanhToans,
-        hoaDonList: hoaDons,
-      });
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, methodFilter]);
+    },
+    [accessToken, filters.denNgay, filters.phuongThuc, filters.trangThai, filters.tuNgay, pagination.pageIndex, pagination.pageSize, search],
+  )
 
   useEffect(() => {
-    fetchData(false);
-  }, [fetchData, methodFilter, pagination.pageIndex, pagination.pageSize]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchData(true);
-    setIsRefreshing(false);
-    toast.success('Đã tải dữ liệu mới nhất');
-  };
+    void fetchInvoices()
+  }, [fetchInvoices])
 
   useEffect(() => {
-    // Reset pagination when filter changes
-    setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [methodFilter]);
+    if (preselectedInvoiceConsumed.current || invoices.length === 0) return
+    const invoiceId = new URLSearchParams(window.location.search).get("hoaDonId")
+    if (!invoiceId || !invoices.some((invoice) => (invoice._id || invoice.id) === invoiceId)) return
+    preselectedInvoiceConsumed.current = true
+    setEditing(null)
+    setFormData({ ...blankForm(), hoaDonId: invoiceId })
+    setFormOpen(true)
+  }, [invoices])
 
-  const filteredThanhToan = thanhToanList.filter(thanhToan => {
-    const matchesSearch = thanhToan.ghiChu?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      thanhToan.thongTinChuyenKhoan?.soGiaoDich?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDate = dateFilter === 'all' ||
-      (dateFilter === 'today' && isToday(new Date(thanhToan.ngayThanhToan))) ||
-      (dateFilter === 'week' && isThisWeek(new Date(thanhToan.ngayThanhToan))) ||
-      (dateFilter === 'month' && isThisMonth(new Date(thanhToan.ngayThanhToan)));
+  useEffect(() => {
+    void fetchPayments()
+  }, [fetchPayments])
 
-    return matchesSearch && matchesDate;
-  });
+  const invoiceFor = useCallback(
+    (item: PaymentRecord) => {
+      if (typeof item.hoaDon === "object" && item.hoaDon !== null) return item.hoaDon
+      return invoices.find((invoice) => (invoice._id || invoice.id) === item.hoaDon)
+    },
+    [invoices],
+  )
 
-  const getMethodBadge = (method: string) => {
-    switch (method) {
-      case 'tienMat':
-        return <Badge variant="default">Tiền mặt</Badge>;
-      case 'chuyenKhoan':
-        return <Badge variant="secondary">Chuyển khoản</Badge>;
-      case 'viDienTu':
-        return <Badge variant="outline">Ví điện tử</Badge>;
-      default:
-        return <Badge variant="outline">{method}</Badge>;
+  const metrics = useMemo(() => {
+    const success = data.filter((item) => item.trangThai === "SUCCESS")
+    return {
+      successMoney: success.reduce((sum, item) => sum + Number(item.soTien || 0), 0),
+      successCount: success.length,
+      pendingCount: data.filter((item) => item.trangThai === "PENDING").length,
+      cancelledCount: data.filter((item) => item.trangThai === "CANCELLED" || item.trangThai === "REFUNDED").length,
     }
-  };
+  }, [data])
 
-  const getHoaDonInfo = (hoaDon: string | HoaDon) => {
-    console.log('getHoaDonInfo called with:', hoaDon, 'type:', typeof hoaDon);
-
-    // Nếu hoaDon là object (đã được populate), lấy maHoaDon trực tiếp
-    if (typeof hoaDon === 'object' && hoaDon?.maHoaDon) {
-      console.log('Returning populated maHoaDon:', hoaDon.maHoaDon);
-      return hoaDon.maHoaDon;
-    }
-
-    // Nếu hoaDon là string (ID), tìm trong hoaDonList
-    if (typeof hoaDon === 'string') {
-      const hoaDonItem = hoaDonList.find(h => h._id === hoaDon);
-      console.log('Found hoaDon in list:', hoaDonItem?.maHoaDon);
-      return hoaDonItem?.maHoaDon || 'Không xác định';
-    }
-
-    console.log('Returning default: Không xác định');
-    return 'Không xác định';
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(amount);
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isThisWeek = (date: Date) => {
-    const today = new Date();
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return date >= weekAgo && date <= today;
-  };
-
-  const isThisMonth = (date: Date) => {
-    const today = new Date();
-    return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-  };
-
-  const handleEdit = (thanhToan: ThanhToanPopulated) => {
-    setEditingThanhToan(thanhToan);
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/thanh-toan/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        clearCache();
-        setThanhToanList(prev => prev.filter(thanhToan => thanhToan._id !== id));
-        toast.success('Xóa thanh toán thành công');
-      } else {
-        const errorData = await response.json();
-        toast.error('Có lỗi xảy ra: ' + (errorData.message || 'Không thể xóa thanh toán'));
-      }
-    } catch (error) {
-      console.error('Error deleting thanh toan:', error);
-      toast.error('Có lỗi xảy ra khi xóa thanh toán');
-    }
-  };
-
-  const handleDownload = (thanhToan: ThanhToanPopulated) => {
-    // Implement download logic
-    console.log('Downloading receipt:', thanhToan._id);
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
-        </div>
-        <div className="h-96 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-    );
+  const resetFilters = () => {
+    setSearchInput("")
+    setSearch("")
+    setFilters({ phuongThuc: "all", trangThai: "all", tuNgay: "", denNgay: "" })
+    setPagination((current) => ({ ...current, pageIndex: 0 }))
   }
 
+  const openCreate = () => {
+    setEditing(null)
+    setFormData(blankForm())
+    setFormOpen(true)
+  }
+
+  const openEdit = (item: PaymentRecord) => {
+    const invoice = invoiceFor(item)
+    setEditing(item)
+    setFormData({
+      hoaDonId: invoice?._id || invoice?.id || (typeof item.hoaDon === "string" ? item.hoaDon : ""),
+      soTien: String(item.soTien || ""),
+      phuongThuc: paymentMethod(item),
+      ngayThanhToan: new Date(item.ngayThanhToan).toISOString().slice(0, 10),
+      trangThai: item.trangThai === "PENDING" ? "PENDING" : "SUCCESS",
+      nganHang: "",
+      soGiaoDich: item.maThamChieu || "",
+      ghiChu: item.ghiChu || "",
+      anhBienLai: item.anhBienLai || "",
+    })
+    setFormOpen(true)
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!formData.hoaDonId) {
+      toast.error("Vui lòng chọn hóa đơn")
+      return
+    }
+    if (!formData.soTien || Number(formData.soTien) <= 0) {
+      toast.error("Số tiền thanh toán phải lớn hơn 0")
+      return
+    }
+    setSubmitting(true)
+    try {
+      const response = await fetch(editing ? `/api/thanh-toan/${paymentId(editing)}` : "/api/thanh-toan", {
+        method: editing ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          hoaDonId: formData.hoaDonId,
+          soTien: Number(formData.soTien),
+          phuongThuc: formData.phuongThuc,
+          ngayThanhToan: formData.ngayThanhToan,
+          trangThai: formData.trangThai,
+          thongTinChuyenKhoan:
+            formData.phuongThuc === "CASH"
+              ? undefined
+              : { nganHang: formData.nganHang, soGiaoDich: formData.soGiaoDich },
+          ghiChu: formData.ghiChu,
+          anhBienLai: formData.anhBienLai,
+        }),
+      })
+      const result: ApiResponse<PaymentRecord> = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Không thể lưu thanh toán")
+      }
+      toast.success(editing ? "Đã cập nhật thanh toán" : "Đã ghi nhận thanh toán")
+      setFormOpen(false)
+      setEditing(null)
+      await fetchPayments(true)
+    } catch (submitError) {
+      toast.error(submitError instanceof Error ? submitError.message : "Không thể lưu thanh toán")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const cancelPayment = async () => {
+    if (!cancelTarget) return
+    setSubmitting(true)
+    try {
+      const response = await fetch(`/api/thanh-toan/${paymentId(cancelTarget)}`, {
+        method: "DELETE",
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result: ApiResponse<null> = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Không thể hủy thanh toán")
+      }
+      toast.success("Đã hủy giao dịch và cập nhật lại số đã thu của hóa đơn")
+      setCancelTarget(null)
+      await fetchPayments(true)
+    } catch (cancelError) {
+      toast.error(cancelError instanceof Error ? cancelError.message : "Không thể hủy thanh toán")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) return <PaymentSkeleton />
+  if (error) return <ErrorState title="Không tải được thanh toán" description={error} onRetry={() => void fetchPayments()} />
+
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý thanh toán</h1>
-          <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả giao dịch thanh toán</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingThanhToan(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Thêm thanh toán</span>
-                <span className="sm:hidden">Thêm</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] md:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingThanhToan ? 'Chỉnh sửa thanh toán' : 'Thêm thanh toán mới'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingThanhToan ? 'Cập nhật thông tin thanh toán' : 'Nhập thông tin thanh toán mới'}
-                </DialogDescription>
-              </DialogHeader>
+    <div className="space-y-6">
+      <DashboardPageHeader
+        eyebrow="Doanh thu"
+        title="Thanh toán"
+        description="Ghi nhận tiền thực thu, đối chiếu hóa đơn và theo dõi trạng thái giao dịch."
+        actions={
+          <>
+            <Button variant="outline" onClick={() => void fetchPayments(true)} disabled={refreshing}>
+              <RefreshCw className={refreshing ? "animate-spin" : ""} />
+              Làm mới
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus />
+              Ghi nhận thanh toán
+            </Button>
+          </>
+        }
+      />
 
-              <ThanhToanForm
-                thanhToan={editingThanhToan}
-                hoaDonList={hoaDonList}
-                onClose={() => setIsDialogOpen(false)}
-                onSuccess={() => {
-                  clearCache();
-                  setIsDialogOpen(false);
-                  fetchData(true);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Giao dịch khớp lọc" value={String(total)} hint="Tất cả trang kết quả" icon={ReceiptText} />
+        <MetricCard label="Đã thu trên trang" value={currency(metrics.successMoney)} hint={`${metrics.successCount} giao dịch thành công`} icon={Banknote} tone="success" />
+        <MetricCard label="Chờ xác nhận trên trang" value={String(metrics.pendingCount)} hint="Chưa cộng vào tiền đã thu" icon={CalendarDays} tone="warning" />
+        <MetricCard label="Đã hủy / hoàn trên trang" value={String(metrics.cancelledCount)} hint="Giữ lại để đối soát" icon={FileCheck2} />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng giao dịch</p>
-              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
-            </div>
-            <CreditCard className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tiền mặt</p>
-              <p className="text-base md:text-2xl font-bold text-green-600">
-                {thanhToanList.filter(t => t.phuongThuc === 'tienMat').length}
-              </p>
-            </div>
-            <CreditCard className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Chuyển khoản</p>
-              <p className="text-base md:text-2xl font-bold text-blue-600">
-                {thanhToanList.filter(t => t.phuongThuc === 'chuyenKhoan').length}
-              </p>
-            </div>
-            <CreditCard className="h-3 w-3 md:h-4 md:w-4 text-blue-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng tiền</p>
-              <p className="text-xs md:text-2xl font-bold text-green-600 truncate">
-                {formatCurrency(thanhToanList.reduce((sum, t) => sum + t.soTien, 0))}
-              </p>
-            </div>
-            <Receipt className="h-3 w-3 md:h-4 md:w-4 text-green-600 flex-shrink-0" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Desktop Table */}
-      <Card className="hidden md:block">
+      <Card>
         <CardHeader>
-          <CardTitle>Danh sách thanh toán</CardTitle>
-          <CardDescription>
-            {filteredThanhToan.length} giao dịch được tìm thấy
-          </CardDescription>
+          <CardTitle>Bộ lọc giao dịch</CardTitle>
+          <CardDescription>Tìm kiếm và lọc được thực hiện trên server trước khi phân trang.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <ThanhToanDataTable
-            data={filteredThanhToan}
-            hoaDonList={hoaDonList}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onDownload={handleDownload}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            methodFilter={methodFilter}
-            onMethodChange={setMethodFilter}
-            dateFilter={dateFilter}
-            onDateChange={setDateFilter}
-            pageCount={totalPages}
-            totalElements={totalElements}
-            pagination={pagination}
-            onPaginationChange={setPagination}
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <div className="relative md:col-span-2">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Mã HĐ, phòng, khách, mã giao dịch..."
+            />
+          </div>
+          <Select value={filters.phuongThuc} onValueChange={(value) => {
+            setFilters((current) => ({ ...current, phuongThuc: value }))
+            setPagination((current) => ({ ...current, pageIndex: 0 }))
+          }}>
+            <SelectTrigger><SelectValue placeholder="Phương thức" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Mọi phương thức</SelectItem>
+              <SelectItem value="CASH">Tiền mặt</SelectItem>
+              <SelectItem value="BANK_TRANSFER">Chuyển khoản</SelectItem>
+              <SelectItem value="VIETQR">VietQR</SelectItem>
+              <SelectItem value="MOMO">MoMo</SelectItem>
+              <SelectItem value="ZALOPAY">ZaloPay</SelectItem>
+              <SelectItem value="OTHER">Khác</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filters.trangThai} onValueChange={(value) => {
+            setFilters((current) => ({ ...current, trangThai: value }))
+            setPagination((current) => ({ ...current, pageIndex: 0 }))
+          }}>
+            <SelectTrigger><SelectValue placeholder="Trạng thái" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Mọi trạng thái</SelectItem>
+              <SelectItem value="SUCCESS">Đã thu</SelectItem>
+              <SelectItem value="PENDING">Chờ xác nhận</SelectItem>
+              <SelectItem value="FAILED">Thất bại</SelectItem>
+              <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+              <SelectItem value="REFUNDED">Đã hoàn</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            type="date"
+            aria-label="Từ ngày"
+            value={filters.tuNgay}
+            onChange={(event) => {
+              setFilters((current) => ({ ...current, tuNgay: event.target.value }))
+              setPagination((current) => ({ ...current, pageIndex: 0 }))
+            }}
           />
+          <Input
+            type="date"
+            aria-label="Đến ngày"
+            value={filters.denNgay}
+            onChange={(event) => {
+              setFilters((current) => ({ ...current, denNgay: event.target.value }))
+              setPagination((current) => ({ ...current, pageIndex: 0 }))
+            }}
+          />
+          <Button variant="ghost" className="xl:col-start-6" onClick={resetFilters}>Xóa lọc</Button>
         </CardContent>
       </Card>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Danh sách thanh toán</h2>
-          <span className="text-sm text-gray-500">{filteredThanhToan.length} giao dịch</span>
-        </div>
-
-        {/* Mobile Filters */}
-        <div className="space-y-2 mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Tìm kiếm thanh toán..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-sm"
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Danh sách thanh toán</CardTitle>
+            <CardDescription>{total} giao dịch phù hợp bộ lọc hiện tại</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {data.length === 0 ? (
+            <EmptyState
+              title="Chưa có giao dịch phù hợp"
+              description="Điều chỉnh bộ lọc hoặc ghi nhận thanh toán mới cho hóa đơn cần thu."
             />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Phương thức" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
-                <SelectItem value="tienMat" className="text-sm">Tiền mặt</SelectItem>
-                <SelectItem value="chuyenKhoan" className="text-sm">Chuyển khoản</SelectItem>
-                <SelectItem value="viDienTu" className="text-sm">Ví điện tử</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Thời gian" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
-                <SelectItem value="today" className="text-sm">Hôm nay</SelectItem>
-                <SelectItem value="week" className="text-sm">Tuần này</SelectItem>
-                <SelectItem value="month" className="text-sm">Tháng này</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+          ) : (
+            <>
+              <div className="hidden overflow-x-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Hóa đơn / phòng</TableHead>
+                      <TableHead>Ngày thu</TableHead>
+                      <TableHead>Phương thức</TableHead>
+                      <TableHead>Tham chiếu</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead className="text-right">Số tiền</TableHead>
+                      <TableHead className="text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.map((item) => {
+                      const invoice = invoiceFor(item)
+                      const editable = item.trangThai !== "CANCELLED" && item.trangThai !== "REFUNDED"
+                      return (
+                        <TableRow key={paymentId(item)}>
+                          <TableCell>
+                            <Link className="font-medium text-primary hover:underline" href={`/dashboard/hoa-don/${invoice?._id || invoice?.id || ""}`}>
+                              {invoice?.maHoaDon || "Không xác định"}
+                            </Link>
+                            <p className="text-xs text-muted-foreground">
+                              {typeof invoice?.phong === "object" ? invoice.phong.ten || invoice.phong.maPhong : "Chưa có phòng"}
+                            </p>
+                          </TableCell>
+                          <TableCell>{new Date(item.ngayThanhToan).toLocaleDateString("vi-VN")}</TableCell>
+                          <TableCell>{methodLabel(paymentMethod(item))}</TableCell>
+                          <TableCell>{item.maThamChieu || "-"}</TableCell>
+                          <TableCell><StatusBadge status={item.trangThai} /></TableCell>
+                          <TableCell className="text-right font-semibold">{currency(Number(item.soTien))}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon-sm" variant="ghost" disabled={!editable} onClick={() => openEdit(item)}>
+                              <Pencil />
+                              <span className="sr-only">Sửa</span>
+                            </Button>
+                            <Button size="icon-sm" variant="ghost" disabled={!editable} onClick={() => setCancelTarget(item)}>
+                              <Trash2 />
+                              <span className="sr-only">Hủy</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
 
-        {/* Mobile Card List */}
-        <div className="space-y-3">
-          {filteredThanhToan.map((thanhToan) => {
-            const hoaDonInfo = typeof thanhToan.hoaDon === 'object' ? (thanhToan.hoaDon as HoaDon) : null;
-            const phongInfo = hoaDonInfo && typeof hoaDonInfo.phong === 'object' ? (hoaDonInfo.phong as unknown as HoaDonPhongPopulated) : null;
-            const khachThueInfo = hoaDonInfo && typeof hoaDonInfo.khachThue === 'object' ? (hoaDonInfo.khachThue as unknown as HoaDonKhachThuePopulated) : null;
-
-            return (
-              <Card key={thanhToan._id} className="p-4">
-                <div className="space-y-3">
-                  {/* Header with invoice code and method */}
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {hoaDonInfo?.maHoaDon || getHoaDonInfo(thanhToan.hoaDon)}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(thanhToan.ngayThanhToan).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                    {getMethodBadge(thanhToan.phuongThuc)}
-                  </div>
-
-                  {/* Room and Tenant info */}
-                  {hoaDonInfo && (
-                    <div className="space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Receipt className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-600">
-                          Phòng: {phongInfo?.maPhong || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-600">
-                          {khachThueInfo?.hoTen || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-600">
-                          Tháng {hoaDonInfo.thang}/{hoaDonInfo.nam}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Amount */}
-                  <div className="border-t pt-2">
-                    <span className="text-gray-500 text-sm">Số tiền:</span>
-                    <p className="text-lg font-bold text-green-600">{formatCurrency(thanhToan.soTien)}</p>
-                  </div>
-
-                  {/* Transfer info if available */}
-                  {thanhToan.phuongThuc === 'chuyenKhoan' && thanhToan.thongTinChuyenKhoan && (
-                    <div className="text-xs text-gray-500 space-y-1">
-                      {thanhToan.thongTinChuyenKhoan.nganHang && (
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-3 w-3" />
-                          <span>{thanhToan.thongTinChuyenKhoan.nganHang}</span>
+              <div className="space-y-3 md:hidden">
+                {data.map((item) => {
+                  const invoice = invoiceFor(item)
+                  const editable = item.trangThai !== "CANCELLED" && item.trangThai !== "REFUNDED"
+                  return (
+                    <div key={paymentId(item)} className="rounded-xl border p-4">
+                      <div className="flex justify-between gap-3">
+                        <div>
+                          <Link className="font-semibold text-primary" href={`/dashboard/hoa-don/${invoice?._id || invoice?.id || ""}`}>
+                            {invoice?.maHoaDon || "Không xác định"}
+                          </Link>
+                          <p className="text-sm text-muted-foreground">{new Date(item.ngayThanhToan).toLocaleDateString("vi-VN")}</p>
                         </div>
-                      )}
-                      {thanhToan.thongTinChuyenKhoan.soGiaoDich && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-3 w-3" />
-                          <span className="font-mono">{thanhToan.thongTinChuyenKhoan.soGiaoDich}</span>
-                        </div>
-                      )}
+                        <StatusBadge status={item.trangThai} />
+                      </div>
+                      <p className="mt-3 text-xl font-semibold">{currency(Number(item.soTien))}</p>
+                      <div className="mt-2 flex justify-between text-sm text-muted-foreground">
+                        <span>{methodLabel(paymentMethod(item))}</span>
+                        <span>{item.maThamChieu || "Không có mã"}</span>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1" disabled={!editable} onClick={() => openEdit(item)}>
+                          <Pencil />Sửa
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" disabled={!editable} onClick={() => setCancelTarget(item)}>
+                          <Trash2 />Hủy
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                  )
+                })}
+              </div>
 
-                  {/* Note if available */}
-                  {thanhToan.ghiChu && (
-                    <div className="text-xs text-gray-500 border-t pt-2">
-                      <span className="font-medium">Ghi chú: </span>
-                      <span>{thanhToan.ghiChu}</span>
-                    </div>
-                  )}
-
-                  {/* Action buttons */}
-                  <div className="flex justify-between items-center pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(thanhToan)}
-                    >
-                      <Edit className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(thanhToan._id!)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+              <div className="mt-6 flex flex-col justify-between gap-3 border-t pt-4 sm:flex-row sm:items-center">
+                <Select
+                  value={String(pagination.pageSize)}
+                  onValueChange={(value) => setPagination({ pageIndex: 0, pageSize: Number(value) })}
+                >
+                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 / trang</SelectItem>
+                    <SelectItem value="20">20 / trang</SelectItem>
+                    <SelectItem value="50">50 / trang</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-muted-foreground">Trang {pagination.pageIndex + 1} / {totalPages}</span>
+                  <Button size="icon-sm" variant="outline" disabled={pagination.pageIndex === 0} onClick={() => setPagination((current) => ({ ...current, pageIndex: current.pageIndex - 1 }))}>
+                    <ChevronLeft />
+                    <span className="sr-only">Trang trước</span>
+                  </Button>
+                  <Button size="icon-sm" variant="outline" disabled={pagination.pageIndex + 1 >= totalPages} onClick={() => setPagination((current) => ({ ...current, pageIndex: current.pageIndex + 1 }))}>
+                    <ChevronRight />
+                    <span className="sr-only">Trang sau</span>
+                  </Button>
                 </div>
-              </Card>
-            );
-          })}
-        </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-        {filteredThanhToan.length === 0 && (
-          <div className="text-center py-8">
-            <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Không có giao dịch nào</p>
-          </div>
-        )}
-      </div>
+      <Dialog open={formOpen} onOpenChange={(open) => {
+        setFormOpen(open)
+        if (!open) setEditing(null)
+      }}>
+        <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Cập nhật thanh toán" : "Ghi nhận thanh toán"}</DialogTitle>
+            <DialogDescription>
+              Chỉ giao dịch ở trạng thái đã thu mới được cộng vào số đã thanh toán của hóa đơn.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="payment-invoice">Hóa đơn</Label>
+              <Select value={formData.hoaDonId} onValueChange={(value) => setFormData((current) => ({ ...current, hoaDonId: value }))}>
+                <SelectTrigger id="payment-invoice"><SelectValue placeholder="Chọn hóa đơn cần thu" /></SelectTrigger>
+                <SelectContent>
+                  {invoices.map((invoice) => (
+                    <SelectItem key={invoice._id || invoice.id} value={invoice._id || invoice.id || ""}>
+                      {invoice.maHoaDon} - còn {currency(invoice.conLai)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="payment-amount">Số tiền (VNĐ)</Label>
+                <Input id="payment-amount" type="number" min="1" required value={formData.soTien} onChange={(event) => setFormData((current) => ({ ...current, soTien: event.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment-date">Ngày thanh toán</Label>
+                <Input id="payment-date" type="date" required value={formData.ngayThanhToan} onChange={(event) => setFormData((current) => ({ ...current, ngayThanhToan: event.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Phương thức</Label>
+                <Select value={formData.phuongThuc} onValueChange={(value) => setFormData((current) => ({ ...current, phuongThuc: value as PhuongThucThanhToanDb }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CASH">Tiền mặt</SelectItem>
+                    <SelectItem value="BANK_TRANSFER">Chuyển khoản</SelectItem>
+                    <SelectItem value="VIETQR">VietQR</SelectItem>
+                    <SelectItem value="MOMO">MoMo</SelectItem>
+                    <SelectItem value="ZALOPAY">ZaloPay</SelectItem>
+                    <SelectItem value="OTHER">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Trạng thái ghi nhận</Label>
+                <Select value={formData.trangThai} onValueChange={(value) => setFormData((current) => ({ ...current, trangThai: value as PaymentForm["trangThai"] }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SUCCESS">Đã thu tiền</SelectItem>
+                    <SelectItem value="PENDING">Chờ xác nhận</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {formData.phuongThuc !== "CASH" && (
+              <div className="grid gap-4 rounded-xl border bg-muted/30 p-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-bank">Ngân hàng / ví</Label>
+                  <Input id="payment-bank" value={formData.nganHang} onChange={(event) => setFormData((current) => ({ ...current, nganHang: event.target.value }))} placeholder="VD: Vietcombank" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment-reference">Mã giao dịch</Label>
+                  <Input id="payment-reference" value={formData.soGiaoDich} onChange={(event) => setFormData((current) => ({ ...current, soGiaoDich: event.target.value }))} placeholder="Mã đối soát" />
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="payment-note">Ghi chú</Label>
+              <Textarea id="payment-note" rows={3} value={formData.ghiChu} onChange={(event) => setFormData((current) => ({ ...current, ghiChu: event.target.value }))} placeholder="Thông tin cần lưu khi đối chiếu..." />
+            </div>
+            <ImageUpload
+              imageUrl={formData.anhBienLai}
+              onImageChange={(url) => setFormData((current) => ({ ...current, anhBienLai: url }))}
+              label="Ảnh biên nhận"
+              placeholder="Tải ảnh xác nhận giao dịch"
+            />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>Đóng</Button>
+              <Button type="submit" disabled={submitting}>
+                <CreditCard />
+                {submitting ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Ghi nhận"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(cancelTarget)} onOpenChange={(open) => {
+        if (!open) setCancelTarget(null)
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hủy giao dịch thanh toán?</DialogTitle>
+            <DialogDescription>
+              Giao dịch {cancelTarget?.maThamChieu || (cancelTarget ? paymentId(cancelTarget) : "")} sẽ được chuyển sang trạng thái đã hủy. Số đã thu của hóa đơn sẽ được tính lại.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={submitting}>Giữ giao dịch</Button>
+            <Button variant="destructive" onClick={() => void cancelPayment()} disabled={submitting}>
+              {submitting ? "Đang hủy..." : "Xác nhận hủy"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  );
-}
-
-// Form component for adding/editing thanh toan
-function ThanhToanForm({
-  thanhToan,
-  hoaDonList,
-  onClose,
-  onSuccess
-}: {
-  thanhToan: ThanhToanPopulated | null;
-  hoaDonList: HoaDon[];
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    hoaDon: thanhToan?.hoaDon ?
-      (typeof thanhToan.hoaDon === 'string' ? thanhToan.hoaDon : (thanhToan.hoaDon as HoaDon)._id || '') : '',
-    soTien: thanhToan?.soTien || 0,
-    phuongThuc: thanhToan?.phuongThuc || 'tienMat',
-    nganHang: thanhToan?.thongTinChuyenKhoan?.nganHang || '',
-    soGiaoDich: thanhToan?.thongTinChuyenKhoan?.soGiaoDich || '',
-    ngayThanhToan: thanhToan?.ngayThanhToan ? new Date(thanhToan.ngayThanhToan).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    ghiChu: thanhToan?.ghiChu || '',
-    anhBienLai: thanhToan?.anhBienLai || '',
-  });
-
-  // Cập nhật form data khi thanhToan thay đổi
-  useEffect(() => {
-    if (thanhToan) {
-      setFormData({
-        hoaDon: typeof thanhToan.hoaDon === 'string' ? thanhToan.hoaDon : (thanhToan.hoaDon as HoaDon)._id || '',
-        soTien: thanhToan.soTien,
-        phuongThuc: thanhToan.phuongThuc,
-        nganHang: thanhToan.thongTinChuyenKhoan?.nganHang || '',
-        soGiaoDich: thanhToan.thongTinChuyenKhoan?.soGiaoDich || '',
-        ngayThanhToan: new Date(thanhToan.ngayThanhToan).toISOString().split('T')[0],
-        ghiChu: thanhToan.ghiChu || '',
-        anhBienLai: thanhToan.anhBienLai || '',
-      });
-    } else {
-      // Reset form khi thêm mới
-      setFormData({
-        hoaDon: '',
-        soTien: 0,
-        phuongThuc: 'tienMat',
-        nganHang: '',
-        soGiaoDich: '',
-        ngayThanhToan: new Date().toISOString().split('T')[0],
-        ghiChu: '',
-        anhBienLai: '',
-      });
-    }
-  }, [thanhToan]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const requestData = {
-        hoaDonId: formData.hoaDon,
-        soTien: formData.soTien,
-        phuongThuc: formData.phuongThuc,
-        thongTinChuyenKhoan: formData.phuongThuc === 'chuyenKhoan' ? {
-          nganHang: formData.nganHang,
-          soGiaoDich: formData.soGiaoDich
-        } : undefined,
-        ngayThanhToan: formData.ngayThanhToan,
-        ghiChu: formData.ghiChu,
-        anhBienLai: formData.anhBienLai
-      };
-
-      console.log('Submitting:', requestData);
-
-      const url = thanhToan ? `/api/thanh-toan/${thanhToan._id}` : '/api/thanh-toan';
-      const method = thanhToan ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Success:', result);
-        toast.success(result.message || (thanhToan ? 'Cập nhật thanh toán thành công' : 'Thêm thanh toán thành công'));
-        onSuccess();
-      } else {
-        const errorData = await response.json();
-        console.error('Error:', errorData);
-        toast.error('Có lỗi xảy ra: ' + (errorData.message || 'Không thể lưu dữ liệu'));
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Có lỗi xảy ra khi gửi dữ liệu');
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="hoaDon" className="text-xs md:text-sm">Hóa đơn</Label>
-        <Select value={formData.hoaDon} onValueChange={(value) => setFormData(prev => ({ ...prev, hoaDon: value }))}>
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder="Chọn hóa đơn" />
-          </SelectTrigger>
-          <SelectContent>
-            {hoaDonList.map((hoaDon) => (
-              <SelectItem key={hoaDon._id} value={hoaDon._id!} className="text-sm">
-                {hoaDon.maHoaDon} - {hoaDon.conLai.toLocaleString('vi-VN')} VNĐ còn lại
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="soTien" className="text-xs md:text-sm">Số tiền (VNĐ)</Label>
-        <Input
-          id="soTien"
-          type="number"
-          min="1"
-          value={formData.soTien}
-          onChange={(e) => setFormData(prev => ({ ...prev, soTien: parseInt(e.target.value) || 0 }))}
-          required
-          className="text-sm"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="phuongThuc" className="text-xs md:text-sm">Phương thức thanh toán</Label>
-        <Select value={formData.phuongThuc} onValueChange={(value) => setFormData(prev => ({ ...prev, phuongThuc: value as ThanhToan['phuongThuc'] }))}>
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder="Chọn phương thức" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tienMat" className="text-sm">Tiền mặt</SelectItem>
-            <SelectItem value="chuyenKhoan" className="text-sm">Chuyển khoản</SelectItem>
-            <SelectItem value="viDienTu" className="text-sm">Ví điện tử</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {formData.phuongThuc === 'chuyenKhoan' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="nganHang" className="text-xs md:text-sm">Ngân hàng</Label>
-            <Input
-              id="nganHang"
-              value={formData.nganHang}
-              onChange={(e) => setFormData(prev => ({ ...prev, nganHang: e.target.value }))}
-              placeholder="Tên ngân hàng"
-              className="text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="soGiaoDich" className="text-xs md:text-sm">Số giao dịch</Label>
-            <Input
-              id="soGiaoDich"
-              value={formData.soGiaoDich}
-              onChange={(e) => setFormData(prev => ({ ...prev, soGiaoDich: e.target.value }))}
-              placeholder="Mã giao dịch"
-              className="text-sm"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="ngayThanhToan" className="text-xs md:text-sm">Ngày thanh toán</Label>
-        <Input
-          id="ngayThanhToan"
-          type="date"
-          value={formData.ngayThanhToan}
-          onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: e.target.value }))}
-          required
-          className="text-sm"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="ghiChu" className="text-xs md:text-sm">Ghi chú</Label>
-        <Textarea
-          id="ghiChu"
-          value={formData.ghiChu}
-          onChange={(e) => setFormData(prev => ({ ...prev, ghiChu: e.target.value }))}
-          rows={3}
-          placeholder="Ghi chú về giao dịch..."
-          className="text-sm"
-        />
-      </div>
-
-      <ImageUpload
-        imageUrl={formData.anhBienLai}
-        onImageChange={(url) => setFormData(prev => ({ ...prev, anhBienLai: url }))}
-        label="Ảnh biên lai"
-        placeholder="Chọn ảnh biên lai thanh toán"
-      />
-
-      <DialogFooter className="flex-col sm:flex-row gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto">
-          Hủy
-        </Button>
-        <Button type="submit" size="sm" className="w-full sm:w-auto">
-          {thanhToan ? 'Cập nhật' : 'Thêm mới'}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
+  )
 }

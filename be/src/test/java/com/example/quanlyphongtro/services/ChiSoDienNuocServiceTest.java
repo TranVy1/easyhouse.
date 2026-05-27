@@ -115,6 +115,47 @@ class ChiSoDienNuocServiceTest {
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req));
         assertEquals("Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ", error.getMessage());
     }
+
+    @Test
+    void createRejectsBilledStatusFromClient() {
+        UUID phongId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Phong phong = Phong.builder().id(phongId).build();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(true);
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
+
+        ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
+        req.setPhongId(phongId);
+        req.setChiSoCu(100);
+        req.setChiSoMoi(110);
+        req.setTrangThai(TrangThaiChiSo.BILLED);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req));
+        assertEquals("Trang thai nay chi duoc cap nhat boi quy trinh lap hoa don hoac huy", error.getMessage());
+    }
+
+    @Test
+    void updateRejectsCancelledStatusForEditableReading() {
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID phongId = UUID.randomUUID();
+        ChiSoDienNuoc existing = new ChiSoDienNuoc();
+        existing.setId(id);
+        existing.setTrangThai(TrangThaiChiSo.DRAFT);
+        existing.setPhong(Phong.builder().id(phongId).build());
+
+        when(chiSoDienNuocRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(true);
+
+        ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
+        req.setTrangThai(TrangThaiChiSo.CANCELLED);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.update(id, req));
+        assertEquals("Trang thai nay chi duoc cap nhat boi quy trinh lap hoa don hoac huy", error.getMessage());
+    }
     @Test
     void getByIdThrowsWhenUserCannotReadRoom() {
         UUID id = UUID.randomUUID();

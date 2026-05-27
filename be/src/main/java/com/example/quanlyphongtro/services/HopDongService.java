@@ -44,7 +44,8 @@ public class HopDongService {
     private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<HopDongResponse> getAll(String phongId, String trangThaiStr, int page, int limit) {
+    public PaginatedResponse<HopDongResponse> getAll(
+            String phongId, String toaNhaId, String trangThaiStr, String search, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
         List<UUID> nhaTroIds = List.of();
@@ -61,10 +62,12 @@ public class HopDongService {
         }
         
         UUID pid = parseOptionalUuid(phongId);
+        UUID nid = parseOptionalUuid(toaNhaId);
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<HopDong> pageResult = hopDongRepository.findAllAccessible(
-                isAdmin, userId, nhaTroIds, pid, tt != null ? tt.name() : null, pageable);
+                isAdmin, userId, nhaTroIds, pid, nid, tt != null ? tt.name() : null, normalizedSearch, pageable);
         
         List<HopDongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
         return PaginatedResponse.of(pageResult, mappedList);

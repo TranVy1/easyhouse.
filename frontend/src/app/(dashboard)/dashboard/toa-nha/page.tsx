@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,10 +53,12 @@ import { toast } from 'sonner';
 import { ToaNhaDataTable } from './table';
 
 export default function ToaNhaPage() {
+  const accessToken = useSession()?.data?.accessToken;
   const { clearCache, isRefreshing, setIsRefreshing } = useCache<{ toaNhaList: ToaNha[] }>({ key: 'toa-nha-data', duration: 300000 });
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingToaNha, setEditingToaNha] = useState<ToaNha | null>(null);
   
@@ -68,11 +71,15 @@ export default function ToaNhaPage() {
     document.title = 'Quản lý Tòa nhà';
   }, []);
 
-  const fetchToaNha = useCallback(async (page = 1, limit = 10) => {
+  const fetchToaNha = useCallback(async (page = 1, limit = 10, search = '') => {
     try {
       setLoading(true);
-      
-      const response = await fetch(`/api/toa-nha?page=${page}&limit=${limit}`);
+
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (search) params.set('search', search);
+      const response = await fetch(`/api/toa-nha?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -92,24 +99,28 @@ export default function ToaNhaPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
-  }, [fetchToaNha, pagination.pageIndex, pagination.pageSize]);
+    fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
+  }, [fetchToaNha, pagination.pageIndex, pagination.pageSize, appliedSearch]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [searchTerm]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
+    await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
-  const filteredToaNha = toaNhaList.filter(toaNha =>
-    toaNha.tenToaNha.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    toaNha.diaChi.duong.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    toaNha.diaChi.phuong.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredToaNha = toaNhaList;
 
   const handleEdit = (toaNha: ToaNha) => {
     setEditingToaNha(toaNha);
@@ -120,13 +131,14 @@ export default function ToaNhaPage() {
     try {
       const response = await fetch(`/api/toa-nha/${id}`, {
         method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
       
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
           clearCache();
-          await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
+          await fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
           toast.success('Xóa tòa nhà thành công!');
         } else {
           toast.error(result.message || 'Có lỗi xảy ra khi xóa tòa nhà');
@@ -201,7 +213,7 @@ export default function ToaNhaPage() {
               onSuccess={() => {
                 clearCache();
                 setIsDialogOpen(false);
-                fetchToaNha(pagination.pageIndex + 1, pagination.pageSize);
+                fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
                 toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
               }}
             />
@@ -415,6 +427,7 @@ function ToaNhaForm({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const accessToken = useSession()?.data?.accessToken;
   const [formData, setFormData] = useState({
     tenToaNha: toaNha?.tenToaNha || '',
     soNha: toaNha?.diaChi.soNha || '',
@@ -576,6 +589,7 @@ function ToaNhaForm({
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(submitData),
       });

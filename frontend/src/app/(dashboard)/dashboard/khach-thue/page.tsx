@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,13 +24,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, 
   Search, 
   Edit, 
   Trash2, 
-  EyeIcon,
   Users, 
   Phone,
   Mail,
@@ -43,15 +42,16 @@ import {
 import { KhachThue } from '@/types';
 import { KhachThueDataTable } from './table';
 import { CCCDUpload } from '@/components/ui/cccd-upload';
-import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 export default function KhachThuePage() {
-  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{ khachThueList: KhachThue[] }>({ key: 'khach-thue-data', duration: 300000 });
+  const accessToken = useSession()?.data?.accessToken;
+  const { clearCache, isRefreshing, setIsRefreshing } = useCache<{ khachThueList: KhachThue[] }>({ key: 'khach-thue-data', duration: 300000 });
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [selectedTrangThai, setSelectedTrangThai] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingKhachThue, setEditingKhachThue] = useState<KhachThue | null>(null);
@@ -67,7 +67,7 @@ export default function KhachThuePage() {
     document.title = 'Quản lý Khách thuê';
   }, []);
 
-  const fetchKhachThue = useCallback(async (forceRefresh = false, trangThai = '', page = 1, limit = 10) => {
+  const fetchKhachThue = useCallback(async (trangThai = '', search = '', page = 1, limit = 10) => {
     try {
       setLoading(true);
       
@@ -76,8 +76,11 @@ export default function KhachThuePage() {
         limit: limit.toString()
       });
       if (trangThai && trangThai !== 'all') params.append('trangThai', trangThai);
+      if (search) params.append('search', search);
       
-      const response = await fetch(`/api/khach-thue?${params.toString()}`);
+      const response = await fetch(`/api/khach-thue?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       let khachThueData: KhachThue[] = [];
       if (response.ok) {
         const result = await response.json();
@@ -98,15 +101,15 @@ export default function KhachThuePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
-  }, [fetchKhachThue, selectedTrangThai, pagination.pageIndex, pagination.pageSize]);
+    fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+  }, [fetchKhachThue, selectedTrangThai, appliedSearch, pagination.pageIndex, pagination.pageSize]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchKhachThue(true, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+    await fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
     setIsRefreshing(false);
     toast.success('Đã tải dữ liệu mới nhất');
   };
@@ -114,14 +117,14 @@ export default function KhachThuePage() {
   useEffect(() => {
     // Reset pagination when filter changes
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [selectedTrangThai]);
+  }, [selectedTrangThai, appliedSearch]);
 
-  const filteredKhachThue = khachThueList.filter(khachThue =>
-    (khachThue.hoTen?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (khachThue.soDienThoai || '').includes(searchTerm) ||
-    (khachThue.cccd || '').includes(searchTerm) ||
-    (khachThue.queQuan?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setAppliedSearch(searchTerm.trim()), 350);
+    return () => window.clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const filteredKhachThue = khachThueList;
 
   const handleEdit = (khachThue: KhachThue) => {
     setEditingKhachThue(khachThue);
@@ -134,13 +137,14 @@ export default function KhachThuePage() {
       try {
         const response = await fetch(`/api/khach-thue/${id}`, {
           method: 'DELETE',
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
         });
         
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
             clearCache();
-            await fetchKhachThue(true, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+            await fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
             toast.success('Xóa khách thuê thành công!');
           } else {
             toast.error(result.message || 'Có lỗi xảy ra');
@@ -216,10 +220,10 @@ export default function KhachThuePage() {
                 setIsDialogOpen(false);
                 if (newKhachThue) {
                   // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
-                  fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+                  fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
                 } else {
                   // Fallback: refresh data nếu không có dữ liệu trả về
-                  fetchKhachThue(false, selectedTrangThai, pagination.pageIndex + 1, pagination.pageSize);
+                  fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
                 }
                 toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
               }}
@@ -467,7 +471,7 @@ export default function KhachThuePage() {
 }
 
 // Form component for adding/editing khach thue
-function KhachThueForm({ 
+function KhachThueForm({
   khachThue, 
   onClose, 
   onSuccess,
@@ -480,6 +484,7 @@ function KhachThueForm({
   isSubmitting: boolean;
   setIsSubmitting: (value: boolean) => void;
 }) {
+  const accessToken = useSession()?.data?.accessToken;
   const [formData, setFormData] = useState({
     hoTen: khachThue?.hoTen || '',
     soDienThoai: khachThue?.soDienThoai || '',
@@ -519,6 +524,7 @@ function KhachThueForm({
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(submitData),
       });

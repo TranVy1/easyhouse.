@@ -35,7 +35,15 @@ public class ThanhToanService {
     private final EmailService emailService;
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<ThanhToanResponse> getAll(String hoaDonId, String trangThaiStr, int page, int limit) {
+    public PaginatedResponse<ThanhToanResponse> getAll(
+            String hoaDonId,
+            String trangThaiStr,
+            String search,
+            String phuongThuc,
+            String tuNgay,
+            String denNgay,
+            int page,
+            int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
         List<UUID> nhaTroIds = List.of();
@@ -52,10 +60,23 @@ public class ThanhToanService {
         }
         
         UUID hid = parseOptionalUuid(hoaDonId);
+        PhuongThucThanhToan method = parseOptionalPhuongThuc(phuongThuc);
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
+        ZonedDateTime from = parseFilterDate(tuNgay, false);
+        ZonedDateTime toExclusive = parseFilterDate(denNgay, true);
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "ngayThanhToan"));
         Page<ThanhToan> pageResult = thanhToanRepository.findAllAccessible(
-                isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, pageable);
+                isAdmin,
+                userId,
+                nhaTroIds,
+                hid,
+                tt != null ? tt.name() : null,
+                method != null ? method.name() : null,
+                normalizedSearch,
+                from,
+                toExclusive,
+                pageable);
         
         List<ThanhToanResponse> res = new ArrayList<>();
         for (ThanhToan hd : pageResult.getContent()) {
@@ -304,6 +325,25 @@ public class ThanhToanService {
                 }
             }
         };
+    }
+
+    private PhuongThucThanhToan parseOptionalPhuongThuc(String value) {
+        if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return parsePhuongThuc(value);
+    }
+
+    private ZonedDateTime parseFilterDate(String value, boolean endExclusive) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value);
+            return (endExclusive ? date.plusDays(1) : date).atStartOfDay(ZoneId.systemDefault());
+        } catch (Exception ex) {
+            throw new RuntimeException("Ngày lọc không hợp lệ: " + value);
+        }
     }
 
     private TrangThaiHoaDon resolveInvoiceStatus(BigDecimal paid, BigDecimal total, LocalDate hanTra) {

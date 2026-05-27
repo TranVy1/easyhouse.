@@ -22,8 +22,23 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
     @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
            "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:hopDongId as string) IS NULL OR h.hopDong.id = :hopDongId) " +
-           "AND (cast(:trangThai as string) IS NULL OR cast(h.trangThai as string) = :trangThai)")
-    Page<HoaDon> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("hopDongId") UUID hopDongId, @Param("trangThai") String trangThai, Pageable pageable);
+           "AND (cast(:trangThai as string) IS NULL OR cast(h.trangThai as string) = :trangThai) " +
+           "AND (:kyThang IS NULL OR h.kyThang = :kyThang) " +
+           "AND (:kyNam IS NULL OR h.kyNam = :kyNam) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(h.maHoaDon, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(h.ghiChu, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+    Page<HoaDon> findAllAccessible(
+            @Param("isAdmin") boolean isAdmin,
+            @Param("userId") UUID userId,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            @Param("hopDongId") UUID hopDongId,
+            @Param("trangThai") String trangThai,
+            @Param("search") String search,
+            @Param("kyThang") Integer kyThang,
+            @Param("kyNam") Integer kyNam,
+            Pageable pageable);
 
     List<HoaDon> findByPhongIdAndXoaLucIsNull(UUID phongId);
 

@@ -122,6 +122,7 @@ public class ChiSoDienNuocService {
         if (request.getChiSoMoi() < request.getChiSoCu()) {
             throw new RuntimeException("Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ");
         }
+        assertManualStatusAllowed(request.getTrangThai());
 
         ChiSoDienNuoc chiSo = new ChiSoDienNuoc();
         chiSo.setPhong(phong);
@@ -180,6 +181,7 @@ public class ChiSoDienNuocService {
             logAudit(cancelled, "CANCEL");
             return mapToResponse(cancelled);
         }
+        assertManualStatusAllowed(request.getTrangThai());
 
         if (request.getChiSoMoi() < request.getChiSoCu()) {
             throw new RuntimeException("Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ");
@@ -246,6 +248,12 @@ public class ChiSoDienNuocService {
     private void assertCanWrite(UUID userId, UUID phongId) {
         if (phongId == null || !permissionService.canWritePhong(userId, phongId)) {
             throw new RuntimeException("Khong co quyen thay doi chi so nay");
+        }
+    }
+
+    private void assertManualStatusAllowed(TrangThaiChiSo trangThai) {
+        if (trangThai == TrangThaiChiSo.BILLED || trangThai == TrangThaiChiSo.CANCELLED) {
+            throw new RuntimeException("Trang thai nay chi duoc cap nhat boi quy trinh lap hoa don hoac huy");
         }
     }
 

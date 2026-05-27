@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +53,7 @@ import { SuCoDataTable } from './table';
 import { unwrapPageData } from '@/lib/api-response';
 
 export default function SuCoPage() {
+  const accessToken = useSession()?.data?.accessToken;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     suCoList: SuCo[];
     phongList: Phong[];
@@ -104,7 +107,9 @@ export default function SuCoPage() {
       if (typeFilter && typeFilter !== 'all') params.append('loaiSuCo', typeFilter);
       if (priorityFilter && priorityFilter !== 'all') params.append('mucDoUuTien', priorityFilter);
       
-      const suCoResponse = await fetch(`/api/su-co?${params.toString()}`);
+      const suCoResponse = await fetch(`/api/su-co?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       const suCoData = await suCoResponse.json();
       const suCos = suCoData.success ? (Array.isArray(suCoData.data) ? suCoData.data : (suCoData.data?.data || [])) : [];
       setSuCoList(suCos);
@@ -118,19 +123,25 @@ export default function SuCoPage() {
       }
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong?page=1&limit=100');
+      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       const phongData = await phongResponse.json();
       const phongs = phongData.success ? unwrapPageData<Phong>(phongData.data) : [];
       setPhongList(phongs);
 
       // Fetch khách thuê từ API
-      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       const khachThueData = await khachThueResponse.json();
       const khachThues = khachThueData.success ? unwrapPageData<KhachThue>(khachThueData.data) : [];
       setKhachThueList(khachThues);
 
       // Fetch hợp đồng từ API
-      const hopDongResponse = await fetch('/api/hop-dong?page=1&limit=100');
+      const hopDongResponse = await fetch('/api/hop-dong?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
       const hopDongData = await hopDongResponse.json();
       const hopDongs = hopDongData.success ? unwrapPageData<HopDong>(hopDongData.data) : [];
       setHopDongList(hopDongs);
@@ -150,7 +161,7 @@ export default function SuCoPage() {
     } finally {
       setLoading(false);
     }
-  }, [getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, typeFilter, priorityFilter]);
+  }, [accessToken, getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, typeFilter, priorityFilter]);
 
   useEffect(() => {
     fetchData(false);
@@ -239,6 +250,7 @@ export default function SuCoPage() {
     try {
       const response = await fetch(`/api/su-co/${id}`, {
         method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
 
       const result = await response.json();
@@ -263,6 +275,7 @@ export default function SuCoPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           trangThai: newStatus,
@@ -562,7 +575,7 @@ export default function SuCoPage() {
                           <div className="grid grid-cols-2 gap-4 mt-4 max-h-[60vh] overflow-y-auto p-1">
                             {suCo.anhSuCo.map((img, i) => (
                               <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
-                                <img src={img} alt={`Ảnh ${i + 1}`} className="object-cover w-full h-full" />
+                                <Image src={img} alt={`Ảnh ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 320px" className="object-cover" />
                               </div>
                             ))}
                           </div>
@@ -624,6 +637,7 @@ function SuCoForm({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const accessToken = useSession()?.data?.accessToken;
   const [formData, setFormData] = useState<{
     phongId: string | undefined;
     khachThueId: string;
@@ -684,6 +698,7 @@ function SuCoForm({
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(submitData),
       });

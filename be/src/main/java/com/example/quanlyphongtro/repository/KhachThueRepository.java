@@ -31,6 +31,17 @@ public interface KhachThueRepository extends JpaRepository<KhachThue, UUID> {
            "     OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:trangThai as string) IS NULL OR " +
            "    (cast(:trangThai as string) = 'dangThue' AND hd.id IS NOT NULL) OR " +
-           "    (cast(:trangThai as string) = 'daKetThuc' AND hd.id IS NULL))")
-    Page<KhachThue> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("trangThai") String trangThai, Pageable pageable);
+           "    (cast(:trangThai as string) = 'daKetThuc' AND hd.id IS NULL)) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.soDienThoai, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.soCccd, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.queQuan, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.email, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+    Page<KhachThue> findAllAccessible(
+            @Param("isAdmin") boolean isAdmin,
+            @Param("userId") UUID userId,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            @Param("trangThai") String trangThai,
+            @Param("search") String search,
+            Pageable pageable);
 }

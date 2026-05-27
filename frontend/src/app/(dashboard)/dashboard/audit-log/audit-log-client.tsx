@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   Table,
@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, History, Eye, User, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { AuditLog, ApiResponse } from "@/types";
+import { useSession } from "next-auth/react";
 
 interface PageData {
   content: AuditLog[];
@@ -39,6 +40,8 @@ interface PageData {
 }
 
 export function AuditLogClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -49,7 +52,7 @@ export function AuditLogClient() {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const fetchLogs = async (currentPage: number, tableFilter: string = "") => {
+  const fetchLogs = useCallback(async (currentPage: number, tableFilter: string = "") => {
     try {
       setIsLoading(true);
       let url = `/api/audit-log?page=${currentPage}&size=20`;
@@ -57,7 +60,9 @@ export function AuditLogClient() {
         url += `&bangTacDong=${tableFilter}`;
       }
       
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<PageData> = await res.json();
       
       if (data.success && data.data) {
@@ -71,11 +76,11 @@ export function AuditLogClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchLogs(0, bangTacDong);
-  }, [bangTacDong]);
+    if (accessToken) fetchLogs(0, bangTacDong);
+  }, [accessToken, bangTacDong, fetchLogs]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

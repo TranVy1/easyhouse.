@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,10 +22,10 @@ import {
   Check,
   ChevronsUpDown
 } from 'lucide-react';
-import { Phong, KhachThue } from '@/types';
+import { Phong, KhachThue, ToaNha } from '@/types';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
-import { normalizeKhachThue, normalizePhong } from '@/lib/domain-mappers';
+import { normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
 import { unwrapPageData } from '@/lib/api-response';
 import {
   Command,
@@ -69,6 +70,11 @@ type PhiDichVuForm = {
 
 export default function ThemMoiHopDongPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
+  const [nhaTroList, setNhaTroList] = useState<ToaNha[]>([]);
+  const [selectedNhaTro, setSelectedNhaTro] = useState<string>('');
+  const [openNhaTro, setOpenNhaTro] = useState(false);
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [dichVuOptions, setDichVuOptions] = useState<DichVuOption[]>([]);
@@ -87,6 +93,7 @@ export default function ThemMoiHopDongPage() {
     tienCoc: 0,
     chuKyThanhToan: 'thang' as 'thang' | 'quy' | 'nam',
     ngayThanhToan: 15,
+    ghiChu: '',
     dieuKhoan: `ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
 
 1. BÊN CHO THUÊ (Chủ nhà):
@@ -119,7 +126,7 @@ export default function ThemMoiHopDongPage() {
     chiSoDienBanDau: 0,
     chiSoNuocBanDau: 0,
     phiDichVu: [] as PhiDichVuForm[],
-    trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
+    trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
   const [openPhong, setOpenPhong] = useState(false);
@@ -193,7 +200,9 @@ export default function ThemMoiHopDongPage() {
       return;
     }
     try {
-      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`);
+      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const result = response.ok ? await response.json() : { data: [] };
       const options = (result.data || []).map((item: DichVuOption) => ({
         ...item,
@@ -224,12 +233,25 @@ export default function ThemMoiHopDongPage() {
   };
 
   useEffect(() => {
+    if (!accessToken) return;
     fetchData();
-  }, []);
+  // fetchData is declared below to preserve the legacy form initialization order.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   const fetchData = async () => {
     try {
-      const phongResponse = await fetch('/api/phong?page=1&limit=100');
+      const nhaTroResponse = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const nhaTroData = await nhaTroResponse.json().catch(() => ({}));
+      if (nhaTroResponse.ok && nhaTroData.success !== false) {
+        setNhaTroList(unwrapPageData<ToaNha>(nhaTroData.data).map(normalizeToaNha));
+      }
+
+      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const phongData = await phongResponse.json().catch(() => ({}));
       if (!phongResponse.ok || phongData.success === false) {
         throw new Error(phongData.message || 'Không tải được danh sách phòng');
@@ -241,14 +263,18 @@ export default function ThemMoiHopDongPage() {
         );
       setPhongList(availablePhong);
 
-      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100');
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const khachThueData = await khachThueResponse.json().catch(() => ({}));
       if (!khachThueResponse.ok || khachThueData.success === false) {
         throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
       }
       setKhachThueList(unwrapPageData<KhachThue>(khachThueData.data).map(normalizeKhachThue));
 
-      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100');
+      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const dvData = await dichVuResponse.json().catch(() => ({}));
       if (!dichVuResponse.ok || dvData.success === false) {
         toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
@@ -365,6 +391,7 @@ export default function ThemMoiHopDongPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -436,7 +463,7 @@ export default function ThemMoiHopDongPage() {
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="maHopDong" className="text-xs md:text-sm">Mã hợp đồng</Label>
                 <Input
@@ -450,6 +477,54 @@ export default function ThemMoiHopDongPage() {
               </div>
 
               <div className="space-y-2">
+                <Label className="text-xs md:text-sm">Nhà trọ *</Label>
+                <Popover open={openNhaTro} onOpenChange={setOpenNhaTro}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openNhaTro}
+                      className="w-full justify-between text-sm"
+                      size="sm"
+                    >
+                      {selectedNhaTro
+                        ? nhaTroList.find((nt) => nt._id === selectedNhaTro)?.tenToaNha
+                        : "Chọn nhà trọ..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[90vw] md:w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Tìm kiếm nhà trọ..." />
+                      <CommandEmpty>Không tìm thấy nhà trọ.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {nhaTroList.map((nt) => (
+                          <CommandItem
+                            key={nt._id}
+                            value={nt.tenToaNha}
+                            onSelect={() => {
+                              setSelectedNhaTro(nt._id!);
+                              setFormData(prev => ({ ...prev, phong: '', giaThue: 0, tienCoc: 0, phiDichVu: [] }));
+                              setDichVuOptions([]);
+                              setOpenNhaTro(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedNhaTro === nt._id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {nt.tenToaNha}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-xs md:text-sm">Phòng *</Label>
                 <Popover open={openPhong} onOpenChange={setOpenPhong}>
                   <PopoverTrigger asChild>
@@ -459,6 +534,7 @@ export default function ThemMoiHopDongPage() {
                       aria-expanded={openPhong}
                       className="w-full justify-between text-sm"
                       size="sm"
+                      disabled={!selectedNhaTro}
                     >
                       {formData.phong
                         ? phongList.find((phong) => phong._id === formData.phong)?.maPhong
@@ -466,12 +542,12 @@ export default function ThemMoiHopDongPage() {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[90vw] md:w-[400px] p-0">
+                  <PopoverContent className="w-[90vw] md:w-[300px] p-0">
                     <Command>
                       <CommandInput placeholder="Tìm kiếm phòng..." />
                       <CommandEmpty>Không tìm thấy phòng.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
-                        {phongList.map((phong) => (
+                        {phongList.filter(p => !selectedNhaTro || p.nhaTroId === selectedNhaTro || (typeof p.toaNha === 'object' && (p.toaNha._id === selectedNhaTro || p.toaNha.id === selectedNhaTro))).map((phong) => (
                           <CommandItem
                             key={phong._id}
                             value={`${phong.maPhong} ${phong.dienTich} ${phong.giaThue}`}
@@ -523,7 +599,7 @@ export default function ThemMoiHopDongPage() {
                           .map((khachThue) => (
                             <CommandItem
                               key={khachThue._id}
-                              value={khachThue.hoTen}
+                              value={`${khachThue.hoTen} ${khachThue.soDienThoai} ${khachThue._id}`}
                               onSelect={() => {
                                 setFormData(prev => ({
                                   ...prev,
@@ -539,7 +615,10 @@ export default function ThemMoiHopDongPage() {
                                   formData.nguoiDaiDien === khachThue._id ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {khachThue.hoTen}
+                              <div className="flex flex-col">
+                                <span>{khachThue.hoTen}</span>
+                                <span className="text-xs text-muted-foreground">{khachThue.soDienThoai} - {khachThue.cccd}</span>
+                              </div>
                             </CommandItem>
                           ))}
                       </CommandGroup>
@@ -588,7 +667,7 @@ export default function ThemMoiHopDongPage() {
                       {khachThueList.filter(khachThue => khachThue._id !== formData.nguoiDaiDien).map((khachThue) => (
                         <CommandItem
                           key={khachThue._id}
-                          value={khachThue.hoTen}
+                          value={`${khachThue.hoTen} ${khachThue.soDienThoai} ${khachThue._id}`}
                           onSelect={() => toggleKhachThue(khachThue._id!)}
                         >
                           <div className="flex items-center space-x-2 w-full">
@@ -800,6 +879,18 @@ export default function ThemMoiHopDongPage() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="ghiChu">Ghi chú bàn giao / nội bộ</Label>
+              <Textarea
+                id="ghiChu"
+                value={formData.ghiChu}
+                onChange={(e) => setFormData(prev => ({ ...prev, ghiChu: e.target.value }))}
+                placeholder="Khách không sử dụng Tủ lạnh, đã dọn ra ngoài..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
             {formData.phong && (
               <div className="space-y-2 pb-4">
                 <Label>Tiện ích có sẵn của phòng</Label>
@@ -824,26 +915,68 @@ export default function ThemMoiHopDongPage() {
                 <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    {dichVuOptions.map((option) => {
-                      const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
-                      return (
-                        <div key={option.dichVuId} className="grid grid-cols-1 md:grid-cols-[1fr_160px_120px_auto] gap-2 rounded border p-3">
-                          <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-2 text-left">
-                            <span className={cn("flex h-4 w-4 items-center justify-center rounded-sm border", selected ? "bg-primary text-primary-foreground" : "bg-background")}>
-                              {selected && <Check className="h-3 w-3" />}
-                            </span>
-                            <span className="text-sm font-medium">{option.ten}</span>
-                            {option.batBuoc && <Badge variant="outline">Bắt buộc</Badge>}
-                          </button>
-                          <Input type="number" min="0" value={selected?.gia ?? option.donGiaMacDinh} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)} />
-                          <Input type="number" min="0" step="0.1" value={selected?.soLuong ?? 1} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)} />
-                          <div className="text-sm text-muted-foreground md:text-right">
-                            {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
+                  <div className="rounded-lg border overflow-hidden">
+                    {/* Header Desktop */}
+                    <div className="hidden md:grid grid-cols-[1fr_100px_120px_120px] gap-4 bg-muted/50 p-3 px-4 text-sm font-medium text-muted-foreground border-b">
+                      <div>Tên dịch vụ</div>
+                      <div>Đơn giá</div>
+                      <div>Số lượng</div>
+                      <div className="text-right">Thành tiền</div>
+                    </div>
+
+                    <div className="divide-y">
+                      {dichVuOptions.map((option) => {
+                        const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
+                        return (
+                          <div key={option.dichVuId} className={cn("grid grid-cols-1 md:grid-cols-[1fr_160px_120px_120px] items-center gap-3 md:gap-4 p-4 transition-colors", selected ? "bg-primary/5" : "bg-card hover:bg-muted/30")}>
+                            <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-3 text-left">
+                              <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors", selected ? "bg-primary border-primary text-primary-foreground" : "border-input")}>
+                                {selected && <Check className="h-3.5 w-3.5" />}
+                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-sm font-medium">{option.ten}</span>
+                                {option.batBuoc && <span className="text-[10px] uppercase tracking-wider font-semibold text-primary/70">Bắt buộc</span>}
+                              </div>
+                            </button>
+
+                            <div className="flex items-center gap-2 md:block">
+                              <span className="md:hidden w-24 text-sm text-muted-foreground">Đơn giá:</span>
+                              <div className="relative w-full">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  className={cn("pr-7 h-9 bg-background", !selected && "opacity-50")}
+                                  value={selected?.gia ?? option.donGiaMacDinh}
+                                  disabled={!selected}
+                                  onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)}
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₫</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 md:block">
+                              <span className="md:hidden w-24 text-sm text-muted-foreground">Số lượng:</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                className={cn("h-9 bg-background", !selected && "opacity-50")}
+                                value={selected?.soLuong ?? 1}
+                                disabled={!selected}
+                                onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)}
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 md:block md:text-right border-t md:border-t-0 pt-2 md:pt-0 mt-1 md:mt-0">
+                              <span className="md:hidden w-24 text-sm text-muted-foreground">Thành tiền:</span>
+                              <div className={cn("text-sm font-semibold md:font-medium", selected ? "text-primary" : "text-muted-foreground")}>
+                                {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="mt-4 border-t pt-4">

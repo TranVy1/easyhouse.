@@ -2,6 +2,10 @@ package com.example.quanlyphongtro.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
@@ -17,8 +21,12 @@ import com.example.quanlyphongtro.repository.ThanhToanRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,6 +97,39 @@ class ThanhToanServiceTest {
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
 
         assertEquals("Ban khong co quyen sua thanh toan nay", error.getMessage());
+    }
+
+    @Test
+    void getAllPassesNormalizedPaymentFiltersToRepository() {
+        UUID userId = UUID.randomUUID();
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(true);
+        when(thanhToanRepository.findAllAccessible(
+                eq(true), eq(userId), eq(List.of()), isNull(), isNull(), eq("BANK_TRANSFER"),
+                eq("HD-001"), any(ZonedDateTime.class), any(ZonedDateTime.class), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        service.getAll(null, "all", "  HD-001 ", "chuyenKhoan", "2026-05-01", "2026-05-03", 1, 10);
+
+        ArgumentCaptor<ZonedDateTime> from = ArgumentCaptor.forClass(ZonedDateTime.class);
+        ArgumentCaptor<ZonedDateTime> to = ArgumentCaptor.forClass(ZonedDateTime.class);
+        verify(thanhToanRepository).findAllAccessible(
+                eq(true), eq(userId), eq(List.of()), isNull(), isNull(), eq("BANK_TRANSFER"),
+                eq("HD-001"), from.capture(), to.capture(), any(Pageable.class));
+        assertEquals(LocalDate.of(2026, 5, 1), from.getValue().toLocalDate());
+        assertEquals(LocalDate.of(2026, 5, 4), to.getValue().toLocalDate());
+    }
+
+    @Test
+    void getAllRejectsInvalidDateFilter() {
+        UUID userId = UUID.randomUUID();
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.isAdmin(userId)).thenReturn(true);
+
+        RuntimeException error = assertThrows(RuntimeException.class,
+                () -> service.getAll(null, "all", null, "all", "khong-hop-le", null, 1, 10));
+
+        assertEquals("Ngày lọc không hợp lệ: khong-hop-le", error.getMessage());
     }
 
     private HoaDon invoice(UUID ownerId, UUID nhaTroId, UUID tenantUserId) {

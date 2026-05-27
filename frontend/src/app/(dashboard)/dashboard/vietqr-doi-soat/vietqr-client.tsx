@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   Table,
@@ -24,6 +24,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { BankTransaction, ApiResponse, HoaDon, PaginatedResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { useSession } from "next-auth/react";
 
 interface PageData {
   content: BankTransaction[];
@@ -40,6 +41,8 @@ interface PageData {
 }
 
 export function VietQRClient() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [transactions, setTransactions] = useState<BankTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -52,7 +55,7 @@ export function VietQRClient() {
   const [isHoaDonLoading, setIsHoaDonLoading] = useState(false);
   const [selectedHoaDonId, setSelectedHoaDonId] = useState<string>("");
 
-  const fetchTransactions = async (currentPage: number, filter: boolean | null = null) => {
+  const fetchTransactions = useCallback(async (currentPage: number, filter: boolean | null = null) => {
     try {
       setIsLoading(true);
       let url = `/api/bank-transaction?page=${currentPage}&size=20`;
@@ -60,7 +63,9 @@ export function VietQRClient() {
         url += `&daDoiSoat=${filter}`;
       }
       
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<PageData> = await res.json();
       
       if (data.success && data.data) {
@@ -74,11 +79,11 @@ export function VietQRClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchTransactions(0, daDoiSoatFilter);
-  }, [daDoiSoatFilter]);
+    if (accessToken) fetchTransactions(0, daDoiSoatFilter);
+  }, [accessToken, daDoiSoatFilter, fetchTransactions]);
 
   const handlePrevPage = () => {
     if (page > 0) {
@@ -107,7 +112,9 @@ export function VietQRClient() {
     // Fetch unpaid bills (hoá đơn chưa thanh toán đủ)
     try {
       setIsHoaDonLoading(true);
-      const res = await fetch('/api/hoa-don?page=1&limit=100');
+      const res = await fetch('/api/hoa-don?page=1&limit=100', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const data: ApiResponse<PaginatedResponse<HoaDon>> = await res.json();
       if (data.success && data.data) {
         // Chỉ lấy những hóa đơn có tổng tiền > đã trả
@@ -136,7 +143,10 @@ export function VietQRClient() {
 
       const res = await fetch('/api/bank-transaction/manual-match', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload)
       });
       const data: ApiResponse<BankTransaction> = await res.json();

@@ -52,7 +52,7 @@ try {
   const { execSync } = require('child_process');
   const npmVersion = execSync('npm --version', { encoding: 'utf8' }).trim();
   checkPassed(`npm version: ${npmVersion}`);
-} catch (error) {
+} catch {
   checkFailed('npm không được cài đặt', true);
 }
 
@@ -149,7 +149,7 @@ if (fs.existsSync(packageJsonPath)) {
     } else {
       checkFailed(`Thiếu dependencies: ${missingDeps.join(', ')}`, true);
     }
-  } catch (error) {
+  } catch {
     checkFailed('Không thể đọc package.json', true);
   }
 } else {

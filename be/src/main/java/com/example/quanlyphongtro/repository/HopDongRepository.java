@@ -21,11 +21,26 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
 
     List<HopDong> findByXoaLucIsNullOrderByTaoLucDesc();
 
-    @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p " +
+    @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p LEFT JOIN p.nhaTro nt " +
            "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
-           "AND (cast(:trangThai as string) IS NULL OR cast(hd.trangThai as string) = :trangThai)")
-    Page<HopDong> findAllAccessible(@Param("isAdmin") boolean isAdmin, @Param("userId") UUID userId, @Param("nhaTroIds") List<UUID> nhaTroIds, @Param("phongId") UUID phongId, @Param("trangThai") String trangThai, Pageable pageable);
+           "AND (cast(:nhaTroId as string) IS NULL OR nt.id = :nhaTroId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(hd.trangThai as string) = :trangThai) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(hd.maHopDong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(hd.ghiChu, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(hd.noiDungHopDong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(nt.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+    Page<HopDong> findAllAccessible(
+            @Param("isAdmin") boolean isAdmin,
+            @Param("userId") UUID userId,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            @Param("phongId") UUID phongId,
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("trangThai") String trangThai,
+            @Param("search") String search,
+            Pageable pageable);
 
     List<HopDong> findByPhongIdAndXoaLucIsNull(UUID phongId);
 

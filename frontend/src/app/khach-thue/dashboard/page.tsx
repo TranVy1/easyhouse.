@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function KhachThueDashboardPage() {
-  const { data: dashboardData, loading } = useTenantDashboard();
+  const { data: dashboardData, loading, error, refreshData } = useTenantDashboard();
 
   if (loading) {
     return (
@@ -18,8 +18,19 @@ export default function KhachThueDashboardPage() {
     );
   }
 
+  if (error) {
+    return (
+      <Card className="mx-auto mt-8 max-w-lg border-red-200 bg-red-50">
+        <CardContent className="space-y-4 p-6 text-center">
+          <p className="text-sm text-red-700">{error}</p>
+          <Button variant="outline" onClick={() => void refreshData()}>Thử tải lại</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!dashboardData) {
-    return <div className="text-center text-gray-600">Không có dữ liệu</div>;
+    return <div className="text-center text-gray-600">Chưa có dữ liệu cư dân.</div>;
   }
 
   const { khachThue, hopDongHienTai, soHoaDonChuaThanhToan, soSuCoDangMo, hoaDonGanNhat, lienHe } = dashboardData;

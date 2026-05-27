@@ -36,7 +36,7 @@ public class KhachThueService {
     private final MediaService mediaService;
     private final PermissionService permissionService;
 
-    public PaginatedResponse<KhachThueResponse> getAllKhachThue(String trangThai, int page, int limit) {
+    public PaginatedResponse<KhachThueResponse> getAllKhachThue(String trangThai, String search, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
         boolean isAdmin = permissionService.isAdmin(userId);
         List<UUID> nhaTroIds = List.of(UUID.randomUUID());
@@ -48,9 +48,11 @@ public class KhachThueService {
         }
         
         String filterTrangThai = (trangThai == null || trangThai.isBlank() || trangThai.equals("all")) ? null : trangThai;
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
-        Page<KhachThue> pageResult = khachThueRepository.findAllAccessible(isAdmin, userId, nhaTroIds, filterTrangThai, pageable);
+        Page<KhachThue> pageResult = khachThueRepository.findAllAccessible(
+                isAdmin, userId, nhaTroIds, filterTrangThai, normalizedSearch, pageable);
         
         // We still need active contracts to map correctly
         List<UUID> ktIds = pageResult.getContent().stream().map(KhachThue::getId).toList();

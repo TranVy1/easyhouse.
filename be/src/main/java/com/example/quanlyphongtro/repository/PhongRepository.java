@@ -30,11 +30,21 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     boolean existsByNhaTroIdAndTen(UUID nhaTroId, String ten);
     boolean existsByNhaTroIdAndTenAndIdNot(UUID nhaTroId, String ten, UUID id);
 
-    @Query("SELECT p FROM Phong p WHERE p.xoaLuc IS NULL " +
+    @Query("SELECT p FROM Phong p LEFT JOIN p.nhaTro nt WHERE p.xoaLuc IS NULL " +
            "AND (cast(:nhaTroId as uuid) IS NULL OR p.nhaTro.id = :nhaTroId) " +
            "AND (cast(:trangThai as string) IS NULL OR cast(p.trangThai as string) = :trangThai) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.khuVuc, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.moTa, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(nt.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))) " +
            "AND (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds)")
-    Page<Phong> findAllAccessible(@Param("nhaTroId") UUID nhaTroId, @Param("trangThai") String trangThai, @Param("isAdmin") boolean isAdmin, @Param("nhaTroIds") List<UUID> nhaTroIds, Pageable pageable);
+    Page<Phong> findAllAccessible(
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("trangThai") String trangThai,
+            @Param("search") String search,
+            @Param("isAdmin") boolean isAdmin,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            Pageable pageable);
 
     @Query("SELECT COUNT(p) FROM Phong p WHERE p.nhaTro.id IN :nhaTroIds")
     long countByNhaTroIdIn(@Param("nhaTroIds") List<UUID> nhaTroIds);

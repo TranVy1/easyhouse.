@@ -2,6 +2,8 @@ package com.example.quanlyphongtro.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,12 +14,15 @@ import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class NhaTroServiceTest {
@@ -80,5 +85,18 @@ class NhaTroServiceTest {
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.getPublicNhaTroById(nhaTroId));
 
         assertEquals("Khong tim thay nha tro", error.getMessage());
+    }
+
+    @Test
+    void getAllPassesNormalizedSearchToRepository() {
+        UUID userId = UUID.randomUUID();
+        when(permissionService.currentUserId()).thenReturn(Optional.of(userId));
+        when(permissionService.isAdmin(userId)).thenReturn(true);
+        when(nhaTroRepository.findAllAccessible(eq(true), org.mockito.ArgumentMatchers.<List<UUID>>any(), eq("Nguyen Trai"), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        service.getAllNhaTro("  Nguyen Trai ", 1, 10);
+
+        verify(nhaTroRepository).findAllAccessible(eq(true), org.mockito.ArgumentMatchers.<List<UUID>>any(), eq("Nguyen Trai"), any(Pageable.class));
     }
 }
