@@ -25,8 +25,10 @@ public class PublicPhongSummaryResponse {
     private String tenNhaTro;
     private String diaChiNhaTro;
     private List<String> tienIchNoiBat;
+    private String moTa;
+    private List<String> anhList;
 
-    public static PublicPhongSummaryResponse fromEntity(Phong phong, String anhDaiDien, List<String> tienIchList) {
+    public static PublicPhongSummaryResponse fromEntity(Phong phong, String anhDaiDien, List<String> tienIchList, List<String> anhList) {
         if (phong == null) return null;
             
         String tenNt = phong.getNhaTro() != null ? phong.getNhaTro().getTen() : null;
@@ -45,6 +47,8 @@ public class PublicPhongSummaryResponse {
                 .tenNhaTro(tenNt)
                 .diaChiNhaTro(diaChiNt)
                 .tienIchNoiBat(tienIchList)
+                .moTa(phong.getMoTa())
+                .anhList(anhList)
                 .build();
     }
 }

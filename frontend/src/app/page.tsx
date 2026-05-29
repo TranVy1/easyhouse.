@@ -1,152 +1,144 @@
-import Link from "next/link"
-import {
-  ArrowRight,
-  Building2,
-  CalendarCheck2,
-  Home as HomeIcon,
-  ReceiptText,
-  ShieldCheck,
-  Wrench,
-} from "lucide-react"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Home, Heart, Receipt, User, Bot } from "lucide-react";
+import { HomeScreen } from "@/components/mobile-app/HomeScreen";
+import { RoomDetailScreen } from "@/components/mobile-app/RoomDetailScreen";
+import { BillingScreen } from "@/components/mobile-app/BillingScreen";
+import { IncidentScreen } from "@/components/mobile-app/IncidentScreen";
+import { ProfileScreen } from "@/components/mobile-app/ProfileScreen";
+import { ChatOverlay } from "@/components/mobile-app/ChatOverlay";
 
-const operationalFeatures = [
-  {
-    icon: ReceiptText,
-    title: "Thu tiền minh bạch",
-    description: "Theo dõi hóa đơn, công nợ và thanh toán theo từng phòng.",
-  },
-  {
-    icon: CalendarCheck2,
-    title: "Hợp đồng rõ ràng",
-    description: "Quản lý cư trú, kỳ thanh toán và thời hạn hợp đồng.",
-  },
-  {
-    icon: Wrench,
-    title: "Xử lý yêu cầu",
-    description: "Tiếp nhận sự cố và theo dõi tiến độ hỗ trợ.",
-  },
-]
+type Tab = "home" | "saved" | "bills" | "profile";
 
-export default function Home() {
+const navItems: { tab: Tab; icon: React.ReactNode; label: string }[] = [
+  { tab: "home", icon: <Home size={22} />, label: "Trang chủ" },
+  { tab: "saved", icon: <Heart size={22} />, label: "Đã lưu" },
+  { tab: "bills", icon: <Receipt size={22} />, label: "Hóa đơn" },
+  { tab: "profile", icon: <User size={22} />, label: "Hồ sơ" },
+];
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [viewingRoom, setViewingRoom] = useState<number | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const handleRoomSelect = (id: number) => {
+    setViewingRoom(id);
+  };
+
+  const handleBack = () => {
+    setViewingRoom(null);
+  };
+
+  const renderContent = () => {
+    if (viewingRoom !== null) {
+      return <RoomDetailScreen onBack={handleBack} roomId={viewingRoom} />;
+    }
+    switch (activeTab) {
+      case "home":
+        return <HomeScreen onRoomSelect={handleRoomSelect} />;
+      case "saved":
+        return <SavedScreen onRoomSelect={handleRoomSelect} />;
+      case "bills":
+        return <BillingScreen />;
+      case "profile":
+        return <ProfileScreen onOpenChat={() => setChatOpen(true)} />;
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b bg-card/90">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Building2 className="size-5" />
-            </span>
-            <span>
-              <span className="block text-base font-semibold leading-tight">EasyHouse</span>
-              <span className="block text-xs text-muted-foreground">Quản lý nhà trọ</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild className="hidden sm:inline-flex">
-              <Link href="/khach-thue/dang-nhap">Cổng khách thuê</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/dang-nhap">Đăng nhập</Link>
-            </Button>
+    <div className="flex h-screen bg-[#F8FAFC] font-sans">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-screen relative overflow-hidden">
+        {/* Main scrollable view */}
+        <div className="flex-1 overflow-y-auto relative">
+          <div className="w-full h-full">
+            {renderContent()}
           </div>
         </div>
-      </header>
 
-      <section className="border-b bg-card">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:px-6 md:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-sm text-muted-foreground">
-              <ShieldCheck className="size-4 text-primary" />
-              Vận hành nhà trọ trên một hệ thống
-            </div>
-            <div className="space-y-4">
-              <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-                Tìm phòng dễ dàng. Quản lý rõ ràng.
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-                EasyHouse kết nối người thuê với phòng phù hợp và giúp ban quản lý theo dõi hợp đồng,
-                hóa đơn, thanh toán cùng yêu cầu hỗ trợ hàng ngày.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" asChild>
-                <Link href="/xem-phong">
-                  <HomeIcon />
-                  Tìm phòng đang trống
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/dang-nhap">
-                  Vào trang quản lý
-                  <ArrowRight />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-background p-4 shadow-sm md:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Quy trình thuê phòng</p>
-                <p className="text-xs text-muted-foreground">Nhanh, rõ chi phí, có lịch hẹn</p>
-              </div>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                Online
-              </span>
-            </div>
-            <div className="space-y-3">
-              {[
-                ["01", "Tìm phòng", "Lọc phòng theo nhu cầu và xem thông tin chi tiết."],
-                ["02", "Đặt lịch xem", "Gửi lịch thuận tiện để quản lý xác nhận."],
-                ["03", "Ký và theo dõi", "Nhận hóa đơn, báo sự cố từ cổng khách thuê."],
-              ].map(([step, title, detail]) => (
-                <div key={step} className="flex gap-4 rounded-xl border bg-card p-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
-                    {step}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{title}</p>
-                    <p className="mt-1 text-sm leading-5 text-muted-foreground">{detail}</p>
+        {/* Bottom Nav - Mobile Only */}
+        {viewingRoom === null && (
+          <div className="md:hidden shrink-0 bg-white border-t border-slate-100 px-2 pt-2 pb-6 safe-area-bottom z-40 relative">
+            <div className="flex">
+              {navItems.map(({ tab, icon, label }) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 flex flex-col items-center gap-1 py-1 transition-all ${
+                    activeTab === tab ? "text-blue-600" : "text-slate-400"
+                  }`}
+                >
+                  <div className={`relative transition-transform ${activeTab === tab ? "scale-110" : ""}`}>
+                    {icon}
+                    {tab === "bills" && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                    )}
                   </div>
-                </div>
+                  <span className="text-xs">{label}</span>
+                  {activeTab === tab && (
+                    <span className="w-1 h-1 bg-blue-600 rounded-full" />
+                  )}
+                </button>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
-        <div className="mb-8 max-w-xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">Cho ban quản lý</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Tập trung vào công việc cần làm</h2>
-          <p className="mt-3 text-muted-foreground">
-            Không cần bảng tính rời rạc để biết phòng nào trống, khoản nào chưa thu hay sự cố nào đang chờ.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {operationalFeatures.map((feature) => (
-            <article key={feature.title} className="rounded-xl border bg-card p-6">
-              <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-2.5 text-primary">
-                <feature.icon className="size-5" />
-              </div>
-              <h3 className="font-medium">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+        {/* Floating AI Chat Button (Mobile Only) */}
+        {!chatOpen && viewingRoom === null && (
+          <button
+            onClick={() => setChatOpen(true)}
+            className="md:hidden absolute bottom-24 right-4 w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform z-30"
+          >
+            <Bot size={24} className="text-white" />
+          </button>
+        )}
 
-      <footer className="border-t bg-card">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between md:px-6">
-          <p>EasyHouse - Hệ thống quản lý phòng trọ</p>
-          <div className="flex gap-4">
-            <Link href="/xem-phong" className="hover:text-foreground">Xem phòng</Link>
-            <Link href="/khach-thue/dang-nhap" className="hover:text-foreground">Khách thuê</Link>
+        {/* Chat Overlay */}
+        {chatOpen && <ChatOverlay onClose={() => setChatOpen(false)} />}
+      </div>
+    </div>
+  );
+}
+
+// Simple Saved screen placeholder
+function SavedScreen({ onRoomSelect }: { onRoomSelect: (id: number) => void }) {
+  const [savedRooms, setSavedRooms] = useState<any[]>([]);
+
+  // Tương lai sẽ fetch('/api/user/saved-rooms')
+  // Hiện tại vì chưa có API phòng đã lưu nên để trống
+  
+  return (
+    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
+      <div className="bg-white px-4 pt-12 pb-4 shadow-sm">
+        <h1 className="text-slate-900" style={{ fontSize: "1.25rem", fontWeight: 700 }}>
+          Đã Lưu
+        </h1>
+      </div>
+      <div className="flex-1 px-4 pt-5 space-y-3">
+        {savedRooms.length === 0 ? (
+          <div className="text-center text-slate-500 py-10 text-sm">
+            Bạn chưa lưu phòng nào.
           </div>
-        </div>
-      </footer>
-    </main>
-  )
+        ) : (
+          savedRooms.map((room) => (
+            <div
+              key={room.id}
+              onClick={() => onRoomSelect(room.id)}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform"
+            >
+              <img src={room.image} alt={room.name} className="w-full h-44 object-cover" />
+              <div className="p-4">
+                <h3 className="font-semibold text-slate-900">{room.name}</h3>
+                <p className="text-sm text-slate-500 mt-0.5">{room.location}</p>
+                <p className="text-blue-600 font-bold mt-2">{room.price}đ/tháng</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }

@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Home } from 'lucide-react';
+import Link from 'next/link';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   SidebarInset,
@@ -28,7 +29,7 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       router.push('/dang-nhap');
       return;
@@ -67,6 +68,13 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
             <DynamicBreadcrumb />
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm shrink-0"
+            >
+              <Home size={15} className="text-[#FF5A3D]" />
+              <span className="hidden sm:inline">Quay về trang chủ</span>
+            </Link>
             <ThemeToggle />
           </div>
         </header>

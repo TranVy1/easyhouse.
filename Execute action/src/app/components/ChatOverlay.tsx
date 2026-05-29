@@ -1,0 +1,149 @@
+import { useState, useRef, useEffect } from "react";
+import { X, Send, Mic, Bot, User } from "lucide-react";
+
+interface Message {
+  id: number;
+  role: "bot" | "user";
+  text: string;
+}
+
+const quickReplies = [
+  "Mật khẩu Wifi là gì?",
+  "Cách đọc đồng hồ điện?",
+  "Hóa đơn tháng này là bao nhiêu?",
+  "Liên hệ chủ nhà",
+];
+
+const botResponses: Record<string, string> = {
+  "Mật khẩu Wifi là gì?": "Mật khẩu Wifi tòa nhà là: **EasyHouse@2026**\nSSID: EasyHouse_3F_5G 📶",
+  "Cách đọc đồng hồ điện?": "Để đọc đồng hồ điện:\n1. Ghi số 5 chữ số trên màn hình\n2. Trừ số tháng trước\n3. Nhân với 3.500đ/kWh ⚡",
+  "Hóa đơn tháng này là bao nhiêu?": "Hóa đơn tháng 5/2026 của bạn là **7.200.000đ**\nHạn thanh toán: 15/05/2026 📋",
+  "Liên hệ chủ nhà": "Thông tin chủ nhà:\n📞 Ông Trần Minh Khoa\n0908 123 456\nZalo: 0908123456 🏠",
+};
+
+interface ChatOverlayProps {
+  onClose: () => void;
+}
+
+export function ChatOverlay({ onClose }: ChatOverlayProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 0,
+      role: "bot",
+      text: "Xin chào! Tôi là EasyHouse AI 🤖\nTôi có thể giúp bạn về hóa đơn, tiện ích, hay thông tin phòng. Bạn cần hỗ trợ gì?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = (text: string) => {
+    if (!text.trim()) return;
+    const userMsg: Message = { id: Date.now(), role: "user", text };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    setTimeout(() => {
+      const response = botResponses[text] || "Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể thử hỏi lại không? 😊";
+      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "bot", text: response }]);
+    }, 700);
+  };
+
+  return (
+    <div className="absolute inset-0 z-50 flex flex-col justify-end" style={{ background: "rgba(15,23,42,0.4)" }}>
+      <div
+        className="bg-white rounded-t-3xl flex flex-col overflow-hidden"
+        style={{ height: "85%" }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+            <Bot size={20} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900 text-sm">EasyHouse AI</p>
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+              <p className="text-xs text-slate-500">Luôn sẵn sàng hỗ trợ</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center active:bg-slate-200 transition-colors"
+          >
+            <X size={16} className="text-slate-600" />
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+            >
+              {msg.role === "bot" ? (
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                  <Bot size={14} className="text-blue-600" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center shrink-0">
+                  <User size={14} className="text-slate-600" />
+                </div>
+              )}
+              <div
+                className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                  msg.role === "bot"
+                    ? "bg-[#F1F5F9] text-slate-800 rounded-tl-sm"
+                    : "bg-blue-600 text-white rounded-tr-sm"
+                }`}
+              >
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick replies */}
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-none border-t border-slate-100">
+          {quickReplies.map((q) => (
+            <button
+              key={q}
+              onClick={() => sendMessage(q)}
+              className="shrink-0 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2 rounded-full active:bg-blue-100 transition-colors"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className="px-4 py-3 pb-8 flex items-center gap-2 border-t border-slate-100 bg-white">
+          <div className="flex-1 flex items-center gap-2 bg-[#F1F5F9] rounded-2xl px-4 py-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
+              placeholder="Nhập câu hỏi..."
+              className="flex-1 bg-transparent outline-none text-sm text-slate-700 placeholder:text-slate-400"
+            />
+            <button className="text-slate-400 active:text-blue-500 transition-colors">
+              <Mic size={18} />
+            </button>
+          </div>
+          <button
+            onClick={() => sendMessage(input)}
+            className="w-11 h-11 bg-blue-600 rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+          >
+            <Send size={16} className="text-white" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

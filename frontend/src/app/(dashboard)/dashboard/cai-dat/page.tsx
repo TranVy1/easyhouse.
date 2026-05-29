@@ -122,10 +122,12 @@ export default function CaiDatPage() {
   };
 
   const applyDensity = (density: string) => {
+    const activeDensity = density || 'comfortable';
+    
     // Remove existing density classes
     document.body.classList.remove('density-compact', 'density-comfortable', 'density-spacious');
     // Add new density class
-    document.body.classList.add(`density-${density}`);
+    document.body.classList.add(`density-${activeDensity}`);
     
     // Apply density styles
     const densityStyles: Record<string, Record<string, string>> = {
@@ -146,7 +148,8 @@ export default function CaiDatPage() {
       }
     };
     
-    Object.entries(densityStyles[density]).forEach(([property, value]) => {
+    const styles = densityStyles[activeDensity] || densityStyles['comfortable'];
+    Object.entries(styles).forEach(([property, value]) => {
       document.documentElement.style.setProperty(property, value);
     });
   };

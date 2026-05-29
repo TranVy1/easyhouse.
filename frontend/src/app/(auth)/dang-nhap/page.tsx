@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 import { 
   Dialog, 
@@ -111,82 +111,100 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-slate-950 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-slate-950 px-4 py-12 relative">
+      {/* Back to Home Button */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link 
+          href="/" 
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-50"
+        >
+          <ArrowLeft size={14} /> Trở về trang chủ
+        </Link>
+      </div>
+
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#FF5A3D]/5 blur-[120px]" />
       </div>
 
       <div className="w-full max-w-[450px] z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Chào mừng bạn đến với EasyHouse!</h1>
+        {/* Brand Logo Banner */}
+        <div className="flex flex-col items-center justify-center mb-8">
+          <Link href="/" className="flex flex-col items-center select-none cursor-pointer group">
+            <h1 className="text-3xl font-black text-blue-600 tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
+              EASY<span className="text-slate-800 dark:text-white">HOUSE</span>
+            </h1>
+            <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
+          </Link>
         </div>
 
-        <Card className="border-none shadow-2xl shadow-slate-200/60 dark:shadow-none dark:bg-slate-900/50 dark:backdrop-blur-xl overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-indigo-600" />
+        <Card className="border-none shadow-2xl shadow-slate-200/80 dark:shadow-none dark:bg-slate-900/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
+          {/* Brand Gradient Bar */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-[#FF5A3D]" />
           <CardHeader className="space-y-3 p-8 pb-2 text-center">
             <div className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                Đăng Nhập
+              <CardTitle className="text-2xl font-black text-slate-900 dark:text-white">
+                ĐĂNG NHẬP
               </CardTitle>
-              <CardDescription className="text-base font-medium text-slate-500 dark:text-slate-400">
-                Đăng nhập vào EasyHouse
+              <CardDescription className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Chào mừng quay trở lại với EasyHouse
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="p-8 pt-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {error && (
-                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-                  <AlertDescription className="text-red-800 dark:text-red-400 font-medium">{error}</AlertDescription>
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-xl">
+                  <AlertDescription className="text-red-800 dark:text-red-400 font-bold text-xs">{error}</AlertDescription>
                 </Alert>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email</Label>
+                <Label htmlFor="email" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   {...register('email')}
-                  className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500 font-medium ml-1">{errors.email.message}</p>
+                  <p className="text-xs text-red-500 font-bold ml-1">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
-                  <Label htmlFor="matKhau" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mật khẩu</Label>
+                  <Label htmlFor="matKhau" className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Mật khẩu</Label>
                   
                   <Dialog open={isForgotPassOpen} onOpenChange={setIsForgotPassOpen}>
                     <DialogTrigger asChild>
-                      <button type="button" className="text-xs font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                      <button type="button" className="text-xs font-bold text-blue-600 hover:text-blue-500 hover:underline transition-all">
                         Quên mật khẩu?
                       </button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[425px] rounded-2xl">
                       <DialogHeader>
-                        <DialogTitle>Quên mật khẩu</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="font-extrabold uppercase">Quên mật khẩu</DialogTitle>
+                        <DialogDescription className="text-xs font-medium text-slate-500">
                           Nhập email của bạn để nhận mật khẩu mới.
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleForgotPassSubmit} className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="forgot-email">Email tài khoản</Label>
+                          <Label htmlFor="forgot-email" className="text-xs font-bold uppercase text-slate-700">Email tài khoản</Label>
                           <Input
                             id="forgot-email"
                             type="email"
                             placeholder="your-email@example.com"
                             value={forgotPassEmail}
                             onChange={(e) => setForgotPassEmail(e.target.value)}
+                            className="h-12 rounded-xl border-slate-200"
                             required
                           />
                         </div>
                         <DialogFooter>
-                          <Button type="submit" disabled={isForgotPassLoading} className="w-full">
+                          <Button type="submit" disabled={isForgotPassLoading} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold">
                             {isForgotPassLoading ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -207,7 +225,7 @@ export default function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     {...register('matKhau')}
-                    className={`h-12 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                    className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
                   />
                   <button
                     type="button"
@@ -218,14 +236,14 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {errors.matKhau && (
-                  <p className="text-xs text-red-500 font-medium ml-1">{errors.matKhau.message}</p>
+                  <p className="text-xs text-red-500 font-bold ml-1">{errors.matKhau.message}</p>
                 )}
               </div>
 
               <div className="pt-2">
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-bold bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98]"
+                  className="w-full h-12 rounded-xl text-base font-bold bg-[#FF5A3D] hover:bg-[#E54F35] text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/25 transition-all active:scale-[0.98]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -242,17 +260,17 @@ export default function LoginPage() {
 
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-slate-800"></span>
+                <span className="w-full border-t border-slate-100 dark:border-slate-800"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-[#0f172a] px-4 text-slate-500 dark:text-slate-400 font-medium">Hoặc</span>
+                <span className="bg-white dark:bg-[#0f172a] px-4 text-slate-400 dark:text-slate-400 font-bold">Hoặc</span>
               </div>
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                 Bạn mới sử dụng hệ thống?{' '}
-                <Link href="/dang-ky" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
+                <Link href="/dang-ky" className="font-extrabold text-blue-600 hover:text-blue-700 transition-colors hover:underline">
                   Đăng ký tài khoản
                 </Link>
               </p>

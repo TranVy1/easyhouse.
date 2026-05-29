@@ -72,7 +72,11 @@ public class PhongService {
         Page<Phong> pageResult = phongRepository.findPublicRooms(nid, search, minGia, maxGia, minDienTich, pageable);
         
         List<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> mappedList = pageResult.getContent().stream()
-                .map(p -> com.example.quanlyphongtro.dto.PublicPhongSummaryResponse.fromEntity(p, mediaService.listUrls(LoaiDoiTuongMedia.ROOM, p.getId(), MediaService.ROOM_IMAGE).stream().findFirst().orElse(null), tienIchService.listByPhong(p.getId())))
+                .map(p -> {
+                    List<String> urls = mediaService.listUrls(LoaiDoiTuongMedia.ROOM, p.getId(), MediaService.ROOM_IMAGE);
+                    String primary = urls.stream().findFirst().orElse(null);
+                    return com.example.quanlyphongtro.dto.PublicPhongSummaryResponse.fromEntity(p, primary, tienIchService.listByPhong(p.getId()), urls);
+                })
                 .toList();
         return PaginatedResponse.of(pageResult, mappedList);
     }
