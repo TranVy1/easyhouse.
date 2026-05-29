@@ -78,8 +78,8 @@ Notes:
 
 ## Agent Files
 
-- Codex: this `AGENTS.md` plus project skill `.codex/skills/easyhouse-local/SKILL.md`.
-- Antigravity: this `AGENTS.md`, `GEMINI.md`, `.agent/rules/easyhouse.md`, `.agent/skills/easyhouse-local/SKILL.md`.
+- Codex: this `AGENTS.md` plus project skills `.codex/skills/easyhouse-local/SKILL.md` and `.codex/skills/codegraph-search/SKILL.md`.
+- Antigravity: this `AGENTS.md`, `GEMINI.md`, `.agent/rules/easyhouse.md`, `.agent/skills/easyhouse-local/SKILL.md`, and `.agent/skills/codegraph-search/SKILL.md`.
 - Claude Code: `CLAUDE.md` imports `.agents/project-index.md`; project skill lives at `.claude/skills/easyhouse-local/SKILL.md`.
 
 ## Review Checklist

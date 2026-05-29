@@ -15,4 +15,5 @@ Core rules:
 - Auth is not production-grade yet: backend permits all and token is email. Do not assume authorization exists.
 
 Antigravity project skill: `.agent/skills/easyhouse-local/SKILL.md`.
+Antigravity CodeGraph search skill: `.agent/skills/codegraph-search/SKILL.md`.
 Antigravity workspace rule: `.agent/rules/easyhouse.md`.

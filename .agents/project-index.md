@@ -23,8 +23,10 @@ Architecture is conventional but mid-migration:
 | `GEMINI.md` | Gemini/Antigravity companion memory | Mirrors root guidance |
 | `.agents/project-index.md` | Main agent index | This file |
 | `.codex/skills/easyhouse-local/SKILL.md` | Codex project skill | Same operating rules |
+| `.codex/skills/codegraph-search/SKILL.md` | Codex CodeGraph search skill | Graph-first source discovery and impact checks |
 | `.agent/rules/easyhouse.md` | Antigravity workspace rule | Load before work |
 | `.agent/skills/easyhouse-local/SKILL.md` | Antigravity project skill | Same operating rules |
+| `.agent/skills/codegraph-search/SKILL.md` | Antigravity CodeGraph search skill | Graph-first source discovery and impact checks |
 | `.claude/skills/easyhouse-local/SKILL.md` | Claude project skill | Same operating rules |
 | `be/` | Spring Boot backend | Java 21, Maven |
 | `frontend/` | Next.js frontend | React 19, Tailwind v4 |
@@ -404,7 +406,7 @@ Then open `http://localhost:3000`.
 
 ## Agent Operating Procedure
 
-1. Start with `rg --files` and this index.
+1. Start with this index; for source discovery, use CodeGraph context/search first when `.codegraph/` is indexed, then use `rg` or direct reads to verify exact source.
 2. Read only relevant files before editing.
 3. Preserve Vietnamese naming and DTO boundaries.
 4. Update backend DTO/entity/service/controller and frontend type/API usage together when changing a contract.
