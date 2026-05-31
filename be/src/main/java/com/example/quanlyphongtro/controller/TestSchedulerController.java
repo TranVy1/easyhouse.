@@ -34,6 +34,16 @@ public class TestSchedulerController {
         }
     }
 
+    @PostMapping("/trigger-upcoming-invoices")
+    public ApiResponse<Void> triggerUpcomingInvoices() {
+        try {
+            schedulerService.checkUpcomingInvoices();
+            return ApiResponse.success(null, "Đã kích hoạt quét hóa đơn sắp đến hạn thành công");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @PostMapping("/run-all")
     public ApiResponse<Void> runAll() {
         try {
