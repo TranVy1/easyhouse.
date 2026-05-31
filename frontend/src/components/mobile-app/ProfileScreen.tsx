@@ -4,12 +4,14 @@ import {
   User, FileText, Receipt, AlertTriangle,
   LogOut, Bot, ChevronRight, ExternalLink, Shield,
   CheckCircle2, Clock, XCircle,
-  Phone, Mail, MapPin, Home, Zap, Droplets,
+  Home, Zap, Droplets,
   RefreshCw, ChevronDown, Pencil, Lock, Eye, EyeOff,
   Save, X, CheckCircle
 } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { z } from "zod";
+import { api, ApiError } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -73,31 +75,31 @@ const fmtDate = (d?: string) => {
 
 // ─── Status maps ──────────────────────────────────────────────────────────────
 const contractStatusMap: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
-  hoatDong:    { label: "Đang hiệu lực",    cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11}/> },
-  choKichHoat: { label: "Chờ kích hoạt",   cls: "text-amber-700   bg-amber-50   border-amber-200",   icon: <Clock size={11}/> },
-  hetHan:      { label: "Hết hạn",          cls: "text-red-700    bg-red-50    border-red-200",       icon: <XCircle size={11}/> },
-  daKetThuc:   { label: "Đã kết thúc",      cls: "text-slate-600  bg-slate-50  border-slate-200",     icon: <XCircle size={11}/> },
-  daHuy:       { label: "Đã hủy",           cls: "text-red-700    bg-red-50    border-red-200",       icon: <XCircle size={11}/> },
-  nhap:        { label: "Nháp",             cls: "text-slate-500  bg-slate-50  border-slate-200",     icon: <Clock size={11}/> },
+  hoatDong: { label: "Đang hiệu lực", cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11} /> },
+  choKichHoat: { label: "Chờ kích hoạt", cls: "text-amber-700   bg-amber-50   border-amber-200", icon: <Clock size={11} /> },
+  hetHan: { label: "Hết hạn", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
+  daKetThuc: { label: "Đã kết thúc", cls: "text-slate-600  bg-slate-50  border-slate-200", icon: <XCircle size={11} /> },
+  daHuy: { label: "Đã hủy", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
+  nhap: { label: "Nháp", cls: "text-slate-500  bg-slate-50  border-slate-200", icon: <Clock size={11} /> },
 };
 
 const invoiceStatusMap: Record<string, { label: string; cls: string }> = {
-  UNPAID:  { label: "Chưa thanh toán",       cls: "text-red-700    bg-red-50    border-red-200" },
-  PARTIAL: { label: "Thanh toán một phần",   cls: "text-amber-700  bg-amber-50  border-amber-200" },
-  PAID:    { label: "Đã thanh toán",         cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  OVERDUE: { label: "Quá hạn",              cls: "text-red-800   bg-red-100   border-red-300" },
+  UNPAID: { label: "Chưa thanh toán", cls: "text-red-700    bg-red-50    border-red-200" },
+  PARTIAL: { label: "Thanh toán một phần", cls: "text-amber-700  bg-amber-50  border-amber-200" },
+  PAID: { label: "Đã thanh toán", cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  OVERDUE: { label: "Quá hạn", cls: "text-red-800   bg-red-100   border-red-300" },
 };
 
 const incidentStatusMap: Record<string, { label: string; cls: string }> = {
-  PENDING:     { label: "Chờ xử lý",  cls: "text-amber-700 bg-amber-50  border-amber-200" },
+  PENDING: { label: "Chờ xử lý", cls: "text-amber-700 bg-amber-50  border-amber-200" },
   IN_PROGRESS: { label: "Đang xử lý", cls: "text-blue-700  bg-blue-50   border-blue-200" },
-  RESOLVED:    { label: "Đã xử lý",   cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  CLOSED:      { label: "Đã đóng",    cls: "text-slate-600 bg-slate-100  border-slate-200" },
+  RESOLVED: { label: "Đã xử lý", cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  CLOSED: { label: "Đã đóng", cls: "text-slate-600 bg-slate-100  border-slate-200" },
 };
 
 const priorityCls: Record<string, string> = {
   low: "text-slate-500", medium: "text-amber-600",
-  high: "text-red-600",  urgent: "text-red-800 font-black",
+  high: "text-red-600", urgent: "text-red-800 font-black",
 };
 const priorityLabel: Record<string, string> = {
   low: "Thấp", medium: "Trung bình", high: "Cao", urgent: "Khẩn cấp",
@@ -121,14 +123,44 @@ function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-function Loader() {
+function Skeleton({ className }: { className?: string }) {
   return (
-    <div className="flex items-center justify-center py-14 gap-2.5 text-slate-400">
-      <RefreshCw size={16} className="animate-spin text-indigo-500" />
-      <span className="text-sm font-medium">Đang tải...</span>
+    <div className={`animate-pulse bg-slate-200 rounded-xl ${className ?? ""}`} />
+  );
+}
+
+function SectionSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3 mb-5">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-6 w-16 ml-auto rounded-xl" />
+      </div>
+      {[1, 2, 3].map(i => (
+        <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 space-y-2.5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-9 h-9 rounded-xl" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-3/4" />
+              <Skeleton className="h-2.5 w-1/2" />
+            </div>
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <Skeleton className="h-px w-full mt-1" />
+          <div className="flex justify-between">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
+
+function Loader() {
+  return <SectionSkeleton />;
+}
+
 
 function Empty({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
@@ -198,6 +230,25 @@ function Toast({ msg, type, onClose }: { msg: string; type: "success" | "error";
   );
 }
 
+// ─── Zod Schemas ─────────────────────────────────────────────────────────────
+const profileSchema = z.object({
+  name: z.string().min(2, "Tên phải có ít nhất 2 ký tự").max(100),
+  phone: z.string().regex(/^(0|\+84)[0-9]{8,10}$/, "Số điện thoại không hợp lệ").or(z.literal("")),
+  address: z.string().max(200).optional(),
+});
+
+const passwordSchema = z.object({
+  oldPassword: z.string().min(1, "Vui lòng nhập mật khẩu hiện tại"),
+  newPassword: z.string().min(6, "Mật khẩu mới phải ít nhất 6 ký tự").max(100),
+  confirm: z.string(),
+}).refine(d => d.newPassword === d.confirm, {
+  message: "Xác nhận mật khẩu không khớp",
+  path: ["confirm"],
+});
+
+type ProfileForm = z.infer<typeof profileSchema>;
+type PasswordForm = z.infer<typeof passwordSchema>;
+
 // ─── Profile Info + Edit ──────────────────────────────────────────────────────
 function ProfileInfo({ profile, session, onRefresh }: {
   profile: UserProfile | null;
@@ -206,10 +257,10 @@ function ProfileInfo({ profile, session, onRefresh }: {
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", address: "" });
+  const [form, setForm] = useState<ProfileForm>({ name: "", phone: "", address: "" });
+  const [errors, setErrors] = useState<Partial<Record<keyof ProfileForm, string>>>({});
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  // Sync form when profile loads
   useEffect(() => {
     if (profile) {
       setForm({
@@ -221,29 +272,36 @@ function ProfileInfo({ profile, session, onRefresh }: {
   }, [profile, session]);
 
   const handleSave = async () => {
+    const parsed = profileSchema.safeParse(form);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof ProfileForm, string>> = {};
+      parsed.error.issues.forEach((e: import('zod').ZodIssue) => {
+        const key = e.path[0] as keyof ProfileForm;
+        if (!fieldErrors[key]) fieldErrors[key] = e.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+    setErrors({});
     setSaving(true);
     try {
-      const res = await fetch("/api/user/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, phone: form.phone, address: form.address }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success !== false) {
-        setToast({ msg: "Cập nhật thành công!", type: "success" });
-        setEditing(false);
-        onRefresh();
-      } else {
-        setToast({ msg: data.message || "Cập nhật thất bại", type: "error" });
-      }
-    } catch {
-      setToast({ msg: "Lỗi kết nối máy chủ", type: "error" });
+      await api.put("/api/user/profile", parsed.data);
+      setToast({ msg: "Cập nhật thành công!", type: "success" });
+      setEditing(false);
+      onRefresh();
+    } catch (e) {
+      setToast({ msg: e instanceof ApiError ? e.message : "Cập nhật thất bại", type: "error" });
     } finally {
       setSaving(false);
     }
   };
 
   const email = profile?.email || session?.user?.email || "—";
+
+  const setField = (key: keyof ProfileForm) => (v: string) => {
+    setForm(f => ({ ...f, [key]: v }));
+    if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
+  };
 
   return (
     <div>
@@ -261,7 +319,7 @@ function ProfileInfo({ profile, session, onRefresh }: {
         ) : (
           <div className="flex gap-2">
             <button
-              onClick={() => { setEditing(false); }}
+              onClick={() => { setEditing(false); setErrors({}); }}
               className="flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
               <X size={12} /> Hủy
@@ -279,30 +337,36 @@ function ProfileInfo({ profile, session, onRefresh }: {
       </div>
 
       <div className="space-y-3">
-        <FormInput
-          label="Họ và tên"
-          value={editing ? form.name : (profile?.name || session?.user?.name || "")}
-          onChange={v => setForm(f => ({ ...f, name: v }))}
-          placeholder="Nguyễn Văn A"
-          disabled={!editing}
-        />
+        <div>
+          <FormInput
+            label="Họ và tên"
+            value={editing ? form.name : (profile?.name || session?.user?.name || "")}
+            onChange={setField("name")}
+            placeholder="Nguyễn Văn A"
+            disabled={!editing}
+          />
+          {errors.name && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.name}</p>}
+        </div>
         <FormInput
           label="Địa chỉ email"
           value={email}
           disabled
           placeholder="email@example.com"
         />
-        <FormInput
-          label="Số điện thoại"
-          value={editing ? form.phone : (profile?.phone || session?.user?.phone || "")}
-          onChange={v => setForm(f => ({ ...f, phone: v }))}
-          placeholder="0901234567"
-          disabled={!editing}
-        />
+        <div>
+          <FormInput
+            label="Số điện thoại"
+            value={editing ? form.phone : (profile?.phone || session?.user?.phone || "")}
+            onChange={setField("phone")}
+            placeholder="0901234567"
+            disabled={!editing}
+          />
+          {errors.phone && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.phone}</p>}
+        </div>
         <FormInput
           label="Địa chỉ"
-          value={editing ? form.address : (profile?.address || "")}
-          onChange={v => setForm(f => ({ ...f, address: v }))}
+          value={editing ? (form.address ?? "") : (profile?.address || "")}
+          onChange={setField("address")}
           placeholder="123 Đường ABC, Quận 1, TP.HCM"
           disabled={!editing}
         />
@@ -322,40 +386,42 @@ function ProfileInfo({ profile, session, onRefresh }: {
 
 // ─── Change Password ──────────────────────────────────────────────────────────
 function ChangePassword() {
-  const [form, setForm] = useState({ oldPassword: "", newPassword: "", confirm: "" });
+  const [form, setForm] = useState<PasswordForm>({ oldPassword: "", newPassword: "", confirm: "" });
   const [show, setShow] = useState({ old: false, new: false, confirm: false });
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof PasswordForm, string>>>({});
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const handleSubmit = async () => {
-    if (!form.oldPassword || !form.newPassword) {
-      setToast({ msg: "Vui lòng điền đầy đủ thông tin", type: "error" }); return;
+    const parsed = passwordSchema.safeParse(form);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof PasswordForm, string>> = {};
+      parsed.error.issues.forEach((e: import('zod').ZodIssue) => {
+        const key = e.path[0] as keyof PasswordForm;
+        if (!fieldErrors[key]) fieldErrors[key] = e.message;
+      });
+      setErrors(fieldErrors);
+      return;
     }
-    if (form.newPassword.length < 6) {
-      setToast({ msg: "Mật khẩu mới phải ít nhất 6 ký tự", type: "error" }); return;
-    }
-    if (form.newPassword !== form.confirm) {
-      setToast({ msg: "Xác nhận mật khẩu không khớp", type: "error" }); return;
-    }
+    setErrors({});
     setSaving(true);
     try {
-      const res = await fetch("/api/user/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPassword: form.oldPassword, newPassword: form.newPassword }),
+      await api.post("/api/user/change-password", {
+        oldPassword: parsed.data.oldPassword,
+        newPassword: parsed.data.newPassword,
       });
-      const data = await res.json();
-      if (res.ok && data.success !== false) {
-        setToast({ msg: "Đổi mật khẩu thành công!", type: "success" });
-        setForm({ oldPassword: "", newPassword: "", confirm: "" });
-      } else {
-        setToast({ msg: data.message || "Mật khẩu hiện tại không đúng", type: "error" });
-      }
-    } catch {
-      setToast({ msg: "Lỗi kết nối máy chủ", type: "error" });
+      setToast({ msg: "Đổi mật khẩu thành công!", type: "success" });
+      setForm({ oldPassword: "", newPassword: "", confirm: "" });
+    } catch (e) {
+      setToast({ msg: e instanceof ApiError ? e.message : "Mật khẩu hiện tại không đúng", type: "error" });
     } finally {
       setSaving(false);
     }
+  };
+
+  const setField = (key: keyof PasswordForm) => (v: string) => {
+    setForm(f => ({ ...f, [key]: v }));
+    if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
   };
 
   return (
@@ -365,53 +431,61 @@ function ChangePassword() {
       <SectionTitle title="Đổi mật khẩu" sub="Đặt lại mật khẩu để bảo vệ tài khoản của bạn" />
 
       <div className="space-y-3">
-        <FormInput
-          label="Mật khẩu hiện tại"
-          value={form.oldPassword}
-          onChange={v => setForm(f => ({ ...f, oldPassword: v }))}
-          type={show.old ? "text" : "password"}
-          placeholder="••••••••"
-          rightElement={
-            <button onClick={() => setShow(s => ({ ...s, old: !s.old }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
-              {show.old ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          }
-        />
-        <FormInput
-          label="Mật khẩu mới"
-          value={form.newPassword}
-          onChange={v => setForm(f => ({ ...f, newPassword: v }))}
-          type={show.new ? "text" : "password"}
-          placeholder="Ít nhất 6 ký tự"
-          rightElement={
-            <button onClick={() => setShow(s => ({ ...s, new: !s.new }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
-              {show.new ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          }
-        />
-        <FormInput
-          label="Xác nhận mật khẩu mới"
-          value={form.confirm}
-          onChange={v => setForm(f => ({ ...f, confirm: v }))}
-          type={show.confirm ? "text" : "password"}
-          placeholder="Nhập lại mật khẩu mới"
-          rightElement={
-            <button onClick={() => setShow(s => ({ ...s, confirm: !s.confirm }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
-              {show.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          }
-        />
+        <div>
+          <FormInput
+            label="Mật khẩu hiện tại"
+            value={form.oldPassword}
+            onChange={setField("oldPassword")}
+            type={show.old ? "text" : "password"}
+            placeholder="••••••••"
+            rightElement={
+              <button onClick={() => setShow(s => ({ ...s, old: !s.old }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                {show.old ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            }
+          />
+          {errors.oldPassword && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.oldPassword}</p>}
+        </div>
+        <div>
+          <FormInput
+            label="Mật khẩu mới"
+            value={form.newPassword}
+            onChange={setField("newPassword")}
+            type={show.new ? "text" : "password"}
+            placeholder="Ít nhất 6 ký tự"
+            rightElement={
+              <button onClick={() => setShow(s => ({ ...s, new: !s.new }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                {show.new ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            }
+          />
+          {errors.newPassword && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.newPassword}</p>}
+        </div>
+        <div>
+          <FormInput
+            label="Xác nhận mật khẩu mới"
+            value={form.confirm}
+            onChange={setField("confirm")}
+            type={show.confirm ? "text" : "password"}
+            placeholder="Nhập lại mật khẩu mới"
+            rightElement={
+              <button onClick={() => setShow(s => ({ ...s, confirm: !s.confirm }))} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                {show.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            }
+          />
+          {errors.confirm && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.confirm}</p>}
+        </div>
       </div>
 
       {/* Password strength hint */}
       {form.newPassword.length > 0 && (
         <div className="mt-3 flex gap-1.5 items-center">
           {[6, 10, 14].map((min, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${
-              form.newPassword.length >= min
+            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${form.newPassword.length >= min
                 ? i === 0 ? "bg-red-400" : i === 1 ? "bg-amber-400" : "bg-emerald-500"
                 : "bg-slate-200"
-            }`} />
+              }`} />
           ))}
           <span className="text-[10px] text-slate-400 font-semibold ml-1">
             {form.newPassword.length < 6 ? "Quá ngắn" : form.newPassword.length < 10 ? "Trung bình" : "Mạnh"}
@@ -689,11 +763,11 @@ function IncidentsSection() {
 type Section = "profile" | "password" | "contract" | "bills" | "incidents";
 
 const NAV: { section: Section; icon: React.ReactNode; label: string }[] = [
-  { section: "profile",   icon: <User size={16} />,         label: "Thông tin cá nhân" },
-  { section: "password",  icon: <Lock size={16} />,         label: "Đổi mật khẩu" },
-  { section: "contract",  icon: <FileText size={16} />,     label: "Hợp đồng thuê nhà" },
-  { section: "bills",     icon: <Receipt size={16} />,      label: "Hóa đơn phòng" },
-  { section: "incidents", icon: <AlertTriangle size={16} />,label: "Báo cáo sự cố" },
+  { section: "profile", icon: <User size={16} />, label: "Thông tin cá nhân" },
+  { section: "password", icon: <Lock size={16} />, label: "Đổi mật khẩu" },
+  { section: "contract", icon: <FileText size={16} />, label: "Hợp đồng thuê nhà" },
+  { section: "bills", icon: <Receipt size={16} />, label: "Hóa đơn phòng" },
+  { section: "incidents", icon: <AlertTriangle size={16} />, label: "Báo cáo sự cố" },
 ];
 
 function SideNavItem({ item, active, onClick }: { item: typeof NAV[0]; active: Section; onClick: (s: Section) => void }) {
@@ -837,10 +911,10 @@ export function ProfileScreen({ onOpenChat }: { onOpenChat: () => void }) {
         {/* ── Content ── */}
         <div className="flex-1 min-w-0">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 min-h-96">
-            {activeSection === "profile"   && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
-            {activeSection === "password"  && <ChangePassword />}
-            {activeSection === "contract"  && <ContractSection />}
-            {activeSection === "bills"     && <InvoicesSection />}
+            {activeSection === "profile" && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
+            {activeSection === "password" && <ChangePassword />}
+            {activeSection === "contract" && <ContractSection />}
+            {activeSection === "bills" && <InvoicesSection />}
             {activeSection === "incidents" && <IncidentsSection />}
           </div>
         </div>

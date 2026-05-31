@@ -1,68 +1,85 @@
 'use client';
 import { useState, useEffect } from "react";
-import { Download, Copy, CheckCheck, AlertTriangle, Clock } from "lucide-react";
+import { Copy, CheckCheck, AlertTriangle, Clock, RefreshCw, Receipt } from "lucide-react";
+import { api, extractItems, ApiError } from "@/lib/api";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 // Simple QR-like visual
 function QRPlaceholder() {
   return (
-    <div className="w-48 h-48 mx-auto rounded-2xl bg-white border-4 border-blue-600 p-3 relative shadow-md">
+    <div className="w-44 h-44 mx-auto rounded-2xl bg-white border-4 border-indigo-600 p-3 relative shadow-md">
       <div className="w-full h-full grid grid-cols-7 grid-rows-7 gap-0.5">
         {Array.from({ length: 49 }).map((_, i) => {
           const corners = [0,1,2,3,4,5,6,7,13,14,20,21,27,28,34,35,41,42,43,44,45,46,47,48];
           const inner = [8,9,10,15,16,17,22,23,24,29,30,31,36,37,38];
           const filled = [...corners, ...inner, 3, 10, 17, 24, 31, 25, 26, 32, 33];
           return (
-            <div
-              key={i}
-              className={`rounded-sm ${filled.includes(i) ? "bg-slate-900" : "bg-transparent"}`}
-            />
+            <div key={i} className={`rounded-sm ${filled.includes(i) ? "bg-slate-900" : "bg-transparent"}`} />
           );
         })}
       </div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center border border-slate-200">
-          <div className="text-blue-600 font-black text-[8px] leading-tight text-center">Viet<br/>QR</div>
+        <div className="w-9 h-9 bg-white rounded-md flex items-center justify-center border border-slate-200">
+          <div className="text-indigo-600 font-black text-[7px] leading-tight text-center">Viet<br />QR</div>
         </div>
       </div>
     </div>
   );
 }
 
+interface Bill {
+  id: string;
+  maHoaDon: string;
+  period: string;
+  total: string;
+  totalRaw: number;
+  status: string;
+  dueDate: string;
+  breakdown: { label: string; amount: string }[];
+}
+
+function mapBill(b: any): Bill {
+  return {
+    id: b._id || b.id,
+    maHoaDon: b.maHoaDon || '',
+    period: b.thang && b.nam ? `Tháng ${b.thang}/${b.nam}` : (b.thangBaoCao || 'Chưa xác định'),
+    total: (b.tongTien || 0).toLocaleString('vi-VN'),
+    totalRaw: b.tongTien || 0,
+    status: b.trangThai || 'UNPAID',
+    dueDate: b.hanThanhToan ? new Date(b.hanThanhToan).toLocaleDateString('vi-VN') : '',
+    breakdown: [
+      { label: 'Tiền phòng', amount: (b.tienPhong || 0).toLocaleString('vi-VN') },
+      { label: 'Tiền điện', amount: (b.tienDien || 0).toLocaleString('vi-VN') },
+      { label: 'Tiền nước', amount: (b.tienNuoc || 0).toLocaleString('vi-VN') },
+    ].filter(item => item.amount !== '0'),
+  };
+}
+
 export function BillingScreen() {
   const [tab, setTab] = useState<"unpaid" | "paid">("unpaid");
   const [copied, setCopied] = useState(false);
-  const [bills, setBills] = useState<{ unpaid: any[]; paid: any[] }>({ unpaid: [], paid: [] });
+  const [bills, setBills] = useState<{ unpaid: Bill[]; paid: Bill[] }>({ unpaid: [], paid: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch('/api/tenant/hoa-don')
-      .then(res => res.json())
-      .then(data => {
-        const items = data.data?.content || data.data || [];
-        const unpaid = items.filter((b: any) => b.trangThai !== 'PAID');
-        const paid = items.filter((b: any) => b.trangThai === 'PAID');
-        
-        const mapBill = (b: any) => ({
-          id: b._id || b.id,
-          month: b.thangBaoCao || `Tháng ${new Date(b.ngayTao || Date.now()).getMonth() + 1}`,
-          total: b.tongTien?.toLocaleString('vi-VN') || "0",
-          status: b.trangThai === 'PAID' ? 'paid' : (b.trangThai === 'OVERDUE' ? 'overdue' : 'unpaid'),
-          dueDate: b.hanThanhToan ? new Date(b.hanThanhToan).toLocaleDateString('vi-VN') : "",
-          paidDate: b.ngayThanhToan ? new Date(b.ngayThanhToan).toLocaleDateString('vi-VN') : "",
-          breakdown: [
-            { label: "Tiền phòng", amount: (b.tienPhong || 0).toLocaleString('vi-VN') },
-            { label: "Tiền điện", amount: (b.tienDien || 0).toLocaleString('vi-VN') },
-            { label: "Tiền nước", amount: (b.tienNuoc || 0).toLocaleString('vi-VN') },
-            { label: "Tiền dịch vụ", amount: (b.tienDichVu || 0).toLocaleString('vi-VN') },
-          ].filter(item => item.amount !== "0")
-        });
+  const loadBills = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.get<any>('/api/tenant/hoa-don?limit=20');
+      const items = extractItems<any>(data);
+      setBills({
+        unpaid: items.filter((b: any) => b.trangThai !== 'PAID').map(mapBill),
+        paid: items.filter((b: any) => b.trangThai === 'PAID').map(mapBill),
+      });
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Không thể tải dữ liệu hóa đơn');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setBills({
-          unpaid: unpaid.map(mapBill),
-          paid: paid.map(mapBill)
-        });
-      })
-      .catch(err => console.error(err));
-  }, []);
+  useEffect(() => { loadBills(); }, []);
 
   const currentBills = bills[tab];
 
@@ -71,120 +88,143 @@ export function BillingScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center gap-2.5 text-slate-400">
+        <RefreshCw size={18} className="animate-spin text-indigo-500" />
+        <span className="text-sm font-medium">Đang tải hóa đơn...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-4 px-8 text-center">
+        <AlertTriangle size={36} className="text-red-400" />
+        <p className="text-sm text-slate-600 font-medium">{error}</p>
+        <button onClick={loadBills}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl">
+          <RefreshCw size={14} /> Thử lại
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
+    <div className="flex flex-col h-full bg-slate-100 overflow-y-auto">
       {/* Header */}
-      <div className="bg-white px-4 pt-12 pb-4 shadow-sm">
-        <h1 className="text-slate-900 mb-4" style={{ fontSize: "1.25rem", fontWeight: 700 }}>
-          Hóa Đơn Của Tôi
-        </h1>
-        {/* Toggle */}
-        <div className="flex bg-[#F1F5F9] rounded-2xl p-1">
+      <div className="bg-indigo-700 px-4 pt-12 pb-6 relative overflow-hidden shrink-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/30 via-transparent to-transparent pointer-events-none" />
+        <div className="relative">
+          <p className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-0.5">Tài khoản của tôi</p>
+          <h1 className="text-white font-black text-xl">Hóa Đơn Tiền Phòng</h1>
+          <p className="text-indigo-200 text-xs mt-1">Theo dõi và thanh toán hóa đơn hàng tháng</p>
+        </div>
+      </div>
+
+      {/* Tab Toggle */}
+      <div className="px-4 -mt-3 relative z-10">
+        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
           {(["unpaid", "paid"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                tab === t ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                tab === t ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {t === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán"}
+              {t === "unpaid" ? (
+                <span className="flex items-center justify-center gap-1.5">
+                  Chưa thanh toán
+                  {bills.unpaid.length > 0 && (
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${tab === "unpaid" ? "bg-white/25" : "bg-red-500 text-white"}`}>
+                      {bills.unpaid.length}
+                    </span>
+                  )}
+                </span>
+              ) : "Đã thanh toán"}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 px-4 pt-4 pb-6 space-y-4">
+      {/* Bills list */}
+      <div className="flex-1 px-4 pt-4 pb-10 space-y-3">
         {currentBills.length === 0 && (
-          <div className="text-center py-10 text-slate-500 text-sm">
-            Không có hóa đơn nào.
+          <div className="flex flex-col items-center py-16 gap-3 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 shadow-sm">
+              <Receipt size={26} />
+            </div>
+            <p className="font-bold text-slate-600 text-sm">
+              {tab === "unpaid" ? "Không có hóa đơn chưa thanh toán" : "Chưa có hóa đơn đã thanh toán"}
+            </p>
+            <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+              {tab === "unpaid" ? "Tuyệt vời! Bạn đã thanh toán đầy đủ tất cả hóa đơn." : "Lịch sử thanh toán sẽ xuất hiện tại đây."}
+            </p>
           </div>
         )}
-        {currentBills.map((bill: any) => (
-          <div key={bill.id} className="bg-white rounded-2xl overflow-hidden shadow-sm">
-            {/* Bill Header */}
-            <div className={`px-4 py-3 flex items-center justify-between ${
-              bill.status === "overdue" ? "bg-red-50" : (bill.status === "paid" ? "bg-green-50" : "bg-orange-50")
-            }`}>
-              <div>
-                <p className="font-semibold text-slate-800">{bill.month}</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {bill.status === "overdue" || bill.status === "unpaid"
-                    ? `Hạn thanh toán: ${bill.dueDate}`
-                    : `Đã thanh toán: ${bill.paidDate}`}
-                </p>
-              </div>
-              <span
-                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold ${
-                  bill.status === "overdue"
-                    ? "bg-red-100 text-red-700"
-                    : bill.status === "paid"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-orange-100 text-orange-700"
-                }`}
-              >
-                {bill.status === "overdue" && <AlertTriangle size={11} />}
-                {bill.status === "paid" && <CheckCheck size={11} />}
-                {bill.status === "overdue" ? "Quá hạn" : (bill.status === "paid" ? "Đã thanh toán" : "Chờ thanh toán")}
-              </span>
-            </div>
 
-            {/* Breakdown */}
-            {bill.breakdown.length > 0 && (
-              <div className="px-4 py-3 space-y-2.5">
-                {bill.breakdown.map((item: any, i: number) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">{item.label}</span>
-                      <span className="text-slate-800 font-medium">{item.amount}đ</span>
+        {currentBills.map((bill) => {
+          const isUnpaid = bill.status !== 'PAID';
+          return (
+            <div key={bill.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+              {/* Bill Header */}
+              <div className="px-4 py-3.5 flex items-center justify-between border-b border-slate-50">
+                <div>
+                  <p className="font-bold text-slate-800 text-sm">{bill.period}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {bill.maHoaDon}
+                    {bill.dueDate && ` · Hạn: ${bill.dueDate}`}
+                  </p>
+                </div>
+                <StatusBadge status={bill.status} />
+              </div>
+
+              {/* Breakdown */}
+              {bill.breakdown.length > 0 && (
+                <div className="px-4 py-3 space-y-2">
+                  {bill.breakdown.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-slate-500">{item.label}</span>
+                      <span className="text-slate-700 font-semibold">{item.amount}đ</span>
                     </div>
-                    {i < bill.breakdown.length - 1 && (
-                      <div className="border-t border-dashed border-slate-200 mt-2.5" />
-                    )}
-                  </div>
-                ))}
-                <div className="border-t-2 border-dashed border-slate-300 pt-2.5">
-                  <div className="flex justify-between">
-                    <span className="font-bold text-slate-900">Tổng cộng</span>
-                    <span className="font-bold text-blue-700" style={{ fontSize: "1.05rem" }}>{bill.total}đ</span>
+                  ))}
+                  <div className="border-t border-dashed border-slate-200 pt-2 mt-2 flex justify-between">
+                    <span className="font-black text-slate-800">Tổng cộng</span>
+                    <span className="font-black text-indigo-700 text-base">{bill.total}đ</span>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* QR Section for unpaid */}
-            {(bill.status === "overdue" || bill.status === "unpaid") && (
-              <div className="px-4 pb-5 pt-2 border-t border-dashed border-slate-200">
-                <p className="text-center text-sm text-slate-600 mb-4">
-                  Quét mã để thanh toán qua ứng dụng ngân hàng
-                </p>
-                <QRPlaceholder />
-                <p className="text-center text-xs text-slate-500 mt-3">
-                  Vietcombank · 1234567890 · NGUYEN VAN AN
-                </p>
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={handleCopy}
-                    className="flex-1 flex items-center justify-center gap-2 border border-blue-200 text-blue-700 py-3 rounded-xl text-sm font-medium active:scale-95 transition-transform"
-                  >
-                    {copied ? <CheckCheck size={16} /> : <Copy size={16} />}
-                    {copied ? "Đã sao chép" : "Sao chép STK"}
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl text-sm font-medium shadow-sm active:scale-95 transition-transform">
-                    <Download size={16} />
-                    Tải PDF
-                  </button>
+              {/* QR Payment for unpaid */}
+              {isUnpaid && (
+                <div className="px-4 pb-5 pt-2 border-t border-dashed border-slate-100">
+                  <p className="text-center text-xs text-slate-500 mb-4 font-medium">
+                    Quét mã để thanh toán qua ứng dụng ngân hàng
+                  </p>
+                  <QRPlaceholder />
+                  <p className="text-center text-xs text-slate-400 mt-3">
+                    Vietcombank · 1234567890 · NGUYEN VAN AN
+                  </p>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={handleCopy}
+                      className="flex-1 flex items-center justify-center gap-2 border border-indigo-200 text-indigo-700 py-3 rounded-xl text-sm font-bold transition-colors hover:bg-indigo-50 cursor-pointer"
+                    >
+                      {copied ? <CheckCheck size={15} /> : <Copy size={15} />}
+                      {copied ? "Đã sao chép" : "Sao chép STK"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
 
-        {/* Payment history note */}
         {tab === "paid" && currentBills.length > 0 && (
-          <div className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
-            <Clock size={16} className="text-blue-500 shrink-0" />
-            <p className="text-sm text-blue-700">Lịch sử thanh toán được lưu trong 12 tháng</p>
+          <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+            <Clock size={14} className="text-indigo-400 shrink-0" />
+            <p className="text-xs text-indigo-700 font-medium">Lịch sử thanh toán được lưu trong 12 tháng</p>
           </div>
         )}
       </div>
