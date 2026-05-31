@@ -442,7 +442,7 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
                 <h2 className="text-slate-900" style={{ fontSize: "1.125rem", fontWeight: 700 }}>
                   {(filterCat !== "Phòng trọ" || filterPrice !== "all" || filterArea !== "all")
                     ? "Kết quả bộ lọc"
-                    : "Phòng Trống Gần Bạn"}
+                    : "Tất Cả Phòng"}
                 </h2>
                 <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
                   {availableRoomsData.length} kết quả

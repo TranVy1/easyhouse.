@@ -137,11 +137,10 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
           {["Tất cả", "Quận 1", "Quận 7", "Bình Thạnh", "Gò Vấp"].map((f) => (
             <button
               key={f}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs ${
-                f === "Tất cả"
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs ${f === "Tất cả"
                   ? "bg-blue-600 text-white"
                   : "bg-[#F1F5F9] text-slate-600"
-              }`}
+                }`}
             >
               {f}
             </button>
@@ -209,7 +208,7 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-slate-900" style={{ fontSize: "1rem", fontWeight: 700 }}>
-              Phòng Trống Gần Bạn
+              Tất Cả Phòng
             </h2>
             <button className="flex items-center gap-1 text-blue-600 text-sm">
               Xem tất cả <ChevronRight size={14} />
