@@ -37,6 +37,7 @@ public class SchedulerService {
         log.info("Bắt đầu chạy quét kiểm tra hợp đồng và hóa đơn hàng ngày...");
         checkExpiringContracts();
         checkOverdueInvoices();
+        checkUpcomingInvoices();
         log.info("Hoàn thành quét kiểm tra hàng ngày.");
     }
 
@@ -71,24 +72,24 @@ public class SchedulerService {
                 try {
                     // 1. Gửi thông báo In-app cho Chủ trọ
                     if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
-                        ThongBaoRequest landlordNotification = new ThongBaoRequest();
-                        landlordNotification.setTieuDe("Cảnh báo: Hợp đồng phòng " + hd.getPhong().getTen() + " sắp hết hạn");
-                        landlordNotification.setNoiDung("Hợp đồng mã " + hd.getMaHopDong() + " của phòng " + hd.getPhong().getTen() + 
-                                " (" + hd.getKhachThue().getHoTen() + ") sẽ hết hạn sau " + daysRemaining + " ngày (ngày " + hd.getNgayKetThuc() + ").");
-                        landlordNotification.setLoai("hopDong");
-                        landlordNotification.setNguoiNhan(List.of(hd.getPhong().getNhaTro().getChuTro().getId()));
-                        thongBaoService.create(landlordNotification);
+                        thongBaoService.createSystemNotification(
+                                "Cảnh báo: Hợp đồng phòng " + hd.getPhong().getTen() + " sắp hết hạn",
+                                "Hợp đồng mã " + hd.getMaHopDong() + " của phòng " + hd.getPhong().getTen() + 
+                                " (" + hd.getKhachThue().getHoTen() + ") sẽ hết hạn sau " + daysRemaining + " ngày (ngày " + hd.getNgayKetThuc() + ").",
+                                com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
+                                List.of(hd.getPhong().getNhaTro().getChuTro().getId())
+                        );
                     }
 
                     // 2. Gửi thông báo In-app cho Khách thuê
-                    ThongBaoRequest tenantNotification = new ThongBaoRequest();
-                    tenantNotification.setTieuDe("Thông báo: Hợp đồng thuê phòng sắp hết hạn");
-                    tenantNotification.setNoiDung("Hợp đồng thuê phòng của bạn (Mã: " + hd.getMaHopDong() + ", Phòng: " + 
+                    thongBaoService.createSystemNotification(
+                            "Thông báo: Hợp đồng thuê phòng sắp hết hạn",
+                            "Hợp đồng thuê phòng của bạn (Mã: " + hd.getMaHopDong() + ", Phòng: " + 
                             (hd.getPhong() != null ? hd.getPhong().getTen() : "N/A") + ") sẽ hết hạn sau " + daysRemaining + 
-                            " ngày (ngày " + hd.getNgayKetThuc() + "). Vui lòng liên hệ chủ trọ để tiến hành gia hạn hoặc thanh lý phòng.");
-                    tenantNotification.setLoai("hopDong");
-                    tenantNotification.setNguoiNhan(List.of(hd.getKhachThue().getId()));
-                    thongBaoService.create(tenantNotification);
+                            " ngày (ngày " + hd.getNgayKetThuc() + "). Vui lòng liên hệ chủ trọ để tiến hành gia hạn hoặc thanh lý phòng.",
+                            com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
+                            List.of(hd.getKhachThue().getId())
+                    );
 
                     // 3. Gửi Email cho Khách thuê
                     emailService.sendContractExpiringEmail(hd, hd.getKhachThue(), (int) daysRemaining);
@@ -118,30 +119,61 @@ public class SchedulerService {
             try {
                 // 1. Gửi thông báo In-app cho Chủ trọ
                 if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
-                    ThongBaoRequest landlordNotification = new ThongBaoRequest();
-                    landlordNotification.setTieuDe("Cảnh báo quá hạn: Hóa đơn phòng " + hd.getPhong().getTen());
-                    landlordNotification.setNoiDung("Hóa đơn kỳ " + hd.getKyThang() + "/" + hd.getKyNam() + " (Mã: " + hd.getMaHoaDon() + 
+                    thongBaoService.createSystemNotification(
+                            "Cảnh báo quá hạn: Hóa đơn phòng " + hd.getPhong().getTen(),
+                            "Hóa đơn kỳ " + hd.getKyThang() + "/" + hd.getKyNam() + " (Mã: " + hd.getMaHoaDon() + 
                             ") của phòng " + hd.getPhong().getTen() + " (" + hd.getKhachThue().getHoTen() + 
-                            ") đã quá hạn thanh toán (hạn trả: " + hd.getHanTra() + ").");
-                    landlordNotification.setLoai("hoaDon");
-                    landlordNotification.setNguoiNhan(List.of(hd.getPhong().getNhaTro().getChuTro().getId()));
-                    thongBaoService.create(landlordNotification);
+                            ") đã quá hạn thanh toán (hạn trả: " + hd.getHanTra() + ").",
+                            com.example.quanlyphongtro.entity.LoaiThongBao.INVOICE,
+                            List.of(hd.getPhong().getNhaTro().getChuTro().getId())
+                    );
                 }
 
                 // 2. Gửi thông báo In-app cho Khách thuê
-                ThongBaoRequest tenantNotification = new ThongBaoRequest();
-                tenantNotification.setTieuDe("Cảnh báo: Hóa đơn tiền phòng quá hạn thanh toán");
-                tenantNotification.setNoiDung("Hóa đơn kỳ " + hd.getKyThang() + "/" + hd.getKyNam() + " (Mã: " + hd.getMaHoaDon() + 
-                        ") của bạn đã quá hạn thanh toán từ ngày " + hd.getHanTra() + ". Vui lòng hoàn thành thanh toán sớm nhất.");
-                tenantNotification.setLoai("hoaDon");
-                tenantNotification.setNguoiNhan(List.of(hd.getKhachThue().getId()));
-                thongBaoService.create(tenantNotification);
+                thongBaoService.createSystemNotification(
+                        "Cảnh báo: Hóa đơn tiền phòng quá hạn thanh toán",
+                        "Hóa đơn kỳ " + hd.getKyThang() + "/" + hd.getKyNam() + " (Mã: " + hd.getMaHoaDon() + 
+                        ") của bạn đã quá hạn thanh toán từ ngày " + hd.getHanTra() + ". Vui lòng hoàn thành thanh toán sớm nhất.",
+                        com.example.quanlyphongtro.entity.LoaiThongBao.INVOICE,
+                        List.of(hd.getKhachThue().getId())
+                );
 
                 // 3. Gửi Email nhắc nhở cho Khách thuê
                 emailService.sendInvoiceOverdueEmail(hd, hd.getKhachThue());
 
             } catch (Exception e) {
                 log.error("Lỗi xử lý hóa đơn quá hạn {}: {}", hd.getMaHoaDon(), e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Kiểm tra và nhắc nhở hóa đơn sắp đến hạn thanh toán (còn 2 ngày).
+     */
+    @Transactional
+    public void checkUpcomingInvoices() {
+        log.info("Đang kiểm tra hóa đơn sắp đến hạn thanh toán...");
+        LocalDate targetDate = LocalDate.now().plusDays(2);
+        List<HoaDon> upcomingInvoices = hoaDonRepository.findUnpaidInvoicesDueOn(
+                List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL), targetDate);
+
+        for (HoaDon hd : upcomingInvoices) {
+            log.info("Hóa đơn {} (hạn trả {}) sắp đến hạn. Đang gửi thông báo...", hd.getMaHoaDon(), hd.getHanTra());
+            try {
+                // 1. Gửi thông báo In-app cho Khách thuê
+                thongBaoService.createSystemNotification(
+                        "Thông báo: Hóa đơn tiền phòng sắp đến hạn thanh toán",
+                        "Hóa đơn kỳ " + hd.getKyThang() + "/" + hd.getKyNam() + " (Mã: " + hd.getMaHoaDon() + 
+                        ") của bạn sắp đến hạn thanh toán vào ngày " + hd.getHanTra() + " (còn 2 ngày). Vui lòng hoàn thành thanh toán đúng hạn.",
+                        com.example.quanlyphongtro.entity.LoaiThongBao.INVOICE,
+                        List.of(hd.getKhachThue().getId())
+                );
+
+                // 2. Gửi Email nhắc nhở cho Khách thuê
+                emailService.sendInvoiceUpcomingReminderEmail(hd, hd.getKhachThue(), 2);
+
+            } catch (Exception e) {
+                log.error("Lỗi xử lý nhắc nhở hóa đơn sắp đến hạn {}: {}", hd.getMaHoaDon(), e.getMessage());
             }
         }
     }

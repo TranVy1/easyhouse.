@@ -68,6 +68,33 @@ public class ThongBaoService {
     }
 
     @Transactional
+    public ThongBaoResponse createSystemNotification(String tieuDe, String noiDung, LoaiThongBao loai, List<UUID> nguoiNhanIds) {
+        ThongBao tb = ThongBao.builder()
+                .tieuDe(tieuDe)
+                .noiDung(noiDung)
+                .loai(loai)
+                .kenh(KenhThongBao.IN_APP)
+                .guiTatCa(nguoiNhanIds == null || nguoiNhanIds.isEmpty())
+                .nguoiGui(null)
+                .build();
+        ThongBao saved = thongBaoRepository.save(tb);
+        replaceRecipients(saved, nguoiNhanIds);
+        logSystemAudit(saved, "SYSTEM_CREATE");
+        return toResponse(saved);
+    }
+
+    private void logSystemAudit(ThongBao thongBao, String action) {
+        if (auditLogRepository == null) return;
+        auditLogRepository.save(com.example.quanlyphongtro.entity.AuditLog.builder()
+                .nguoiDung(null)
+                .hanhDong(action)
+                .bangTacDong("thong_bao")
+                .banGhiId(thongBao.getId())
+                .taoLuc(ZonedDateTime.now())
+                .build());
+    }
+
+    @Transactional
     public ThongBaoResponse update(UUID id, ThongBaoRequest req) {
         permissionService.requireAdmin();
         ThongBao tb = thongBaoRepository.findById(id)

@@ -75,6 +75,12 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
         @Param("today") java.time.LocalDate today
     );
 
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra = :targetDate AND h.xoaLuc IS NULL")
+    List<HoaDon> findUnpaidInvoicesDueOn(
+        @Param("trangThaiList") List<TrangThaiHoaDon> trangThaiList,
+        @Param("targetDate") java.time.LocalDate targetDate
+    );
+
     @Query("SELECT h.kyThang AS thang, h.kyNam AS nam, SUM(h.tongTien) AS doanhThu, SUM(h.daTra) AS daThu " +
            "FROM HoaDon h WHERE h.xoaLuc IS NULL AND (h.kyNam > :nam OR (h.kyNam = :nam AND h.kyThang >= :thang)) " +
            "GROUP BY h.kyNam, h.kyThang " +

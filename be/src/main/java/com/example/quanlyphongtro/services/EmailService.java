@@ -275,4 +275,37 @@ public class EmailService {
             log.error("Failed to send appointment reminder email to {}: {}", lh.getEmail(), e.getMessage());
         }
     }
+
+    public void sendInvoiceUpcomingReminderEmail(HoaDon hoaDon, KhachThue tenant, int daysRemaining) {
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(tenant.getEmail());
+            message.setSubject("[EasyHouse] Thông báo: Hóa đơn tiền phòng sắp đến hạn thanh toán");
+            
+            BigDecimal conLai = hoaDon.getTongTien().subtract(hoaDon.getDaTra());
+            if (conLai.compareTo(BigDecimal.ZERO) < 0) conLai = BigDecimal.ZERO;
+
+            message.setText(
+                "Xin chào " + tenant.getHoTen() + ",\n\n" +
+                "Hóa đơn tiền phòng kỳ tháng " + hoaDon.getKyThang() + "/" + hoaDon.getKyNam() + " của bạn sắp đến hạn thanh toán.\n" +
+                "Thông tin chi tiết:\n" +
+                "- Mã hóa đơn: " + hoaDon.getMaHoaDon() + "\n" +
+                "- Phòng: " + (hoaDon.getPhong() != null ? hoaDon.getPhong().getTen() : "N/A") + "\n" +
+                "- Tổng tiền hóa đơn: " + formatMoney(hoaDon.getTongTien()) + "\n" +
+                "- Số tiền còn lại: " + formatMoney(conLai) + "\n" +
+                "- Hạn thanh toán: " + (hoaDon.getHanTra() != null ? hoaDon.getHanTra() : "N/A") + " (còn " + daysRemaining + " ngày)\n\n" +
+                "Vui lòng thanh toán hóa đơn đúng hạn để tránh phát sinh nợ quá hạn.\n" +
+                "Bạn có thể xem thông tin chi tiết và thanh toán tại cổng thông tin: " + frontendBaseUrl + "/khach-thue/dang-nhap .\n\n" +
+                "Trân trọng,\nBan quản lý EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Invoice upcoming reminder email sent to tenant {}", tenant.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send invoice upcoming reminder email to {}: {}", tenant.getEmail(), e.getMessage());
+        }
+    }
 }
