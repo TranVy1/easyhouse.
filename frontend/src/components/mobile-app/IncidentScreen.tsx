@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
-import { Camera, X, CheckCircle2, Clock, AlertCircle, Plus } from "lucide-react";
+import { Camera, X, CheckCircle2, Clock, AlertCircle, Plus, RefreshCw } from "lucide-react";
+import { api, extractItems, ApiError } from "@/lib/api";
 
 const statusMeta: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   open: {
@@ -29,76 +30,103 @@ export function IncidentScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [tickets, setTickets] = useState<any[]>([]);
 
-  const fetchIncidents = () => {
-    fetch('/api/tenant/su-co')
-      .then(res => res.json())
-      .then(data => {
-        const items = data.data?.content || data.data || [];
-        setTickets(items.map((t: any) => ({
-          id: t._id || t.id,
-          title: t.tieuDe || "Sự cố không rõ",
-          date: t.taoLuc ? new Date(t.taoLuc).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
-          status: t.trangThai === "RESOLVED" ? "resolved" : (t.trangThai === "IN_PROGRESS" ? "in_progress" : "open"),
-          desc: t.moTa || "",
-        })));
-      })
-      .catch(err => console.error(err));
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const fetchIncidents = async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const data = await api.get<any>('/api/tenant/su-co?limit=20');
+      const items = extractItems<any>(data);
+      setTickets(items.map((t: any) => ({
+        id: t._id || t.id,
+        title: t.tieuDe || 'Sự cố không rõ',
+        date: t.ngayBaoCao ? new Date(t.ngayBaoCao).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+        status: t.trangThai === 'RESOLVED' ? 'resolved' : (t.trangThai === 'IN_PROGRESS' ? 'in_progress' : 'open'),
+        desc: t.moTa || '',
+        priority: t.mucDoUuTien || '',
+      })));
+    } catch (e) {
+      setFetchError(e instanceof ApiError ? e.message : 'Không thể tải dữ liệu sự cố');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    fetchIncidents();
-  }, []);
+  useEffect(() => { fetchIncidents(); }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) return;
     setSubmitted(true);
-    
-    // Call backend API if possible, fallback to timeout
-    fetch('/api/tenant/su-co', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tieuDe: title, moTa: desc, hinhAnh: images, phongId: null }) // Modify if roomId is available
-    })
-      .then(res => {
-         setTimeout(() => {
-           setSubmitted(false);
-           setTitle("");
-           setDesc("");
-           setImages([]);
-           setActiveTab("list");
-           fetchIncidents();
-         }, 1000);
-      })
-      .catch(err => {
-         console.error(err);
-         setSubmitted(false);
-      });
+    try {
+      await api.post('/api/tenant/su-co', { tieuDe: title, moTa: desc });
+      setTimeout(() => {
+        setSubmitted(false);
+        setTitle('');
+        setDesc('');
+        setImages([]);
+        setActiveTab('list');
+        fetchIncidents();
+      }, 800);
+    } catch {
+      setSubmitted(false);
+    }
   };
 
   const filteredTickets = filterStatus === "all"
     ? tickets
     : tickets.filter((t) => t.status === filterStatus);
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center gap-2.5 text-slate-400">
+        <RefreshCw size={18} className="animate-spin text-indigo-500" />
+        <span className="text-sm font-medium">Đang tải sự cố...</span>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-4 px-8 text-center">
+        <AlertCircle size={36} className="text-red-400" />
+        <p className="text-sm text-slate-600 font-medium">{fetchError}</p>
+        <button onClick={fetchIncidents}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl cursor-pointer">
+          <RefreshCw size={14} /> Thử lại
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
+    <div className="flex flex-col h-full bg-slate-100 overflow-y-auto">
       {/* Header */}
-      <div className="bg-white px-4 pt-12 pb-4 shadow-sm">
-        <h1 className="text-slate-900 mb-4" style={{ fontSize: "1.25rem", fontWeight: 700 }}>
-          Báo Cáo Sự Cố
-        </h1>
-        <div className="flex bg-[#F1F5F9] rounded-2xl p-1">
+      <div className="bg-indigo-700 px-4 pt-12 pb-6 relative overflow-hidden shrink-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/30 via-transparent to-transparent pointer-events-none" />
+        <div className="relative">
+          <p className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-0.5">Tài khoản của tôi</p>
+          <h1 className="text-white font-black text-xl">Báo Cáo Sự Cố</h1>
+          <p className="text-indigo-200 text-xs mt-1">Gửi yêu cầu bảo trì và theo dõi tiến độ xử lý</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-4 -mt-3 relative z-10">
+        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
           <button
             onClick={() => setActiveTab("list")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === "list" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "list" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             Yêu cầu của tôi
           </button>
           <button
             onClick={() => setActiveTab("new")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
-              activeTab === "new" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+              activeTab === "new" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Plus size={14} />

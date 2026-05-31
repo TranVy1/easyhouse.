@@ -78,7 +78,7 @@
   --sidebar-ring: oklch(0.54 0.11 220);
 
   /* Font Settings */
-  --font-family: Inter, system-ui, sans-serif;
+  --font-family: 'Be Vietnam Pro', Inter, system-ui, sans-serif;
   --font-size-base: 16px;
   --line-height-base: 1.5;
   --font-weight-base: 400;
