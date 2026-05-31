@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,15 +65,37 @@ export default function LoginPage() {
         email: data.email,
         matKhau: data.matKhau,
         redirect: false,
-        callbackUrl: '/dashboard',
       });
 
       if (!(result?.ok && !result.error)) {
         setError('Email hoặc mật khẩu không đúng');
       } else {
-        router.push(result.url || '/dashboard');
+        const session = await getSession();
+        const rawRole = session?.user?.role;
+        const role = typeof rawRole === 'string'
+          ? rawRole.replace(/^ROLE_/, '').toUpperCase()
+          : '';
+
+        const searchParams = new URLSearchParams(window.location.search);
+        let targetUrl = searchParams.get('callbackUrl');
+
+        if (role === 'TENANT') {
+          // Tenants should not access the /dashboard area
+          if (!targetUrl || targetUrl.startsWith('/dashboard')) {
+            targetUrl = '/';
+          }
+        } else {
+          // Landlords/Admins should go to the dashboard by default
+          if (!targetUrl || targetUrl === '/') {
+            targetUrl = '/dashboard';
+          }
+        }
+
+        router.push(targetUrl);
+        router.refresh();
       }
-    } catch {
+    } catch (err) {
+      console.error('Login submit error:', err);
       setError('Đã xảy ra lỗi, vui lòng thử lại');
     } finally {
       setIsLoading(false);

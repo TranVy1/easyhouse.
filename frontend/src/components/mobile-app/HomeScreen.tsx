@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Search, SlidersHorizontal, Heart, MapPin, Wifi, Wind,
   Car, Star, ChevronRight, Bell, X, UserPlus, LogIn, PlusCircle,
-  Camera, Play
+  Camera, Play, Phone, Mail, Globe, Building
 } from "lucide-react";
 
 // --- Types & Constants ---
@@ -66,9 +66,10 @@ const parseToMillion = (priceStr: string) => {
 
 interface HomeScreenProps {
   onRoomSelect: (id: number) => void;
+  onTabChange?: (tab: "home" | "saved" | "bills" | "profile") => void;
 }
 
-export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
+export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const [userProfile, setUserProfile] = useState<any>(null);
 
   // Data States
@@ -85,6 +86,18 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
   const [savedRooms, setSavedRooms] = useState<Set<number>>(new Set());
 
   useEffect(() => {
+    // Load saved rooms from localStorage
+    const saved = localStorage.getItem("easyhouse_saved_rooms");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const ids = new Set<number>(parsed.map((r: any) => r.id));
+        setSavedRooms(ids);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     // Fetch profile
     fetch('/api/user/profile')
       .then(res => res.json())
@@ -174,13 +187,29 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
   }, [filterCat, filterPrice, filterArea, allRooms]);
 
 
-  const toggleSave = (id: number, e: React.MouseEvent) => {
+  const toggleSave = (room: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSavedRooms((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    const roomId = room.id;
+    const saved = localStorage.getItem("easyhouse_saved_rooms");
+    let currentSaved: any[] = saved ? JSON.parse(saved) : [];
+
+    const exists = currentSaved.some((r: any) => r.id === roomId);
+    if (exists) {
+      currentSaved = currentSaved.filter((r: any) => r.id !== roomId);
+      setSavedRooms((prev) => {
+        const next = new Set(prev);
+        next.delete(roomId);
+        return next;
+      });
+    } else {
+      currentSaved.push(room);
+      setSavedRooms((prev) => {
+        const next = new Set(prev);
+        next.add(roomId);
+        return next;
+      });
+    }
+    localStorage.setItem("easyhouse_saved_rooms", JSON.stringify(currentSaved));
   };
 
   const currentUserName = userProfile?.name || userProfile?.hoTen || "Nguyễn Văn An";
@@ -229,18 +258,40 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
 
           {/* Right: Actions */}
           <div className="hidden lg:flex items-center gap-6 ml-4 shrink-0">
-            <button className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+            <button 
+              onClick={() => onTabChange?.("saved")}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+            >
               <Heart size={18} />
               <span className="text-sm font-medium">Tin đã lưu</span>
             </button>
-            <Link href="/dang-ky" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
-              <UserPlus size={18} />
-              <span className="text-sm font-medium">Đăng ký</span>
-            </Link>
-            <Link href="/dang-nhap" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
-              <LogIn size={18} />
-              <span className="text-sm font-medium">Đăng nhập</span>
-            </Link>
+            
+            {userProfile ? (
+              <button
+                onClick={() => onTabChange?.("profile")}
+                className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+                title="Xem hồ sơ cá nhân"
+              >
+                <img
+                  src={currentUserAvatar}
+                  alt={currentUserName}
+                  className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                />
+                <span className="text-sm font-semibold text-slate-700">{currentUserName}</span>
+              </button>
+            ) : (
+              <>
+                <Link href="/dang-ky" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+                  <UserPlus size={18} />
+                  <span className="text-sm font-medium">Đăng ký</span>
+                </Link>
+                <Link href="/dang-nhap" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+                  <LogIn size={18} />
+                  <span className="text-sm font-medium">Đăng nhập</span>
+                </Link>
+              </>
+            )}
+
             {userProfile && ['ADMIN', 'LANDLORD', 'STAFF'].includes(userProfile.role?.toUpperCase()) && (
               <Link href="/dashboard" className="px-5 py-2.5 bg-[#FF5A3D] text-white rounded-xl flex items-center gap-2 font-medium hover:bg-orange-600 transition-colors shadow-md ml-2">
                 <span>Trang quản trị</span>
@@ -357,84 +408,84 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
                     Xem tất cả <ChevronRight size={14} />
                   </button>
                 </div>
-                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-none">
-                  {featuredRoomsData.map((room) => {
-                    const imgs = getRoomImages(room);
-                    return (
-                      <div
-                        key={room.id}
-                        onClick={() => onRoomSelect(room.id)}
-                        className="shrink-0 w-[320px] sm:w-[420px] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md border border-slate-100 cursor-pointer active:scale-98 transition-all flex flex-col"
-                      >
-                        {/* Collage Images */}
-                        <div className="grid grid-cols-5 gap-0.5 h-44 sm:h-52 w-full relative overflow-hidden shrink-0">
-                          {/* Left large image */}
-                          <div className="col-span-3 relative h-full">
-                            <img src={imgs[0]} alt={room.name} className="w-full h-full object-cover" />
-                            {/* Play button overlay in the center of the main image */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <Play size={16} className="fill-white text-white translate-x-0.5" />
-                              </div>
-                            </div>
-                            {/* Camera count overlay bottom left */}
-                            <span className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold">
-                              <Camera size={10} className="text-white" /> 7
-                            </span>
-                          </div>
-                          {/* Right column */}
-                          <div className="col-span-2 grid grid-rows-2 gap-0.5 h-full">
-                            {/* Right Top image */}
-                            <img src={imgs[1]} alt={room.name} className="w-full h-full object-cover" />
-                            {/* Right Bottom row split */}
-                            <div className="grid grid-cols-2 gap-0.5 h-full">
-                              <img src={imgs[2]} alt={room.name} className="w-full h-full object-cover" />
-                              <img src={imgs[3]} alt={room.name} className="w-full h-full object-cover" />
-                            </div>
-                          </div>
-                          {/* Save heart button overlay top right */}
-                          <div className="absolute top-2.5 right-2.5 z-10">
-                            <button
-                              onClick={(e) => toggleSave(room.id, e)}
-                              className="w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white transition-all"
-                            >
-                              <Heart
-                                size={14}
-                                className={savedRooms.has(room.id) ? "fill-red-500 text-red-500" : "text-slate-500"}
-                              />
-                            </button>
-                          </div>
-                        </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+                   {featuredRoomsData.map((room) => {
+                     const imgs = getRoomImages(room);
+                     return (
+                       <div
+                         key={room.id}
+                         onClick={() => onRoomSelect(room.id)}
+                         className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border border-slate-100 flex flex-col cursor-pointer active:scale-[0.99]"
+                       >
+                         {/* Collage Images */}
+                         <div className="grid grid-cols-5 gap-0.5 h-48 sm:h-56 w-full relative overflow-hidden shrink-0">
+                           {/* Left large image */}
+                           <div className="col-span-3 relative h-full">
+                             <img src={imgs[0]} alt={room.name} className="w-full h-full object-cover" />
+                             {/* Play button overlay in the center of the main image */}
+                             <div className="absolute inset-0 flex items-center justify-center">
+                               <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                                 <Play size={20} className="fill-white text-white translate-x-0.5" />
+                               </div>
+                             </div>
+                             {/* Camera count overlay bottom left */}
+                             <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-md flex items-center gap-1 font-bold shadow-sm">
+                               <Camera size={12} className="text-white" /> 7
+                             </span>
+                           </div>
+                           {/* Right column */}
+                           <div className="col-span-2 grid grid-rows-2 gap-0.5 h-full">
+                             {/* Right Top image */}
+                             <img src={imgs[1]} alt={room.name} className="w-full h-full object-cover" />
+                             {/* Right Bottom row split */}
+                             <div className="grid grid-cols-2 gap-0.5 h-full">
+                               <img src={imgs[2]} alt={room.name} className="w-full h-full object-cover" />
+                               <img src={imgs[3]} alt={room.name} className="w-full h-full object-cover" />
+                             </div>
+                           </div>
+                           {/* Save heart button overlay top right */}
+                           <div className="absolute top-3 right-3 z-10">
+                             <button
+                               onClick={(e) => toggleSave(room, e)}
+                               className="w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white transition-all"
+                             >
+                               <Heart
+                                 size={16}
+                                 className={savedRooms.has(room.id) ? "fill-red-500 text-red-500" : "text-slate-500"}
+                               />
+                             </button>
+                           </div>
+                         </div>
 
-                        {/* Card Info */}
-                        <div className="p-4 flex flex-col flex-1 bg-white">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              {[...Array(5)].map((_, i) => (
-                                <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
-                              ))}
-                            </div>
-                            <h3 className="text-[#FF385C] font-extrabold uppercase text-xs sm:text-sm tracking-wide truncate flex-1">
-                              {room.name.includes("Phòng") || room.name.includes("Căn hộ") ? room.name : `CHO THUÊ PHÒNG TRỌ ${room.name}`} - DỌN VÀO Ở NGAY
-                            </h3>
-                          </div>
+                         {/* Card Info */}
+                         <div className="p-4 flex flex-col flex-1 bg-white">
+                           <div className="flex items-center gap-1.5 flex-wrap">
+                             <div className="flex items-center gap-0.5 shrink-0">
+                               {[...Array(5)].map((_, i) => (
+                                 <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                               ))}
+                             </div>
+                             <h3 className="text-[#FF385C] font-extrabold uppercase text-xs sm:text-sm tracking-wide truncate flex-1">
+                               {room.name.includes("Phòng") || room.name.includes("Căn hộ") ? room.name : `CHO THUÊ PHÒNG TRỌ ${room.name}`} - DỌN VÀO Ở NGAY
+                             </h3>
+                           </div>
 
-                          <div className="flex items-center gap-2 text-slate-500 text-xs sm:text-sm mt-2 flex-wrap font-semibold">
-                            <span className="text-[#0F9675] font-bold text-sm sm:text-base">{parseToMillion(room.price)}</span>
-                            <span className="text-slate-300 font-normal">•</span>
-                            <span className="text-slate-700">{room.area || "38m²"}</span>
-                            <span className="text-slate-300 font-normal">•</span>
-                            <span className="text-slate-600 truncate max-w-[150px]">{room.location.replace("Chưa cập nhật địa chỉ", "Bình Thạnh, Hồ Chí Minh")}</span>
-                          </div>
+                           <div className="flex items-center gap-2 text-slate-500 text-xs sm:text-sm mt-2 flex-wrap font-semibold">
+                             <span className="text-[#0F9675] font-bold text-sm sm:text-base">{parseToMillion(room.price)}</span>
+                             <span className="text-slate-300 font-normal">•</span>
+                             <span className="text-slate-700">{room.area || "38m²"}</span>
+                             <span className="text-slate-300 font-normal">•</span>
+                             <span className="text-slate-600 truncate max-w-[200px]">{room.location.replace("Chưa cập nhật địa chỉ", "Bình Thạnh, Hồ Chí Minh")}</span>
+                           </div>
 
-                          <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed font-normal">
-                            {room.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                           <p className="text-xs text-slate-500 line-clamp-2 mt-2.5 leading-relaxed font-normal">
+                             {room.description}
+                           </p>
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
               </section>
             )}
             <section>
@@ -495,7 +546,7 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
                           {/* Save heart button overlay top right */}
                           <div className="absolute top-3 right-3 z-10">
                             <button
-                              onClick={(e) => toggleSave(room.id, e)}
+                              onClick={(e) => toggleSave(room, e)}
                               className="w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white transition-all"
                             >
                               <Heart
@@ -540,6 +591,122 @@ export function HomeScreen({ onRoomSelect }: HomeScreenProps) {
           </div>
         </div>
       </div>
+
+      {/* Footer Component */}
+      <footer className="bg-slate-900 text-slate-400 pt-16 pb-8 border-t border-slate-800 shrink-0 mt-8">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 xl:px-12">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+            
+            {/* Column 1: Brand & Logo */}
+            <div className="space-y-4">
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-black text-blue-500 tracking-tight leading-none uppercase">
+                  EASY<span className="text-white">HOUSE</span>
+                </h2>
+                <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">
+                  Kênh thông tin phòng trọ số 1 Việt Nam
+                </p>
+              </div>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Hệ thống quản lý và tìm kiếm phòng trọ thông minh hàng đầu, kết nối trực tiếp giữa chủ trọ và người thuê phòng một cách hiệu quả, minh bạch và an toàn nhất.
+              </p>
+              <div className="flex items-center gap-3 pt-2">
+                <span className="w-8 h-8 rounded-full bg-slate-800 hover:bg-blue-600 transition-colors flex items-center justify-center text-white text-sm font-semibold cursor-pointer">f</span>
+                <span className="w-8 h-8 rounded-full bg-slate-800 hover:bg-[#FF385C] transition-colors flex items-center justify-center text-white text-sm font-semibold cursor-pointer">y</span>
+                <span className="w-8 h-8 rounded-full bg-slate-800 hover:bg-blue-400 transition-colors flex items-center justify-center text-white text-sm font-semibold cursor-pointer">t</span>
+              </div>
+            </div>
+
+            {/* Column 2: Quick Links */}
+            <div className="space-y-4">
+              <h3 className="text-white font-bold text-base tracking-wide uppercase">Liên Kết Nhanh</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <button 
+                    onClick={() => {
+                      setFilterCat("Phòng trọ");
+                      setFilterPrice("all");
+                      setFilterArea("all");
+                    }}
+                    className="hover:text-white hover:underline transition-colors text-left"
+                  >
+                    Trang chủ EasyHouse
+                  </button>
+                </li>
+                <li>
+                  <Link href="/xem-phong" className="hover:text-white hover:underline transition-colors">
+                    Tìm kiếm phòng trọ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dang-ky" className="hover:text-white hover:underline transition-colors">
+                    Đăng ký tài khoản mới
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dang-nhap" className="hover:text-white hover:underline transition-colors">
+                    Đăng nhập hệ thống
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Contact Info */}
+            <div className="space-y-4">
+              <h3 className="text-white font-bold text-base tracking-wide uppercase">Thông Tin Liên Hệ</h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2.5">
+                  <MapPin size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                  <span>136 Cầu Diễn, Bắc Từ Liêm, Hà Nội, Việt Nam</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Phone size={16} className="text-blue-500 shrink-0" />
+                  <span>1900 8888 (Hotline hỗ trợ 24/7)</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Mail size={16} className="text-blue-500 shrink-0" />
+                  <span>support@easyhouse.local</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Globe size={16} className="text-blue-500 shrink-0" />
+                  <span>www.easyhouse.local</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Partner & Trust */}
+            <div className="space-y-4">
+              <h3 className="text-white font-bold text-base tracking-wide uppercase">Chứng Nhận & Uy Tín</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Giải pháp công nghệ số giúp tối ưu quy trình tìm kiếm, quản lý nhà trọ và hợp đồng thuê nhà trực tuyến nhanh gọn.
+              </p>
+              <div className="pt-2">
+                <div className="border border-slate-800 rounded-xl p-3 bg-slate-950/50 flex items-center gap-3">
+                  <Building size={24} className="text-blue-500 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white uppercase tracking-wider">EasyHouse Corp</p>
+                    <p className="text-[10px] text-slate-500 truncate">Hệ thống Chuyển đổi số Nhà trọ</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} EasyHouse. Bảo lưu mọi quyền.
+            </p>
+            <div className="flex items-center gap-6 text-xs text-slate-500">
+              <Link href="/dieu-khoan-dich-vu" className="hover:text-slate-300 transition-colors">Điều khoản dịch vụ</Link>
+              <Link href="/chinh-sach-bao-mat" className="hover:text-slate-300 transition-colors">Chính sách bảo mật</Link>
+              <Link href="/quy-che-hoat-dong" className="hover:text-slate-300 transition-colors">Quy chế hoạt động</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* Filter Modal Overlay */}
       {isFilterOpen && (
