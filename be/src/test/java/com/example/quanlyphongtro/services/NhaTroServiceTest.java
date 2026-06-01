@@ -13,6 +13,7 @@ import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.TangRepository;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
@@ -23,20 +24,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class NhaTroServiceTest {
 
     @Mock private NhaTroRepository nhaTroRepository;
     @Mock private PhongRepository phongRepository;
+    @Mock private TangRepository tangRepository;
     @Mock private NguoiDungRepository nguoiDungRepository;
     @Mock private PermissionService permissionService;
+    @Mock private JdbcTemplate jdbcTemplate;
 
     private NhaTroService service;
 
     @BeforeEach
     void setUp() {
-        service = new NhaTroService(nhaTroRepository, phongRepository, nguoiDungRepository, permissionService);
+        service = new NhaTroService(nhaTroRepository, phongRepository, tangRepository, nguoiDungRepository, permissionService, jdbcTemplate);
     }
 
     @Test
@@ -48,7 +52,7 @@ class NhaTroServiceTest {
 
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(nguoiDungRepository.findById(userId)).thenReturn(Optional.of(owner));
-        when(nhaTroRepository.save(org.mockito.ArgumentMatchers.any(NhaTro.class))).thenAnswer(invocation -> {
+        when(nhaTroRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(NhaTro.class))).thenAnswer(invocation -> {
             NhaTro nhaTro = invocation.getArgument(0);
             nhaTro.setId(UUID.randomUUID());
             return nhaTro;
@@ -56,7 +60,7 @@ class NhaTroServiceTest {
 
         service.createNhaTro(request);
 
-        verify(nhaTroRepository).save(org.mockito.ArgumentMatchers.argThat(nhaTro -> owner.equals(nhaTro.getChuTro())));
+        verify(nhaTroRepository).saveAndFlush(org.mockito.ArgumentMatchers.argThat(nhaTro -> owner.equals(nhaTro.getChuTro())));
     }
 
     @Test

@@ -66,6 +66,10 @@ public class HopDong {
     
     private String noiDungHopDong;
     private String filePdf;
+    private String templateVersion;
+    private ZonedDateTime previewedAt;
+    private ZonedDateTime confirmedAt;
+    private ZonedDateTime lockedAt;
     private String ghiChu;
 
     private ZonedDateTime taoLuc;

@@ -8,6 +8,7 @@ import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ public class HopDongService {
     private final DichVuRepository dichVuRepository;
     private final CauHinhGiaRepository cauHinhGiaRepository;
     private final PermissionService permissionService;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<HopDongResponse> getAll(
@@ -148,6 +150,9 @@ public class HopDongService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWrite(hd, userId);
+        if (hd.getLockedAt() != null) {
+            throw new RuntimeException("Hop dong da duoc khoa, khong the cap nhat truc tiep");
+        }
 
         UUID oldPhongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         UUID phongId = coalesce(req.getPhongId(), req.getPhong());
@@ -220,6 +225,53 @@ public class HopDongService {
             syncRoomStatus(oldPhongId);
         }
         syncRoomStatus(saved.getPhong().getId());
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public HopDongResponse preview(UUID id) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
+        if (hd.getLockedAt() != null) {
+            throw new RuntimeException("Hop dong da duoc xac nhan va khoa du lieu");
+        }
+
+        hd.setTemplateVersion(hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1");
+        hd.setNoiDungHopDong(buildContractPreview(hd));
+        hd.setPreviewedAt(java.time.ZonedDateTime.now());
+        return toResponse(hopDongRepository.save(hd));
+    }
+
+    @Transactional
+    public HopDongResponse confirm(UUID id) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
+        if (hd.getLockedAt() != null) {
+            throw new RuntimeException("Hop dong da duoc xac nhan truoc do");
+        }
+
+        validateRoomCanContract(hd.getPhong(), TrangThaiHopDong.ACTIVE);
+        validateTenantBelongsToRoomOwner(hd.getKhachThue(), hd.getPhong());
+        validateContractPayload(hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getGiaThueHopDong(), hd.getTienCoc(),
+                hd.getNgayThanhToanHangThang());
+        ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getId(),
+                TrangThaiHopDong.ACTIVE);
+
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
+        if (hd.getNoiDungHopDong() == null || hd.getNoiDungHopDong().isBlank()) {
+            hd.setNoiDungHopDong(buildContractPreview(hd));
+        }
+        hd.setTemplateVersion(hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1");
+        hd.setTrangThai(TrangThaiHopDong.ACTIVE);
+        hd.setConfirmedAt(now);
+        hd.setLockedAt(now);
+
+        HopDong saved = hopDongRepository.save(hd);
+        syncRoomStatus(saved.getPhong().getId());
+        jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, saved.getId());
+        logAudit(saved, "CONFIRM");
         return toResponse(saved);
     }
 
@@ -690,6 +742,37 @@ public class HopDongService {
         if (ngayThanhToan == null || ngayThanhToan < 1 || ngayThanhToan > 31) {
             throw new RuntimeException("Ngày thanh toán hằng tháng phải từ 1 đến 31");
         }
+    }
+
+    private String buildContractPreview(HopDong hd) {
+        String tenPhong = hd.getPhong() != null ? hd.getPhong().getTen() : "";
+        String tenToa = hd.getPhong() != null && hd.getPhong().getNhaTro() != null ? hd.getPhong().getNhaTro().getTen() : "";
+        String khachThue = hd.getKhachThue() != null ? hd.getKhachThue().getHoTen() : "";
+        return """
+                HOP DONG THUE PHONG
+
+                Ma hop dong: %s
+                Toa nha: %s
+                Phong: %s
+                Khach thue dai dien: %s
+                Thoi han: %s den %s
+                Gia thue: %s
+                Tien coc: %s
+                Ngay thanh toan hang thang: %s
+
+                Noi dung nay duoc sinh tu template %s de phuc vu buoc xem truoc hop dong.
+                """.formatted(
+                hd.getMaHopDong(),
+                tenToa,
+                tenPhong,
+                khachThue,
+                hd.getNgayBatDau(),
+                hd.getNgayKetThuc(),
+                defaultMoney(hd.getGiaThueHopDong()).toPlainString(),
+                defaultMoney(hd.getTienCoc()).toPlainString(),
+                hd.getNgayThanhToanHangThang(),
+                hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1"
+        );
     }
 
     private void validateInitialReadings(Integer chiSoDien, Integer chiSoNuoc) {

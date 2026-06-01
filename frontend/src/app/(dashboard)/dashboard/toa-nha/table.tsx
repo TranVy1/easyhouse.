@@ -149,7 +149,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
   },
   {
     accessorKey: "tenToaNha",
-    header: "Tên tòa nhà",
+    header: "Tòa nhà",
     cell: ({ row }) => (
       <div className="flex items-center gap-2 min-w-40">
         <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -203,6 +203,26 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
         <div className="text-center">
           <div className="font-medium text-blue-600">{phongDangThue}</div>
           <div className="text-xs text-muted-foreground">({percentage}%)</div>
+        </div>
+      )
+    },
+  },
+  {
+    id: "occupancy",
+    header: () => <div className="min-w-36">Lấp đầy</div>,
+    cell: ({ row }) => {
+      const rented = row.original.phongDangThue || 0
+      const total = row.original.tongSoPhong || 0
+      const percentage = total > 0 ? Math.round((rented / total) * 100) : 0
+      return (
+        <div className="min-w-36 space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">{rented}/{total} phòng</span>
+            <span className="font-medium">{percentage}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-blue-500" style={{ width: `${percentage}%` }} />
+          </div>
         </div>
       )
     },
@@ -408,7 +428,7 @@ export function ToaNhaDataTable(props: ToaNhaDataTableProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm kiếm theo tên, địa chỉ..."
+              placeholder="Tìm theo tên tòa nhà, địa chỉ..."
               value={searchTerm || ''}
               onChange={(e) => onSearchChange?.(e.target.value)}
               className="pl-10"

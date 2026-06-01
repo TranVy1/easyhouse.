@@ -18,6 +18,7 @@ public class PhongRequest {
 
     private String khuVuc;
     private Integer tang;
+    private UUID tangId;
 
     @NotNull(message = "Diện tích không được để trống")
     private BigDecimal dienTich;

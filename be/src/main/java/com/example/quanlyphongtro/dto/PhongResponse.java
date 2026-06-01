@@ -22,6 +22,7 @@ public class PhongResponse {
     private NhaTroResponse toaNha;
     private String khuVuc;
     private Integer tang;
+    private UUID tangId;
     private BigDecimal dienTich;
 
     @JsonProperty("giaThue")
@@ -93,6 +94,7 @@ public class PhongResponse {
             .toaNha(nhaTroResp)
             .khuVuc(phong.getKhuVuc())
             .tang(phong.getTang())
+            .tangId(phong.getTangEntity() != null ? phong.getTangEntity().getId() : null)
             .dienTich(phong.getDienTich())
             .giaHienTai(phong.getGiaHienTai())
             .tienCocMacDinh(phong.getTienCocMacDinh())

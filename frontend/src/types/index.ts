@@ -161,6 +161,59 @@ export interface ToaNha {
   capNhatLuc?: DateLike;
 }
 
+export interface Tang {
+  id?: ID;
+  _id?: ID;
+  nhaTroId: ID;
+  soTang: number;
+  tenTang?: string;
+  thuTuHienThi?: number;
+  soPhongDuKien?: number;
+  trangThai: string;
+}
+
+export type TrangThaiPhongHienThi = 'VACANT' | 'RENTED' | 'CONTRACT_EXPIRING' | 'MAINTENANCE';
+
+export interface SoDoPhong {
+  id?: ID;
+  _id?: ID;
+  maPhong: string;
+  dienTich?: number;
+  giaHienTai?: number;
+  trangThaiVatLy: TrangThaiPhongDb;
+  trangThaiHienThi: TrangThaiPhongHienThi;
+  hopDongId?: ID;
+  maHopDong?: string;
+  ngayBatDau?: DateLike;
+  ngayKetThuc?: DateLike;
+  khachThueId?: ID;
+  khachThueHienTai?: string;
+}
+
+export interface SoDoTang {
+  soTang: number;
+  tenTang?: string;
+  phong: SoDoPhong[];
+}
+
+export interface ThongKeToaNha {
+  id?: ID;
+  _id?: ID;
+  nhaTroId?: ID;
+  tenToaNha: string;
+  tongSoTang: number;
+  tongSoPhong: number;
+  phongTrong: number;
+  phongDangThue: number;
+  phongBaoTri: number;
+  hopDongSapHetHan: number;
+  doanhThuDuKienThang: number;
+}
+
+export interface SoDoToaNha extends ThongKeToaNha {
+  tang: SoDoTang[];
+}
+
 export interface Phong {
   id?: ID;
   _id?: ID;
