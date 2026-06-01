@@ -28,6 +28,10 @@ public class Phong {
     private String khuVuc;
     private Integer tang;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tang_id")
+    private Tang tangEntity;
+
     @Column(nullable = false)
     private BigDecimal dienTich;
 

@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class HopDongServiceTest {
@@ -42,6 +43,7 @@ class HopDongServiceTest {
     @Mock private DichVuRepository dichVuRepository;
     @Mock private CauHinhGiaRepository cauHinhGiaRepository;
     @Mock private PermissionService permissionService;
+    @Mock private JdbcTemplate jdbcTemplate;
 
     private HopDongService service;
 
@@ -55,7 +57,8 @@ class HopDongServiceTest {
                 dichVuHopDongRepository,
                 dichVuRepository,
                 cauHinhGiaRepository,
-                permissionService
+                permissionService,
+                jdbcTemplate
         );
     }
 

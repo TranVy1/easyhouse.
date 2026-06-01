@@ -22,6 +22,7 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     List<Phong> findByTrangThai(TrangThaiPhong trangThai);
     List<Phong> findByNhaTroIdAndTrangThai(UUID nhaTroId, TrangThaiPhong trangThai);
     List<Phong> findByNhaTroIdAndTangAndXoaLucIsNull(UUID nhaTroId, Integer tang);
+    List<Phong> findByTangEntityIdAndXoaLucIsNull(UUID tangId);
     List<Phong> findByNhaTroIdAndKhuVucAndXoaLucIsNull(UUID nhaTroId, String khuVuc);
     Optional<Phong> findByIdAndXoaLucIsNull(UUID id);
     long countByTrangThai(TrangThaiPhong trangThai);

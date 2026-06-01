@@ -42,6 +42,10 @@ public class HopDongResponse {
     private BigDecimal giaNuoc;
     private List<PhiDichVuResponse> phiDichVu;
     private String filePdf;
+    private String templateVersion;
+    private ZonedDateTime previewedAt;
+    private ZonedDateTime confirmedAt;
+    private ZonedDateTime lockedAt;
     private String ghiChu;
     private ZonedDateTime ngayTao;
 
@@ -114,6 +118,10 @@ public class HopDongResponse {
                 .noiDungHopDong(hd.getNoiDungHopDong() != null ? hd.getNoiDungHopDong() : "")
                 .phiDichVu(List.of())
                 .filePdf(hd.getFilePdf())
+                .templateVersion(hd.getTemplateVersion())
+                .previewedAt(hd.getPreviewedAt())
+                .confirmedAt(hd.getConfirmedAt())
+                .lockedAt(hd.getLockedAt())
                 .ghiChu(hd.getGhiChu())
                 .ngayTao(hd.getTaoLuc())
                 .build();

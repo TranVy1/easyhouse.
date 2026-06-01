@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -18,11 +19,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
+  FileCheck2,
+  Eye,
   Save,
   Loader2,
   Plus,
   Check,
-  ChevronsUpDown
+  CheckCircle2,
+  ChevronsUpDown,
+  LockKeyhole,
 } from 'lucide-react';
 import { HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
@@ -70,6 +75,21 @@ type ApiDichVu = {
   batBuoc?: boolean;
 };
 
+type ContractWorkflowMeta = HopDong & {
+  previewedAt?: string;
+  confirmedAt?: string;
+  lockedAt?: string;
+};
+
+const contractStatusLabel: Record<string, string> = {
+  nhap: 'Nháp',
+  choKichHoat: 'Chờ kích hoạt',
+  hoatDong: 'Hoạt động',
+  hetHan: 'Hết hạn',
+  daKetThuc: 'Đã kết thúc',
+  daHuy: 'Đã hủy',
+};
+
 export default function ChinhSuaHopDongPage() {
   const router = useRouter();
   const params = useParams();
@@ -84,6 +104,7 @@ export default function ChinhSuaHopDongPage() {
   const [globalDichVuList, setGlobalDichVuList] = useState<DichVuOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [workflowSubmitting, setWorkflowSubmitting] = useState<'preview' | 'confirm' | null>(null);
 
   const [formData, setFormData] = useState({
     maHopDong: '',
@@ -471,6 +492,42 @@ export default function ChinhSuaHopDongPage() {
     }
   };
 
+  const runContractWorkflow = async (action: 'preview' | 'confirm') => {
+    if (workflowSubmitting || submitting) return;
+    setWorkflowSubmitting(action);
+    try {
+      const response = await fetch(`/api/hop-dong/${hopDongId}/${action}`, {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        toast.error(result.message || 'Có lỗi xảy ra khi xử lý hợp đồng');
+        return;
+      }
+
+      const updated = result.data ? normalizeHopDong(result.data) : null;
+      if (updated) {
+        setHopDong(updated);
+        setFormData(prev => ({
+          ...prev,
+          dieuKhoan: updated.dieuKhoan || prev.dieuKhoan,
+          trangThai: normalizeTrangThaiHopDong(updated.trangThai),
+        }));
+      }
+      sessionStorage.removeItem('hop-dong-data');
+      toast.success(result.message || (action === 'preview' ? 'Đã tạo bản xem trước hợp đồng' : 'Đã xác nhận hợp đồng'));
+      if (action === 'confirm') {
+        router.refresh();
+      }
+    } catch (error) {
+      console.error(`Error running contract ${action}:`, error);
+      toast.error('Có lỗi xảy ra khi xử lý hợp đồng');
+    } finally {
+      setWorkflowSubmitting(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -502,22 +559,75 @@ export default function ChinhSuaHopDongPage() {
     );
   }
 
+  const workflowMeta = hopDong as ContractWorkflowMeta;
+  const isLocked = Boolean(workflowMeta.lockedAt);
+  const isPreviewed = Boolean(workflowMeta.previewedAt || formData.dieuKhoan);
+  const isConfirmed = Boolean(workflowMeta.confirmedAt || formData.trangThai === 'hoatDong');
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 md:gap-4">
+      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
+        <div className="flex items-center gap-3 md:gap-4">
         <Button 
           variant="outline" 
           size="sm"
           onClick={() => router.push('/dashboard/hop-dong')}
         >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Chỉnh sửa hợp đồng</h1>
-          <p className="text-xs md:text-sm text-gray-600">Cập nhật thông tin hợp đồng {hopDong.maHopDong}</p>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <Badge variant="outline">{contractStatusLabel[formData.trangThai] || formData.trangThai}</Badge>
+              {isLocked && (
+                <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                  <LockKeyhole className="mr-1 h-3 w-3" />
+                  Đã khóa
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-2xl font-semibold tracking-normal text-foreground md:text-3xl">Hợp đồng {hopDong.maHopDong}</h1>
+            <p className="text-sm text-muted-foreground">Xem trước, xác nhận và quản lý dữ liệu hợp đồng.</p>
+          </div>
+        </div>
+        <div className="text-left text-sm md:text-right">
+          <div className="text-muted-foreground">Phòng</div>
+          <div className="font-medium">{phongList.find((phong) => phong._id === formData.phong)?.maPhong || '-'}</div>
         </div>
       </div>
+
+      <Card className="py-0">
+        <CardContent className="p-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <WorkflowStep
+              active
+              done={isPreviewed}
+              icon={<Eye className="h-4 w-4" />}
+              title="Xem trước"
+              description="Sinh nội dung hợp đồng để kiểm tra trước khi ký."
+            />
+            <WorkflowStep
+              active={isPreviewed}
+              done={isConfirmed}
+              icon={<FileCheck2 className="h-4 w-4" />}
+              title="Xác nhận"
+              description="Khóa dữ liệu, chuyển phòng sang đang thuê."
+            />
+            <WorkflowStep
+              active={isConfirmed}
+              done={isLocked}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+              title="Lịch thanh toán"
+              description="Tạo lịch thu tiền theo chu kỳ hợp đồng."
+            />
+          </div>
+          {isLocked && (
+            <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+              Hợp đồng đã được xác nhận và khóa. Các thay đổi trực tiếp nên được xử lý bằng phụ lục hoặc quy trình điều chỉnh hợp đồng.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Form */}
       <Card>
@@ -1018,7 +1128,41 @@ export default function ChinhSuaHopDongPage() {
               )}
             </div>
 
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              Khi bấm xác nhận, hệ thống sẽ khóa hợp đồng, cập nhật phòng sang đang thuê và tạo lịch thanh toán. Hãy dùng xem trước trước khi xác nhận.
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => runContractWorkflow('preview')}
+                disabled={submitting || Boolean(workflowSubmitting) || isLocked}
+                className="w-full sm:w-auto sm:min-w-[120px]"
+              >
+                {workflowSubmitting === 'preview' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4 mr-2" />
+                )}
+                Xem trước
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => runContractWorkflow('confirm')}
+                disabled={submitting || Boolean(workflowSubmitting) || isLocked}
+                className="w-full sm:w-auto sm:min-w-[120px]"
+              >
+                {workflowSubmitting === 'confirm' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileCheck2 className="h-4 w-4 mr-2" />
+                )}
+                Xác nhận
+              </Button>
               <Button 
                 type="button" 
                 variant="outline"
@@ -1032,7 +1176,7 @@ export default function ChinhSuaHopDongPage() {
               <Button 
                 type="submit"
                 size="sm"
-                disabled={submitting}
+                disabled={submitting || isLocked}
                 className="w-full sm:w-auto sm:min-w-[120px]"
               >
                 {submitting ? (
@@ -1043,7 +1187,7 @@ export default function ChinhSuaHopDongPage() {
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Cập nhật hợp đồng
+                    {isLocked ? 'Hợp đồng đã khóa' : 'Cập nhật hợp đồng'}
                   </>
                 )}
               </Button>
@@ -1051,6 +1195,47 @@ export default function ChinhSuaHopDongPage() {
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function WorkflowStep({
+  title,
+  description,
+  icon,
+  active,
+  done,
+}: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  active?: boolean;
+  done?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'rounded-lg border p-3',
+        done && 'border-emerald-200 bg-emerald-50',
+        !done && active && 'border-blue-200 bg-blue-50',
+        !done && !active && 'bg-muted/30 text-muted-foreground'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={cn(
+            'rounded-md border bg-background p-2',
+            done && 'border-emerald-200 text-emerald-700',
+            !done && active && 'border-blue-200 text-blue-700'
+          )}
+        >
+          {icon}
+        </div>
+        <div>
+          <div className="text-sm font-semibold">{title}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{description}</div>
+        </div>
+      </div>
     </div>
   );
 }

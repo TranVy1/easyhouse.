@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.TangRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +29,7 @@ class PhongServiceTest {
     @Mock private PhongRepository phongRepository;
     @Mock private NhaTroRepository nhaTroRepository;
     @Mock private HopDongRepository hopDongRepository;
+    @Mock private TangRepository tangRepository;
     @Mock private MediaService mediaService;
     @Mock private TienIchService tienIchService;
     @Mock private PermissionService permissionService;
@@ -38,7 +40,7 @@ class PhongServiceTest {
     void setUp() {
         service = new PhongService(
                 phongRepository, nhaTroRepository, hopDongRepository,
-                mediaService, tienIchService, permissionService);
+                tangRepository, mediaService, tienIchService, permissionService);
     }
 
     @Test

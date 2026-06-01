@@ -53,6 +53,10 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/toa-nha/:path*`
       },
       {
+        source: '/api/import/:path*',
+        destination: `${backendUrl}/api/import/:path*`
+      },
+      {
         source: '/api/khach-thue',
         destination: `${backendUrl}/api/khach-thue`
       },

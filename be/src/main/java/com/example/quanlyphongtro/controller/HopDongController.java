@@ -79,6 +79,24 @@ public class HopDongController {
         }
     }
 
+    @PostMapping("/{id}/preview")
+    public ResponseEntity<ApiResponse<HopDongResponse>> preview(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.preview(id), "Xem truoc hop dong thanh cong"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<ApiResponse<HopDongResponse>> confirm(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.confirm(id), "Xac nhan hop dong thanh cong"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         try {

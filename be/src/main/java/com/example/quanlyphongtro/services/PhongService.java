@@ -11,6 +11,7 @@ import com.example.quanlyphongtro.entity.TrangThaiPhong;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.TangRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,7 @@ public class PhongService {
     private final PhongRepository phongRepository;
     private final NhaTroRepository nhaTroRepository;
     private final HopDongRepository hopDongRepository;
+    private final TangRepository tangRepository;
     private final MediaService mediaService;
     private final TienIchService tienIchService;
     private final PermissionService permissionService;
@@ -111,6 +113,7 @@ public class PhongService {
                 .ten(req.getTen())
                 .khuVuc(req.getKhuVuc())
                 .tang(req.getTang())
+                .tangEntity(resolveTang(nt.getId(), req.getTangId(), req.getTang()))
                 .dienTich(req.getDienTich())
                 .giaHienTai(req.getGiaHienTai())
                 .tienCocMacDinh(req.getTienCocMacDinh())
@@ -154,6 +157,9 @@ public class PhongService {
 
         if (req.getKhuVuc() != null) p.setKhuVuc(req.getKhuVuc());
         if (req.getTang() != null) p.setTang(req.getTang());
+        if (req.getTangId() != null || req.getTang() != null) {
+            p.setTangEntity(resolveTang(currentNhaTroId, req.getTangId(), p.getTang()));
+        }
         if (req.getDienTich() != null) p.setDienTich(req.getDienTich());
         if (req.getGiaHienTai() != null) p.setGiaHienTai(req.getGiaHienTai());
         if (req.getTienCocMacDinh() != null) p.setTienCocMacDinh(req.getTienCocMacDinh());
@@ -215,6 +221,21 @@ public class PhongService {
 
     private UUID ownerId(NhaTro nhaTro) {
         return nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
+    }
+
+    private com.example.quanlyphongtro.entity.Tang resolveTang(UUID nhaTroId, UUID tangId, Integer soTang) {
+        if (tangId != null) {
+            com.example.quanlyphongtro.entity.Tang tang = tangRepository.findByIdAndXoaLucIsNull(tangId)
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay tang"));
+            if (tang.getNhaTro() == null || !tang.getNhaTro().getId().equals(nhaTroId)) {
+                throw new RuntimeException("Tang khong thuoc toa nha da chon");
+            }
+            return tang;
+        }
+        if (soTang != null) {
+            return tangRepository.findByNhaTroIdAndSoTangAndXoaLucIsNull(nhaTroId, soTang).orElse(null);
+        }
+        return null;
     }
 
     private TrangThaiPhong parseTrangThai(String s) {
