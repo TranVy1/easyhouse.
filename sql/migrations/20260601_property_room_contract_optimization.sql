@@ -355,7 +355,7 @@ BEGIN
         v_tang_count := v_tang_count + 1;
 
         FOR v_phong IN 1..p_so_phong_moi_tang LOOP
-            v_ma_phong := (v_tang * 100 + v_phong)::text;
+            v_ma_phong := 'Phòng ' || (v_tang * 100 + v_phong)::text;
 
             INSERT INTO public.phong (
                 nha_tro_id,

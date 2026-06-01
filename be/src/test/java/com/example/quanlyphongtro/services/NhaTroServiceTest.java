@@ -34,13 +34,14 @@ class NhaTroServiceTest {
     @Mock private TangRepository tangRepository;
     @Mock private NguoiDungRepository nguoiDungRepository;
     @Mock private PermissionService permissionService;
+    @Mock private TienIchService tienIchService;
     @Mock private JdbcTemplate jdbcTemplate;
 
     private NhaTroService service;
 
     @BeforeEach
     void setUp() {
-        service = new NhaTroService(nhaTroRepository, phongRepository, tangRepository, nguoiDungRepository, permissionService, jdbcTemplate);
+        service = new NhaTroService(nhaTroRepository, phongRepository, tangRepository, nguoiDungRepository, permissionService, tienIchService, jdbcTemplate);
     }
 
     @Test

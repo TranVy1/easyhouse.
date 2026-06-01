@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Search, 
@@ -611,6 +612,7 @@ function ToaNhaForm({
     giaThueMacDinh: '2500000',
     tienCocMacDinh: '2500000',
     soNguoiToiDa: '2',
+    tienNghiMacDinh: [] as string[],
   });
   const [cauTrucTang, setCauTrucTang] = useState([
     { soTang: '1', soPhong: '5', dienTichMacDinh: '20', giaThueMacDinh: '2500000', tienCocMacDinh: '2500000', soNguoiToiDa: '2' },
@@ -772,6 +774,7 @@ function ToaNhaForm({
             tienCocMacDinh: Number(floor.tienCocMacDinh),
             soNguoiToiDa: Number(floor.soNguoiToiDa),
           })),
+          tienNghiMacDinh: formData.tienNghiMacDinh,
         } : {
           cheDoTaoPhong: formData.cheDoTaoPhong,
           soTang: Number(formData.soTang),
@@ -780,6 +783,7 @@ function ToaNhaForm({
           giaThueMacDinh: Number(formData.giaThueMacDinh),
           tienCocMacDinh: Number(formData.tienCocMacDinh),
           soNguoiToiDa: Number(formData.soNguoiToiDa),
+          tienNghiMacDinh: formData.tienNghiMacDinh,
         }),
       };
 
@@ -1079,8 +1083,32 @@ function ToaNhaForm({
                 <Label htmlFor="tienCocMacDinh" className="text-sm">Tiền cọc mặc định</Label>
                 <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} />
               </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-sm block mb-2">Tiện nghi áp dụng cho tất cả phòng</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {tienNghiOptions.map(option => (
+                    <div key={option.value} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`tn-default-${option.value}`} 
+                        checked={formData.tienNghiMacDinh.includes(option.label)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tienNghiMacDinh: checked 
+                              ? [...prev.tienNghiMacDinh, option.label]
+                              : prev.tienNghiMacDinh.filter(t => t !== option.label)
+                          }));
+                        }}
+                      />
+                      <Label htmlFor={`tn-default-${option.value}`} className="text-sm font-normal cursor-pointer">
+                        {option.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="rounded-md bg-muted p-3 text-sm md:col-span-2">
-                Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, mã phòng dạng 101, 102...
+                Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, Tên phòng dạng Phòng 101, Phòng 102...
               </div>
             </div>
           )}
@@ -1178,6 +1206,48 @@ function ToaNhaForm({
 
               <div className="rounded-md bg-muted p-3 text-sm">
                 Dự kiến tạo {cauTrucTang.reduce((sum, floor) => sum + Number(floor.soPhong || 0), 0)} phòng theo cấu trúc tùy chỉnh.
+              </div>
+            </div>
+          )}
+
+          {formData.cheDoTaoPhong !== 'NONE' && (
+            <div className="space-y-2 rounded-lg border p-3 mt-3">
+              <Label className="text-sm font-semibold text-gray-700">Tiện nghi áp dụng cho tất cả các phòng mới sinh</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50/50 p-4 border border-dashed rounded-lg">
+                {[
+                  { value: 'dieuhoa', label: 'Điều hòa' },
+                  { value: 'nonglanh', label: 'Nóng lạnh' },
+                  { value: 'tulanh', label: 'Tủ lạnh' },
+                  { value: 'giuong', label: 'Giường' },
+                  { value: 'tuquanao', label: 'Tủ quần áo' },
+                  { value: 'banlamviec', label: 'Bàn làm việc' },
+                  { value: 'ghe', label: 'Ghế' },
+                  { value: 'tivi', label: 'TV' },
+                  { value: 'wifi', label: 'WiFi' },
+                  { value: 'maygiat', label: 'Máy giặt' },
+                  { value: 'bep', label: 'Bếp' }
+                ].map((option) => (
+                  <div key={option.value} className="flex items-center space-x-2.5 py-1">
+                    <input
+                      type="checkbox"
+                      id={`phong-tn-${option.value}`}
+                      checked={formData.tienNghiMacDinh.includes(option.value)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData(prev => ({
+                          ...prev,
+                          tienNghiMacDinh: checked
+                            ? [...prev.tienNghiMacDinh, option.value]
+                            : prev.tienNghiMacDinh.filter(t => t !== option.value)
+                        }));
+                      }}
+                      className="rounded border-gray-300 h-4 w-4 accent-blue-600 cursor-pointer"
+                    />
+                    <Label htmlFor={`phong-tn-${option.value}`} className="text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer select-none">
+                      {option.label}
+                    </Label>
+                  </div>
+                ))}
               </div>
             </div>
           )}

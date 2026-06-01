@@ -30,6 +30,15 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     long countByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
     boolean existsByNhaTroIdAndTen(UUID nhaTroId, String ten);
     boolean existsByNhaTroIdAndTenAndIdNot(UUID nhaTroId, String ten, UUID id);
+    Optional<Phong> findByNhaTroIdAndTenIgnoreCaseAndXoaLucIsNull(UUID nhaTroId, String ten);
+
+    @Query("SELECT p FROM Phong p WHERE p.nhaTro.id = :nhaTroId AND p.xoaLuc IS NULL " +
+           "AND (LOWER(p.ten) = LOWER(:tenPhong) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('Phòng ', :tenPhong)) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('Phong ', :tenPhong)))")
+    Optional<Phong> findByNhaTroIdAndTenPhongFuzzy(
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("tenPhong") String tenPhong);
 
     @Query("SELECT p FROM Phong p LEFT JOIN p.nhaTro nt WHERE p.xoaLuc IS NULL " +
            "AND (cast(:nhaTroId as uuid) IS NULL OR p.nhaTro.id = :nhaTroId) " +

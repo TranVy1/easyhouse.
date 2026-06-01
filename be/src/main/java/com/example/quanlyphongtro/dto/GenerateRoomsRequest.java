@@ -14,6 +14,7 @@ public class GenerateRoomsRequest {
     private BigDecimal tienCocMacDinh;
     private Integer soNguoiToiDa;
     private List<CauTrucTangRequest> cauTrucTang;
+    private List<String> tienNghiMacDinh;
 
     @Data
     public static class CauTrucTangRequest {

@@ -4,13 +4,13 @@ import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.PhongRequest;
 import com.example.quanlyphongtro.dto.PhongResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
-import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.services.PhongService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +29,21 @@ public class PhongController {
             @RequestParam(defaultValue = "10") int limit
     ) {
         return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai, search, page, limit));
+    }
+
+    /**
+     * Lookup a room by name (supports fuzzy: "101" matches "Phòng 101").
+     * Used by the bulk folder-image upload feature.
+     */
+    @GetMapping("/lookup-by-name")
+    public ApiResponse<Map<String, Object>> lookupByName(
+            @RequestParam("nhaTroId") UUID nhaTroId,
+            @RequestParam("tenPhong") String tenPhong) {
+        try {
+            return ApiResponse.success(phongService.lookupPhongByName(nhaTroId, tenPhong));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

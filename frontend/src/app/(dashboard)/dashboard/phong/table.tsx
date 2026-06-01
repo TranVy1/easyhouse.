@@ -209,8 +209,22 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
     enableHiding: false,
   },
   {
+    id: "stt",
+    header: () => <div className="text-center w-10">STT</div>,
+    cell: ({ row, table }) => {
+      const { pageIndex, pageSize } = table.getState().pagination
+      return (
+        <div className="text-center w-10 font-medium text-sm">
+          {pageIndex * pageSize + row.index + 1}
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: "maPhong",
-    header: "Mã phòng",
+    header: "Tên phòng",
     cell: ({ row }) => (
       <div className="min-w-24">
         <div className="font-medium">{row.original.maPhong}</div>
@@ -550,7 +564,7 @@ export function PhongDataTable(props: PhongDataTableProps) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tìm kiếm theo mã phòng, mô tả..."
+                placeholder="Tìm kiếm theo tên phòng, mô tả..."
                 value={searchTerm || ''}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 className="pl-10"
@@ -613,7 +627,7 @@ export function PhongDataTable(props: PhongDataTableProps) {
                         column.toggleVisibility(!!value)
                       }
                     >
-                      {column.id === "maPhong" ? "Mã phòng" :
+                      {column.id === "maPhong" ? "Tên phòng" :
                        column.id === "toaNha" ? "Tòa nhà" :
                        column.id === "tang" ? "Tầng" :
                        column.id === "dienTich" ? "Diện tích" :
