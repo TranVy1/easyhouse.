@@ -252,4 +252,28 @@ public class PhongService {
         if (s == null || s.isBlank() || s.equals("all")) return null;
         try { return UUID.fromString(s); } catch (Exception e) { return null; }
     }
+
+    /**
+     * Lookup phòng theo tên, hỗ trợ fuzzy: "101" có thể match "Phòng 101".
+     * Trả về id + ten của phòng nếu tìm thấy.
+     */
+    public java.util.Map<String, Object> lookupPhongByName(UUID nhaTroId, String tenPhong) {
+        if (nhaTroId == null || tenPhong == null || tenPhong.isBlank()) {
+            throw new RuntimeException("nhaTroId và tenPhong không được để trống");
+        }
+        String trimmed = tenPhong.trim();
+        java.util.Optional<Phong> phongOpt = phongRepository.findByNhaTroIdAndTenPhongFuzzy(nhaTroId, trimmed);
+        return phongOpt.map(p -> {
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("id", p.getId().toString());
+            result.put("ten", p.getTen());
+            result.put("found", true);
+            return result;
+        }).orElseGet(() -> {
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("found", false);
+            result.put("tenPhong", trimmed);
+            return result;
+        });
+    }
 }

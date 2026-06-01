@@ -10,6 +10,7 @@ import com.example.quanlyphongtro.dto.SoDoToaNhaResponse;
 import com.example.quanlyphongtro.dto.TangResponse;
 import com.example.quanlyphongtro.dto.ThongKeToaNhaResponse;
 import com.example.quanlyphongtro.entity.NhaTro;
+import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiPhong;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
@@ -47,6 +48,7 @@ public class NhaTroService {
     private final TangRepository tangRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final PermissionService permissionService;
+    private final TienIchService tienIchService;
     private final JdbcTemplate jdbcTemplate;
 
     public PaginatedResponse<NhaTroResponse> getAllNhaTro(String search, int page, int limit) {
@@ -279,30 +281,47 @@ public class NhaTroService {
         generateRequest.setTienCocMacDinh(request.getTienCocMacDinh());
         generateRequest.setSoNguoiToiDa(request.getSoNguoiToiDa());
         generateRequest.setCauTrucTang(request.getCauTrucTang());
+        generateRequest.setTienNghiMacDinh(request.getTienNghiMacDinh());
         generateRoomsInternal(nhaTro.getId(), generateRequest);
     }
 
     private GenerateRoomsResponse generateRoomsInternal(UUID nhaTroId, GenerateRoomsRequest request) {
         if (request == null) throw new RuntimeException("Thieu cau hinh tao phong");
+        
+        List<UUID> existingRoomIds = phongRepository.findByNhaTroIdAndXoaLucIsNull(nhaTroId)
+                .stream().map(Phong::getId).toList();
+
+        GenerateRoomsResponse response;
         if (request.getCauTrucTang() != null && !request.getCauTrucTang().isEmpty()) {
-            return generateCustomRooms(nhaTroId, request);
+            response = generateCustomRooms(nhaTroId, request);
+        } else {
+            int soTang = positive(request.getSoTang(), "So tang phai lon hon 0");
+            int soPhongMoiTang = positive(request.getSoPhongMoiTang(), "So phong moi tang phai lon hon 0");
+            response = jdbcTemplate.queryForObject(
+                    "SELECT * FROM public.sinh_phong_toa_nha(?::uuid, ?, ?, ?, ?, ?, ?)",
+                    (rs, rowNum) -> GenerateRoomsResponse.builder()
+                            .tangDuocTao(rs.getInt("tang_duoc_tao"))
+                            .phongDuocTao(rs.getInt("phong_duoc_tao"))
+                            .build(),
+                    nhaTroId,
+                    soTang,
+                    soPhongMoiTang,
+                    defaultBigDecimal(request.getDienTichMacDinh(), BigDecimal.valueOf(20)),
+                    defaultBigDecimal(request.getGiaThueMacDinh(), BigDecimal.ZERO),
+                    defaultBigDecimal(request.getTienCocMacDinh(), BigDecimal.ZERO),
+                    request.getSoNguoiToiDa() != null ? request.getSoNguoiToiDa() : 2);
         }
 
-        int soTang = positive(request.getSoTang(), "So tang phai lon hon 0");
-        int soPhongMoiTang = positive(request.getSoPhongMoiTang(), "So phong moi tang phai lon hon 0");
-        return jdbcTemplate.queryForObject(
-                "SELECT * FROM public.sinh_phong_toa_nha(?::uuid, ?, ?, ?, ?, ?, ?)",
-                (rs, rowNum) -> GenerateRoomsResponse.builder()
-                        .tangDuocTao(rs.getInt("tang_duoc_tao"))
-                        .phongDuocTao(rs.getInt("phong_duoc_tao"))
-                        .build(),
-                nhaTroId,
-                soTang,
-                soPhongMoiTang,
-                defaultBigDecimal(request.getDienTichMacDinh(), BigDecimal.valueOf(20)),
-                defaultBigDecimal(request.getGiaThueMacDinh(), BigDecimal.ZERO),
-                defaultBigDecimal(request.getTienCocMacDinh(), BigDecimal.ZERO),
-                request.getSoNguoiToiDa() != null ? request.getSoNguoiToiDa() : 2);
+        if (request.getTienNghiMacDinh() != null && !request.getTienNghiMacDinh().isEmpty()) {
+            List<Phong> rooms = phongRepository.findByNhaTroIdAndXoaLucIsNull(nhaTroId);
+            for (Phong p : rooms) {
+                if (!existingRoomIds.contains(p.getId())) {
+                    tienIchService.replacePhongTienIch(p.getId(), request.getTienNghiMacDinh());
+                }
+            }
+        }
+
+        return response;
     }
 
     private GenerateRoomsResponse generateCustomRooms(UUID nhaTroId, GenerateRoomsRequest request) {
@@ -331,7 +350,7 @@ public class NhaTroService {
                         INSERT INTO public.phong (nha_tro_id, tang_id, ten, tang, dien_tich, so_nguoi_toi_da, trang_thai, gia_hien_tai, tien_coc_mac_dinh)
                         VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, 'AVAILABLE'::public.trang_thai_phong, ?, ?)
                         ON CONFLICT (nha_tro_id, ten) DO NOTHING
-                        """, nhaTroId, tangId, String.valueOf(soTang * 100 + i), soTang, dienTich, soNguoi, gia, tienCoc);
+                        """, nhaTroId, tangId, "Phòng " + (soTang * 100 + i), soTang, dienTich, soNguoi, gia, tienCoc);
                 phongCount += updated;
             }
         }

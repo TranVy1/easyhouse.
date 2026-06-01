@@ -30,6 +30,7 @@ public class NhaTroRequest {
     private BigDecimal tienCocMacDinh;
     private Integer soNguoiToiDa;
     private List<GenerateRoomsRequest.CauTrucTangRequest> cauTrucTang;
+    private List<String> tienNghiMacDinh;
 
     @Data
     @Builder
