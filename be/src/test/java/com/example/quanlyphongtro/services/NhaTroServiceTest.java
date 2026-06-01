@@ -76,10 +76,10 @@ class NhaTroServiceTest {
         when(nhaTroRepository.findById(nhaTroId)).thenReturn(Optional.of(nhaTro));
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(permissionService.canWriteNhaTro(userId, nhaTroId, userId)).thenReturn(true);
-        when(phongRepository.countByNhaTroIdAndXoaLucIsNull(nhaTroId)).thenReturn(1L);
+        when(phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nhaTroId, com.example.quanlyphongtro.entity.TrangThaiPhong.RENTED)).thenReturn(1L);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.deleteNhaTro(nhaTroId));
-        assertEquals("Khong the xoa nha tro dang co phong hoat dong", error.getMessage());
+        assertEquals("Khong the xoa nha tro vi dang co phong co nguoi thue", error.getMessage());
     }
 
     @Test

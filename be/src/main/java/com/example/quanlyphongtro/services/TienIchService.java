@@ -86,6 +86,33 @@ public class TienIchService {
                 });
     }
 
+    @Transactional
+    public void assignTienIchToRooms(List<UUID> phongIds, Collection<String> tienNghi) {
+        if (phongIds == null || phongIds.isEmpty() || tienNghi == null || tienNghi.isEmpty()) return;
+
+        List<UUID> tienIchIds = tienNghi.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .map(this::upsertTienIch)
+                .toList();
+
+        if (tienIchIds.isEmpty()) return;
+
+        List<Object[]> batchArgs = new java.util.ArrayList<>();
+        for (UUID phongId : phongIds) {
+            for (UUID tienIchId : tienIchIds) {
+                batchArgs.add(new Object[]{phongId, tienIchId});
+            }
+        }
+
+        jdbcTemplate.batchUpdate("""
+                INSERT INTO phong_tien_ich (phong_id, tien_ich_id)
+                VALUES (?, ?)
+                ON CONFLICT (phong_id, tien_ich_id) DO NOTHING
+                """, batchArgs);
+    }
+
     private UUID upsertTienIch(String ten) {
         return jdbcTemplate.queryForObject("""
                 INSERT INTO tien_ich (ten)

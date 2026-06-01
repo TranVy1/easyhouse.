@@ -116,11 +116,16 @@ public class NhaTroService {
         NhaTro nt = nhaTroRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         assertCanWrite(nt, permissionService.requireCurrentUserId());
-        if (phongRepository.countByNhaTroIdAndXoaLucIsNull(id) > 0) {
-            throw new RuntimeException("Khong the xoa nha tro dang co phong hoat dong");
+        if (phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(id, TrangThaiPhong.RENTED) > 0) {
+            throw new RuntimeException("Khong the xoa nha tro vi dang co phong co nguoi thue");
         }
-        nt.setXoaLuc(ZonedDateTime.now());
+        
+        ZonedDateTime now = ZonedDateTime.now();
+        nt.setXoaLuc(now);
         nhaTroRepository.save(nt);
+        
+        jdbcTemplate.update("UPDATE public.phong SET xoa_luc = ? WHERE nha_tro_id = ? AND xoa_luc IS NULL", java.sql.Timestamp.from(now.toInstant()), id);
+        jdbcTemplate.update("UPDATE public.tang SET xoa_luc = ? WHERE nha_tro_id = ? AND xoa_luc IS NULL", java.sql.Timestamp.from(now.toInstant()), id);
     }
 
     public List<TangResponse> getTangByNhaTro(UUID id) {
@@ -314,10 +319,12 @@ public class NhaTroService {
 
         if (request.getTienNghiMacDinh() != null && !request.getTienNghiMacDinh().isEmpty()) {
             List<Phong> rooms = phongRepository.findByNhaTroIdAndXoaLucIsNull(nhaTroId);
-            for (Phong p : rooms) {
-                if (!existingRoomIds.contains(p.getId())) {
-                    tienIchService.replacePhongTienIch(p.getId(), request.getTienNghiMacDinh());
-                }
+            List<UUID> newRoomIds = rooms.stream()
+                    .map(Phong::getId)
+                    .filter(id -> !existingRoomIds.contains(id))
+                    .toList();
+            if (!newRoomIds.isEmpty()) {
+                tienIchService.assignTienIchToRooms(newRoomIds, request.getTienNghiMacDinh());
             }
         }
 

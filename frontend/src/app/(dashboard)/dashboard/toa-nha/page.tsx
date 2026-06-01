@@ -477,7 +477,7 @@ export default function ToaNhaPage() {
               const tyLeToa = tongPhongToa > 0 ? Math.round((phongDangThue / tongPhongToa) * 100) : 0;
               
               return (
-                <Card key={toaNha._id} className="py-0 transition-shadow hover:shadow-md">
+                <Card key={toaNha._id} className="py-0 transition-shadow hover:shadow-md cursor-pointer" onDoubleClick={() => handleView(toaNha)}>
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
@@ -629,6 +629,7 @@ function ToaNhaForm({
   const [openProvince, setOpenProvince] = useState(false);
   const [openDistrict, setOpenDistrict] = useState(false);
   const [openWard, setOpenWard] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetch('https://provinces.open-api.vn/api/p/')
@@ -748,6 +749,28 @@ function ToaNhaForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
+    if (!toaNha && formData.cheDoTaoPhong !== 'NONE') {
+      if (formData.cheDoTaoPhong === 'FIXED') {
+        if (Number(formData.soTang) <= 0 || Number(formData.soPhongMoiTang) <= 0) {
+          toast.error('Số tầng và số phòng mỗi tầng phải lớn hơn 0');
+          return;
+        }
+      } else if (formData.cheDoTaoPhong === 'CUSTOM') {
+        if (cauTrucTang.length === 0) {
+          toast.error('Vui lòng thêm ít nhất 1 tầng');
+          return;
+        }
+        const invalidFloor = cauTrucTang.find(f => Number(f.soTang) <= 0 || Number(f.soPhong) <= 0);
+        if (invalidFloor) {
+          toast.error('Số tầng và số phòng của mỗi tầng phải lớn hơn 0');
+          return;
+        }
+      }
+    }
+
+    setIsSubmitting(true);
     try {
       const submitData = {
         tenToaNha: formData.tenToaNha,
@@ -807,12 +830,26 @@ function ToaNhaForm({
           toast.error(result.message || 'Có lỗi xảy ra');
         }
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Có lỗi xảy ra');
+        let errorMsg = 'Có lỗi xảy ra từ máy chủ (HTTP ' + response.status + ')';
+        try {
+          const text = await response.text();
+          try {
+            const error = JSON.parse(text);
+            errorMsg = error.message || errorMsg;
+          } catch (e) {
+            console.error("Server trả về lỗi không phải JSON:", text);
+            if (text.includes("Internal Server Error")) {
+              errorMsg = "Lỗi hệ thống máy chủ (Internal Server Error). Vui lòng kiểm tra dữ liệu hoặc liên hệ admin.";
+            }
+          }
+        } catch (e) {}
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Có lỗi xảy ra khi gửi form');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1083,30 +1120,7 @@ function ToaNhaForm({
                 <Label htmlFor="tienCocMacDinh" className="text-sm">Tiền cọc mặc định</Label>
                 <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="text-sm block mb-2">Tiện nghi áp dụng cho tất cả phòng</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {tienNghiOptions.map(option => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`tn-default-${option.value}`} 
-                        checked={formData.tienNghiMacDinh.includes(option.label)}
-                        onCheckedChange={(checked) => {
-                          setFormData(prev => ({
-                            ...prev,
-                            tienNghiMacDinh: checked 
-                              ? [...prev.tienNghiMacDinh, option.label]
-                              : prev.tienNghiMacDinh.filter(t => t !== option.label)
-                          }));
-                        }}
-                      />
-                      <Label htmlFor={`tn-default-${option.value}`} className="text-sm font-normal cursor-pointer">
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
               <div className="rounded-md bg-muted p-3 text-sm md:col-span-2">
                 Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, Tên phòng dạng Phòng 101, Phòng 102...
               </div>
@@ -1231,14 +1245,14 @@ function ToaNhaForm({
                     <input
                       type="checkbox"
                       id={`phong-tn-${option.value}`}
-                      checked={formData.tienNghiMacDinh.includes(option.value)}
+                      checked={formData.tienNghiMacDinh.includes(option.label)}
                       onChange={(e) => {
                         const checked = e.target.checked;
                         setFormData(prev => ({
                           ...prev,
                           tienNghiMacDinh: checked
-                            ? [...prev.tienNghiMacDinh, option.value]
-                            : prev.tienNghiMacDinh.filter(t => t !== option.value)
+                            ? [...prev.tienNghiMacDinh, option.label]
+                            : prev.tienNghiMacDinh.filter(t => t !== option.label)
                         }));
                       }}
                       className="rounded border-gray-300 h-4 w-4 accent-blue-600 cursor-pointer"
@@ -1258,8 +1272,8 @@ function ToaNhaForm({
         <Button type="button" variant="outline" onClick={onClose} className="text-sm">
           Hủy
         </Button>
-        <Button type="submit" className="text-sm">
-          {toaNha ? 'Cập nhật' : 'Thêm mới'}
+        <Button type="submit" className="text-sm" disabled={isSubmitting}>
+          {isSubmitting ? 'Đang xử lý...' : (toaNha ? 'Cập nhật' : 'Thêm mới')}
         </Button>
       </DialogFooter>
     </form>

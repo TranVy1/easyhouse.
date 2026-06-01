@@ -19,10 +19,20 @@ import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Save,
+  Loader2,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Plus
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Phong, KhachThue, ToaNha } from '@/types';
+import { generateAndDownloadHopDong } from '@/lib/export-hop-dong';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import { normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
@@ -89,10 +99,10 @@ export default function ThemMoiHopDongPage() {
     nguoiDaiDien: '',
     ngayBatDau: new Date().toISOString().split('T')[0],
     ngayKetThuc: '',
-    giaThue: 0,
-    tienCoc: 0,
+    giaThue: 0 as number | string,
+    tienCoc: 0 as number | string,
     chuKyThanhToan: 'thang' as 'thang' | 'quy' | 'nam',
-    ngayThanhToan: 15,
+    ngayThanhToan: 5 as number | string,
     ghiChu: '',
     dieuKhoan: `ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
 
@@ -123,8 +133,8 @@ export default function ThemMoiHopDongPage() {
 - Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận
 - Mọi tranh chấp sẽ được giải quyết thông qua thương lượng
 - Hợp đồng có hiệu lực kể từ ngày ký`,
-    chiSoDienBanDau: 0,
-    chiSoNuocBanDau: 0,
+    chiSoDienBanDau: 0 as number | string,
+    chiSoNuocBanDau: 0 as number | string,
     phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
@@ -133,6 +143,49 @@ export default function ThemMoiHopDongPage() {
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
+  const [openAddKhachThue, setOpenAddKhachThue] = useState(false);
+  const [openPreviewModal, setOpenPreviewModal] = useState(false);
+  const [loadingAddKhachThue, setLoadingAddKhachThue] = useState(false);
+  const [newKhachThueData, setNewKhachThueData] = useState({ hoTen: '', soDienThoai: '', cccd: '' });
+
+  const handleQuickAddKhachThue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKhachThueData.hoTen || !newKhachThueData.soDienThoai) {
+      toast.error('Vui lòng nhập họ tên và số điện thoại');
+      return;
+    }
+    setLoadingAddKhachThue(true);
+    try {
+      const response = await fetch('/api/khach-thue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(newKhachThueData),
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        toast.success('Thêm khách thuê thành công');
+        const newKhachThue = result.data;
+        setKhachThueList(prev => [...prev, normalizeKhachThue(newKhachThue)]);
+        setFormData(prev => ({
+          ...prev,
+          nguoiDaiDien: newKhachThue._id || newKhachThue.id,
+          khachThueId: prev.khachThueId.filter(id => id !== (newKhachThue._id || newKhachThue.id)),
+        }));
+        setOpenAddKhachThue(false);
+        setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '' });
+      } else {
+        toast.error(result.message || 'Thêm khách thuê thất bại');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setLoadingAddKhachThue(false);
+    }
+  };
 
   const ensureISODate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -372,9 +425,17 @@ export default function ThemMoiHopDongPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = validateContractForm();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    setOpenPreviewModal(true);
+  };
 
+  const handleConfirmAndSave = async () => {
     if (submitting) return;
 
     const validationError = validateContractForm();
@@ -400,21 +461,45 @@ export default function ThemMoiHopDongPage() {
           khachThueIds: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
-          phiDichVu: sanitizePhiDichVu(formData.phiDichVu),
+          phiDichVu: formData.phiDichVu.map((phi: any) => ({
+             ...phi,
+             gia: Number(phi.gia || 0)
+          })),
         }),
       });
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
-        // Xóa cache để force refresh data
+        toast.success(result.message || 'Đã lưu hợp đồng thành công');
+        
+        try {
+          const phongObj = phongList.find(p => p._id === formData.phong);
+          const toaNhaObj = nhaTroList.find(t => t._id === selectedNhaTro);
+          const phongInfo = {
+            maPhong: phongObj?.maPhong || '',
+            toaNha: toaNhaObj?.tenToaNha || ''
+          };
+          const nguoiDaiDienObj = khachThueList.find(k => k._id === formData.nguoiDaiDien);
+          const nguoiDaiDienName = nguoiDaiDienObj?.hoTen || '';
+          
+          await generateAndDownloadHopDong(
+            { ...formData, ...result.data, ngayTao: new Date().toISOString() }, 
+            phongInfo,
+            nguoiDaiDienName,
+            nguoiDaiDienObj,
+            formatCurrency
+          );
+        } catch (err) {
+          console.error("Error exporting docx", err);
+          toast.error("Lưu thành công nhưng lỗi tạo file Hợp đồng");
+        }
+        
+        setOpenPreviewModal(false);
         sessionStorage.removeItem('hop-dong-data');
-        toast.success(result.message || 'Đã tạo hợp đồng thành công');
-        // Sử dụng replace để không tạo history entry mới
-        // và refresh để cập nhật dữ liệu server-side
-        router.replace('/dashboard/hop-dong');
+        router.push('/dashboard/hop-dong');
         router.refresh();
       } else {
-        toast.error(result.message || 'Có lỗi xảy ra');
+        toast.error(result.message || 'Có lỗi xảy ra khi lưu hợp đồng');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -448,7 +533,7 @@ export default function ThemMoiHopDongPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Tạo hợp đồng mới</h1>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Xem trước hợp đồng</h1>
           <p className="text-xs md:text-sm text-gray-600">Nhập thông tin hợp đồng mới</p>
         </div>
       </div>
@@ -463,19 +548,7 @@ export default function ThemMoiHopDongPage() {
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="maHopDong" className="text-xs md:text-sm">Mã hợp đồng</Label>
-                <Input
-                  id="maHopDong"
-                  value={formData.maHopDong}
-                  onChange={(e) => setFormData(prev => ({ ...prev, maHopDong: e.target.value.toUpperCase() }))}
-                  placeholder="HD001"
-                  required
-                  className="text-sm"
-                />
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div className="space-y-2">
                 <Label className="text-xs md:text-sm">Nhà trọ *</Label>
                 <Popover open={openNhaTro} onOpenChange={setOpenNhaTro}>
@@ -504,7 +577,7 @@ export default function ThemMoiHopDongPage() {
                             value={nt.tenToaNha}
                             onSelect={() => {
                               setSelectedNhaTro(nt._id!);
-                              setFormData(prev => ({ ...prev, phong: '', giaThue: 0, tienCoc: 0, phiDichVu: [] }));
+                              setFormData(prev => ({ ...prev, phong: '', giaThue: 0 as number | string, tienCoc: 0 as number | string, phiDichVu: [] }));
                               setDichVuOptions([]);
                               setOpenNhaTro(false);
                             }}
@@ -622,6 +695,19 @@ export default function ThemMoiHopDongPage() {
                             </CommandItem>
                           ))}
                       </CommandGroup>
+                      <div className="p-1 border-t">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-sm"
+                          onClick={() => {
+                            setOpenNguoiDaiDien(false);
+                            setOpenAddKhachThue(true);
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Thêm khách thuê nhanh
+                        </Button>
+                      </div>
                     </Command>
                   </PopoverContent>
                 </Popover>
@@ -758,12 +844,12 @@ export default function ThemMoiHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.giaThue}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaThue: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaThue: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaThue)}
+                  {formatCurrency(Number(formData.giaThue))}
                 </span>
               </div>
 
@@ -774,12 +860,12 @@ export default function ThemMoiHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.tienCoc}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.tienCoc)}
+                  {formatCurrency(Number(formData.tienCoc))}
                 </span>
               </div>
 
@@ -791,7 +877,7 @@ export default function ThemMoiHopDongPage() {
                   min="1"
                   max="31"
                   value={formData.ngayThanhToan}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: parseInt(e.target.value) || 1 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: e.target.value === '' ? '' : parseInt(e.target.value) || 1 }))}
                   required
                   className="text-sm"
                 />
@@ -841,7 +927,7 @@ export default function ThemMoiHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.chiSoDienBanDau}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoDienBanDau: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoDienBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số điện ban đầu"
                   required
                 />
@@ -857,7 +943,7 @@ export default function ThemMoiHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.chiSoNuocBanDau}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoNuocBanDau: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoNuocBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số nước ban đầu"
                   required
                 />
@@ -1037,12 +1123,12 @@ export default function ThemMoiHopDongPage() {
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Đang tạo...
+                    Đang xử lý...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Tạo hợp đồng
+                    Xem trước hợp đồng
                   </>
                 )}
               </Button>
@@ -1050,6 +1136,146 @@ export default function ThemMoiHopDongPage() {
           </form>
         </CardContent>
       </Card>
+            {/* Modal Preview Hop Dong */}
+      <Dialog open={openPreviewModal} onOpenChange={setOpenPreviewModal}>
+        <DialogContent className="sm:max-w-[800px] h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Xem trước Hợp đồng</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-4 border rounded-md bg-white text-black">
+            <div className="max-w-2xl mx-auto space-y-4 font-serif text-sm">
+              <div className="text-center font-bold">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br/>
+                Độc lập - Tự do - Hạnh phúc
+              </div>
+              <h2 className="text-xl font-bold text-center mt-6 mb-4">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h2>
+              <p className="font-bold">1. Đại diện bên cho thuê (Bên A):</p>
+              <p>Ban Quản Lý Tòa Nhà</p>
+              
+              <p className="font-bold mt-4">2. Bên thuê phòng trọ (Bên B):</p>
+              <p>Ông/Bà: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.hoTen || '[Chưa chọn]'}</p>
+              <p>SĐT: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.soDienThoai}</p>
+              <p>CCCD: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.cccd}</p>
+              
+              <div className="font-bold mt-4">3. Điều khoản thỏa thuận:</div>
+              <p>- Cho thuê phòng: <strong>{phongList.find(p => p._id === formData.phong)?.maPhong}</strong> tại {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}</p>
+              <p>- Giá thuê: <strong>{formatCurrency(Number(formData.giaThue))}</strong> /tháng (Thanh toán vào ngày {formData.ngayThanhToan} hàng tháng)</p>
+              <p>- Tiền đặt cọc: <strong>{formatCurrency(Number(formData.tienCoc))}</strong></p>
+              <p>- Tiền điện: (Theo thỏa thuận / Dịch vụ)</p>
+              <p>- Tiền nước: (Theo thỏa thuận / Dịch vụ)</p>
+              {formData.phiDichVu.length > 0 && (
+                <div>
+                  <p>- Phí dịch vụ bổ sung:</p>
+                  <ul className="list-disc pl-5">
+                    {formData.phiDichVu.map((phi, i) => (
+                      <li key={i}>{phi.ten}: {formatCurrency(phi.gia)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p>- Thời hạn: Từ ngày {formData.ngayBatDau} đến {formData.ngayKetThuc}</p>
+              <div className="mt-6">
+                <h3 className="font-bold text-lg mb-2 text-center">TRÁCH NHIỆM CỦA CÁC BÊN</h3>
+                
+                <p className="font-bold mt-3">* Trách nhiệm của bên A:</p>
+                <p>- Tạo mọi điều kiện thuận lợi để bên B thực hiện theo hợp đồng.</p>
+                <p>- Cung cấp nguồn điện, nước đầy đủ cho bên B sử dụng.</p>
+
+                <p className="font-bold mt-3">* Trách nhiệm của bên B:</p>
+                <p>- Thanh toán đầy đủ tiền theo đúng thỏa thuận.</p>
+                <p>- Bảo quản các trang thiết bị và cơ sở vật chất của bên A trang bị cho ban đầu (làm hỏng phải sửa, mất phải đền).</p>
+                <p>- Không được tự ý sửa chữa, cải tạo cơ sở vật chất khi chưa được sự đồng ý của bên A.</p>
+                <p>- Luôn có ý thức giữ gìn vệ sinh trong và ngoài khu vực phòng trọ.</p>
+                <p>- Bên B phải chấp hành mọi quy định của pháp luật Nhà nước và quy định của địa phương.</p>
+                <p>- Nếu bên B cho khách ở qua đêm thì phải báo trước và được sự đồng ý của bên A, đồng thời phải chịu trách nhiệm về các hành vi vi phạm pháp luật của khách trong thời gian ở lại (nếu có).</p>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="font-bold text-lg mb-2 text-center">TRÁCH NHIỆM CHUNG</h3>
+                <p>- Hai bên phải tạo điều kiện thuận lợi cho nhau để thực hiện hợp đồng.</p>
+                <p>- Nếu một trong hai bên vi phạm hợp đồng trong thời gian hợp đồng vẫn còn hiệu lực thì bên còn lại có quyền đơn phương chấm dứt hợp đồng thuê nhà trọ. Ngoài ra, nếu hành vi vi phạm đó gây tổn thất cho bên bị vi phạm thì bên vi phạm sẽ phải bồi thường mọi thiệt hại đã gây ra.</p>
+                <p>- Trong trường hợp muốn chấm dứt hợp đồng trước thời hạn, cần phải báo trước cho bên kia ít nhất 30 ngày và hai bên phải có sự thống nhất với nhau.</p>
+                <p>- Kết thúc hợp đồng, Bên A phải trả lại đầy đủ tiền đặt cọc cho bên B.</p>
+                <p>- Bên nào vi phạm các điều khoản chung thì phải chịu trách nhiệm trước pháp luật.</p>
+                <p>- Hợp đồng này được lập thành 02 bản và có giá trị pháp lý như nhau, mỗi bên giữ một bản.</p>
+              </div>
+              
+              {formData.dieuKhoan && (
+                <div className="mt-6">
+                  <h3 className="font-bold text-lg mb-2 text-center">ĐIỀU KHOẢN BỔ SUNG</h3>
+                  <div className="whitespace-pre-line">{formData.dieuKhoan}</div>
+                </div>
+              )}
+
+              <div className="mt-8 flex justify-between font-bold text-center">
+                <div>
+                  <p>ĐẠI DIỆN BÊN A</p>
+                  <p className="font-normal italic text-sm mt-1">(Ký và ghi họ tên)</p>
+                </div>
+                <div>
+                  <p>ĐẠI DIỆN BÊN B</p>
+                  <p className="font-normal italic text-sm mt-1">(Ký và ghi họ tên)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="mt-4 gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpenPreviewModal(false)} disabled={submitting}>Quay lại chỉnh sửa</Button>
+            <Button onClick={handleConfirmAndSave} disabled={submitting}>
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Xác nhận, Lưu & In Hợp đồng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Quick Add Khách Thuê */}
+      <Dialog open={openAddKhachThue} onOpenChange={setOpenAddKhachThue}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Thêm khách thuê nhanh</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleQuickAddKhachThue} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="hoTen">Họ và tên *</Label>
+              <Input
+                id="hoTen"
+                required
+                value={newKhachThueData.hoTen}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, hoTen: e.target.value }))}
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="soDienThoai">Số điện thoại *</Label>
+              <Input
+                id="soDienThoai"
+                required
+                value={newKhachThueData.soDienThoai}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, soDienThoai: e.target.value }))}
+                placeholder="0987654321"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cccd">CCCD / CMND</Label>
+              <Input
+                id="cccd"
+                value={newKhachThueData.cccd}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, cccd: e.target.value }))}
+                placeholder="012345678912"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpenAddKhachThue(false)} disabled={loadingAddKhachThue}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={loadingAddKhachThue}>
+                {loadingAddKhachThue ? "Đang thêm..." : "Thêm mới"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

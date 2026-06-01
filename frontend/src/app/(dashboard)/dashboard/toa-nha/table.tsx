@@ -297,7 +297,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
   },
 ]
 
-function DraggableRow({ row }: { row: Row<ToaNha> }) {
+function DraggableRow({ row, onDoubleClick }: { row: Row<ToaNha>, onDoubleClick?: () => void }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original._id!,
   })
@@ -307,7 +307,8 @@ function DraggableRow({ row }: { row: Row<ToaNha> }) {
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      onDoubleClick={onDoubleClick}
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-muted/50"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -508,7 +509,11 @@ export function ToaNhaDataTable(props: ToaNhaDataTableProps) {
                   strategy={verticalListSortingStrategy}
                 >
                   {table.getRowModel().rows.map((row) => (
-                    <DraggableRow key={row.id} row={row} />
+                    <DraggableRow 
+                      key={row.id} 
+                      row={row} 
+                      onDoubleClick={() => props.onView?.(row.original)} 
+                    />
                   ))}
                 </SortableContext>
               ) : (

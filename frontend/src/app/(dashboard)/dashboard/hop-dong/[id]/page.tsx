@@ -29,6 +29,13 @@ import {
   ChevronsUpDown,
   LockKeyhole,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -113,15 +120,15 @@ export default function ChinhSuaHopDongPage() {
     nguoiDaiDien: '',
     ngayBatDau: new Date().toISOString().split('T')[0],
     ngayKetThuc: '',
-    giaThue: 0,
-    tienCoc: 0,
+    giaThue: 0 as number | string,
+    tienCoc: 0 as number | string,
     chuKyThanhToan: 'thang' as 'thang' | 'quy' | 'nam',
-    ngayThanhToan: 15,
+    ngayThanhToan: 5 as number | string,
     dieuKhoan: '',
-    giaDien: 3500,
-    giaNuoc: 25000,
-    chiSoDienBanDau: 0,
-    chiSoNuocBanDau: 0,
+    giaDien: 3500 as number | string,
+    giaNuoc: 25000 as number | string,
+    chiSoDienBanDau: 0 as number | string,
+    chiSoNuocBanDau: 0 as number | string,
     phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
@@ -131,6 +138,48 @@ export default function ChinhSuaHopDongPage() {
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
   const [searchDichVu, setSearchDichVu] = useState("");
+  const [openAddKhachThue, setOpenAddKhachThue] = useState(false);
+  const [loadingAddKhachThue, setLoadingAddKhachThue] = useState(false);
+  const [newKhachThueData, setNewKhachThueData] = useState({ hoTen: '', soDienThoai: '', cccd: '' });
+
+  const handleQuickAddKhachThue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKhachThueData.hoTen || !newKhachThueData.soDienThoai) {
+      toast.error('Vui lòng nhập họ tên và số điện thoại');
+      return;
+    }
+    setLoadingAddKhachThue(true);
+    try {
+      const response = await fetch('/api/khach-thue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(newKhachThueData),
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        toast.success('Thêm khách thuê thành công');
+        const newKhachThue = result.data;
+        setKhachThueList(prev => [...prev, normalizeKhachThue(newKhachThue)]);
+        setFormData(prev => ({
+          ...prev,
+          nguoiDaiDien: newKhachThue._id || newKhachThue.id,
+          khachThueId: prev.khachThueId.filter(id => id !== (newKhachThue._id || newKhachThue.id)),
+        }));
+        setOpenAddKhachThue(false);
+        setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '' });
+      } else {
+        toast.error(result.message || 'Thêm khách thuê thất bại');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setLoadingAddKhachThue(false);
+    }
+  };
 
   const ensureISODate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -295,7 +344,7 @@ export default function ChinhSuaHopDongPage() {
             giaThue: hopDongItem.giaThue || 0,
             tienCoc: hopDongItem.tienCoc || 0,
             chuKyThanhToan: normalizeChuKyThanhToan(hopDongItem.chuKyThanhToan),
-            ngayThanhToan: hopDongItem.ngayThanhToan || 15,
+            ngayThanhToan: hopDongItem.ngayThanhToan || 5,
             dieuKhoan: hopDongItem.dieuKhoan || '',
             giaDien: hopDongItem.giaDien || 3500,
             giaNuoc: hopDongItem.giaNuoc || 25000,
@@ -639,19 +688,7 @@ export default function ChinhSuaHopDongPage() {
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="maHopDong" className="text-xs md:text-sm">Mã hợp đồng</Label>
-                <Input
-                  id="maHopDong"
-                  value={formData.maHopDong}
-                  onChange={(e) => setFormData(prev => ({ ...prev, maHopDong: e.target.value.toUpperCase() }))}
-                  placeholder="HD001"
-                  required
-                  className="text-sm"
-                />
-              </div>
-              
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-2">
                 <Label className="text-xs md:text-sm">Phòng *</Label>
                 <Popover open={openPhong} onOpenChange={setOpenPhong}>
@@ -746,6 +783,19 @@ export default function ChinhSuaHopDongPage() {
                             </CommandItem>
                           ))}
                       </CommandGroup>
+                      <div className="p-1 border-t">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-sm"
+                          onClick={() => {
+                            setOpenNguoiDaiDien(false);
+                            setOpenAddKhachThue(true);
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Thêm khách thuê nhanh
+                        </Button>
+                      </div>
                     </Command>
                   </PopoverContent>
                 </Popover>
@@ -882,12 +932,12 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.giaThue}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaThue: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaThue: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaThue)}
+                  {formatCurrency(Number(formData.giaThue))}
                 </span>
               </div>
               
@@ -898,12 +948,12 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.tienCoc}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.tienCoc)}
+                  {formatCurrency(Number(formData.tienCoc))}
                 </span>
               </div>
               
@@ -915,7 +965,7 @@ export default function ChinhSuaHopDongPage() {
                   min="1"
                   max="31"
                   value={formData.ngayThanhToan}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: parseInt(e.target.value) || 1 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: e.target.value === '' ? '' : parseInt(e.target.value) || 1 }))}
                   required
                   className="text-sm"
                 />
@@ -944,12 +994,12 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.giaDien}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaDien: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaDien: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaDien)}
+                  {formatCurrency(Number(formData.giaDien))}
                 </span>
               </div>
               
@@ -960,12 +1010,12 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.giaNuoc}
-                  onChange={(e) => setFormData(prev => ({ ...prev, giaNuoc: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaNuoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
                   className="text-sm"
                 />
                 <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {formatCurrency(formData.giaNuoc)}
+                  {formatCurrency(Number(formData.giaNuoc))}
                 </span>
               </div>
               
@@ -995,7 +1045,7 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.chiSoDienBanDau}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoDienBanDau: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoDienBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số điện ban đầu"
                   required
                   className="text-sm"
@@ -1012,7 +1062,7 @@ export default function ChinhSuaHopDongPage() {
                   type="number"
                   min="0"
                   value={formData.chiSoNuocBanDau}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoNuocBanDau: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, chiSoNuocBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số nước ban đầu"
                   required
                   className="text-sm"
@@ -1195,6 +1245,53 @@ export default function ChinhSuaHopDongPage() {
           </form>
         </CardContent>
       </Card>
+      {/* Modal Quick Add Khách Thuê */}
+      <Dialog open={openAddKhachThue} onOpenChange={setOpenAddKhachThue}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Thêm khách thuê nhanh</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleQuickAddKhachThue} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="hoTen">Họ và tên *</Label>
+              <Input
+                id="hoTen"
+                required
+                value={newKhachThueData.hoTen}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, hoTen: e.target.value }))}
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="soDienThoai">Số điện thoại *</Label>
+              <Input
+                id="soDienThoai"
+                required
+                value={newKhachThueData.soDienThoai}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, soDienThoai: e.target.value }))}
+                placeholder="0987654321"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cccd">CCCD / CMND</Label>
+              <Input
+                id="cccd"
+                value={newKhachThueData.cccd}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, cccd: e.target.value }))}
+                placeholder="012345678912"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpenAddKhachThue(false)} disabled={loadingAddKhachThue}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={loadingAddKhachThue}>
+                {loadingAddKhachThue ? "Đang thêm..." : "Thêm mới"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
