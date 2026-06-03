@@ -11,6 +11,7 @@ import { ProfileScreen } from "@/components/mobile-app/ProfileScreen";
 import { ChatOverlay } from "@/components/mobile-app/ChatOverlay";
 
 type Tab = "home" | "saved" | "bills" | "profile";
+type RoomId = string | number;
 
 const navItems: { tab: Tab; icon: React.ReactNode; label: string }[] = [
   { tab: "home", icon: <Home size={22} />, label: "Trang chủ" },
@@ -29,7 +30,7 @@ export default function App() {
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<Tab>("home");
-  const [viewingRoom, setViewingRoom] = useState<number | null>(null);
+  const [viewingRoom, setViewingRoom] = useState<RoomId | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ function MainApp() {
     }
   }, []);
 
-  const handleRoomSelect = (id: number) => {
+  const handleRoomSelect = (id: RoomId) => {
     setViewingRoom(id);
   };
 
@@ -67,12 +68,12 @@ function MainApp() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans">
+    <div className="flex h-[100dvh] min-h-screen bg-[#F8FAFC] font-sans">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen relative overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Main scrollable view */}
-        <div className="flex-1 overflow-y-auto relative">
-          <div className="w-full h-full">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div className="h-full w-full">
             {renderContent()}
           </div>
         </div>
@@ -124,7 +125,7 @@ function MainApp() {
 
 // Premium Saved screen component
 interface SavedScreenProps {
-  onRoomSelect: (id: number) => void;
+  onRoomSelect: (id: RoomId) => void;
   onTabChange?: (tab: Tab) => void;
 }
 
@@ -142,7 +143,7 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
     }
   }, []);
 
-  const handleUnsave = (id: number, e: React.MouseEvent) => {
+  const handleUnsave = (id: RoomId, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = savedRooms.filter((r) => r.id !== id);
     setSavedRooms(updated);
@@ -171,31 +172,39 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
   return (
     <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
       {/* Header */}
-      <div className="bg-white px-4 md:px-8 xl:px-12 pt-12 pb-5 shadow-sm border-b border-slate-100 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => onTabChange?.("home")}
-            className="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600"
-            title="Quay lại trang chủ"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h1 className="text-slate-900 font-extrabold tracking-tight" style={{ fontSize: "1.5rem" }}>
-              Tin Đã Lưu
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">Danh sách các phòng trọ bạn đã đánh dấu quan tâm</p>
+      <div className="bg-white px-4 md:px-8 xl:px-12 pt-12 pb-6 shadow-sm border-b border-slate-100 shrink-0">
+        <div className="mx-auto max-w-screen-xl flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onTabChange?.("home")}
+              className="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600"
+              title="Quay lại trang chủ"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-slate-900 font-extrabold tracking-tight text-2xl">
+                Tin Đã Lưu
+              </h1>
+              <p className="text-sm text-slate-500 font-medium">Danh sách các phòng trọ bạn đã đánh dấu quan tâm</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 border border-teal-100">
+              <Heart size={16} className="text-teal-700" /> {savedRooms.length} đã lưu
+            </span>
+            <button onClick={() => onTabChange?.("home")} className="hidden sm:inline-flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200/50">
+              Khám phá
+            </button>
           </div>
         </div>
-        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3.5 py-2 rounded-full shadow-sm border border-slate-200/50">
-          {savedRooms.length} phòng đã lưu
-        </span>
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 md:px-8 xl:px-12 pt-6 pb-12">
+          <div className="flex-1 px-4 md:px-8 xl:px-12 pt-6 pb-12">
         {savedRooms.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center max-w-xl mx-auto mt-10 p-8">
+          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center max-w-2xl mx-auto mt-10 p-8">
             <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-500 shadow-inner">
               <Heart size={28} className="fill-red-100" />
             </div>
@@ -211,17 +220,17 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-screen-xl mx-auto">
             {savedRooms.map((room) => {
               const imgs = getRoomImagesLocal(room);
               return (
                 <div
                   key={room.id}
                   onClick={() => onRoomSelect(room.id)}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border border-slate-100 flex flex-col cursor-pointer active:scale-[0.99]"
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border border-slate-100 flex flex-col cursor-pointer active:scale-[0.99] p-0"
                 >
                   {/* Collage Images */}
-                  <div className="grid grid-cols-5 gap-0.5 h-48 sm:h-56 w-full relative overflow-hidden shrink-0">
+                  <div className="grid grid-cols-5 gap-0.5 h-44 sm:h-48 w-full relative overflow-hidden shrink-0">
                     {/* Left large image */}
                     <div className="col-span-3 relative h-full">
                       <img src={imgs[0]} alt={room.name} className="w-full h-full object-cover" />
@@ -262,29 +271,33 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
                   </div>
 
                   {/* Card Info */}
-                  <div className="p-4 flex flex-col flex-1 bg-white">
+                  <div className="p-6 flex flex-col flex-1 bg-white">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <div className="flex items-center gap-0.5 shrink-0">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
                         ))}
                       </div>
-                      <h3 className="text-[#FF385C] font-extrabold uppercase text-xs sm:text-sm tracking-wide truncate flex-1">
-                        {room.name.includes("Phòng") || room.name.includes("Căn hộ") ? room.name : `CHO THUÊ PHÒNG TRỌ ${room.name}`} - DỌN VÀO Ở NGAY
+                      <h3 className="text-slate-900 font-extrabold text-sm sm:text-base truncate flex-1">
+                        {room.name.includes("Phòng") || room.name.includes("Căn hộ") ? room.name : `CHO THUÊ PHÒNG TRỌ ${room.name}`}
                       </h3>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-500 text-xs sm:text-sm mt-2 flex-wrap font-semibold">
-                      <span className="text-[#0F9675] font-bold text-sm sm:text-base">{room.price}</span>
+                      <span className="text-[#0F9675] font-extrabold text-sm sm:text-base">{room.price}</span>
                       <span className="text-slate-300 font-normal">•</span>
                       <span className="text-slate-700">{room.area || "38m²"}</span>
                       <span className="text-slate-300 font-normal">•</span>
                       <span className="text-slate-600 truncate max-w-[200px]">{room.location.replace("Chưa cập nhật địa chỉ", "Bình Thạnh, Hồ Chí Minh")}</span>
                     </div>
 
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-2.5 leading-relaxed font-normal">
+                    <p className="text-sm text-slate-600 line-clamp-2 mt-2.5 leading-relaxed font-normal">
                       {room.description}
                     </p>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <button className="rounded-full bg-teal-600 px-3 py-2 text-sm font-bold text-white shadow-sm">Xem chi tiết</button>
+                      <button onClick={(e) => handleUnsave(room.id, e)} className="rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">Bỏ lưu</button>
+                    </div>
                   </div>
                 </div>
               );
