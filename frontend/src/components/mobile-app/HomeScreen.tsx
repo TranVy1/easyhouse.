@@ -105,7 +105,7 @@ const getInitialHomeViewState = (): Required<HomeViewState> => {
       searchQuery: parsed.searchQuery || fallback.searchQuery,
       currentPage: Math.max(1, Number(parsed.currentPage) || fallback.currentPage),
     };
-  } catch {
+  } catch (e) {
     return fallback;
   }
 };
@@ -326,7 +326,6 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
               <span className="block truncate text-[11px] font-medium text-slate-500">Tìm phòng minh bạch, nhanh gọn</span>
             </span>
           </button>
-
           <div className="flex items-center gap-2">
             <button
               onClick={() => onTabChange?.("saved")}
@@ -421,35 +420,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         </section>
 
         <section className="mt-5">
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onClick={() => setFilterCat(category)}
-                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition ${
-                  filterCat === category
-                    ? "border-teal-600 bg-teal-600 text-white shadow-sm"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-teal-200 hover:text-teal-700"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
-            <button onClick={() => setIsFilterOpen(true)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-bold text-slate-700 shadow-sm">
-              {selectedPriceLabel}
-            </button>
-            <button onClick={() => setIsFilterOpen(true)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-bold text-slate-700 shadow-sm">
-              {selectedAreaLabel}
-            </button>
-            {(searchQuery || filterPrice !== "all" || filterArea !== "all" || filterCat !== "Phòng trọ") && (
-              <button onClick={resetFilters} className="col-span-2 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-bold text-orange-700 sm:col-span-1">
-                Xóa lọc
-              </button>
-            )}
-          </div>
+          {/* Inline filters removed from main view. Use the filter button on the search bar to open modal. */}
         </section>
 
         {featuredRooms.length > 0 && (
