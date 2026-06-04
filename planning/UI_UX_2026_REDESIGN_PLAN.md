@@ -396,6 +396,29 @@ Started: 2026-06-03 — Work in progress (tracked via TODO list)
 - [ ] Chay QA bang AI agent cho ca mobile app va desktop app: desktop toi thieu 1440px/1280px, mobile toi thieu 390px/360px; chup/kiem tra layout khong overlap, text khong tran nut/card, tab va pagination bam duoc.
 - [ ] Neu can chay dev server de test, dung frontend local `npm run dev`; neu port mac dinh ban, dung port khac va ghi lai URL test.
 
+ - [x] Chinh trang giao dien khi moi vao `/` thanh full man hinh that su: main app chiem tron viewport, khong bi khoang trang/thanh cuon ngoai y muon, van giu bottom navigation mobile dung vung an toan. (Hoan thanh)
+ - [x] Can bang khu `Phong noi bat` voi `Danh sach phong`: cung chieu rong container, card khong lech mat do thong tin, spacing va ty le anh dong nhat giua featured cards va room list cards tren mobile/desktop. (Hoan thanh)
+ - [x] Them phan trang cho danh sach phong theo tung man hinh: moi trang hien toi da 9 card phong; neu nguoi dung muon xem them thi bam sang trang moi bang pagination prev/next va so trang hien tai. (Hoan thanh)
+ - [ ] Dam bao chuyen tab trong app khong lam vo pagination/state quan trong: `home`, `saved`, `bills`, `profile` phai render on dinh, quay lai `home` khong bi layout nhay bat thuong. (Chua hoan thanh; can verify sessionStorage)
+ - [ ] Kiem tra lai luong luu phong va danh sach phong da luu sau khi them pagination, tranh mat du lieu `localStorage` hoac sai ID phong. (Chua hoan thanh; can test save/unsave flows)
+ - [ ] Chay QA bang AI agent cho ca mobile app va desktop app: desktop toi thieu 1440px/1280px, mobile toi thieu 390px/360px; chup/kiem tra layout khong overlap, text khong tran nut/card, tab va pagination bam duoc. (Chua hoan thanh)
+ - [x] Neu can chay dev server de test, dung frontend local `npm run dev`; neu port mac dinh ban, dung port khac va ghi lai URL test. (Hoan thanh — dev server da chay: http://localhost:3003)
+
+Ghi chú thực hiện (2026-06-03):
+- Các thay đổi đã áp dụng (mã nguồn):
+  - `frontend/src/components/mobile-app/HomeScreen.tsx`: loại featured khỏi nguồn danh sách, cập nhật footer gradient, pagination, và các điều chỉnh responsive.
+  - `frontend/src/app/page.tsx`: mở rộng layout, `h-[100dvh] min-h-screen`, sửa `SavedScreen` (giao diện Tin Đã Lưu) và thay đổi nhỏ cho `roomId` typing.
+  - `frontend/src/components/mobile-app/RoomDetailScreen.tsx`: điều chỉnh `roomId` type và mở rộng container.
+
+- Mô tả ngắn: đã sửa giao diện trang chủ để chiếm full viewport, cân bằng khu 'Phòng nổi bật' với danh sách (loại trùng lặp), thêm cửa sổ phân trang 9 trang, sửa lỗi mojibake chuỗi hiển thị, và tối ưu UI cho màn Tin Đã Lưu.
+- Dev server: đã khởi động cục bộ trên `http://localhost:3003` để kiểm thử nhanh.
+
+Công việc còn lại ưu tiên:
+- Kiểm tra và đảm bảo `sessionStorage` phục hồi pagination khi chuyển tab (priority cao).
+- Kiểm tra lưu/ bỏ lưu phòng (`localStorage.easyhouse_saved_rooms`) qua hoạt động pagination và remount (priority cao).
+- Chạy QA chụp màn hình responsive (Playwright) cho 1440/1280/390/360 và báo lỗi layout.
+- Dọn dẹp ESLint `no-explicit-any` và các cảnh báo TypeScript (nâng cao chất lượng mã).
+
 Technical tasks discovered during code review (frontend):
 
 - Fix duplication between `Phòng nổi bật` and `Danh sách phòng`: remove featured items from the paginated list source so items are not shown twice. See `frontend/src/components/mobile-app/HomeScreen.tsx`.
@@ -406,6 +429,10 @@ Technical tasks discovered during code review (frontend):
 - Implement behavior for the `Xem thêm` button in the featured section (scroll to list or open a filtered view).
 - Verify `sessionStorage` and `localStorage` usage for pagination and saved rooms persists across tab switches and remounts (tests + small fixes if needed).
 - Add automated and manual QA steps: run frontend dev server, check desktop at 1440/1280 and mobile at 390/360, capture failures and layout screenshots.
+
+Status cập nhật (kỹ thuật):
+- Đã hoàn thành: loại featured khỏi nguồn danh sách, cập nhật hàm phân trang (9 window), sửa chuỗi mojibake, thêm fallback full-viewport, implement 'Xem thêm' scroll và polish Saved screen.
+- Chưa hoàn thành: verify session/localStorage khi chuyển tab, chạy QA chụp ảnh responsive, fix ESLint warnings.
 
 Reference files to edit: `frontend/src/components/mobile-app/HomeScreen.tsx`, `frontend/src/app/page.tsx`.
 
