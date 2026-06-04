@@ -20,7 +20,7 @@ const allAmenities = [
 
 interface RoomDetailScreenProps {
   onBack: () => void;
-  roomId: number;
+  roomId: string | number;
 }
 
 export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
@@ -75,7 +75,7 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
 
   return (
     <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto w-full">
-      <div className="max-w-6xl mx-auto w-full px-4 md:px-8 py-6 flex-1 flex flex-col gap-6 pb-32 relative">
+      <div className="max-w-screen-2xl mx-auto w-full px-4 md:px-8 py-6 flex-1 flex flex-col gap-6 pb-32 relative">
         
         {/* Header Action Bar */}
         <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-100 shadow-xs">
