@@ -403,7 +403,7 @@ Started: 2026-06-03 — Work in progress (tracked via TODO list)
  - [ ] Kiem tra lai luong luu phong va danh sach phong da luu sau khi them pagination, tranh mat du lieu `localStorage` hoac sai ID phong. (Chua hoan thanh; can test save/unsave flows)
  - [ ] Chay QA bang AI agent cho ca mobile app va desktop app: desktop toi thieu 1440px/1280px, mobile toi thieu 390px/360px; chup/kiem tra layout khong overlap, text khong tran nut/card, tab va pagination bam duoc. (Chua hoan thanh)
  - [x] Neu can chay dev server de test, dung frontend local `npm run dev`; neu port mac dinh ban, dung port khac va ghi lai URL test. (Hoan thanh — dev server da chay: http://localhost:3003)
-
+///////////
 Ghi chú thực hiện (2026-06-03):
 - Các thay đổi đã áp dụng (mã nguồn):
   - `frontend/src/components/mobile-app/HomeScreen.tsx`: loại featured khỏi nguồn danh sách, cập nhật footer gradient, pagination, và các điều chỉnh responsive.
