@@ -302,7 +302,7 @@ export default function ThemMoiHopDongPage() {
         setNhaTroList(unwrapPageData<ToaNha>(nhaTroData.data).map(normalizeToaNha));
       }
 
-      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const phongData = await phongResponse.json().catch(() => ({}));

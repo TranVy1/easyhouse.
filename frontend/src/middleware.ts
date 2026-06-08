@@ -38,23 +38,9 @@ export default withAuth(
         const role = typeof token?.role === 'string'
           ? token.role.replace(/^ROLE_/, '').toUpperCase()
           : '';
-        // Protect admin routes
-        if (
-          req.nextUrl.pathname.startsWith('/dashboard/quan-ly-tai-khoan')
-          || req.nextUrl.pathname.startsWith('/dashboard/thong-bao')
-          || req.nextUrl.pathname.startsWith('/dashboard/audit-log')
-          || req.nextUrl.pathname.startsWith('/dashboard/vietqr-doi-soat')
-          || req.nextUrl.pathname.startsWith('/dashboard/media')
-        ) {
-          return role === 'ADMIN';
-        }
-        // Protect cau-hinh-gia route
-        if (req.nextUrl.pathname.startsWith('/dashboard/cau-hinh-gia')) {
-          return ['ADMIN', 'LANDLORD', 'STAFF'].includes(role);
-        }
-        // Protect dashboard routes
+        // Protect dashboard routes - require ADMIN role
         if (req.nextUrl.pathname.startsWith('/dashboard')) {
-          return !!token && role !== 'TENANT';
+          return role === 'ADMIN';
         }
         if (req.nextUrl.pathname.startsWith('/khach-thue/dashboard')) {
           return true;

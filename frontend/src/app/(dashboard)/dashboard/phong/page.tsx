@@ -37,7 +37,8 @@ import {
   Info,
   Image as ImageIcon,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Building2
 } from 'lucide-react';
 import {
   Carousel,
@@ -46,7 +47,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Phong, ToaNha, TrangThaiPhong } from '@/types';
+import { Phong, ToaNha } from '@/types';
 import { PhongDataTable } from './table';
 import { PhongImageUpload } from '@/components/ui/phong-image-upload';
 import { FolderImageUploader } from '@/components/ui/folder-image-uploader';
@@ -328,6 +329,131 @@ export default function PhongPage() {
         </div>
       </div>
 
+      {/* Bộ lọc Tòa nhà dưới dạng thẻ */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h2 className="text-sm md:text-base font-semibold text-gray-900 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-indigo-600 animate-pulse" />
+            Chọn tòa nhà
+          </h2>
+          {selectedToaNha && selectedToaNha !== 'all' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setSelectedToaNha('all')} 
+              className="text-xs text-indigo-600 hover:text-indigo-700 h-auto p-0"
+            >
+              Xem tất cả
+            </Button>
+          )}
+        </div>
+        
+        {/* Container hiển thị các thẻ tòa nhà */}
+        <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 overflow-x-auto pb-3 pt-1 scrollbar-thin snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
+          {/* Thẻ Tất cả tòa nhà */}
+          <div 
+            onClick={() => setSelectedToaNha('all')}
+            className={`flex-shrink-0 w-[220px] md:w-auto snap-start cursor-pointer rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between ${
+              (!selectedToaNha || selectedToaNha === 'all')
+                ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+          >
+            <div>
+              <div className="flex items-start justify-between">
+                <div className={`p-2.5 rounded-lg ${
+                  (!selectedToaNha || selectedToaNha === 'all') ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'
+                }`}>
+                  <Building2 className="h-5 w-5" />
+                </div>
+                {(!selectedToaNha || selectedToaNha === 'all') && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold">
+                    ✓
+                  </span>
+                )}
+              </div>
+              <div className="mt-4">
+                <h3 className="font-semibold text-gray-900 text-sm md:text-base">Tất cả tòa nhà</h3>
+                <p className="text-xs text-gray-500 mt-1">Hệ thống EasyHouse</p>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-dashed border-gray-100 flex items-center justify-between text-xs text-gray-600">
+              <span>Tổng số phòng:</span>
+              <span className="font-semibold text-gray-900">
+                {toaNhaList.reduce((acc, curr) => acc + (curr.tongSoPhong || 0), 0)}
+              </span>
+            </div>
+          </div>
+
+          {/* Danh sách từng tòa nhà */}
+          {toaNhaList.map((toaNha) => {
+            const isActive = selectedToaNha === toaNha._id;
+            const address = toaNha.diaChiDayDu || 
+              (toaNha.diaChi 
+                ? `${toaNha.diaChi.soNha || ''} ${toaNha.diaChi.duong || ''}, ${toaNha.diaChi.quan || ''}`.trim().replace(/^,|,$/g, '')
+                : '');
+            const hasImage = toaNha.anhToaNha && toaNha.anhToaNha.length > 0;
+            const firstImage = hasImage ? toaNha.anhToaNha[0] : null;
+
+            return (
+              <div
+                key={toaNha._id}
+                onClick={() => setSelectedToaNha(toaNha._id!)}
+                className={`flex-shrink-0 w-[220px] md:w-auto snap-start cursor-pointer rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between ${
+                  isActive
+                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                {/* Building Cover Image */}
+                <div className="relative h-24 w-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center overflow-hidden border-b border-gray-100">
+                  {firstImage ? (
+                    <Image
+                      src={firstImage}
+                      alt={toaNha.tenToaNha}
+                      fill
+                      sizes="220px"
+                      className="object-cover transition-transform duration-500 hover:scale-110"
+                    />
+                  ) : (
+                    <Building2 className="h-8 w-8 text-indigo-500/60" />
+                  )}
+                  {isActive && (
+                    <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold shadow-sm z-10">
+                      ✓
+                    </div>
+                  )}
+                </div>
+
+                {/* Building Content */}
+                <div className="p-3 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-1">
+                      {toaNha.tenToaNha}
+                    </h3>
+                    <p className="text-[10px] md:text-xs text-gray-500 mt-1 line-clamp-1 flex items-center gap-1" title={address}>
+                      {address || 'Chưa cập nhật địa chỉ'}
+                    </p>
+                  </div>
+
+                  {/* Building Stats */}
+                  <div className="mt-3 pt-2.5 border-t border-dashed border-gray-100 grid grid-cols-2 gap-1 text-[10px] md:text-xs text-gray-600">
+                    <div className="flex flex-col">
+                      <span className="text-gray-400">Trống:</span>
+                      <span className="font-semibold text-green-600">{toaNha.phongTrong ?? 0} phòng</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-gray-400">Đang thuê:</span>
+                      <span className="font-semibold text-blue-600">{toaNha.phongDangThue ?? 0} phòng</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
         <Card className="p-2 md:p-3">
@@ -395,11 +521,8 @@ export default function PhongPage() {
             onViewTenants={handleViewTenants}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            selectedToaNha={selectedToaNha}
-            onToaNhaChange={setSelectedToaNha}
             selectedTrangThai={selectedTrangThai}
             onTrangThaiChange={setSelectedTrangThai}
-            allToaNhaList={toaNhaList}
             pageCount={totalPages}
             totalElements={totalElements}
             pagination={pagination}
@@ -426,26 +549,13 @@ export default function PhongPage() {
               className="pl-10 text-sm"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Select value={selectedToaNha} onValueChange={setSelectedToaNha}>
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Tòa nhà" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-sm">Tất cả tòa nhà</SelectItem>
-                {toaNhaList.map((toaNha) => (
-                  <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm">
-                    {toaNha.tenToaNha}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div>
             <Select value={selectedTrangThai} onValueChange={setSelectedTrangThai}>
-              <SelectTrigger className="text-sm">
+              <SelectTrigger className="text-sm w-full">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
+                <SelectItem value="all" className="text-sm">Tất cả trạng thái</SelectItem>
                 <SelectItem value="trong" className="text-sm">Trống</SelectItem>
                 <SelectItem value="daDat" className="text-sm">Đã đặt</SelectItem>
                 <SelectItem value="dangThue" className="text-sm">Đang thuê</SelectItem>

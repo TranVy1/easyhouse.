@@ -68,7 +68,7 @@ export function LichHenClient() {
         fetch(`/api/lich-hen?${params.toString()}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
-        fetch("/api/phong?page=1&limit=100", {
+        fetch("/api/phong?page=1&limit=100&simple=true", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
       ]);

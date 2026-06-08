@@ -62,7 +62,7 @@ class PhongServiceTest {
                 isNull(), isNull(), eq("P101"), eq(true), eq(List.of()), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
-        service.getAllPhong(null, null, " P101 ", 1, 10);
+        service.getAllPhong(null, null, " P101 ", 1, 10, false);
 
         verify(phongRepository).findAllAccessible(
                 isNull(), isNull(), eq("P101"), eq(true), eq(List.of()), any(Pageable.class));

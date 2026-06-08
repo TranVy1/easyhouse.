@@ -400,7 +400,11 @@ public class AuthService {
         try {
             tempRole = VaiTroHeThong.valueOf(vaiTroStr.toUpperCase());
         } catch (Exception e) {
-            tempRole = VaiTroHeThong.LANDLORD; // default
+            tempRole = VaiTroHeThong.ADMIN; // default fallback
+        }
+        // Map LANDLORD and STAFF to ADMIN
+        if (tempRole == VaiTroHeThong.LANDLORD || tempRole == VaiTroHeThong.STAFF) {
+            tempRole = VaiTroHeThong.ADMIN;
         }
         final VaiTroHeThong vaiTroEnum = tempRole;
 
@@ -425,12 +429,16 @@ public class AuthService {
         try {
             List<NguoiDungVaiTro> roles = nguoiDungVaiTroRepository.findByNguoiDungId(user.getId());
             if (!roles.isEmpty()) {
-                return roles.get(0).getVaiTro().getTen().name();
+                VaiTroHeThong ten = roles.get(0).getVaiTro().getTen();
+                if (ten == VaiTroHeThong.LANDLORD || ten == VaiTroHeThong.STAFF) {
+                    return "ADMIN";
+                }
+                return ten.name();
             }
         } catch (Exception e) {
             log.warn("Could not resolve role for user {}: {}", user.getId(), e.getMessage());
         }
-        return "LANDLORD";
+        return "ADMIN"; // default fallback
     }
 
     private KhachThueDashboardResponse.TenantContract toTenantContract(HopDong hopDong) {

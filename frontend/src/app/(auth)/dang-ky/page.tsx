@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff, MailCheck, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, Eye, EyeOff, MailCheck, ArrowLeft } from 'lucide-react';
 
 const registerSchema = z.object({
   ten: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
@@ -20,7 +20,7 @@ const registerSchema = z.object({
   matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   xacNhanMatKhau: z.string(),
   soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
-  vaiTro: z.enum(['LANDLORD', 'STAFF', 'TENANT'], {
+  vaiTro: z.enum(['ADMIN', 'TENANT'], {
     error: 'Vui lòng chọn vai trò',
   }),
 }).refine((data) => data.matKhau === data.xacNhanMatKhau, {
@@ -46,7 +46,7 @@ export default function RegisterPage() {
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      vaiTro: 'LANDLORD',
+      vaiTro: 'ADMIN',
     },
   });
 
@@ -241,15 +241,15 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="vaiTro" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Bạn là</Label>
                 <Select
-                  defaultValue="LANDLORD"
-                  onValueChange={(value) => setValue('vaiTro', value as 'LANDLORD' | 'STAFF' | 'TENANT')}
+                  defaultValue="ADMIN"
+                  onValueChange={(value) => setValue('vaiTro', value as 'ADMIN' | 'TENANT')}
                 >
                   <SelectTrigger className="h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20">
                     <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LANDLORD">Chủ trọ</SelectItem>
-                    <SelectItem value="TENANT">Người thuê</SelectItem>
+                    <SelectItem value="ADMIN">Chủ trọ / Quản lý</SelectItem>
+                    <SelectItem value="TENANT">Người thuê / Khách thuê</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.vaiTro && (

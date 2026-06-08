@@ -144,7 +144,7 @@ export default function ChiSoDienNuocPage() {
 
   const fetchRooms = useCallback(async () => {
     try {
-      const response = await fetch("/api/phong?page=1&limit=100", {
+      const response = await fetch("/api/phong?page=1&limit=100&simple=true", {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       })
       const result: ApiResponse<Phong[] | PaginatedResponse<Phong>> = await response.json()

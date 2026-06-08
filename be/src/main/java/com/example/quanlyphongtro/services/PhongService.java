@@ -38,7 +38,7 @@ public class PhongService {
     private final TienIchService tienIchService;
     private final PermissionService permissionService;
 
-    public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, String search, int page, int limit) {
+    public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, String search, int page, int limit, boolean simple) {
         TrangThaiPhong tt = parseTrangThai(trangThaiStr);
         UUID nid = parseUuid(nhaTroId);
 
@@ -47,7 +47,7 @@ public class PhongService {
         List<UUID> nhaTroIds = List.of();
         if (!isAdmin && userId != null) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
-            if (!accessibleIds.isEmpty()) {
+            if (accessibleIds != null && !accessibleIds.isEmpty()) {
                 nhaTroIds = accessibleIds;
             }
         }
@@ -57,14 +57,14 @@ public class PhongService {
         Page<Phong> pageResult = phongRepository.findAllAccessible(
                 nid, tt != null ? tt.name() : null, normalizedSearch, isAdmin, nhaTroIds, pageable);
         
-        List<PhongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
+        List<PhongResponse> mappedList = pageResult.getContent().stream().map(p -> this.toResponse(p, simple)).toList();
         return PaginatedResponse.of(pageResult, mappedList);
     }
 
     public PhongResponse getPhongById(UUID id) {
         Phong phong = phongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
         permissionService.currentUserId().ifPresent(userId -> assertCanRead(phong, userId));
-        return toResponse(phong);
+        return toResponse(phong, false);
     }
 
     public PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> getPublicAllPhong(
@@ -131,7 +131,7 @@ public class PhongService {
         
         mediaService.replaceUrls(LoaiDoiTuongMedia.ROOM, saved.getId(), req.getAnhPhong(), MediaService.ROOM_IMAGE);
         tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi());
-        return toResponse(saved);
+        return toResponse(saved, false);
     }
 
     @Transactional
@@ -177,7 +177,7 @@ public class PhongService {
         
         mediaService.replaceUrls(LoaiDoiTuongMedia.ROOM, saved.getId(), req.getAnhPhong(), MediaService.ROOM_IMAGE);
         tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi());
-        return toResponse(saved);
+        return toResponse(saved, false);
     }
 
     @Transactional
@@ -193,7 +193,13 @@ public class PhongService {
         phongRepository.save(p);
     }
 
-    private PhongResponse toResponse(Phong phong) {
+    private PhongResponse toResponse(Phong phong, boolean simple) {
+        if (simple) {
+            PhongResponse response = PhongResponse.fromEntity(phong, null);
+            response.setAnhPhong(List.of());
+            response.setTienNghi(List.of());
+            return response;
+        }
         HopDong activeContract = hopDongRepository.findFirstByPhongIdAndTrangThaiOrderByTaoLucDesc(
                 phong.getId(), TrangThaiHopDong.ACTIVE).orElse(null);
         PhongResponse response = PhongResponse.fromEntity(phong, activeContract);

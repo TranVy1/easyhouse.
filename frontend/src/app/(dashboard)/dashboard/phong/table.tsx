@@ -456,11 +456,8 @@ type PhongDataTableProps = PhongTableProps & {
   data: Phong[]
   searchTerm?: string
   onSearchChange?: (value: string) => void
-  selectedToaNha?: string
-  onToaNhaChange?: (value: string) => void
   selectedTrangThai?: string
   onTrangThaiChange?: (value: string) => void
-  allToaNhaList?: ToaNha[]
   pageCount?: number
   totalElements?: number
   pagination?: { pageIndex: number; pageSize: number }
@@ -468,7 +465,7 @@ type PhongDataTableProps = PhongTableProps & {
 }
 
 export function PhongDataTable(props: PhongDataTableProps) {
-  const { data: initialData, searchTerm, onSearchChange, selectedToaNha, onToaNhaChange, selectedTrangThai, onTrangThaiChange, allToaNhaList, pageCount, totalElements, pagination: externalPagination, onPaginationChange, ...tableProps } = props
+  const { data: initialData, searchTerm, onSearchChange, selectedTrangThai, onTrangThaiChange, pageCount, totalElements, pagination: externalPagination, onPaginationChange, ...tableProps } = props
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -571,19 +568,6 @@ export function PhongDataTable(props: PhongDataTableProps) {
               />
             </div>
           </div>
-          <Select value={selectedToaNha} onValueChange={onToaNhaChange}>
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Chọn tòa nhà" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả tòa nhà</SelectItem>
-              {allToaNhaList?.map((toaNha) => (
-                <SelectItem key={toaNha._id} value={toaNha._id!}>
-                  {toaNha.tenToaNha}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={selectedTrangThai} onValueChange={onTrangThaiChange}>
             <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Trạng thái" />

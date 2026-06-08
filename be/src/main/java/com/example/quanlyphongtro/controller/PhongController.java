@@ -26,9 +26,10 @@ public class PhongController {
             @RequestParam(required = false) String trangThai,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "false") boolean simple
     ) {
-        return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai, search, page, limit));
+        return ApiResponse.success(phongService.getAllPhong(toaNha, trangThai, search, page, limit, simple));
     }
 
     /**

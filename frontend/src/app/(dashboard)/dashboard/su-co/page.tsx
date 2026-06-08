@@ -123,7 +123,7 @@ export default function SuCoPage() {
       }
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
       const phongData = await phongResponse.json();

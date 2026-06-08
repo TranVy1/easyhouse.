@@ -35,14 +35,14 @@ services:
       dockerfile: Dockerfile.dev
     container_name: easyhouse-backend
     depends_on:
-      postgres:
-        condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
       redis:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/easyhouse
-      SPRING_DATASOURCE_USERNAME: easyhouse
-      SPRING_DATASOURCE_PASSWORD: easyhouse
+      # SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/easyhouse
+      # SPRING_DATASOURCE_USERNAME: easyhouse
+      # SPRING_DATASOURCE_PASSWORD: easyhouse
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
       SPRING_DATASOURCE_HIKARI_DATA_SOURCE_PROPERTIES_STRINGTYPE: unspecified
       APP_FRONTEND_BASE_URL: http://localhost:3000

@@ -128,20 +128,8 @@ const getRoleBadge = (role: string) => {
           Quản trị viên
         </Badge>
       )
-    case 'chuNha':
-      return (
-        <Badge variant="default" className="gap-1">
-          Chủ nhà
-        </Badge>
-      )
-    case 'nhanVien':
-      return (
-        <Badge variant="secondary" className="gap-1">
-          Nhân viên
-        </Badge>
-      )
     default:
-      return <Badge variant="outline">Người dùng</Badge>
+      return <Badge variant="outline">Khách thuê</Badge>
   }
 }
 

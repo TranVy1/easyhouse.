@@ -369,7 +369,7 @@ export default function ChinhSuaHopDongPage() {
       }
 
       // Fetch phong data
-      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const phongData = await phongResponse.json().catch(() => ({}));

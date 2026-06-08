@@ -179,12 +179,16 @@ public class UserService {
         try {
             List<NguoiDungVaiTro> roles = nguoiDungVaiTroRepository.findByNguoiDungId(user.getId());
             if (!roles.isEmpty()) {
-                return roles.get(0).getVaiTro().getTen().name();
+                VaiTroHeThong ten = roles.get(0).getVaiTro().getTen();
+                if (ten == VaiTroHeThong.LANDLORD || ten == VaiTroHeThong.STAFF) {
+                    return "ADMIN";
+                }
+                return ten.name();
             }
         } catch (Exception e) {
             // ignore
         }
-        return "chuNha"; // fallback
+        return "ADMIN"; // fallback
     }
 
     @Transactional

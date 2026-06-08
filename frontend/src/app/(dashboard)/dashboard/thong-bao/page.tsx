@@ -147,7 +147,7 @@ export default function ThongBaoPage() {
       setToaNhaList(toaNhas);
 
       // Fetch phòng từ API
-      const phongResponse = await fetch('/api/phong?page=1&limit=100', {
+      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const phongData = phongResponse.ok ? await phongResponse.json() : { data: [] };

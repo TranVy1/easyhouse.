@@ -78,7 +78,7 @@ export default function AccountManagementPage() {
     email: '',
     password: '',
     phone: '',
-    role: 'nhanVien'
+    role: 'admin'
   });
   const [editUserData, setEditUserData] = useState({
     name: '',
@@ -167,7 +167,7 @@ export default function AccountManagementPage() {
           email: '',
           password: '',
           phone: '',
-          role: 'nhanVien'
+          role: 'admin'
         });
         clearCache();
         fetchUsers(true);
@@ -258,12 +258,8 @@ export default function AccountManagementPage() {
     switch (role) {
       case 'admin':
         return <Badge variant="destructive">Quản trị viên</Badge>;
-      case 'chuNha':
-        return <Badge variant="default">Chủ nhà</Badge>;
-      case 'nhanVien':
-        return <Badge variant="secondary">Nhân viên</Badge>;
       default:
-        return <Badge variant="outline">Người dùng</Badge>;
+        return <Badge variant="outline">Khách thuê</Badge>;
     }
   };
 
@@ -396,9 +392,8 @@ export default function AccountManagementPage() {
                     <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nhanVien" className="text-sm">Nhân viên</SelectItem>
-                    <SelectItem value="chuNha" className="text-sm">Chủ nhà</SelectItem>
                     <SelectItem value="admin" className="text-sm">Quản trị viên</SelectItem>
+                    <SelectItem value="tenant" className="text-sm">Khách thuê</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -633,9 +628,8 @@ export default function AccountManagementPage() {
                   <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="nhanVien" className="text-sm">Nhân viên</SelectItem>
-                  <SelectItem value="chuNha" className="text-sm">Chủ nhà</SelectItem>
                   <SelectItem value="admin" className="text-sm">Quản trị viên</SelectItem>
+                  <SelectItem value="tenant" className="text-sm">Khách thuê</SelectItem>
                 </SelectContent>
               </Select>
             </div>
