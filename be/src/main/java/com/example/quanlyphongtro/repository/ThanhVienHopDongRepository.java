@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface ThanhVienHopDongRepository extends JpaRepository<ThanhVienHopDong, UUID> {
     List<ThanhVienHopDong> findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(UUID hopDongId);
+    List<ThanhVienHopDong> findByHopDongId(UUID hopDongId);
     void deleteByHopDongId(UUID hopDongId);
 }

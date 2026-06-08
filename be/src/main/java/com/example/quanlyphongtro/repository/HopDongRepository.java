@@ -114,4 +114,6 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
     
     @Query("SELECT COUNT(DISTINCT hd.khachThue) FROM HopDong hd WHERE hd.trangThai = 'ACTIVE' AND hd.xoaLuc IS NULL AND hd.phong.nhaTro.id IN :nhaTroIds")
     long countActiveTenantsByNhaTroIdIn(@Param("nhaTroIds") List<UUID> nhaTroIds);
+
+    boolean existsByPhongAndKhachThueAndNgayBatDauAfter(com.example.quanlyphongtro.entity.Phong phong, com.example.quanlyphongtro.entity.KhachThue khachThue, java.time.LocalDate date);
 }

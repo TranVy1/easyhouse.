@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,7 @@ public class HoaDonService {
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
     private final PermissionService permissionService;
     private final EmailService emailService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<HoaDonResponse> getAll(
@@ -82,9 +84,14 @@ public class HoaDonService {
         Page<HoaDon> pageResult = hoaDonRepository.findAllAccessible(
                 isAdmin, userId, nhaTroIds, hid, tt != null ? tt.name() : null, normalizedSearch, kyThang, kyNam, pageable);
         
+        List<UUID> hoaDonIds = pageResult.getContent().stream().map(HoaDon::getId).toList();
+        List<ChiTietHoaDon> allChiTiet = hoaDonIds.isEmpty() ? Collections.emptyList() : chiTietHoaDonRepository.findByHoaDonIdIn(hoaDonIds);
+        Map<UUID, List<ChiTietHoaDon>> chiTietMap = allChiTiet.stream()
+                .collect(Collectors.groupingBy(ct -> ct.getHoaDon().getId()));
+        
         List<HoaDonResponse> res = new ArrayList<>();
         for (HoaDon hd : pageResult.getContent()) {
-            res.add(HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(hd.getId())));
+            res.add(HoaDonResponse.fromEntity(hd, chiTietMap.getOrDefault(hd.getId(), Collections.emptyList())));
         }
         
         return PaginatedResponse.of(pageResult, res);
@@ -133,12 +140,8 @@ public class HoaDonService {
 
         logAudit(saved, "CREATE");
         if (saved.getTrangThai() == TrangThaiHoaDon.UNPAID) {
-            try {
-                emailService.sendInvoiceCreatedEmail(saved, saved.getKhachThue());
-                logAudit(saved, "SEND");
-            } catch (Exception e) {
-                // Ignore email error to prevent rollback
-            }
+            eventPublisher.publishEvent(new com.example.quanlyphongtro.event.InvoiceCreatedEvent(this, saved));
+            logAudit(saved, "SEND_EVENT");
         }
 
         return HoaDonResponse.fromEntity(saved, items);
@@ -192,12 +195,8 @@ public class HoaDonService {
 
         logAudit(hd, "UPDATE");
         if (oldStatus == TrangThaiHoaDon.DRAFT && hd.getTrangThai() == TrangThaiHoaDon.UNPAID) {
-            try {
-                emailService.sendInvoiceCreatedEmail(hd, hd.getKhachThue());
-                logAudit(hd, "SEND");
-            } catch (Exception e) {
-                // Ignore email error to prevent rollback
-            }
+            eventPublisher.publishEvent(new com.example.quanlyphongtro.event.InvoiceCreatedEvent(this, hd));
+            logAudit(hd, "SEND_EVENT");
         }
 
         return HoaDonResponse.fromEntity(hd, items);

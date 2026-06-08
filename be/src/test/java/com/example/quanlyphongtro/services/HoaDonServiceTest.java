@@ -41,6 +41,7 @@ class HoaDonServiceTest {
     @Mock private ThanhVienHopDongRepository thanhVienHopDongRepository;
     @Mock private PermissionService permissionService;
     @Mock private EmailService emailService;
+    @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private HoaDonService service;
     private UUID hopDongId;
@@ -63,7 +64,8 @@ class HoaDonServiceTest {
                 dichVuHopDongRepository,
                 thanhVienHopDongRepository,
                 permissionService,
-                emailService
+                emailService,
+                eventPublisher
         );
 
         hopDongId = UUID.randomUUID();

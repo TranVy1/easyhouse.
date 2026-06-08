@@ -27,6 +27,9 @@ public class SchedulerService {
     private final com.example.quanlyphongtro.repository.LichHenRepository lichHenRepository;
     private final ThongBaoService thongBaoService;
     private final EmailService emailService;
+    @org.springframework.context.annotation.Lazy
+    @org.springframework.beans.factory.annotation.Autowired
+    private HopDongService hopDongService;
 
     /**
      * Chạy mỗi ngày lúc 7:00 AM để quét các hợp đồng sắp hết hạn và nhắc nợ quá hạn.
@@ -94,8 +97,30 @@ public class SchedulerService {
                     // 3. Gửi Email cho Khách thuê
                     emailService.sendContractExpiringEmail(hd, hd.getKhachThue(), (int) daysRemaining);
 
+                    // 4. Gia hạn tự động nếu được bật
+                    if (Boolean.TRUE.equals(hd.getTuDongGiaHan()) && daysRemaining <= 7) {
+                        // Kiểm tra xem đã gia hạn chưa (dựa vào contract DRAFT mới nhất của phòng này)
+                        boolean alreadyRenewed = hopDongRepository.existsByPhongAndKhachThueAndNgayBatDauAfter(
+                            hd.getPhong(), hd.getKhachThue(), hd.getNgayKetThuc().minusDays(1));
+                        
+                        if (!alreadyRenewed) {
+                            log.info("Tự động gia hạn hợp đồng {}...", hd.getMaHopDong());
+                            hopDongService.renewContract(hd.getId());
+                            
+                            // Gửi thông báo cho Chủ trọ về việc đã tạo hợp đồng gia hạn (DRAFT)
+                            if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
+                                thongBaoService.createSystemNotification(
+                                        "Hệ thống: Đã tự động tạo bản nháp gia hạn hợp đồng",
+                                        "Hợp đồng phòng " + hd.getPhong().getTen() + " đã được hệ thống tự động tạo bản nháp gia hạn. Vui lòng vào kiểm tra và xác nhận.",
+                                        com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
+                                        List.of(hd.getPhong().getNhaTro().getChuTro().getId())
+                                );
+                            }
+                        }
+                    }
+
                 } catch (Exception e) {
-                    log.error("Lỗi gửi thông báo cho hợp đồng {}: {}", hd.getMaHopDong(), e.getMessage());
+                    log.error("Lỗi gửi thông báo hoặc gia hạn cho hợp đồng {}: {}", hd.getMaHopDong(), e.getMessage());
                 }
             }
         }

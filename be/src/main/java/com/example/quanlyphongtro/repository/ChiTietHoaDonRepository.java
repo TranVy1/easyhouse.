@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, UUID> {
     List<ChiTietHoaDon> findByHoaDonId(UUID hoaDonId);
+    List<ChiTietHoaDon> findByHoaDonIdIn(List<UUID> hoaDonIds);
     void deleteByHoaDonId(UUID hoaDonId);
 }

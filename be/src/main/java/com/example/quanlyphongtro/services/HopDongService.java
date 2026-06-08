@@ -1004,4 +1004,68 @@ public class HopDongService {
         
         return com.example.quanlyphongtro.dto.HopDongResponse.fromEntity(hd);
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public HopDong renewContract(java.util.UUID oldContractId) {
+        HopDong oldContract = hopDongRepository.findById(oldContractId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng cũ"));
+
+        long durationDays = java.time.temporal.ChronoUnit.DAYS.between(oldContract.getNgayBatDau(), oldContract.getNgayKetThuc());
+        java.time.LocalDate newStartDate = oldContract.getNgayKetThuc().plusDays(1);
+        java.time.LocalDate newEndDate = newStartDate.plusDays(durationDays);
+
+        HopDong newContract = HopDong.builder()
+                .phong(oldContract.getPhong())
+                .khachThue(oldContract.getKhachThue())
+                .maHopDong(oldContract.getMaHopDong() + "-GH")
+                .ngayBatDau(newStartDate)
+                .ngayKetThuc(newEndDate)
+                .giaThueHopDong(oldContract.getGiaThueHopDong())
+                .tienCoc(oldContract.getTienCoc())
+                .trangThaiCoc(oldContract.getTrangThaiCoc())
+                .trangThai(TrangThaiHopDong.DRAFT)
+                .chuKyThanhToan(oldContract.getChuKyThanhToan())
+                .ngayThanhToanHangThang(oldContract.getNgayThanhToanHangThang())
+                .tuDongGiaHan(oldContract.getTuDongGiaHan())
+                .chiSoDienBanDau(oldContract.getChiSoDienBanDau())
+                .chiSoNuocBanDau(oldContract.getChiSoNuocBanDau())
+                .noiDungHopDong(oldContract.getNoiDungHopDong())
+                .build();
+
+        // Save new contract
+        newContract = hopDongRepository.save(newContract);
+
+        // Copy ThanhVienHopDong
+        java.util.List<com.example.quanlyphongtro.entity.ThanhVienHopDong> oldMembers = thanhVienHopDongRepository.findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(oldContractId);
+        for (com.example.quanlyphongtro.entity.ThanhVienHopDong m : oldMembers) {
+            if (Boolean.TRUE.equals(m.getDangO())) {
+                thanhVienHopDongRepository.save(com.example.quanlyphongtro.entity.ThanhVienHopDong.builder()
+                        .hopDong(newContract)
+                        .khachThue(m.getKhachThue())
+                        .hoTen(m.getHoTen())
+                        .soCccd(m.getSoCccd())
+                        .soDienThoai(m.getSoDienThoai())
+                        .ngayVao(newStartDate)
+                        .dangO(true)
+                        .laNguoiDaiDien(m.getLaNguoiDaiDien())
+                        .ghiChu("Gia hạn từ HĐ " + oldContract.getMaHopDong())
+                        .build());
+            }
+        }
+
+        // Copy DichVuHopDong
+        java.util.List<com.example.quanlyphongtro.entity.DichVuHopDong> oldServices = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(oldContractId);
+        for (com.example.quanlyphongtro.entity.DichVuHopDong s : oldServices) {
+            dichVuHopDongRepository.save(com.example.quanlyphongtro.entity.DichVuHopDong.builder()
+                    .hopDong(newContract)
+                    .dichVu(s.getDichVu())
+                    .loaiTinhPhi(s.getLoaiTinhPhi())
+                    .donGiaApDung(s.getDonGiaApDung())
+                    .soLuong(s.getSoLuong())
+                    .batDauTu(newStartDate)
+                    .build());
+        }
+
+        return newContract;
+    }
 }
