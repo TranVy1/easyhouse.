@@ -70,7 +70,16 @@ public class HopDong {
     private ZonedDateTime previewedAt;
     private ZonedDateTime confirmedAt;
     private ZonedDateTime lockedAt;
+
+    private String signedPdfUrl;
+    private ZonedDateTime tenantSignedAt;
+    private ZonedDateTime landlordSignedAt;
+
+    @Builder.Default
+    private String signatureStatus = "UNSIGNED";
+
     private String ghiChu;
+
 
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;

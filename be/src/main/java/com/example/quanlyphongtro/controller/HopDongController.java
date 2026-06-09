@@ -21,12 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.quanlyphongtro.services.ContractDocumentService;
+import com.example.quanlyphongtro.dto.ContractSignRequest;
+import com.example.quanlyphongtro.dto.ContractSignatureResponse;
+import com.example.quanlyphongtro.entity.ContractSignature;
+import com.example.quanlyphongtro.entity.HopDong;
+
 @RestController
 @RequestMapping("/api/hop-dong")
 @RequiredArgsConstructor
 public class HopDongController {
 
     private final HopDongService hopDongService;
+    private final ContractDocumentService contractDocumentService;
+
 
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<HopDongResponse>>> getAll(
@@ -96,6 +104,57 @@ public class HopDongController {
             return badRequest(e.getMessage());
         }
     }
+
+    @PostMapping("/{id}/generate-pdf")
+    public ResponseEntity<ApiResponse<HopDongResponse>> generatePdf(@PathVariable UUID id) {
+        try {
+            HopDong hd = contractDocumentService.generatePdfTho(id);
+            return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Sinh tài liệu PDF thành công"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/sign")
+    public ResponseEntity<ApiResponse<ContractSignatureResponse>> signContract(
+            @PathVariable UUID id, @RequestBody ContractSignRequest request) {
+        try {
+            ContractSignature sig = contractDocumentService.signContract(id, request);
+            ContractSignatureResponse resp = ContractSignatureResponse.builder()
+                    .id(sig.getId())
+                    .signerId(sig.getSignerId())
+                    .signerRole(sig.getSignerRole())
+                    .signatureImageUrl(sig.getSignatureImageUrl())
+                    .signedAt(sig.getSignedAt())
+                    .ipAddress(sig.getIpAddress())
+                    .userAgent(sig.getUserAgent())
+                    .build();
+            return ResponseEntity.ok(ApiResponse.success(resp, "Ký hợp đồng thành công"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<HopDongResponse>> rejectContract(
+            @PathVariable UUID id, @RequestBody ContractSignRequest request) {
+        try {
+            HopDong hd = contractDocumentService.rejectContract(id, request);
+            return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Từ chối ký hợp đồng thành công"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/signatures")
+    public ResponseEntity<ApiResponse<List<ContractSignatureResponse>>> getSignatures(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(contractDocumentService.getSignatures(id)));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {

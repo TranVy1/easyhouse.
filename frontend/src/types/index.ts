@@ -329,6 +329,11 @@ export interface HopDong {
   trangThai: TrangThaiHopDong;
   fileHopDong?: string;
   filePdf?: string;
+  signedPdfUrl?: string;
+  tenantSignedAt?: string;
+  landlordSignedAt?: string;
+  signatureStatus?: 'UNSIGNED' | 'LANDLORD_SIGNED' | 'TENANT_SIGNED' | 'COMPLETED' | 'REJECTED';
+  rejectionReason?: string;
   ghiChu?: string;
   chuKyChuTro?: string;
   chuKyKhachThue?: string;
@@ -336,6 +341,7 @@ export interface HopDong {
   ngayCapNhat: DateLike;
   taoLuc?: DateLike;
   capNhatLuc?: DateLike;
+
 }
 
 export interface ChiSoDienNuoc {
@@ -676,3 +682,15 @@ export interface DashboardStats {
   tongCongNo?: number;
   tiLeLapDay?: number;
 }
+
+export interface ContractSignature {
+  id?: string;
+  signerId?: string;
+  signerName: string;
+  signerRole: 'LANDLORD' | 'TENANT';
+  signatureImageUrl?: string;
+  signedAt: string;
+  ipAddress?: string;
+  userAgent?: string;
+}
+

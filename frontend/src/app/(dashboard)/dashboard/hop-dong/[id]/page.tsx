@@ -28,7 +28,16 @@ import {
   CheckCircle2,
   ChevronsUpDown,
   LockKeyhole,
+  PenTool,
+  History,
+  FileDown,
+  Clock,
+  Laptop,
+  Network
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRef } from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -97,12 +106,117 @@ const contractStatusLabel: Record<string, string> = {
   daHuy: 'Đã hủy',
 };
 
+function SignatureCanvas({ onSave, onCancel }: { onSave: (base64: string) => void; onCancel?: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+  }, []);
+
+  const getPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    setIsDrawing(true);
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const save = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const base64 = canvas.toDataURL('image/png');
+    onSave(base64);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border bg-slate-50 p-1">
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={200}
+          className="w-full h-[200px] border border-dashed border-slate-300 rounded-md bg-white cursor-crosshair touch-none"
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+        />
+      </div>
+      <div className="flex justify-between items-center">
+        <span className="text-xs text-muted-foreground italic">Vẽ chữ ký của bạn vào khung phía trên</span>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" type="button" onClick={clear}>Xóa vẽ lại</Button>
+          <Button size="sm" type="button" onClick={save}>Xác nhận chữ ký</Button>
+          {onCancel && <Button variant="ghost" size="sm" type="button" onClick={onCancel}>Hủy</Button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChinhSuaHopDongPage() {
   const router = useRouter();
   const params = useParams();
   const hopDongId = params.id as string;
   const { data: session } = useSession();
   const accessToken = session?.accessToken;
+
+  // New esign states
+  const [activeTab, setActiveTab] = useState<string>("info");
+  const [signatures, setSignatures] = useState<any[]>([]);
+  const [loadingSig, setLoadingSig] = useState<boolean>(false);
+  const [generatingPdf, setGeneratingPdf] = useState<boolean>(false);
+  const [signing, setSigning] = useState<boolean>(false);
+  const [openSignDialog, setOpenSignDialog] = useState<boolean>(false);
+
 
   const [hopDong, setHopDong] = useState<HopDong | null>(null);
   const [phongList, setPhongList] = useState<Phong[]>([]);
@@ -308,12 +422,87 @@ export default function ChinhSuaHopDongPage() {
     }
   };
 
+  const fetchSignatures = async () => {
+    if (!accessToken || !hopDongId) return;
+    setLoadingSig(true);
+    try {
+      const res = await fetch(`/api/hop-dong/${hopDongId}/signatures`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSignatures(data.data || []);
+      }
+    } catch (err) {
+      console.error("Lỗi lấy chữ ký:", err);
+    } finally {
+      setLoadingSig(false);
+    }
+  };
+
   useEffect(() => {
     if (hopDongId && accessToken) {
       fetchData();
+      fetchSignatures();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, hopDongId]);
+
+  const handleGeneratePdf = async () => {
+    if (!accessToken || !hopDongId) return;
+    setGeneratingPdf(true);
+    try {
+      const res = await fetch(`/api/hop-dong/${hopDongId}/generate-pdf`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Sinh tài liệu PDF thành công");
+        await fetchData();
+      } else {
+        toast.error(data.message || "Sinh PDF thất bại");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Có lỗi xảy ra");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleSaveSignature = async (base64: string) => {
+    if (!accessToken || !hopDongId) return;
+    setSigning(true);
+    try {
+      const res = await fetch(`/api/hop-dong/${hopDongId}/sign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          signatureBase64: base64,
+          ipAddress: '127.0.0.1',
+          userAgent: navigator.userAgent
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Ký hợp đồng thành công! Hệ thống đang sinh tài liệu PDF đã ký ở luồng phụ Async.");
+        setOpenSignDialog(false);
+        await fetchData();
+        await fetchSignatures();
+      } else {
+        toast.error(data.message || "Ký thất bại");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Có lỗi xảy ra khi ký");
+    } finally {
+      setSigning(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -412,6 +601,7 @@ export default function ChinhSuaHopDongPage() {
       setLoading(false);
     }
   };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -678,8 +868,22 @@ export default function ChinhSuaHopDongPage() {
         </CardContent>
       </Card>
 
-      {/* Form */}
-      <Card>
+      {/* Form & Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="info" className="flex items-center gap-2">
+            <FileCheck2 className="h-4 w-4" />
+            Thông tin hợp đồng
+          </TabsTrigger>
+          <TabsTrigger value="esign" className="flex items-center gap-2">
+            <PenTool className="h-4 w-4" />
+            Văn bản & Ký điện tử
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="info" className="space-y-4">
+          <Card>
+
         <CardHeader className="p-4 md:p-6">
           <CardTitle className="text-lg md:text-xl">Thông tin hợp đồng</CardTitle>
           <CardDescription className="text-xs md:text-sm">
@@ -1245,7 +1449,182 @@ export default function ChinhSuaHopDongPage() {
           </form>
         </CardContent>
       </Card>
+      </TabsContent>
+
+      <TabsContent value="esign" className="space-y-4">
+        <Card>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl flex items-center justify-between">
+              <span>Văn bản & Chữ ký điện tử</span>
+              <Badge variant="outline" className={cn(
+                hopDong?.signatureStatus === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' :
+                hopDong?.signatureStatus === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' :
+                'bg-yellow-50 text-yellow-700 border-yellow-200'
+              )}>
+                {hopDong?.signatureStatus === 'COMPLETED' ? 'Đã ký hoàn tất (ACTIVE)' :
+                 hopDong?.signatureStatus === 'LANDLORD_SIGNED' ? 'Chủ trọ đã ký (Chờ khách thuê)' :
+                 hopDong?.signatureStatus === 'TENANT_SIGNED' ? 'Khách thuê đã ký (Chờ chủ trọ)' :
+                 hopDong?.signatureStatus === 'REJECTED' ? 'Bị từ chối ký' : 'Chưa ký'}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Tải văn bản PDF hợp đồng thô, ký xác nhận từ hai bên và quản lý tài liệu pháp lý trực tuyến.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 space-y-6">
+            {/* esign status summary & action */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded-xl p-4 bg-slate-50/50 space-y-3">
+                <h4 className="font-semibold text-slate-800 text-sm">Trạng thái chữ ký Bên A (Chủ trọ)</h4>
+                {hopDong?.landlordSignedAt ? (
+                  <div className="space-y-2">
+                    <div className="text-xs text-green-600 flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 className="h-4 w-4" /> Đã ký thành công
+                    </div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> {new Date(hopDong.landlordSignedAt).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="text-xs text-yellow-600 font-medium">Chưa ký xác nhận</div>
+                    {hopDong?.filePdf && hopDong?.signatureStatus !== 'COMPLETED' && (
+                      <Button size="sm" type="button" onClick={() => setOpenSignDialog(true)} disabled={signing} className="w-full sm:w-auto">
+                        <PenTool className="h-4 w-4 mr-2" /> Ký xác nhận ngay
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="border rounded-xl p-4 bg-slate-50/50 space-y-3">
+                <h4 className="font-semibold text-slate-800 text-sm">Trạng thái chữ ký Bên B (Khách thuê đại diện)</h4>
+                {hopDong?.tenantSignedAt ? (
+                  <div className="space-y-2">
+                    <div className="text-xs text-green-600 flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 className="h-4 w-4" /> Đã ký thành công
+                    </div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> {new Date(hopDong.tenantSignedAt).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-xs text-yellow-600 font-medium">Chưa ký xác nhận</div>
+                    {hopDong?.signatureStatus === 'REJECTED' && (
+                      <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100 font-medium">
+                        Lý do từ chối: {hopDong?.ghiChu?.split('Lý do: ')[1] || 'Khách thuê từ chối ký'}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* PDF preview iframe */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                  <FileDown className="h-5 w-5 text-indigo-500" />
+                  Văn bản hợp đồng PDF
+                </h3>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" type="button" onClick={handleGeneratePdf} disabled={generatingPdf}>
+                    {generatingPdf && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Sinh tài liệu PDF
+                  </Button>
+                  {hopDong?.filePdf && (
+                    <Button size="sm" asChild variant="outline">
+                      <a href={hopDong.filePdf} target="_blank" rel="noreferrer">
+                        <FileDown className="h-4 w-4 mr-2" /> Tải PDF
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {hopDong?.filePdf ? (
+                <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
+                  <iframe 
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(hopDong.filePdf)}&embedded=true`}
+                    className="w-full h-[600px] border-0"
+                    title="Contract PDF Viewer"
+                  />
+                  <div className="bg-white p-2 border-t text-center text-xs text-muted-foreground">
+                    Nếu tài liệu không hiển thị, vui lòng <a href={hopDong.filePdf} target="_blank" rel="noreferrer" className="text-indigo-600 underline font-semibold">bấm vào đây để tải xuống trực tiếp</a>.
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-dashed rounded-lg p-12 text-center bg-slate-50/50 space-y-3">
+                  <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                    <FileDown className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm text-slate-500 max-w-sm mx-auto">Hợp đồng chưa được sinh tài liệu PDF. Chủ trọ cần bấm "Sinh tài liệu PDF" để tạo mẫu hợp đồng thô trước.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Signatures Audit Logs */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                <History className="h-5 w-5 text-indigo-500" />
+                Nhật ký chữ ký pháp lý
+              </h3>
+              {signatures.length === 0 ? (
+                <div className="text-center p-6 border rounded-lg text-sm text-muted-foreground">Chưa có dữ liệu chữ ký pháp lý nào được ghi nhận.</div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm text-left text-slate-500">
+                    <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-3">Người ký</th>
+                        <th className="px-4 py-3">Vai trò</th>
+                        <th className="px-4 py-3">Địa chỉ IP</th>
+                        <th className="px-4 py-3">Trình duyệt</th>
+                        <th className="px-4 py-3">Thời gian ký</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {signatures.map((sig) => (
+                        <tr key={sig.id} className="bg-white hover:bg-slate-50">
+                          <td className="px-4 py-3 font-medium text-slate-900">{sig.signerName}</td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className={sig.signerRole === 'LANDLORD' ? 'text-blue-700 bg-blue-50 border-blue-100' : 'text-orange-700 bg-orange-50 border-orange-100'}>
+                              {sig.signerRole === 'LANDLORD' ? 'Chủ trọ Bên A' : 'Khách thuê Bên B'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3"><span className="flex items-center gap-1"><Network className="h-3.5 w-3.5 text-muted-foreground" /> {sig.ipAddress || '127.0.0.1'}</span></td>
+                          <td className="px-4 py-3 truncate max-w-[200px]" title={sig.userAgent}><Laptop className="h-3.5 w-3.5 text-muted-foreground inline mr-1" /> {sig.userAgent ? sig.userAgent.split(' ')[0] : 'Browser'}</td>
+                          <td className="px-4 py-3 text-xs">{new Date(sig.signedAt).toLocaleString('vi-VN')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dialog vẽ chữ ký cho chủ nhà */}
+        <Dialog open={openSignDialog} onOpenChange={setOpenSignDialog}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Ký xác nhận hợp đồng (Bên A - Chủ cho thuê)</DialogTitle>
+              <CardDescription>Vẽ chữ ký tay của bạn vào khung dưới đây. Chữ ký này sẽ được đóng mộc vào file PDF chính thức.</CardDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <SignatureCanvas 
+                onSave={handleSaveSignature} 
+                onCancel={() => setOpenSignDialog(false)} 
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </TabsContent>
+      </Tabs>
       {/* Modal Quick Add Khách Thuê */}
+
       <Dialog open={openAddKhachThue} onOpenChange={setOpenAddKhachThue}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

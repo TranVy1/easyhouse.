@@ -59,7 +59,30 @@ public class CloudinaryService {
         }
     }
 
+    public Map<String, Object> uploadPdf(byte[] pdfBytes, String fileName) throws IOException {
+        try {
+            log.info("Uploading PDF to Cloudinary: {}", fileName);
+
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                pdfBytes,
+                ObjectUtils.asMap(
+                    "folder", "quanlyphongtro/contracts/",
+                    "resource_type", "auto", // auto để Cloudinary tự nhận diện file pdf
+                    "public_id", fileName.replaceAll("[^a-zA-Z0-9.-]", "_")
+                )
+            );
+
+            log.info("PDF uploaded successfully: {}", uploadResult.get("secure_url"));
+            return uploadResult;
+
+        } catch (Exception e) {
+            log.error("Error uploading PDF to Cloudinary", e);
+            throw new IOException("Tải PDF lên thất bại: " + e.getMessage(), e);
+        }
+    }
+
     public String deleteFile(String publicId) throws IOException {
+
         try {
             log.info("Deleting file from Cloudinary: {}", publicId);
 

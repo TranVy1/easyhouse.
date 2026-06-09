@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Home, Calendar, DollarSign, FileText, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Home, Calendar, DollarSign, FileText, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { TenantContract } from '@/types';
+
 
 export default function TenantContractsPage() {
   const session = useSession()?.data;
@@ -150,7 +153,15 @@ export default function TenantContractsPage() {
                   <DollarSign className="h-8 w-8 text-green-200" />
                 </div>
               </CardContent>
+              <CardFooter className="pt-0">
+                <Button className="w-full" asChild>
+                  <Link href={`/khach-thue/dashboard/hop-dong/${contract.id || contract._id}`}>
+                    Xem chi tiết & Ký <ChevronRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
+
           ))}
         </div>
       )}
