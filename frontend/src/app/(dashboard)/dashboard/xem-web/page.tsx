@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function XemWebPage() {
-  const [url, setUrl] = useState('');
-  const [currentUrl, setCurrentUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [url, setUrl] = useState('/xem-phong');
+  const [currentUrl, setCurrentUrl] = useState('/xem-phong');
+  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
@@ -23,7 +23,7 @@ export default function XemWebPage() {
     if (!url) return;
     
     let formattedUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
       formattedUrl = 'https://' + url;
     }
     
@@ -61,10 +61,11 @@ export default function XemWebPage() {
   };
 
   const handleReset = () => {
-    setUrl('');
-    setCurrentUrl('');
+    setUrl('/xem-phong');
+    setCurrentUrl('/xem-phong');
     setLoadError(false);
     setIframeLoaded(false);
+    setIsLoading(true);
   };
 
   const handleIframeLoad = () => {
@@ -86,10 +87,10 @@ export default function XemWebPage() {
   };
 
   const quickLinks = [
-    { name: 'Wikipedia', url: 'https://vi.wikipedia.org' },
-    { name: 'VNExpress', url: 'https://vnexpress.net' },
-    { name: 'Dân Trí', url: 'https://dantri.com.vn' },
-    { name: 'Example.com', url: 'https://example.com' },
+    { name: 'Trang tìm phòng (công khai)', url: '/xem-phong' },
+    { name: 'Trang chủ khách thuê', url: '/' },
+    { name: 'Đăng nhập khách thuê', url: '/khach-thue/dang-nhap' },
+    { name: 'Đăng nhập hệ thống', url: '/dang-nhap' },
   ];
 
   return (

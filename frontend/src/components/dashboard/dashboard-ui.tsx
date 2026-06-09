@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils"
 type MetricTone = "default" | "success" | "warning" | "danger"
 
 const metricTones: Record<MetricTone, string> = {
-  default: "bg-primary/10 text-primary",
-  success: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
-  warning: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-  danger: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  default: "bg-indigo-50/50 border border-indigo-100/80 text-indigo-600 dark:bg-indigo-950/20 dark:border-indigo-900/40 dark:text-indigo-400",
+  success: "bg-emerald-50/50 border border-emerald-100/80 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-900/40 dark:text-emerald-400",
+  warning: "bg-amber-50/50 border border-amber-100/80 text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/40 dark:text-amber-400",
+  danger: "bg-red-50/50 border border-red-100/80 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-400",
 }
 
 export function DashboardPageHeader({
@@ -55,15 +55,15 @@ export function MetricCard({
   tone?: MetricTone
 }) {
   return (
-    <Card className="gap-0 border-border/70 py-0 shadow-xs">
+    <Card className="gap-0 border-border/60 py-0 shadow-xs hover:shadow-md hover:border-slate-300/60 dark:hover:border-slate-700/60 transition-all duration-300 hover:-translate-y-0.5 group">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <p className="truncate text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="truncate text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">{value}</p>
             <p className="text-xs text-muted-foreground">{hint}</p>
           </div>
-          <div className={cn("rounded-xl p-2.5", metricTones[tone])}>
+          <div className={cn("rounded-2xl p-3 shadow-2xs transition-transform duration-300 group-hover:scale-110", metricTones[tone])}>
             <Icon className="size-5" />
           </div>
         </div>
@@ -86,16 +86,16 @@ export function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex min-h-24 items-start gap-3 rounded-xl border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-accent/50"
+      className="group flex min-h-24 items-start gap-4 rounded-2xl border border-border/70 bg-card p-4 transition-all duration-300 hover:border-primary/25 hover:bg-slate-50/30 hover:shadow-md hover:-translate-y-0.5"
     >
-      <div className="rounded-lg bg-primary/10 p-2 text-primary">
+      <div className="rounded-xl bg-primary/5 p-3 text-primary border border-primary/5 group-hover:bg-primary/10 group-hover:border-primary/10 transition-colors shadow-2xs">
         <Icon className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{title}</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
+        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors">{title}</p>
+        <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{description}</p>
       </div>
-      <ArrowRight className="mt-1 size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+      <ArrowRight className="mt-1.5 size-4 text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
     </Link>
   )
 }

@@ -5,8 +5,12 @@ import com.example.quanlyphongtro.dto.HoaDonRequest;
 import com.example.quanlyphongtro.dto.HoaDonResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
+import com.example.quanlyphongtro.dto.InvoiceGenerationPreviewResponse;
+import com.example.quanlyphongtro.dto.InvoiceGenerationRequest;
+import com.example.quanlyphongtro.dto.InvoiceGenerationResultResponse;
 import com.example.quanlyphongtro.services.HoaDonService;
 import com.example.quanlyphongtro.services.ThanhToanService;
+import com.example.quanlyphongtro.services.InvoiceGenerationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +35,7 @@ public class HoaDonController {
 
     private final HoaDonService hoaDonService;
     private final ThanhToanService thanhToanService;
+    private final InvoiceGenerationService invoiceGenerationService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<HoaDonResponse>>> getAll(
@@ -135,6 +140,31 @@ public class HoaDonController {
 
             thanhToanService.create(ttRequest);
             return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công"));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @GetMapping("/generation-preview")
+    public ResponseEntity<ApiResponse<InvoiceGenerationPreviewResponse>> preview(
+            @RequestParam(required = false) UUID nhaTroId,
+            @RequestParam int kyThang,
+            @RequestParam int kyNam,
+            @RequestParam(defaultValue = "false") boolean requireConfirmedReadings) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(
+                    invoiceGenerationService.preview(nhaTroId, kyThang, kyNam, requireConfirmedReadings)));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @PostMapping("/generate-monthly")
+    public ResponseEntity<ApiResponse<InvoiceGenerationResultResponse>> generate(
+            @RequestBody InvoiceGenerationRequest request) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(
+                    invoiceGenerationService.generate(request), "Sinh hóa đơn hàng tháng thành công"));
         } catch (Exception e) {
             return badRequest(e.getMessage());
         }

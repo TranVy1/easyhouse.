@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Building2,
@@ -334,13 +335,17 @@ export default function ToaNhaDetailPage() {
                 <InfoRow label="Ngày bắt đầu" value={formatDate(selectedRoom.ngayBatDau)} />
                 <InfoRow label="Ngày kết thúc" value={formatDate(selectedRoom.ngayKetThuc)} />
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button variant="outline" disabled={!selectedRoom.hopDongId}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Hợp đồng
+                  <Button variant="outline" disabled={!selectedRoom.hopDongId} asChild>
+                    <Link href={`/dashboard/hop-dong/${selectedRoom.hopDongId}`}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Hợp đồng
+                    </Link>
                   </Button>
-                  <Button variant="outline">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    Hóa đơn
+                  <Button variant="outline" asChild>
+                    <Link href={`/dashboard/hoa-don?search=${selectedRoom.maPhong}`}>
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      Hóa đơn
+                    </Link>
                   </Button>
                 </div>
               </div>

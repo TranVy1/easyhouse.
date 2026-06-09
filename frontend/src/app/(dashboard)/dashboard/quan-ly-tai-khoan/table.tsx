@@ -106,7 +106,15 @@ interface User {
 // Helper functions
 const getUserName = (user: User) => user.name || user.ten || 'Không có tên'
 const getUserPhone = (user: User) => user.phone || user.soDienThoai || ''
-const getUserRole = (user: User) => user.role || user.vaiTro || 'nhanVien'
+const getUserRole = (user: User) => {
+  const raw = user.role || user.vaiTro || 'nhanVien'
+  const clean = raw.replace(/^ROLE_/, '').toUpperCase()
+  if (clean === 'ADMIN') return 'admin'
+  if (clean === 'LANDLORD' || clean === 'CHUNHA') return 'chuNha'
+  if (clean === 'STAFF' || clean === 'NHANVIEN') return 'nhanVien'
+  if (clean === 'TENANT' || clean === 'KHACHTHUE') return 'tenant'
+  return raw.toLowerCase()
+}
 const getUserAvatar = (user: User) => user.avatar || user.anhDaiDien || ''
 const getUserIsActive = (user: User) => user.isActive !== undefined ? user.isActive : (user.trangThai === 'hoatDong' || user.trangThai === 'ACTIVE')
 
@@ -123,13 +131,31 @@ const getRoleBadge = (role: string) => {
   switch (role) {
     case 'admin':
       return (
-        <Badge variant="destructive" className="gap-1">
+        <Badge variant="destructive" className="gap-1 bg-red-100 text-red-800 border-none hover:bg-red-100">
           <Shield className="h-3 w-3" />
           Quản trị viên
         </Badge>
       )
+    case 'chuNha':
+      return (
+        <Badge className="gap-1 bg-blue-100 text-blue-800 border-none hover:bg-blue-100">
+          Chủ nhà
+        </Badge>
+      )
+    case 'nhanVien':
+      return (
+        <Badge className="gap-1 bg-green-100 text-green-800 border-none hover:bg-green-100">
+          Nhân viên
+        </Badge>
+      )
+    case 'tenant':
+      return (
+        <Badge className="gap-1 bg-orange-100 text-orange-800 border-none hover:bg-orange-100">
+          Khách thuê
+        </Badge>
+      )
     default:
-      return <Badge variant="outline">Khách thuê</Badge>
+      return <Badge variant="outline">{role}</Badge>
   }
 }
 

@@ -21,6 +21,9 @@ import { toast } from "sonner"
 import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -101,6 +104,22 @@ function InvoiceSkeleton() {
 
 export default function HoaDonPage() {
   const accessToken = useSession()?.data?.accessToken
+  const [isGenerateOpen, setIsGenerateOpen] = useState(false)
+  const [toaNhas, setToaNhas] = useState<any[]>([])
+  const [fetchingToaNhas, setFetchingToaNhas] = useState(false)
+  const [genForm, setGenForm] = useState({
+    nhaTroId: "all",
+    kyThang: String(new Date().getMonth() + 1),
+    kyNam: String(new Date().getFullYear()),
+    requireConfirmedReadings: false,
+    sendNotification: false,
+  })
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewData, setPreviewData] = useState<any>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [genResult, setGenResult] = useState<any>(null)
+
   const [data, setData] = useState<HoaDon[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -120,6 +139,16 @@ export default function HoaDonPage() {
 
   useEffect(() => {
     document.title = "Hóa đơn | EasyHouse"
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const searchParam = params.get("search")
+      if (searchParam) {
+        setSearchInput(searchParam)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -192,6 +221,86 @@ export default function HoaDonPage() {
     setPagination((current) => ({ ...current, pageIndex: 0 }))
   }
 
+  const fetchToaNhas = useCallback(async () => {
+    setFetchingToaNhas(true)
+    try {
+      const response = await fetch('/api/toa-nha?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result = await response.json()
+      if (response.ok && result.success && result.data) {
+        setToaNhas(result.data.data || [])
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách tòa nhà:", err)
+    } finally {
+      setFetchingToaNhas(false)
+    }
+  }, [accessToken])
+
+  const handlePreview = async () => {
+    setPreviewLoading(true)
+    setPreviewError(null)
+    setGenResult(null)
+    try {
+      const params = new URLSearchParams({
+        kyThang: genForm.kyThang,
+        kyNam: genForm.kyNam,
+        requireConfirmedReadings: String(genForm.requireConfirmedReadings),
+      })
+      if (genForm.nhaTroId !== "all") {
+        params.set("nhaTroId", genForm.nhaTroId)
+      }
+      const response = await fetch(`/api/hoa-don/generation-preview?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Không thể tải xem trước sinh hóa đơn")
+      }
+      setPreviewData(result.data)
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : "Có lỗi xảy ra")
+      setPreviewData(null)
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      const body: any = {
+        kyThang: Number(genForm.kyThang),
+        kyNam: Number(genForm.kyNam),
+        requireConfirmedReadings: genForm.requireConfirmedReadings,
+        sendNotification: genForm.sendNotification,
+      }
+      if (genForm.nhaTroId !== "all") {
+        body.nhaTroId = genForm.nhaTroId
+      }
+      const response = await fetch("/api/hoa-don/generate-monthly", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify(body),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Tạo hóa đơn hàng tháng thất bại")
+      }
+      setGenResult(result.data)
+      toast.success("Đã sinh hóa đơn hàng tháng thành công")
+      await fetchInvoices(true)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Có lỗi xảy ra")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const cancelInvoice = async () => {
     if (!cancelTarget) return
     setCancelling(true)
@@ -228,6 +337,10 @@ export default function HoaDonPage() {
             <Button variant="outline" onClick={() => void fetchInvoices(true)} disabled={refreshing}>
               <RefreshCw className={refreshing ? "animate-spin" : ""} />
               Làm mới
+            </Button>
+            <Button variant="outline" onClick={() => setIsGenerateOpen(true)}>
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Sinh hóa đơn tháng
             </Button>
             <Button asChild>
               <Link href="/dashboard/hoa-don/them-moi"><Plus />Lập hóa đơn</Link>
@@ -420,6 +533,257 @@ export default function HoaDonPage() {
             <Button variant="destructive" onClick={() => void cancelInvoice()} disabled={cancelling}>
               {cancelling ? "Đang hủy..." : "Xác nhận hủy"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isGenerateOpen} onOpenChange={(open) => {
+        setIsGenerateOpen(open)
+        if (!open) {
+          setPreviewData(null)
+          setPreviewError(null)
+          setGenResult(null)
+        } else {
+          void fetchToaNhas()
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-blue-600" />
+              Sinh hóa đơn hàng tháng tự động
+            </DialogTitle>
+            <DialogDescription>
+              Sinh hàng loạt hóa đơn cho tất cả hợp đồng đang hiệu lực. Xem trước chi phí dự kiến trước khi xác nhận.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Form Filter */}
+          {!genResult && (
+            <div className="grid gap-4 sm:grid-cols-3 bg-muted/40 p-4 rounded-xl border mb-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="nhaTro">Tòa nhà</Label>
+                <Select value={genForm.nhaTroId} onValueChange={(value) => setGenForm(prev => ({ ...prev, nhaTroId: value }))}>
+                  <SelectTrigger id="nhaTro">
+                    <SelectValue placeholder="Chọn tòa nhà" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả tòa nhà</SelectItem>
+                    {toaNhas.map((tn) => (
+                      <SelectItem key={tn.id || tn._id} value={tn.id || tn._id}>{tn.ten}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="thang">Tháng</Label>
+                <Select value={genForm.kyThang} onValueChange={(value) => setGenForm(prev => ({ ...prev, kyThang: value }))}>
+                  <SelectTrigger id="thang">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={String(i + 1)}>Tháng {i + 1}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="nam">Năm</Label>
+                <Select value={genForm.kyNam} onValueChange={(value) => setGenForm(prev => ({ ...prev, kyNam: value }))}>
+                  <SelectTrigger id="nam">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }, (_, i) => String(currentYear - 2 + i)).map((year) => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="sm:col-span-3 flex flex-wrap gap-6 pt-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    id="requireConfirmedReadings" 
+                    checked={genForm.requireConfirmedReadings} 
+                    onCheckedChange={(checked) => setGenForm(prev => ({ ...prev, requireConfirmedReadings: !!checked }))}
+                  />
+                  <Label htmlFor="requireConfirmedReadings" className="font-normal cursor-pointer text-sm">
+                    Chỉ sinh khi đã chốt đủ chỉ số điện/nước
+                  </Label>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    id="sendNotification" 
+                    checked={genForm.sendNotification} 
+                    onCheckedChange={(checked) => setGenForm(prev => ({ ...prev, sendNotification: !!checked }))}
+                  />
+                  <Label htmlFor="sendNotification" className="font-normal cursor-pointer text-sm">
+                    Tự động gửi email/thông báo cho khách thuê
+                  </Label>
+                </div>
+              </div>
+
+              <div className="sm:col-span-3 flex justify-end pt-2">
+                <Button 
+                  onClick={handlePreview} 
+                  disabled={previewLoading || generating}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  {previewLoading ? "Đang xử lý..." : "Xem trước hóa đơn"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Results Summary after generation */}
+          {genResult && (
+            <div className="space-y-4 py-4 flex-1 overflow-hidden flex flex-col">
+              <div className="grid gap-4 grid-cols-3 text-center">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-xl">
+                  <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Thành công</p>
+                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{genResult.createdCount}</p>
+                </div>
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl">
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Bỏ qua</p>
+                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{genResult.skippedCount}</p>
+                </div>
+                <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 rounded-xl">
+                  <p className="text-sm font-medium text-red-600 dark:text-red-400">Lỗi</p>
+                  <p className="text-2xl font-bold text-red-700 dark:text-red-300">{genResult.errorCount}</p>
+                </div>
+              </div>
+
+              <div className="text-sm font-semibold text-muted-foreground mt-2">Chi tiết nhật ký chạy:</div>
+              <ScrollArea className="flex-1 border rounded-xl p-2 bg-muted/20">
+                <div className="space-y-1.5 text-sm font-mono">
+                  {genResult.logs && genResult.logs.length > 0 ? (
+                    genResult.logs.map((log: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center py-1 border-b last:border-0 px-2">
+                        <span>Phòng: <span className="font-bold text-slate-800 dark:text-slate-200">{log.maPhong || "Chưa rõ"}</span></span>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={log.status === "SUCCESS" ? "default" : log.status === "SKIPPED" ? "secondary" : "destructive"}
+                            className={log.status === "SUCCESS" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none" : undefined}
+                          >
+                            {log.status === "SUCCESS" ? "Thành công" : log.status === "SKIPPED" ? "Bỏ qua" : "Lỗi"}
+                          </Badge>
+                          {log.reason && <span className="text-xs text-muted-foreground">({log.reason})</span>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-muted-foreground py-4">Không có bản ghi nhật ký nào.</div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* Preview candidate list */}
+          {!genResult && previewData && (
+            <div className="flex-1 overflow-hidden flex flex-col space-y-3 mt-2 min-h-[300px]">
+              <div className="flex justify-between items-center text-sm font-semibold border-b pb-2">
+                <span>Danh sách ứng viên ({previewData.candidates?.length || 0} hợp đồng)</span>
+                <span className="text-blue-600">Tổng tiền dự kiến: {currency(previewData.tongEstimatedAmount)}</span>
+              </div>
+              <ScrollArea className="flex-1 border rounded-xl bg-background">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-24">Phòng</TableHead>
+                      <TableHead className="w-40">Khách thuê</TableHead>
+                      <TableHead className="w-32">Trạng thái</TableHead>
+                      <TableHead className="text-right w-32">Tiền dự tính</TableHead>
+                      <TableHead>Cảnh báo / Ghi chú</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {previewData.candidates && previewData.candidates.length > 0 ? (
+                      previewData.candidates.map((cand: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell className="font-bold">{cand.maPhong}</TableCell>
+                          <TableCell className="truncate max-w-[150px]">{cand.tenKhachThue}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={cand.status === "READY" ? "default" : cand.status === "EXISTS" ? "secondary" : "destructive"}
+                              className={cand.status === "READY" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none" : undefined}
+                            >
+                              {cand.status === "READY" ? "Sẵn sàng" : cand.status === "EXISTS" ? "Đã có HĐ" : "Thiếu chỉ số"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">{currency(cand.estimatedAmount)}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {cand.warnings && cand.warnings.length > 0 ? cand.warnings.join(", ") : "Không có cảnh báo"}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          Không tìm thấy hợp đồng nào phù hợp trong bộ lọc này.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+
+              {/* Stats card */}
+              <div className="flex justify-between items-center text-sm p-3 bg-slate-50 dark:bg-slate-900 border rounded-xl">
+                <div>
+                  Hợp đồng ready: <span className="font-bold text-emerald-600 dark:text-emerald-400">{previewData.tongReady}</span> / {previewData.tongHopDong}
+                </div>
+                <div className="font-bold">
+                  Tổng tiền chốt dự kiến: {currency(previewData.tongEstimatedAmount)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {previewError && (
+            <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 rounded-xl text-sm text-red-600 dark:text-red-400 my-2">
+              Lỗi tải xem trước: {previewError}
+            </div>
+          )}
+
+          <DialogFooter className="mt-4 flex-row gap-2 justify-end">
+            {genResult ? (
+              <Button 
+                onClick={() => {
+                  setIsGenerateOpen(false)
+                  setGenResult(null)
+                  setPreviewData(null)
+                }}
+                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-medium"
+              >
+                Đóng lại
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsGenerateOpen(false)} 
+                  disabled={generating}
+                  className="w-full sm:w-auto"
+                >
+                  Hủy bỏ
+                </Button>
+                {previewData && (
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={previewData.tongReady === 0 || generating}
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                  >
+                    {generating ? "Đang sinh hóa đơn..." : `Xác nhận sinh ${previewData.tongReady} hóa đơn`}
+                  </Button>
+                )}
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

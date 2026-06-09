@@ -93,7 +93,8 @@ export default function AccountManagementPage() {
 
   useEffect(() => {
     // Chỉ fetch 1 lần duy nhất khi user là admin
-    if (session?.user?.role === 'admin' && !hasFetchedRef.current) {
+    const userRole = session?.user?.role?.replace(/^ROLE_/, '').toUpperCase();
+    if (userRole === 'ADMIN' && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
       fetchUsers(false); // Sử dụng cache nếu có
     }
@@ -275,7 +276,15 @@ export default function AccountManagementPage() {
   // Helper functions to safely get user data
   const getUserName = (user: User) => user.name || user.ten || 'Không có tên';
   const getUserPhone = (user: User) => user.phone || user.soDienThoai || '';
-  const getUserRole = (user: User) => user.role || user.vaiTro || 'nhanVien';
+  const getUserRole = (user: User) => {
+    const raw = user.role || user.vaiTro || 'nhanVien';
+    const clean = raw.replace(/^ROLE_/, '').toUpperCase();
+    if (clean === 'ADMIN') return 'admin';
+    if (clean === 'LANDLORD' || clean === 'CHUNHA') return 'chuNha';
+    if (clean === 'STAFF' || clean === 'NHANVIEN') return 'nhanVien';
+    if (clean === 'TENANT' || clean === 'KHACHTHUE') return 'tenant';
+    return raw.toLowerCase();
+  };
   const getUserAvatar = (user: User) => user.avatar || user.anhDaiDien || '';
   const getUserIsActive = (user: User) => user.isActive !== undefined ? user.isActive : (user.trangThai === 'hoatDong' || user.trangThai === 'ACTIVE');
 
@@ -284,7 +293,8 @@ export default function AccountManagementPage() {
     (user.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (session?.user?.role !== 'admin') {
+  const userRole = session?.user?.role?.replace(/^ROLE_/, '').toUpperCase();
+  if (userRole !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
