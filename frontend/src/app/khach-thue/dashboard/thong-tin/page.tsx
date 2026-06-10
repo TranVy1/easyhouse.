@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Phone, Mail, Camera, Save, Lock, ShieldCheck } from 'lucide-react';
+import { User, Phone, Mail, Camera, Save, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { useTenantDashboard } from '../context';
+import { useRouter } from 'next/navigation';
 
 export default function TenantProfilePage() {
+  const router = useRouter();
   const session = useSession()?.data;
   const accessToken = session?.accessToken;
   const { refreshData } = useTenantDashboard();
@@ -191,9 +193,20 @@ export default function TenantProfilePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-24 md:pb-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Hồ Sơ Cá Nhân</h1>
-        <p className="text-muted-foreground mt-1">Quản lý thông tin tài khoản của bạn</p>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="h-9 w-9 rounded-full border border-gray-200 bg-white hover:bg-gray-100 shadow-sm"
+          title="Quay lại"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Hồ Sơ Cá Nhân</h1>
+          <p className="text-muted-foreground mt-1">Quản lý thông tin tài khoản của bạn</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
