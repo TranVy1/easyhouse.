@@ -4,6 +4,7 @@ import {
   ArrowLeft, Share2, Heart, MapPin, Wifi, Wind, Car,
   ShieldCheck, ChevronDown, ChevronUp, Star, CheckCircle2
 } from "lucide-react";
+import { DatLichHenDialog } from "@/components/ui/dat-lich-hen-dialog";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=500&fit=crop&auto=format",
@@ -29,6 +30,7 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
   const [expanded, setExpanded] = useState(false);
   const [roomData, setRoomData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/public/phong/' + roomId)
@@ -272,7 +274,10 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
               </div>
 
               {/* CTA Booking Button */}
-              <button className="w-full bg-[#FF5A3D] text-white py-4 px-6 rounded-2xl font-bold hover:bg-orange-600 active:scale-[0.98] transition-all shadow-md shadow-orange-200 flex items-center justify-center gap-2 text-sm md:text-base cursor-pointer">
+              <button 
+                onClick={() => setIsBookingOpen(true)}
+                className="w-full bg-[#FF5A3D] text-white py-4 px-6 rounded-2xl font-bold hover:bg-orange-600 active:scale-[0.98] transition-all shadow-md shadow-orange-200 flex items-center justify-center gap-2 text-sm md:text-base cursor-pointer"
+              >
                 Đặt lịch xem phòng
               </button>
 
@@ -294,10 +299,20 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
             {roomPrice}đ<span className="text-sm font-normal text-slate-500">/tháng</span>
           </p>
         </div>
-        <button className="bg-[#FF5A3D] text-white px-6 py-3.5 rounded-2xl font-bold shadow-md shadow-orange-200 active:scale-95 transition-transform text-sm cursor-pointer">
+        <button 
+          onClick={() => setIsBookingOpen(true)}
+          className="bg-[#FF5A3D] text-white px-6 py-3.5 rounded-2xl font-bold shadow-md shadow-orange-200 active:scale-95 transition-transform text-sm cursor-pointer"
+        >
           Đặt lịch xem phòng
         </button>
       </div>
+
+      <DatLichHenDialog 
+        isOpen={isBookingOpen} 
+        onClose={() => setIsBookingOpen(false)} 
+        phongId={String(roomData._id || roomData.id || roomId)} 
+        maPhong={roomName} 
+      />
     </div>
   );
 }
