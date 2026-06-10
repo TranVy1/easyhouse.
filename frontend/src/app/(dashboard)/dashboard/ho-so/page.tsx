@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from 'next/navigation';
 import { 
   User, 
   Phone, 
@@ -25,7 +26,8 @@ import {
   Save, 
   Camera,
   Key,
-  Bell
+  Bell,
+  ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -57,6 +59,7 @@ interface Ward {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { data: session, update } = useSession();
   const accessToken = session?.accessToken;
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -300,9 +303,20 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Hồ sơ cá nhân</h1>
-          <p className="text-xs md:text-sm text-gray-600">Quản lý thông tin tài khoản của bạn</p>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="h-9 w-9 rounded-full border border-gray-200 bg-white hover:bg-gray-100 shadow-sm"
+            title="Quay lại"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-600" />
+          </Button>
+          <div>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Hồ sơ cá nhân</h1>
+            <p className="text-xs md:text-sm text-gray-600">Quản lý thông tin tài khoản của bạn</p>
+          </div>
         </div>
         {!isEditing && (
           <Button size="sm" onClick={() => setIsEditing(true)}>

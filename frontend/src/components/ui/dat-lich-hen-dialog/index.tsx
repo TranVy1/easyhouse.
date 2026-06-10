@@ -22,12 +22,49 @@ interface DatLichHenDialogProps {
 
 export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichHenDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper to get initial future date and time (minimum 2 hours in the future)
+  const getInitialDateTime = () => {
+    const now = new Date();
+    // Add 2 hours for a safe margin
+    now.setHours(now.getHours() + 2);
+    
+    // If the time is past 18:00 (6 PM) or before 08:00 (8 AM), set to next business day at 09:00 AM
+    const hours = now.getHours();
+    if (hours >= 18 || hours < 8) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return {
+        ngayHen: format(tomorrow, "yyyy-MM-dd"),
+        gioHen: "09:00"
+      };
+    }
+    
+    // Round to next hour
+    const roundedHours = now.getMinutes() > 0 ? now.getHours() + 1 : now.getHours();
+    if (roundedHours >= 24) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return {
+        ngayHen: format(tomorrow, "yyyy-MM-dd"),
+        gioHen: "09:00"
+      };
+    }
+    const formattedHour = String(roundedHours).padStart(2, '0');
+    return {
+      ngayHen: format(now, "yyyy-MM-dd"),
+      gioHen: `${formattedHour}:00`
+    };
+  };
+
+  const initialDateTime = getInitialDateTime();
+
   const [formData, setFormData] = useState({
     hoTen: "",
     soDienThoai: "",
     email: "",
-    ngayHen: format(new Date(), "yyyy-MM-dd"),
-    gioHen: "09:00",
+    ngayHen: initialDateTime.ngayHen,
+    gioHen: initialDateTime.gioHen,
     ghiChu: "",
     honeypot: "",
   });
@@ -36,6 +73,12 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
     e.preventDefault();
     if (!formData.hoTen || !formData.soDienThoai || !formData.ngayHen || !formData.gioHen) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
+      return;
+    }
+
+    const ngayHenDate = new Date(`${formData.ngayHen}T${formData.gioHen}:00+07:00`);
+    if (ngayHenDate <= new Date()) {
+      toast.error("Thời gian hẹn phải ở tương lai");
       return;
     }
 
@@ -48,7 +91,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
 
     try {
       setIsSubmitting(true);
-      const ngayHenIso = new Date(`${formData.ngayHen}T${formData.gioHen}:00+07:00`).toISOString();
+      const ngayHenIso = ngayHenDate.toISOString();
 
       const res = await fetch("/api/lich-hen", {
         method: "POST",
@@ -68,12 +111,13 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
       if (data.success) {
         toast.success("Đặt lịch xem phòng thành công. Chúng tôi sẽ liên hệ lại sớm nhất.");
         onClose();
+        const resetDateTime = getInitialDateTime();
         setFormData({
           hoTen: "",
           soDienThoai: "",
           email: "",
-          ngayHen: format(new Date(), "yyyy-MM-dd"),
-          gioHen: "09:00",
+          ngayHen: resetDateTime.ngayHen,
+          gioHen: resetDateTime.gioHen,
           ghiChu: "",
           honeypot: "",
         });
@@ -135,6 +179,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 <Input
                   id="ngayHen"
                   type="date"
+                  min={format(new Date(), "yyyy-MM-dd")}
                   value={formData.ngayHen}
                   onChange={(e) => setFormData({ ...formData, ngayHen: e.target.value })}
                   required
