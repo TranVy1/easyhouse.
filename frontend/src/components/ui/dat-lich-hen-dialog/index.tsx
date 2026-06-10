@@ -106,6 +106,23 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
           honeypot: formData.honeypot,
         }),
       });
+      
+      if (!res.ok) {
+        let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
+        try {
+          const errorText = await res.text();
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorJson.error || errorMessage;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+        } catch {
+          // ignore
+        }
+        toast.error(errorMessage);
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {

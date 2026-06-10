@@ -9,6 +9,7 @@ import com.example.quanlyphongtro.repository.LichHenRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.services.PermissionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +31,15 @@ import com.example.quanlyphongtro.dto.PaginatedResponse;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class LichHenService {
 
     private final LichHenRepository lichHenRepository;
     private final PhongRepository phongRepository;
     private final PermissionService permissionService;
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    private final ThongBaoService thongBaoService;
+    private final EmailService emailService;
     private final ConcurrentMap<String, List<Instant>> publicRequestsByIp = new ConcurrentHashMap<>();
 
     public PaginatedResponse<LichHenResponse> getAll(UUID nhaTroId, UUID phongId, String trangThai, Pageable pageable) {
@@ -147,6 +151,33 @@ public class LichHenService {
 
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "CREATE", currentUserId);
+
+        // Send In-App notification to Landlord (owner of the building)
+        if (phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null) {
+            UUID landlordId = phong.getNhaTro().getChuTro().getId();
+            String title = "Lịch hẹn xem phòng mới";
+            String content = String.format("Khách hàng %s đã đặt lịch xem phòng %s vào lúc %s. Số điện thoại: %s.",
+                    saved.getHoTen(),
+                    phong.getTen(),
+                    saved.getNgayHen().toString(),
+                    saved.getSoDienThoai());
+            try {
+                thongBaoService.createSystemNotification(title, content, com.example.quanlyphongtro.entity.LoaiThongBao.APPOINTMENT, List.of(landlordId));
+                log.info("Created system notification for landlord {} about new appointment {}", landlordId, saved.getId());
+            } catch (Exception e) {
+                log.error("Failed to create system notification for landlord {}: {}", landlordId, e.getMessage());
+            }
+        }
+
+        // Send Email confirmation to Guest if email is provided
+        if (saved.getEmail() != null && !saved.getEmail().isBlank()) {
+            try {
+                emailService.sendAppointmentCreatedEmail(saved);
+            } catch (Exception e) {
+                log.error("Failed to send appointment confirmation email to {}: {}", saved.getEmail(), e.getMessage());
+            }
+        }
+
         return LichHenResponse.fromEntity(saved);
     }
 

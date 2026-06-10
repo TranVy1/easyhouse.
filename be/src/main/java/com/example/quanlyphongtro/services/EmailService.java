@@ -308,4 +308,35 @@ public class EmailService {
             log.error("Failed to send invoice upcoming reminder email to {}: {}", tenant.getEmail(), e.getMessage());
         }
     }
+
+    public void sendAppointmentCreatedEmail(com.example.quanlyphongtro.entity.LichHen lh) {
+        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(lh.getEmail());
+            message.setSubject("[EasyHouse] Xác nhận đăng ký đặt lịch xem phòng thành công");
+            
+            String thoiGian = lh.getNgayHen() != null ? lh.getNgayHen().toString() : "";
+            
+            message.setText(
+                "Xin chào " + lh.getHoTen() + ",\n\n" +
+                "EasyHouse xác nhận bạn đã đăng ký đặt lịch xem phòng thành công.\n" +
+                "Thông tin chi tiết:\n" +
+                "- Phòng: " + (lh.getPhong() != null ? lh.getPhong().getTen() : "N/A") + "\n" +
+                "- Địa chỉ: " + (lh.getPhong() != null && lh.getPhong().getNhaTro() != null ? lh.getPhong().getNhaTro().getDiaChi() : "N/A") + "\n" +
+                "- Thời gian hẹn: " + thoiGian + "\n" +
+                "- Ghi chú: " + (lh.getGhiChu() != null ? lh.getGhiChu() : "") + "\n\n" +
+                "Người quản lý sẽ liên hệ với bạn qua số điện thoại " + lh.getSoDienThoai() + " để xác nhận lại lịch hẹn.\n" +
+                "Cảm ơn bạn đã quan tâm đến dịch vụ của EasyHouse.\n\n" +
+                "Trân trọng,\nĐội ngũ EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Appointment confirmation email sent to customer {}", lh.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send appointment confirmation email to {}: {}", lh.getEmail(), e.getMessage());
+        }
+    }
 }
