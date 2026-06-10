@@ -176,6 +176,23 @@ export function LichHenClient() {
         body: JSON.stringify(payload),
       });
 
+      if (!res.ok) {
+        let errorMessage = "Đã xảy ra lỗi khi lưu lịch hẹn";
+        try {
+          const errorText = await res.text();
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorJson.error || errorMessage;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+        } catch {
+          // ignore
+        }
+        toast.error(errorMessage);
+        return;
+      }
+
       const data: ApiResponse<LichHen> = await res.json();
 
       if (data.success) {
@@ -198,6 +215,24 @@ export function LichHenClient() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+
+      if (!res.ok) {
+        let errorMessage = "Đã xảy ra lỗi khi hủy lịch hẹn";
+        try {
+          const errorText = await res.text();
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorJson.error || errorMessage;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+        } catch {
+          // ignore
+        }
+        toast.error(errorMessage);
+        return;
+      }
+
       const data: ApiResponse<void> = await res.json();
       
       if (data.success) {
@@ -223,6 +258,24 @@ export function LichHenClient() {
         },
         body: JSON.stringify({ trangThai: status }),
       });
+
+      if (!res.ok) {
+        let errorMessage = "Đã xảy ra lỗi khi cập nhật trạng thái";
+        try {
+          const errorText = await res.text();
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorJson.error || errorMessage;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+        } catch {
+          // ignore
+        }
+        toast.error(errorMessage);
+        return;
+      }
+
       const data: ApiResponse<LichHen> = await res.json();
       
       if (data.success) {

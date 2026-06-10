@@ -281,6 +281,9 @@ public class LichHenService {
     }
 
     private void validateTransition(TrangThaiLichHen current, TrangThaiLichHen target) {
+        if (current == target) {
+            return;
+        }
         boolean valid = current == TrangThaiLichHen.PENDING
                 && (target == TrangThaiLichHen.CONFIRMED || target == TrangThaiLichHen.CANCELLED);
         valid = valid || current == TrangThaiLichHen.CONFIRMED
