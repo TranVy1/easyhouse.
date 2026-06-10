@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ interface DatLichHenDialogProps {
 
 export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichHenDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: session } = useSession();
 
   // Helper to get initial future date and time (minimum 2 hours in the future)
   const getInitialDateTime = () => {
@@ -68,6 +70,18 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
     ghiChu: "",
     honeypot: "",
   });
+
+  // Autofill user info if logged in
+  useEffect(() => {
+    if (isOpen && session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        hoTen: session.user.name || prev.hoTen,
+        soDienThoai: (session.user as any).phone || prev.soDienThoai,
+        email: session.user.email || prev.email,
+      }));
+    }
+  }, [isOpen, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
