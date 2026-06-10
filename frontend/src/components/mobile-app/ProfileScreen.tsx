@@ -6,12 +6,13 @@ import {
   CheckCircle2, Clock, XCircle,
   Home, Zap, Droplets,
   RefreshCw, ChevronDown, Pencil, Lock, Eye, EyeOff,
-  Save, X, CheckCircle
+  Save, X, CheckCircle, ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -789,6 +790,7 @@ function SideNavItem({ item, active, onClick }: { item: typeof NAV[0]; active: S
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function ProfileScreen({ onOpenChat }: { onOpenChat: () => void }) {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -847,8 +849,20 @@ export function ProfileScreen({ onOpenChat }: { onOpenChat: () => void }) {
     <div className="flex flex-col min-h-full bg-slate-100 overflow-y-auto">
 
       {/* ── Hero ── */}
-      <div className="bg-indigo-700 px-4 md:px-8 pt-12 pb-14 relative overflow-hidden shrink-0">
+      <div className="bg-indigo-700 px-4 md:px-8 pt-10 pb-14 relative overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/30 via-transparent to-transparent pointer-events-none" />
+        
+        {/* Back Button */}
+        <div className="relative max-w-4xl mx-auto mb-4">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition-all cursor-pointer border border-white/10"
+          >
+            <ArrowLeft size={14} />
+            Quay lại
+          </button>
+        </div>
+
         <div className="relative max-w-4xl mx-auto flex items-center gap-4">
           {displayAvatar ? (
             <img src={displayAvatar} alt={displayName}
