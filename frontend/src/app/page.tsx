@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { Home, Heart, Receipt, User, Bot, Star, Play, Camera, Trash2, MapPin, ArrowLeft } from "lucide-react";
 import { HomeScreen } from "@/components/mobile-app/HomeScreen";
 import { RoomDetailScreen } from "@/components/mobile-app/RoomDetailScreen";
@@ -131,23 +131,33 @@ interface SavedScreenProps {
 
 function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
   const [savedRooms, setSavedRooms] = useState<any[]>([]);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  const getStorageKey = (uid?: string) => {
+    return uid ? `easyhouse_saved_rooms_${uid}` : "easyhouse_saved_rooms";
+  };
 
   useEffect(() => {
-    const saved = localStorage.getItem("easyhouse_saved_rooms");
+    const key = getStorageKey(userId);
+    const saved = localStorage.getItem(key);
     if (saved) {
       try {
         setSavedRooms(JSON.parse(saved));
       } catch (e) {
         console.error(e);
       }
+    } else {
+      setSavedRooms([]);
     }
-  }, []);
+  }, [userId]);
 
   const handleUnsave = (id: RoomId, e: React.MouseEvent) => {
     e.stopPropagation();
+    const key = getStorageKey(userId);
     const updated = savedRooms.filter((r) => r.id !== id);
     setSavedRooms(updated);
-    localStorage.setItem("easyhouse_saved_rooms", JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify(updated));
   };
 
   const getRoomImagesLocal = (room: any) => {

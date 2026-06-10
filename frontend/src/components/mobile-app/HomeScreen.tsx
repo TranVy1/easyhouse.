@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Bell,
   Building2,
@@ -190,6 +191,8 @@ const getVisiblePages = (currentPage: number, totalPages: number) => {
 };
 
 export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const initialViewState = useMemo(() => getInitialHomeViewState(), []);
   const didMountViewState = useRef(false);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -202,9 +205,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const [currentPage, setCurrentPage] = useState(initialViewState.currentPage);
   const [savedRooms, setSavedRooms] = useState<Set<RoomId>>(new Set());
 
+  const getStorageKey = (uid?: string) => {
+    return uid ? `easyhouse_saved_rooms_${uid}` : "easyhouse_saved_rooms";
+  };
+
   useEffect(() => {
-    setFilterCat(initialViewState.filterCat);
-    const saved = localStorage.getItem("easyhouse_saved_rooms");
+    const key = getStorageKey(userId);
+    const saved = localStorage.getItem(key);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -212,7 +219,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       } catch (error) {
         console.error(error);
       }
+    } else {
+      setSavedRooms(new Set());
     }
+  }, [userId]);
+
+  useEffect(() => {
+    setFilterCat(initialViewState.filterCat);
 
     fetch("/api/user/profile")
       .then((res) => res.json())
@@ -299,7 +312,8 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
 
   const toggleSave = (room: RoomCard, event: MouseEvent) => {
     event.stopPropagation();
-    const saved = localStorage.getItem("easyhouse_saved_rooms");
+    const key = getStorageKey(userId);
+    const saved = localStorage.getItem(key);
     let currentSaved: RoomCard[] = saved ? JSON.parse(saved) : [];
     const exists = currentSaved.some((item) => item.id === room.id);
 
@@ -309,7 +323,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       currentSaved.push(room);
     }
 
-    localStorage.setItem("easyhouse_saved_rooms", JSON.stringify(currentSaved));
+    localStorage.setItem(key, JSON.stringify(currentSaved));
     setSavedRooms(new Set(currentSaved.map((item) => item.id)));
   };
 
