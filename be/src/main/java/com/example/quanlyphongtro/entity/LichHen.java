@@ -43,6 +43,7 @@ public class LichHen {
     private Boolean daGuiNhacNho = false;
 
     private String ghiChu;
+    private String ghiChuAdmin;
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
 }

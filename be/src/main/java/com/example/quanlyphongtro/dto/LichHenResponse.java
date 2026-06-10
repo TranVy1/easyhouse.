@@ -25,6 +25,7 @@ public class LichHenResponse {
     private String trangThai;
     private Boolean daGuiNhacNho;
     private String ghiChu;
+    private String ghiChuAdmin;
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
 
@@ -51,6 +52,7 @@ public class LichHenResponse {
                 .trangThai(lichHen.getTrangThai() != null ? lichHen.getTrangThai().name() : null)
                 .daGuiNhacNho(lichHen.getDaGuiNhacNho())
                 .ghiChu(lichHen.getGhiChu())
+                .ghiChuAdmin(lichHen.getGhiChuAdmin())
                 .taoLuc(lichHen.getTaoLuc())
                 .capNhatLuc(lichHen.getCapNhatLuc())
                 .build();

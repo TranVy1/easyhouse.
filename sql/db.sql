@@ -2578,6 +2578,7 @@ CREATE TABLE public.lich_hen (
     google_calendar_event_id text,
     da_gui_nhac_nho boolean DEFAULT false NOT NULL,
     ghi_chu text,
+    ghi_chu_admin character varying(500),
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL
 );

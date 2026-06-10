@@ -339,4 +339,34 @@ public class EmailService {
             log.error("Failed to send appointment confirmation email to {}: {}", lh.getEmail(), e.getMessage());
         }
     }
+
+    public void sendAppointmentConfirmedEmail(com.example.quanlyphongtro.entity.LichHen lh) {
+        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) {
+            return;
+        }
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(lh.getEmail());
+            message.setSubject("[EasyHouse] Lịch hẹn xem phòng của bạn đã được xác nhận!");
+            
+            String thoiGian = lh.getNgayHen() != null ? lh.getNgayHen().toString() : "";
+            
+            message.setText(
+                "Xin chào " + lh.getHoTen() + ",\n\n" +
+                "EasyHouse xin thông báo lịch hẹn xem phòng của bạn đã được quản lý xác nhận thành công.\n" +
+                "Thông tin chi tiết:\n" +
+                "- Phòng: " + (lh.getPhong() != null ? lh.getPhong().getTen() : "N/A") + "\n" +
+                "- Địa chỉ: " + (lh.getPhong() != null && lh.getPhong().getNhaTro() != null ? lh.getPhong().getNhaTro().getDiaChi() : "N/A") + "\n" +
+                "- Thời gian hẹn: " + thoiGian + "\n" +
+                "- Ghi chú phản hồi từ quản lý: " + (lh.getGhiChuAdmin() != null ? lh.getGhiChuAdmin() : "Không có") + "\n\n" +
+                "Vui lòng đến đúng giờ hẹn. Nếu có bất kỳ thay đổi nào, vui lòng liên hệ hotline 1900 8888 hoặc phản hồi qua email này.\n" +
+                "Trân trọng,\nĐội ngũ EasyHouse"
+            );
+            mailSender.send(message);
+            log.info("Appointment confirmation approved email sent to customer {}", lh.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send appointment confirmation approved email to {}: {}", lh.getEmail(), e.getMessage());
+        }
+    }
 }

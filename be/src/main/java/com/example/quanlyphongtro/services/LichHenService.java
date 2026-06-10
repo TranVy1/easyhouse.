@@ -146,6 +146,7 @@ public class LichHenService {
         lichHen.setEmail(req.getEmail());
         lichHen.setNgayHen(req.getNgayHen());
         lichHen.setGhiChu(req.getGhiChu());
+        lichHen.setGhiChuAdmin(req.getGhiChuAdmin());
         
         lichHen.setTrangThai(TrangThaiLichHen.PENDING);
 
@@ -219,14 +220,24 @@ public class LichHenService {
         if (req.getEmail() != null) lichHen.setEmail(req.getEmail());
         if (req.getNgayHen() != null) lichHen.setNgayHen(req.getNgayHen());
         if (req.getGhiChu() != null) lichHen.setGhiChu(req.getGhiChu());
+        if (req.getGhiChuAdmin() != null) lichHen.setGhiChuAdmin(req.getGhiChuAdmin());
+        boolean isConfirming = false;
         if (req.getTrangThai() != null) {
             TrangThaiLichHen targetStatus = TrangThaiLichHen.valueOf(req.getTrangThai());
             validateTransition(lichHen.getTrangThai(), targetStatus);
+            if (lichHen.getTrangThai() == TrangThaiLichHen.PENDING && targetStatus == TrangThaiLichHen.CONFIRMED) {
+                isConfirming = true;
+            }
             lichHen.setTrangThai(targetStatus);
         }
 
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "UPDATE", userId);
+
+        if (isConfirming) {
+            emailService.sendAppointmentConfirmedEmail(saved);
+        }
+
         return LichHenResponse.fromEntity(saved);
     }
 
@@ -241,9 +252,15 @@ public class LichHenService {
         
         TrangThaiLichHen targetStatus = TrangThaiLichHen.valueOf(status);
         validateTransition(lichHen.getTrangThai(), targetStatus);
+        boolean isConfirming = (lichHen.getTrangThai() == TrangThaiLichHen.PENDING && targetStatus == TrangThaiLichHen.CONFIRMED);
         lichHen.setTrangThai(targetStatus);
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "UPDATE_STATUS", userId);
+
+        if (isConfirming) {
+            emailService.sendAppointmentConfirmedEmail(saved);
+        }
+
         return LichHenResponse.fromEntity(saved);
     }
 

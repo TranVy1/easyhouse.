@@ -12,6 +12,7 @@ public class LichHenRequest {
     private String email;
     private ZonedDateTime ngayHen;
     private String ghiChu;
+    private String ghiChuAdmin;
     private String honeypot;
     private String trangThai; // PENDING, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW
 }

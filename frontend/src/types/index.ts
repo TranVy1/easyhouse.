@@ -507,6 +507,7 @@ export interface LichHen {
   trangThai: TrangThaiLichHen;
   daGuiNhacNho?: boolean;
   ghiChu?: string;
+  ghiChuAdmin?: string;
   taoLuc?: DateLike;
   capNhatLuc?: DateLike;
 }

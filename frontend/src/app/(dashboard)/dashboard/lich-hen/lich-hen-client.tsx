@@ -48,6 +48,7 @@ export function LichHenClient() {
     ngayHen: "",
     gioHen: "",
     ghiChu: "",
+    ghiChuAdmin: "",
     trangThai: "PENDING"
   });
 
@@ -115,6 +116,7 @@ export function LichHenClient() {
         ngayHen: format(date, "yyyy-MM-dd"),
         gioHen: format(date, "HH:mm"),
         ghiChu: lichHen.ghiChu || "",
+        ghiChuAdmin: lichHen.ghiChuAdmin || "",
         trangThai: lichHen.trangThai || "PENDING"
       });
     } else {
@@ -127,6 +129,7 @@ export function LichHenClient() {
         ngayHen: format(new Date(), "yyyy-MM-dd"),
         gioHen: "09:00",
         ghiChu: "",
+        ghiChuAdmin: "",
         trangThai: "PENDING"
       });
     }
@@ -160,6 +163,7 @@ export function LichHenClient() {
         email: formData.email,
         ngayHen: ngayHenIso,
         ghiChu: formData.ghiChu,
+        ghiChuAdmin: formData.ghiChuAdmin,
         trangThai: formData.trangThai
       };
 
@@ -257,9 +261,6 @@ export function LichHenClient() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">Lịch hẹn xem phòng</h1>
           <p className="text-xs md:text-sm text-gray-600">Quản lý lịch hẹn từ khách vãng lai và portal.</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" /> Thêm lịch hẹn
-        </Button>
       </div>
 
       <div className="border rounded-md bg-white">
@@ -302,8 +303,13 @@ export function LichHenClient() {
                   <TableCell>
                     {getStatusBadge(lh.trangThai)}
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {lh.ghiChu || "-"}
+                  <TableCell className="max-w-[200px]">
+                    <div className="truncate text-slate-700" title={lh.ghiChu}>{lh.ghiChu || "-"}</div>
+                    {lh.ghiChuAdmin && (
+                      <div className="text-[11px] text-blue-600 font-medium truncate mt-0.5" title={lh.ghiChuAdmin}>
+                        Admin: {lh.ghiChuAdmin}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2 justify-end">
@@ -493,11 +499,22 @@ export function LichHenClient() {
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="ghiChu">Ghi chú</Label>
+              <Label htmlFor="ghiChu">Ghi chú từ khách hàng</Label>
               <Input 
                 id="ghiChu" 
                 value={formData.ghiChu}
                 onChange={(e) => setFormData({...formData, ghiChu: e.target.value})}
+                disabled
+              />
+            </div>
+
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="ghiChuAdmin" className="font-bold text-blue-600">Ý kiến / Ghi chú của Admin</Label>
+              <Input 
+                id="ghiChuAdmin" 
+                value={formData.ghiChuAdmin}
+                onChange={(e) => setFormData({...formData, ghiChuAdmin: e.target.value})}
+                placeholder="Nhập ghi chú phản hồi hoặc ý kiến lưu ý nội bộ..."
               />
             </div>
           </div>
