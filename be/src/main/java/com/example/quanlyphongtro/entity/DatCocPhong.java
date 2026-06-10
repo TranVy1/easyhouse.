@@ -45,6 +45,15 @@ public class DatCocPhong {
     private TrangThaiDatCoc trangThai = TrangThaiDatCoc.PENDING;
 
     private String ghiChu;
+    
+    private String lyDoHuy;
+    private ZonedDateTime confirmedAt;
+    private ZonedDateTime cancelledAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nguoi_xac_nhan_id")
+    private NguoiDung nguoiXacNhan;
+
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
 }

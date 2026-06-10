@@ -51,6 +51,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     List<HoaDon> findByTrangThaiAndXoaLucIsNull(TrangThaiHoaDon trangThai);
 
+    List<HoaDon> findByTrangThaiIn(List<TrangThaiHoaDon> trangThaiList);
+
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThang(UUID hopDongId, Integer kyNam, Integer kyThang);
 
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(UUID hopDongId, Integer kyNam, Integer kyThang);

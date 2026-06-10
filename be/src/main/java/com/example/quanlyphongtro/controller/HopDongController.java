@@ -108,7 +108,7 @@ public class HopDongController {
     @PostMapping("/{id}/generate-pdf")
     public ResponseEntity<ApiResponse<HopDongResponse>> generatePdf(@PathVariable UUID id) {
         try {
-            HopDong hd = contractDocumentService.generatePdfTho(id);
+            HopDong hd = contractDocumentService.generatePdf(id);
             return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Sinh tài liệu PDF thành công"));
         } catch (Exception e) {
             return badRequest(e.getMessage());

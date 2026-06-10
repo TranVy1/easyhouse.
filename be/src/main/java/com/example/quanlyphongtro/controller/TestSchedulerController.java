@@ -27,8 +27,8 @@ public class TestSchedulerController {
     @PostMapping("/trigger-overdue")
     public ApiResponse<Void> triggerOverdue() {
         try {
-            schedulerService.checkOverdueInvoices();
-            return ApiResponse.success(null, "Đã kích hoạt quét hóa đơn quá hạn thành công");
+            schedulerService.checkInvoices();
+            return ApiResponse.success(null, "Đã kích hoạt quét hóa đơn thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -37,8 +37,8 @@ public class TestSchedulerController {
     @PostMapping("/trigger-upcoming-invoices")
     public ApiResponse<Void> triggerUpcomingInvoices() {
         try {
-            schedulerService.checkUpcomingInvoices();
-            return ApiResponse.success(null, "Đã kích hoạt quét hóa đơn sắp đến hạn thành công");
+            schedulerService.checkInvoices();
+            return ApiResponse.success(null, "Đã kích hoạt quét hóa đơn thành công");
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

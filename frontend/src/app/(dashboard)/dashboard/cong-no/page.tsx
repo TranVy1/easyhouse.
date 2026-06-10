@@ -462,6 +462,28 @@ export default function CongNoPage() {
                   <span className="text-sm text-muted-foreground">Còn phải thu</span>
                   <div className="flex items-center gap-3">
                     <span className="font-semibold">{formatCurrency(getOutstandingAmount(hoaDon))}</span>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/debt-reminders/invoice/${hoaDon._id || hoaDon.id}/manual`, {
+                            method: "POST",
+                            headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+                          })
+                          const result = await res.json()
+                          if (result.success) {
+                            alert("Đã gửi nhắc nợ thành công")
+                          } else {
+                            alert(result.message || "Gửi nhắc nợ thất bại")
+                          }
+                        } catch (err) {
+                          alert("Lỗi khi gửi nhắc nợ")
+                        }
+                      }}
+                    >
+                      Nhắc nợ
+                    </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/dashboard/hoa-don/${hoaDon._id || hoaDon.id}`}>Mở hóa đơn</Link>
                     </Button>

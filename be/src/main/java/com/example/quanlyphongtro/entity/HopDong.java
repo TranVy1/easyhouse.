@@ -75,8 +75,9 @@ public class HopDong {
     private ZonedDateTime tenantSignedAt;
     private ZonedDateTime landlordSignedAt;
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private String signatureStatus = "UNSIGNED";
+    private SignatureStatus signatureStatus = SignatureStatus.UNSIGNED;
 
     private String ghiChu;
 

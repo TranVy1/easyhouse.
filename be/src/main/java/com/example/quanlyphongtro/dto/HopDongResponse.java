@@ -46,6 +46,11 @@ public class HopDongResponse {
     private ZonedDateTime previewedAt;
     private ZonedDateTime confirmedAt;
     private ZonedDateTime lockedAt;
+    private String pdfUrl;
+    private String signedPdfUrl;
+    private ZonedDateTime tenantSignedAt;
+    private ZonedDateTime landlordSignedAt;
+    private String signatureStatus;
     private String ghiChu;
     private ZonedDateTime ngayTao;
 
@@ -122,6 +127,11 @@ public class HopDongResponse {
                 .previewedAt(hd.getPreviewedAt())
                 .confirmedAt(hd.getConfirmedAt())
                 .lockedAt(hd.getLockedAt())
+                .pdfUrl(hd.getFilePdf())
+                .signedPdfUrl(hd.getSignedPdfUrl())
+                .tenantSignedAt(hd.getTenantSignedAt())
+                .landlordSignedAt(hd.getLandlordSignedAt())
+                .signatureStatus(hd.getSignatureStatus() != null ? hd.getSignatureStatus().name() : "UNSIGNED")
                 .ghiChu(hd.getGhiChu())
                 .ngayTao(hd.getTaoLuc())
                 .build();

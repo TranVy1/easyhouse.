@@ -42,6 +42,7 @@ public class ChiSoDienNuocService {
     private final PermissionService permissionService;
     private final com.example.quanlyphongtro.repository.NguoiDungRepository nguoiDungRepository;
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    private final MeterAnomalyService meterAnomalyService;
 
     public PaginatedResponse<ChiSoDienNuocResponse> getAll(UUID nhaTroId, UUID phongId, Integer kyThang, Integer kyNam, String loai, String trangThai, Pageable pageable) {
         UUID userId = permissionService.requireCurrentUserId();
@@ -158,6 +159,7 @@ public class ChiSoDienNuocService {
         if (request.getAnhDongHo() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
         }
+        meterAnomalyService.analyzeReading(saved);
         logAudit(saved, "CREATE");
         return mapToResponse(saved);
     }
@@ -218,6 +220,7 @@ public class ChiSoDienNuocService {
         if (request.getAnhDongHo() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.METER_READING, saved.getId(), request.getAnhDongHo(), MediaService.METER_IMAGE);
         }
+        meterAnomalyService.analyzeReading(saved);
         logAudit(saved, "UPDATE");
         return mapToResponse(saved);
     }

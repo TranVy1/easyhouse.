@@ -6,9 +6,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   /* config options here */
   experimental: {
     optimizePackageImports: ['lucide-react'],
@@ -207,6 +204,14 @@ const nextConfig: NextConfig = {
       {
         source: '/api/bank-transaction',
         destination: `${backendUrl}/api/bank-transaction`
+      },
+      {
+        source: '/api/vnpay/:path*',
+        destination: `${backendUrl}/api/vnpay/:path*`
+      },
+      {
+        source: '/api/vnpay',
+        destination: `${backendUrl}/api/vnpay`
       },
     ];
   }

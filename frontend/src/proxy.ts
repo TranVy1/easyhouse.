@@ -2,7 +2,7 @@ import { withAuth, NextRequestWithAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
 export default withAuth(
-  function middleware(req: NextRequestWithAuth) {
+  function proxy(req: NextRequestWithAuth) {
     const requestHeaders = new Headers(req.headers);
     const accessToken = req.nextauth.token?.accessToken;
     const role = typeof req.nextauth.token?.role === 'string'

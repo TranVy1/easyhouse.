@@ -8,15 +8,15 @@ Biến hệ thống từ mức "quản lý CRUD có nghiệp vụ rời rạc" t
 
 ## Ưu tiên triển khai
 
-| Ưu tiên | Hạng mục | Giá trị khi bảo vệ | Độ khó | File plan |
-|---|---|---|---|---|
-| P0 | Tự động sinh hóa đơn hàng tháng | Chứng minh hệ thống có nghiệp vụ lõi thật, không chỉ CRUD | Cao | `01_AUTO_MONTHLY_INVOICE_PLAN.md` |
-| P0 | VietQR auto-reconciliation | Điểm nhấn tài chính/automation, demo rõ ràng | Cao | `02_VIETQR_AUTO_RECONCILIATION_PLAN.md` |
-| P0 | Dashboard analytics chuyên nghiệp | Làm sản phẩm nhìn "production-like" khi demo | Trung bình | `03_DASHBOARD_ANALYTICS_PLAN.md` |
-| P1 | Cảnh báo bất thường điện/nước | Có phân tích thông minh, dễ gây ấn tượng | Trung bình | `04_METER_ANOMALY_ALERT_PLAN.md` |
-| P1 | Đặt cọc/giữ phòng | Bổ sung nghiệp vụ thực tế trước hợp đồng | Trung bình | `05_DEPOSIT_ROOM_BOOKING_PLAN.md` |
-| P1 | Nhắc nợ tự động nhiều cấp | Hoàn thiện quy trình thu tiền | Trung bình | `06_DEBT_REMINDER_AUTOMATION_PLAN.md` |
-| P2 | Hợp đồng PDF/ký xác nhận | Tăng tính thực tế, nhưng không cấp thiết bằng hóa đơn/thanh toán | Cao | `07_CONTRACT_PDF_ESIGN_PLAN.md` |
+| Ưu tiên | Trạng thái | Hạng mục | Giá trị khi bảo vệ | Độ khó | File plan |
+|---|---|---|---|---|---|
+| P0 | ✅ Hoàn thành | Tự động sinh hóa đơn hàng tháng | Chứng minh hệ thống có nghiệp vụ lõi thật, không chỉ CRUD | Cao | `01_AUTO_MONTHLY_INVOICE_PLAN.md` |
+| P0 | ⏳ Chưa làm | Tích hợp VNPay Sandbox | Điểm nhấn tài chính/automation, demo rõ ràng với cổng thanh toán thật | Cao | `02_VNPAY_INTEGRATION_PLAN.md` |
+| P0 | ✅ Hoàn thành | Dashboard analytics chuyên nghiệp | Làm sản phẩm nhìn "production-like" khi demo | Trung bình | `03_DASHBOARD_ANALYTICS_PLAN.md` |
+| P1 | ⏳ Chưa làm | Cảnh báo bất thường điện/nước | Có phân tích thông minh, dễ gây ấn tượng | Trung bình | `04_METER_ANOMALY_ALERT_PLAN.md` |
+| P1 | ⏳ Chưa làm | Đặt cọc/giữ phòng | Bổ sung nghiệp vụ thực tế trước hợp đồng | Trung bình | `05_DEPOSIT_ROOM_BOOKING_PLAN.md` |
+| P1 | ⏳ Chưa làm | Nhắc nợ tự động nhiều cấp | Hoàn thiện quy trình thu tiền | Trung bình | `06_DEBT_REMINDER_AUTOMATION_PLAN.md` |
+| P2 | ✅ Hoàn thành | Hợp đồng PDF/ký xác nhận | Tăng tính thực tế, nhưng không cấp thiết bằng hóa đơn/thanh toán | Cao | `07_CONTRACT_PDF_ESIGN_PLAN.md` |
 
 ## Lộ trình 4 tuần đề xuất
 
@@ -28,36 +28,38 @@ Mục tiêu:
 - Không sinh trùng hóa đơn cùng hợp đồng/kỳ.
 
 Công việc:
-- Implement `InvoiceGenerationService`.
-- Tạo API preview và generate.
-- Reuse `HoaDonService.create`.
-- Thêm log sinh hóa đơn.
-- Viết test cho case hợp đồng active, thiếu chỉ số, trùng kỳ.
-- Demo được flow từ hợp đồng -> hóa đơn.
+- [x] Implement `InvoiceGenerationService`.
+- [x] Tạo API preview và generate.
+- [x] Reuse `HoaDonService.create`.
+- [x] Thêm log sinh hóa đơn.
+- [x] Viết test cho case hợp đồng active, thiếu chỉ số, trùng kỳ.
+- [x] Demo được flow từ hợp đồng -> hóa đơn.
+- [x] **[Thêm]** Implement Hợp đồng PDF và ký điện tử (P2 hoàn thành sớm).
 
 Kết quả cần có:
-- Màn hình hoặc nút thao tác trong `/dashboard/hoa-don`.
-- Backend test pass.
-- Seed/demo data có ít nhất 2 hợp đồng active và chỉ số tháng hiện tại.
+- [x] Màn hình hoặc nút thao tác trong `/dashboard/hoa-don`.
+- [x] Backend test pass.
+- [x] Seed/demo data có ít nhất 2 hợp đồng active và chỉ số tháng hiện tại.
 
-### Tuần 2: VietQR tự động gạch nợ
+### Tuần 2: Tích hợp cổng thanh toán VNPay (Sandbox)
 
 Mục tiêu:
-- Mỗi hóa đơn có mã thanh toán riêng.
-- Webhook/simulator nhận giao dịch bank và tự tạo thanh toán.
-- Dashboard/đối soát hiển thị giao dịch matched/unmatched/conflict.
+- Khách thuê có thể bấm thanh toán hóa đơn bằng VNPay trực tiếp trên web.
+- Hệ thống xử lý IPN (webhook) từ VNPay để gạch nợ tự động.
+- Giao diện đối soát/quản lý thanh toán hiển thị rõ nguồn từ VNPay.
 
 Công việc:
-- Thêm `payment_code` vào hóa đơn.
-- Tạo `ReconciliationService`.
-- Tạo endpoint webhook/simulator.
-- Nâng cấp `bank_transaction`.
-- Update trang hóa đơn public để QR dùng `paymentCode`.
-- Viết test auto match, partial payment, overpaid, duplicate transaction.
+- Cấu hình VNPay (TmnCode, HashSecret) trong backend.
+- Tạo `VNPayService` sinh URL thanh toán.
+- Viết API tạo URL VNPay và API xử lý IPN/Return URL.
+- Nâng cấp bảng `thanh_toan` hoặc `bank_transaction` để lưu mã giao dịch VNPay.
+- Frontend: Cập nhật trang hóa đơn public, thêm nút "Thanh toán VNPay".
+- Xử lý redirect thành công/thất bại từ VNPay về frontend.
+- Viết test cho IPN handler (checksum hợp lệ, checksum sai, số tiền sai...).
 
 Kết quả cần có:
-- Demo nhập payload giao dịch giả -> hóa đơn chuyển trạng thái đã thanh toán.
-- Màn hình đối soát vẫn cho manual match nếu không tự match được.
+- Demo full flow: Click thanh toán -> Qua trang VNPay Sandbox -> Điền thẻ test -> Thanh toán thành công -> Về lại hệ thống -> Hóa đơn cập nhật trạng thái "Đã thanh toán".
+- Dashboard admin thấy được giao dịch qua cổng VNPay.
 
 ### Tuần 3: Dashboard analytics
 
@@ -136,9 +138,9 @@ P1 nên có test:
 3. Tạo hợp đồng active cho phòng.
 4. Ghi/chốt chỉ số điện nước.
 5. Sinh hóa đơn tháng tự động.
-6. Mở hóa đơn public có VietQR.
-7. Gửi payload giao dịch bank giả.
-8. Hóa đơn tự chuyển đã thanh toán.
+6. Mở hóa đơn public và bấm "Thanh toán VNPay".
+7. Điền thông tin thẻ test trên cổng VNPay Sandbox.
+8. Hệ thống tự nhận IPN và hóa đơn tự chuyển đã thanh toán.
 9. Dashboard cập nhật doanh thu, công nợ, action items.
 10. Cho xem audit log và thông báo.
 

@@ -15,28 +15,40 @@ import {
   ReceiptText,
   RefreshCw,
   Wrench,
+  TrendingUp,
 } from "lucide-react"
 
 import {
   DashboardPageHeader,
   DashboardSkeleton,
-  EmptyState,
   ErrorState,
   MetricCard,
   QuickAction,
+  EmptyState
 } from "@/components/dashboard/dashboard-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ApiResponse, AuditLog, DashboardStats } from "@/types"
+import type { ApiResponse, AuditLog } from "@/types"
 
-type OperationalStats = DashboardStats & {
-  tongKhachDangThue?: number
-  tienDaThu?: number
-  tienChuaThu?: number
+import { RevenueChart } from "@/components/dashboard/RevenueChart"
+import { DebtAgingChart } from "@/components/dashboard/DebtAgingChart"
+import { TopDebtorsTable } from "@/components/dashboard/TopDebtorsTable"
+import { ActionItemsPanel } from "@/components/dashboard/ActionItemsPanel"
+
+type AnalyticsOverview = {
+  totalRooms: number;
+  occupiedRooms: number;
+  availableRooms: number;
+  occupancyRate: number;
+  expectedRevenueThisMonth: number;
+  collectedThisMonth: number;
+  outstandingThisMonth: number;
+  collectionRate: number;
+  overdueInvoiceCount: number;
+  openIncidentCount: number;
+  expiringContractCount: number;
 }
-
-type AuditPage = { content?: AuditLog[] }
 
 function formatCurrency(amount?: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -59,13 +71,18 @@ function formatDate(value?: string | Date | null) {
 export default function DashboardPage() {
   const { data: session } = useSession()
   const role = session?.user?.role?.replace(/^ROLE_/, "").toUpperCase()
-  const [stats, setStats] = useState<OperationalStats | null>(null)
+  
+  const [overview, setOverview] = useState<AnalyticsOverview | null>(null)
+  const [revenueData, setRevenueData] = useState<any[]>([])
+  const [debtAgingData, setDebtAgingData] = useState<any>(null)
+  const [topDebtors, setTopDebtors] = useState<any[]>([])
   const [recentLogs, setRecentLogs] = useState<AuditLog[]>([])
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    document.title = "Tổng quan vận hành | EasyHouse"
+    document.title = "Analytics | EasyHouse"
   }, [])
 
   const fetchData = useCallback(async () => {
@@ -73,28 +90,33 @@ export default function DashboardPage() {
     setError(null)
 
     try {
-      const statsResponse = await fetch("/api/dashboard/stats", {
-        headers: { Authorization: `Bearer ${session?.accessToken}` },
-      })
-      const statsResult: ApiResponse<OperationalStats> = await statsResponse.json()
-      if (!statsResponse.ok || !statsResult.success || !statsResult.data) {
-        throw new Error(statsResult.message || "Không lấy được số liệu tổng quan.")
-      }
-      setStats(statsResult.data)
+      const headers = { Authorization: `Bearer ${session?.accessToken}` }
+      
+      const [overviewRes, revRes, debtRes, debtorsRes] = await Promise.all([
+        fetch("/api/dashboard/analytics/overview", { headers }),
+        fetch("/api/dashboard/analytics/revenue-chart?months=12", { headers }),
+        fetch("/api/dashboard/analytics/debt-aging", { headers }),
+        fetch("/api/dashboard/analytics/top-debtors?limit=5", { headers })
+      ]);
+
+      const oData = await overviewRes.json();
+      const rData = await revRes.json();
+      const dData = await debtRes.json();
+      const tdData = await debtorsRes.json();
+
+      if (oData.success) setOverview(oData.data);
+      if (rData.success) setRevenueData(rData.data);
+      if (dData.success) setDebtAgingData(dData.data);
+      if (tdData.success) setTopDebtors(tdData.data);
 
       if (role === "ADMIN") {
-        const logsResponse = await fetch("/api/audit-log?size=5", {
-          headers: { Authorization: `Bearer ${session?.accessToken}` },
-        })
+        const logsResponse = await fetch("/api/audit-log?size=5", { headers })
         if (logsResponse.ok) {
-          const logsResult: ApiResponse<AuditPage> = await logsResponse.json()
+          const logsResult = await logsResponse.json()
           setRecentLogs(logsResult.data?.content || [])
         }
-      } else {
-        setRecentLogs([])
       }
     } catch (requestError) {
-      setStats(null)
       setError(requestError instanceof Error ? requestError.message : "Không thể kết nối máy chủ.")
     } finally {
       setLoading(false)
@@ -102,12 +124,14 @@ export default function DashboardPage() {
   }, [role, session?.accessToken])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (session?.accessToken) {
+      fetchData()
+    }
+  }, [fetchData, session])
 
   if (loading) return <DashboardSkeleton />
 
-  if (error || !stats) {
+  if (error || !overview) {
     return (
       <ErrorState
         description={error || "Không có dữ liệu tổng quan để hiển thị."}
@@ -116,29 +140,26 @@ export default function DashboardPage() {
     )
   }
 
-  const occupancyRate =
-    stats.tongSoPhong > 0 ? Math.round((stats.phongDangThue / stats.tongSoPhong) * 100) : 0
-
   const taskItems = [
     {
-      title: "Hóa đơn sắp đến hạn",
-      value: stats.hoaDonSapDenHan,
-      href: "/dashboard/hoa-don",
-      description: "Kiểm tra và gửi nhắc thanh toán",
+      title: "Hóa đơn quá hạn",
+      value: overview.overdueInvoiceCount,
+      href: "/dashboard/cong-no",
+      description: "Hóa đơn đã quá hạn cần nhắc thanh toán",
       tone: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
     },
     {
       title: "Hợp đồng sắp hết hạn",
-      value: stats.hopDongSapHetHan,
+      value: overview.expiringContractCount,
       href: "/dashboard/hop-dong",
-      description: "Trao đổi gia hạn hoặc kết thúc",
+      description: "Hợp đồng sắp hết hạn trong 30 ngày tới",
       tone: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
     },
     {
-      title: "Sự cố cần xử lý",
-      value: stats.suCoCanXuLy,
+      title: "Sự cố đang mở",
+      value: overview.openIncidentCount,
       href: "/dashboard/su-co",
-      description: "Ưu tiên xử lý yêu cầu đang mở",
+      description: "Sự cố người thuê báo cáo chưa xử lý",
       tone: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300",
     },
   ]
@@ -146,18 +167,18 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 lg:space-y-8">
       <DashboardPageHeader
-        eyebrow="Điều hành"
-        title="Tổng quan vận hành"
-        description="Theo dõi thu tiền, công suất phòng và các việc cần xử lý trong một nơi."
+        eyebrow="Dashboard Analytics"
+        title="Phân tích tài chính & Vận hành"
+        description="Theo dõi chi tiết dòng tiền, công nợ và tình hình kinh doanh."
         actions={
           <>
             <Button variant="outline" onClick={fetchData}>
-              <RefreshCw />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Làm mới
             </Button>
             <Button asChild>
               <Link href="/dashboard/hoa-don/them-moi">
-                <FilePlus2 />
+                <FilePlus2 className="mr-2 h-4 w-4" />
                 Tạo hóa đơn
               </Link>
             </Button>
@@ -165,42 +186,59 @@ export default function DashboardPage() {
         }
       />
 
+      {/* TỔNG QUAN */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Phòng đang thuê"
-          value={`${stats.phongDangThue}/${stats.tongSoPhong}`}
-          hint={`${occupancyRate}% tỷ lệ lấp đầy`}
-          icon={DoorOpen}
-          tone="default"
+          label="Tỷ lệ thu tiền tháng này"
+          value={`${overview.collectionRate.toFixed(1)}%`}
+          hint={`Phải thu: ${formatCurrency(overview.expectedRevenueThisMonth)}`}
+          icon={TrendingUp}
+          tone={overview.collectionRate >= 90 ? "success" : "warning"}
         />
         <MetricCard
           label="Đã thu tháng này"
-          value={formatCurrency(stats.tienDaThu ?? stats.doanhThuThang)}
-          hint="Giao dịch đã ghi nhận"
+          value={formatCurrency(overview.collectedThisMonth)}
+          hint="Thực thu từ khách"
           icon={CircleDollarSign}
           tone="success"
         />
         <MetricCard
-          label="Tiền chưa thu"
-          value={formatCurrency(stats.tienChuaThu ?? stats.tongCongNo)}
-          hint="Cần theo dõi công nợ"
+          label="Còn nợ tháng này"
+          value={formatCurrency(overview.outstandingThisMonth)}
+          hint="Số tiền chưa thanh toán"
           icon={ReceiptText}
-          tone={(stats.tienChuaThu ?? stats.tongCongNo ?? 0) > 0 ? "warning" : "success"}
+          tone={overview.outstandingThisMonth > 0 ? "danger" : "default"}
         />
         <MetricCard
-          label="Sự cố đang mở"
-          value={stats.suCoCanXuLy}
-          hint="Yêu cầu cần phản hồi"
-          icon={AlertTriangle}
-          tone={stats.suCoCanXuLy > 0 ? "danger" : "success"}
+          label="Phòng đang thuê"
+          value={`${overview.occupiedRooms}/${overview.totalRooms}`}
+          hint={`${overview.occupancyRate.toFixed(1)}% tỷ lệ lấp đầy`}
+          icon={DoorOpen}
+          tone="default"
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-        <Card className="gap-0 py-0">
+      {/* BIỂU ĐỒ TÀI CHÍNH */}
+      <div className="grid gap-4 md:grid-cols-7">
+        <div className="col-span-4">
+          <RevenueChart data={revenueData} />
+        </div>
+        <div className="col-span-3">
+          <DebtAgingChart data={debtAgingData} />
+        </div>
+      </div>
+
+      {/* CẢNH BÁO BẤT THƯỜNG */}
+      <div className="grid gap-4">
+        <ActionItemsPanel />
+      </div>
+
+      {/* HOẠT ĐỘNG VẬN HÀNH */}
+      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+        <Card className="col-span-1 border-t-4 border-t-orange-400">
           <CardHeader className="border-b p-5 md:p-6">
-            <CardTitle className="text-lg">Việc cần xử lý</CardTitle>
-            <CardDescription>Truy cập nhanh các đầu việc ảnh hưởng đến thu tiền và cư trú.</CardDescription>
+            <CardTitle className="text-lg">Việc cần xử lý ngay</CardTitle>
+            <CardDescription>Các sự kiện cần sự can thiệp của người quản lý.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 p-4 md:p-6">
             {taskItems.map((item) => (
@@ -222,40 +260,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="gap-0 py-0">
-          <CardHeader className="border-b p-5 md:p-6">
-            <CardTitle className="text-lg">Sử dụng phòng</CardTitle>
-            <CardDescription>Tình trạng phòng tại thời điểm hiện tại.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 p-5 md:p-6">
-            <div>
-              <div className="mb-2 flex justify-between text-sm">
-                <span className="font-medium">Tỷ lệ lấp đầy</span>
-                <span className="text-muted-foreground">{occupancyRate}%</span>
-              </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${occupancyRate}%` }} />
-              </div>
-            </div>
-            {[
-              { label: "Đang thuê", amount: stats.phongDangThue, color: "bg-primary" },
-              { label: "Còn trống", amount: stats.phongTrong, color: "bg-emerald-500" },
-              { label: "Bảo trì", amount: stats.phongBaoTri, color: "bg-amber-500" },
-            ].map((roomStatus) => (
-              <div key={roomStatus.label} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className={`size-2.5 rounded-full ${roomStatus.color}`} />
-                  <span className="text-muted-foreground">{roomStatus.label}</span>
-                </div>
-                <span className="font-medium">{roomStatus.amount} phòng</span>
-              </div>
-            ))}
-            <div className="rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
-              <Gauge className="mr-2 inline size-4" />
-              Tổng cộng {stats.tongSoPhong} phòng đang quản lý.
-            </div>
-          </CardContent>
-        </Card>
+        <TopDebtorsTable data={topDebtors} />
       </div>
 
       <section className="space-y-3">
@@ -289,7 +294,7 @@ export default function DashboardPage() {
       </section>
 
       {role === "ADMIN" ? (
-        <Card className="gap-0 py-0">
+        <Card className="gap-0 py-0 mt-8">
           <CardHeader className="border-b p-5 md:p-6">
             <div className="flex items-center justify-between gap-4">
               <div>

@@ -12,4 +12,6 @@ public class ContractSignRequest {
     private String ipAddress;
     private String userAgent;
     private String rejectionReason;
+    private String role; // LANDLORD or TENANT
+    private java.util.UUID signerId;
 }

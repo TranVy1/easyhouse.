@@ -193,21 +193,39 @@ export default function TenantInvoiceDetailPage() {
         </Card>
 
         <div className="space-y-6">
-          {/* Thanh toán do quản lý ghi nhận sau khi đối soát. */}
+          {/* Thanh toán trực tuyến VNPay */}
           {!isPaid && (
             <Card className="border-orange-200 bg-orange-50/50">
               <CardHeader className="pb-3 border-b border-orange-100">
                 <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
                   <Banknote className="h-5 w-5" />
-                  Hướng dẫn thanh toán
+                  Thanh toán trực tuyến
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
                 <div className="bg-white p-4 rounded-lg border text-center">
-                  <p className="text-sm text-gray-600 mb-2">Số tiền cần chuyển khoản:</p>
-                  <p className="text-2xl font-bold text-red-600 mb-2">{formatCurrency(invoice.conLai)}</p>
-                  <p className="text-xs text-gray-500">
-                    Vui lòng chuyển khoản theo hướng dẫn của quản lý. Giao dịch sẽ xuất hiện tại đây sau khi được đối soát.
+                  <p className="text-sm text-gray-600 mb-2">Số tiền cần thanh toán:</p>
+                  <p className="text-2xl font-bold text-red-600 mb-4">{formatCurrency(invoice.conLai)}</p>
+                  <Button 
+                    className="w-full bg-[#005aab] hover:bg-[#004a8b] text-white" 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice.id}&amount=${invoice.conLai}`);
+                        const data = await res.json();
+                        if (data.success && data.data) {
+                          window.location.href = data.data;
+                        } else {
+                          toast.error("Không thể khởi tạo thanh toán VNPay");
+                        }
+                      } catch (error) {
+                        toast.error("Lỗi khi kết nối đến server");
+                      }
+                    }}
+                  >
+                    Thanh toán bằng VNPay
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-4">
+                    Giao dịch sẽ được gạch nợ tự động ngay sau khi thanh toán thành công.
                   </p>
                 </div>
               </CardContent>
