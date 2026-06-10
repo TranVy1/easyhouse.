@@ -789,7 +789,7 @@ function SideNavItem({ item, active, onClick }: { item: typeof NAV[0]; active: S
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function ProfileScreen({ onOpenChat }: { onOpenChat: () => void }) {
+export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; onBack?: () => void }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -855,7 +855,13 @@ export function ProfileScreen({ onOpenChat }: { onOpenChat: () => void }) {
         {/* Back Button */}
         <div className="relative max-w-4xl mx-auto mb-4">
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              if (onBack) {
+                onBack();
+              } else {
+                router.push("/");
+              }
+            }}
             className="flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition-all cursor-pointer border border-white/10"
           >
             <ArrowLeft size={14} />

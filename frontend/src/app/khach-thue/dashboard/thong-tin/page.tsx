@@ -197,7 +197,7 @@ export default function TenantProfilePage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.back()}
+          onClick={() => router.push('/khach-thue/dashboard')}
           className="h-9 w-9 rounded-full border border-gray-200 bg-white hover:bg-gray-100 shadow-sm"
           title="Quay lại"
         >

@@ -63,7 +63,7 @@ function MainApp() {
       case "bills":
         return <BillingScreen />;
       case "profile":
-        return <ProfileScreen onOpenChat={() => setChatOpen(true)} />;
+        return <ProfileScreen onOpenChat={() => setChatOpen(true)} onBack={() => setActiveTab("home")} />;
     }
   };
 
