@@ -6,6 +6,7 @@ import com.example.quanlyphongtro.dto.HopDongRequest;
 import com.example.quanlyphongtro.dto.HopDongResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.HopDongService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,130 +45,78 @@ public class HopDongController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, toaNha, trangThai, search, page, limit)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, toaNha, trangThai, search, page, limit)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HopDongResponse>> getById(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id)));
     }
 
     @GetMapping("/dich-vu")
     public ResponseEntity<ApiResponse<List<HopDongDichVuOptionResponse>>> getDichVuTheoPhong(@RequestParam UUID phongId) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.getDichVuTheoPhong(phongId)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.getDichVuTheoPhong(phongId)));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<HopDongResponse>> create(@RequestBody HopDongRequest request) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.create(request), "Tạo hợp đồng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<HopDongResponse>> create(@Valid @RequestBody HopDongRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.create(request), "Tạo hợp đồng thành công"));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<HopDongResponse>> update(@PathVariable UUID id, @RequestBody HopDongRequest request) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.update(id, request), "Cập nhật hợp đồng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<HopDongResponse>> update(@PathVariable UUID id, @Valid @RequestBody HopDongRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.update(id, request), "Cập nhật hợp đồng thành công"));
     }
 
     @PostMapping("/{id}/preview")
     public ResponseEntity<ApiResponse<HopDongResponse>> preview(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.preview(id), "Xem truoc hop dong thanh cong"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.preview(id), "Xem truoc hop dong thanh cong"));
     }
 
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ApiResponse<HopDongResponse>> confirm(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hopDongService.confirm(id), "Xac nhan hop dong thanh cong"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.confirm(id), "Xac nhan hop dong thanh cong"));
     }
 
     @PostMapping("/{id}/generate-pdf")
     public ResponseEntity<ApiResponse<HopDongResponse>> generatePdf(@PathVariable UUID id) {
-        try {
-            HopDong hd = contractDocumentService.generatePdf(id);
-            return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Sinh tài liệu PDF thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        HopDong hd = contractDocumentService.generatePdf(id);
+        return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Sinh tài liệu PDF thành công"));
     }
 
     @PostMapping("/{id}/sign")
     public ResponseEntity<ApiResponse<ContractSignatureResponse>> signContract(
             @PathVariable UUID id, @RequestBody ContractSignRequest request) {
-        try {
-            ContractSignature sig = contractDocumentService.signContract(id, request);
-            ContractSignatureResponse resp = ContractSignatureResponse.builder()
-                    .id(sig.getId())
-                    .signerId(sig.getSignerId())
-                    .signerRole(sig.getSignerRole())
-                    .signatureImageUrl(sig.getSignatureImageUrl())
-                    .signedAt(sig.getSignedAt())
-                    .ipAddress(sig.getIpAddress())
-                    .userAgent(sig.getUserAgent())
-                    .build();
-            return ResponseEntity.ok(ApiResponse.success(resp, "Ký hợp đồng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        ContractSignature sig = contractDocumentService.signContract(id, request);
+        ContractSignatureResponse resp = ContractSignatureResponse.builder()
+                .id(sig.getId())
+                .signerId(sig.getSignerId())
+                .signerRole(sig.getSignerRole())
+                .signatureImageUrl(sig.getSignatureImageUrl())
+                .signedAt(sig.getSignedAt())
+                .ipAddress(sig.getIpAddress())
+                .userAgent(sig.getUserAgent())
+                .build();
+        return ResponseEntity.ok(ApiResponse.success(resp, "Ký hợp đồng thành công"));
     }
 
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<HopDongResponse>> rejectContract(
             @PathVariable UUID id, @RequestBody ContractSignRequest request) {
-        try {
-            HopDong hd = contractDocumentService.rejectContract(id, request);
-            return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Từ chối ký hợp đồng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        HopDong hd = contractDocumentService.rejectContract(id, request);
+        return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Từ chối ký hợp đồng thành công"));
     }
 
     @GetMapping("/{id}/signatures")
     public ResponseEntity<ApiResponse<List<ContractSignatureResponse>>> getSignatures(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(contractDocumentService.getSignatures(id)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(contractDocumentService.getSignatures(id)));
     }
 
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
-        try {
-            hopDongService.delete(id);
-            return ResponseEntity.ok(ApiResponse.success(null, "Xóa hợp đồng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
-    }
-
-    private <T> ResponseEntity<ApiResponse<T>> badRequest(String message) {
-        return ResponseEntity.badRequest().body(ApiResponse.error(message));
+        hopDongService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa hợp đồng thành công"));
     }
 
     @PutMapping("/{id}/ket-thuc")

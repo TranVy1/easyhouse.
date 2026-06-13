@@ -104,7 +104,7 @@ class ContractDocumentServiceTest {
                 .giaThueHopDong(BigDecimal.valueOf(3000000))
                 .tienCoc(BigDecimal.valueOf(3000000))
                 .trangThai(TrangThaiHopDong.DRAFT)
-                .signatureStatus("UNSIGNED")
+                .signatureStatus(SignatureStatus.UNSIGNED)
                 .build();
     }
 
@@ -137,6 +137,8 @@ class ContractDocumentServiceTest {
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "127.0.0.1",
                 "Mozilla/5.0",
+                null,
+                null,
                 null
         );
         ContractSignature signature = contractDocumentService.signContract(hopDongId, request);
@@ -181,6 +183,8 @@ class ContractDocumentServiceTest {
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "127.0.0.1",
                 "Mozilla/5.0",
+                null,
+                null,
                 null
         );
         ContractSignature signature = contractDocumentService.signContract(hopDongId, request);
@@ -205,7 +209,7 @@ class ContractDocumentServiceTest {
         when(hopDongRepository.save(any(HopDong.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Execute
-        ContractSignRequest request = new ContractSignRequest(null, "127.0.0.1", "Mozilla/5.0", "Sai thông tin tiền cọc");
+        ContractSignRequest request = new ContractSignRequest(null, "127.0.0.1", "Mozilla/5.0", "Sai thông tin tiền cọc", null, null);
         HopDong rejected = contractDocumentService.rejectContract(hopDongId, request);
 
         // Verify

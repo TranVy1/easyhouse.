@@ -23,11 +23,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
 
+  let text = '';
   let json: { success?: boolean; data?: T; message?: string; error?: string };
   try {
-    json = await res.json();
+    text = await res.text();
+    json = text ? JSON.parse(text) : {};
   } catch {
-    throw new ApiError(`HTTP ${res.status}: Invalid JSON response`, res.status);
+    throw new ApiError(`HTTP ${res.status}: Invalid JSON response - ${text.substring(0, 50)}`, res.status);
   }
 
   if (!res.ok || json.success === false) {

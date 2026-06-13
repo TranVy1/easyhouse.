@@ -65,7 +65,7 @@ public class DashboardAnalyticsService {
         // Incident count
         String incidentQuerySql = "SELECT COUNT(sc.id) FROM su_co sc " +
                 "JOIN phong p ON sc.phong_id = p.id " +
-                "WHERE sc.xoa_luc IS NULL AND sc.trang_thai != 'DONE' " + filterSql;
+                "WHERE sc.trang_thai NOT IN ('RESOLVED', 'CANCELLED') " + filterSql;
         Query incidentQuery = entityManager.createNativeQuery(incidentQuerySql);
         if (nhaTroId != null) incidentQuery.setParameter("nhaTroId", nhaTroId);
         long openIncidentCount = ((Number) incidentQuery.getSingleResult()).longValue();
@@ -119,8 +119,8 @@ public class DashboardAnalyticsService {
                 "  COALESCE(SUM(hd.da_tra), 0) AS collected_revenue, " +
                 "  COALESCE(SUM(GREATEST(hd.tong_tien - hd.da_tra, 0)), 0) AS outstanding " +
                 "FROM months_cte m " +
-                "LEFT JOIN hoa_don hd ON EXTRACT(MONTH FROM hd.ngay_lap) = EXTRACT(MONTH FROM m.m_date) " +
-                "  AND EXTRACT(YEAR FROM hd.ngay_lap) = EXTRACT(YEAR FROM m.m_date) " +
+                "LEFT JOIN hoa_don hd ON EXTRACT(MONTH FROM hd.ngay_lap_hoa_don) = EXTRACT(MONTH FROM m.m_date) " +
+                "  AND EXTRACT(YEAR FROM hd.ngay_lap_hoa_don) = EXTRACT(YEAR FROM m.m_date) " +
                 "  AND hd.xoa_luc IS NULL AND hd.trang_thai != 'CANCELLED' " +
                 "LEFT JOIN phong p ON hd.phong_id = p.id " +
                 "WHERE (p.id IS NULL OR 1=1) " + filterSql +
@@ -191,7 +191,7 @@ public class DashboardAnalyticsService {
         String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
         String sql = "SELECT " +
                 "p.id AS phong_id, " +
-                "p.ma_phong, " +
+                "p.ten, " +
                 "kt.id AS khach_thue_id, " +
                 "kt.ho_ten AS ten_khach_thue, " +
                 "kt.so_dien_thoai, " +
@@ -204,7 +204,7 @@ public class DashboardAnalyticsService {
                 "LEFT JOIN hop_dong hg ON hd.hop_dong_id = hg.id " +
                 "LEFT JOIN khach_thue kt ON hg.khach_thue_id = kt.id " +
                 "WHERE hd.xoa_luc IS NULL AND hd.trang_thai IN ('UNPAID', 'PARTIAL', 'OVERDUE') " + filterSql +
-                "GROUP BY p.id, p.ma_phong, kt.id, kt.ho_ten, kt.so_dien_thoai " +
+                "GROUP BY p.id, p.ten, kt.id, kt.ho_ten, kt.so_dien_thoai " +
                 "HAVING SUM(GREATEST(hd.tong_tien - hd.da_tra, 0)) > 0 " +
                 "ORDER BY tong_no DESC LIMIT :limit";
         
@@ -247,22 +247,26 @@ public class DashboardAnalyticsService {
                 "WHERE a.trang_thai = 'OPEN' " + filterSql +
                 "ORDER BY a.tao_luc DESC LIMIT :limit";
                 
-        Query query = entityManager.createNativeQuery(alertSql);
-        if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
-        query.setParameter("limit", limit);
-        
-        List<Object[]> alertResults = query.getResultList();
-        for (Object[] row : alertResults) {
-            String mucDo = (String) row[2];
-            String loai = (String) row[3];
-            items.add(ActionItemResponse.builder()
-                    .type("METER_ANOMALY")
-                    .priority(mucDo)
-                    .title("Bất thường chỉ số " + loai + " - Phòng " + row[1])
-                    .description((String) row[4])
-                    .entityId(UUID.fromString(row[0].toString()))
-                    .href("/chiso")
-                    .build());
+        try {
+            Query query = entityManager.createNativeQuery(alertSql);
+            if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
+            query.setParameter("limit", limit);
+            
+            List<Object[]> alertResults = query.getResultList();
+            for (Object[] row : alertResults) {
+                String mucDo = (String) row[2];
+                String loai = (String) row[3];
+                items.add(ActionItemResponse.builder()
+                        .type("METER_ANOMALY")
+                        .priority(mucDo)
+                        .title("Bất thường chỉ số " + loai + " - Phòng " + row[1])
+                        .description((String) row[4])
+                        .entityId(UUID.fromString(row[0].toString()))
+                        .href("/chiso")
+                        .build());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch meter anomalies (table might not exist): {}", e.getMessage());
         }
         
         // Add Overdue Invoices > 7 days

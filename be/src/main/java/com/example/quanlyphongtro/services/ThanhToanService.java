@@ -103,10 +103,12 @@ public class ThanhToanService {
     @Transactional(readOnly = true)
     public List<ThanhToanResponse> getByHoaDon(UUID hoaDonId) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         assertCanReadHoaDon(hoaDon, permissionService.requireCurrentUserId());
+        // FIX #5: Load chi tiết hóa đơn 1 lần duy nhất, tránh N+1 query
+        List<ChiTietHoaDon> chiTiet = chiTietHoaDonRepository.findByHoaDonId(hoaDonId);
         return thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
-                .map(tt -> toResponse(tt, chiTietHoaDonRepository.findByHoaDonId(hoaDonId)))
+                .map(tt -> toResponse(tt, chiTiet))
                 .toList();
     }
 

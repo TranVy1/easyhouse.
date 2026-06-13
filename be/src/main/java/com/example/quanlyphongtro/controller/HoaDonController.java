@@ -11,6 +11,7 @@ import com.example.quanlyphongtro.dto.InvoiceGenerationResultResponse;
 import com.example.quanlyphongtro.services.HoaDonService;
 import com.example.quanlyphongtro.services.ThanhToanService;
 import com.example.quanlyphongtro.services.InvoiceGenerationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,10 +25,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * FIX #2: Loại bỏ try-catch và badRequest() helper cục bộ.
+ * Exception được xử lý tập trung tại GlobalExceptionHandler → HTTP status đúng ngữ nghĩa.
+ * FIX #2: Thêm @Valid vào create/update để kích hoạt Bean Validation trên DTO.
+ */
 @RestController
 @RequestMapping("/api/hoa-don")
 @RequiredArgsConstructor
@@ -46,49 +51,31 @@ public class HoaDonController {
             @RequestParam(required = false) Integer kyNam,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(
-                    hoaDonService.getAll(hopDongId, trangThai, search, kyThang, kyNam, page, limit)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(
+                hoaDonService.getAll(hopDongId, trangThai, search, kyThang, kyNam, page, limit)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HoaDonResponse>> getById(@PathVariable UUID id) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id)));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<HoaDonResponse>> create(@RequestBody HoaDonRequest request) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.create(request), "Tạo hóa đơn thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<HoaDonResponse>> create(@Valid @RequestBody HoaDonRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.create(request), "Tạo hóa đơn thành công"));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<HoaDonResponse>> update(@PathVariable UUID id, @RequestBody HoaDonRequest request) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.update(id, request), "Cập nhật hóa đơn thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<HoaDonResponse>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody HoaDonRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.update(id, request), "Cập nhật hóa đơn thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
-        try {
-            hoaDonService.delete(id);
-            return ResponseEntity.ok(ApiResponse.success(null, "Xóa hóa đơn thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        hoaDonService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa hóa đơn thành công"));
     }
 
     @DeleteMapping
@@ -98,11 +85,7 @@ public class HoaDonController {
 
     @GetMapping("/form-data")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getFormData() {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getFormData()));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getFormData()));
     }
 
     @GetMapping("/latest-reading")
@@ -110,39 +93,31 @@ public class HoaDonController {
             @RequestParam String hopDong,
             @RequestParam int thang,
             @RequestParam int nam) {
-        try {
-            UUID hopDongId = UUID.fromString(hopDong);
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getLatestReading(hopDongId, thang, nam)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        UUID hopDongId = UUID.fromString(hopDong);
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getLatestReading(hopDongId, thang, nam)));
     }
 
     @PostMapping("/{id}/thanh-toan")
     public ResponseEntity<ApiResponse<HoaDonResponse>> thanhToan(
             @PathVariable UUID id,
             @RequestBody Map<String, Object> body) {
-        try {
-            ThanhToanRequest ttRequest = new ThanhToanRequest();
-            ttRequest.setHoaDonId(id);
-            ttRequest.setSoTien(new BigDecimal(body.get("soTien").toString()));
-            ttRequest.setPhuongThuc((String) body.get("phuongThuc"));
-            ttRequest.setGhiChu((String) body.get("ghiChu"));
-            ttRequest.setAnhBienLai((String) body.get("anhBienLai"));
-            ttRequest.setNgayThanhToan((String) body.get("ngayThanhToan"));
+        ThanhToanRequest ttRequest = new ThanhToanRequest();
+        ttRequest.setHoaDonId(id);
+        ttRequest.setSoTien(new BigDecimal(body.get("soTien").toString()));
+        ttRequest.setPhuongThuc((String) body.get("phuongThuc"));
+        ttRequest.setGhiChu((String) body.get("ghiChu"));
+        ttRequest.setAnhBienLai((String) body.get("anhBienLai"));
+        ttRequest.setNgayThanhToan((String) body.get("ngayThanhToan"));
 
-            if (body.get("thongTinChuyenKhoan") instanceof Map<?, ?> thongTin) {
-                ThanhToanRequest.ThongTinChuyenKhoan thongTinCK = new ThanhToanRequest.ThongTinChuyenKhoan();
-                thongTinCK.setSoGiaoDich((String) thongTin.get("soGiaoDich"));
-                thongTinCK.setNganHang((String) thongTin.get("nganHang"));
-                ttRequest.setThongTinChuyenKhoan(thongTinCK);
-            }
-
-            thanhToanService.create(ttRequest);
-            return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
+        if (body.get("thongTinChuyenKhoan") instanceof Map<?, ?> thongTin) {
+            ThanhToanRequest.ThongTinChuyenKhoan thongTinCK = new ThanhToanRequest.ThongTinChuyenKhoan();
+            thongTinCK.setSoGiaoDich((String) thongTin.get("soGiaoDich"));
+            thongTinCK.setNganHang((String) thongTin.get("nganHang"));
+            ttRequest.setThongTinChuyenKhoan(thongTinCK);
         }
+
+        thanhToanService.create(ttRequest);
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getById(id), "Thanh toán thành công"));
     }
 
     @GetMapping("/generation-preview")
@@ -151,26 +126,14 @@ public class HoaDonController {
             @RequestParam int kyThang,
             @RequestParam int kyNam,
             @RequestParam(defaultValue = "false") boolean requireConfirmedReadings) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(
-                    invoiceGenerationService.preview(nhaTroId, kyThang, kyNam, requireConfirmedReadings)));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
+        return ResponseEntity.ok(ApiResponse.success(
+                invoiceGenerationService.preview(nhaTroId, kyThang, kyNam, requireConfirmedReadings)));
     }
 
     @PostMapping("/generate-monthly")
     public ResponseEntity<ApiResponse<InvoiceGenerationResultResponse>> generate(
             @RequestBody InvoiceGenerationRequest request) {
-        try {
-            return ResponseEntity.ok(ApiResponse.success(
-                    invoiceGenerationService.generate(request), "Sinh hóa đơn hàng tháng thành công"));
-        } catch (Exception e) {
-            return badRequest(e.getMessage());
-        }
-    }
-
-    private <T> ResponseEntity<ApiResponse<T>> badRequest(String message) {
-        return ResponseEntity.badRequest().body(ApiResponse.error(message));
+        return ResponseEntity.ok(ApiResponse.success(
+                invoiceGenerationService.generate(request), "Sinh hóa đơn hàng tháng thành công"));
     }
 }
