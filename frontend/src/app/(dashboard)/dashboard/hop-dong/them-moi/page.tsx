@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getSession, useSession } from 'next-auth/react';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -80,17 +81,50 @@ type PhiDichVuForm = {
 
 export default function ThemMoiHopDongPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nhaTroId = searchParams.get('nhaTroId');
   const { data: session } = useSession();
   const accessToken = session?.accessToken;
-  const [nhaTroList, setNhaTroList] = useState<ToaNha[]>([]);
-  const [selectedNhaTro, setSelectedNhaTro] = useState<string>('');
+  const [selectedNhaTro, setSelectedNhaTro] = useState<string>(nhaTroId || '');
   const [openNhaTro, setOpenNhaTro] = useState(false);
-  const [phongList, setPhongList] = useState<Phong[]>([]);
-  const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [dichVuOptions, setDichVuOptions] = useState<DichVuOption[]>([]);
-  const [globalDichVuList, setGlobalDichVuList] = useState<DichVuOption[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  // SWR Fetcher
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    const json = await res.json();
+    return unwrapPageData<any>(json.data);
+  };
+
+  const { data: nhaTroListData } = useSWR(accessToken ? '/api/toa-nha?page=1&limit=100' : null, fetcher);
+  const { data: globalDichVuListData } = useSWR(accessToken ? '/api/dich-vu?page=1&limit=100' : null, fetcher);
+  
+  const nhaTroList = (nhaTroListData || []).map(normalizeToaNha);
+  const globalDichVuList = (globalDichVuListData || []).map((dv: any) => ({
+    dichVuId: String(dv._id ?? dv.id ?? ''),
+    ten: dv.tenDichVu ?? dv.ten ?? '',
+    loaiTinhPhi: dv.loaiTinhPhi,
+    donVi: dv.donVi,
+    donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
+    batBuoc: dv.batBuoc,
+  }));
+
+  const { data: phongListData } = useSWR(
+    selectedNhaTro ? `/api/phong?page=1&limit=100&nhaTroId=${selectedNhaTro}&simple=true` : null,
+    fetcher
+  );
+  const phongList = (phongListData || []).map(normalizePhong);
+
+  const { data: khachThueListData, mutate: mutateKhachThue } = useSWR(
+    selectedNhaTro ? `/api/khach-thue?page=1&limit=100&nhaTroId=${selectedNhaTro}` : null,
+    fetcher
+  );
+  const khachThueList = (khachThueListData || []).map(normalizeKhachThue);
 
   const [formData, setFormData] = useState({
     maHopDong: '',
@@ -167,13 +201,7 @@ export default function ThemMoiHopDongPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         toast.success('Thêm khách thuê thành công');
-        const newKhachThue = result.data;
-        setKhachThueList(prev => [...prev, normalizeKhachThue(newKhachThue)]);
-        setFormData(prev => ({
-          ...prev,
-          nguoiDaiDien: newKhachThue._id || newKhachThue.id,
-          khachThueId: prev.khachThueId.filter(id => id !== (newKhachThue._id || newKhachThue.id)),
-        }));
+        mutateKhachThue();
         setOpenAddKhachThue(false);
         setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '' });
       } else {
@@ -203,15 +231,6 @@ export default function ThemMoiHopDongPage() {
 
   const isUuid = (value?: string) =>
     Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
-
-  const sanitizePhiDichVu = (items: PhiDichVuForm[]) =>
-    items.map((item) => ({
-      ...(isUuid(item.dichVuId) ? { dichVuId: item.dichVuId } : {}),
-      ten: item.ten.trim(),
-      gia: Number(item.gia || 0),
-      soLuong: Number(item.soLuong || 1),
-      loaiTinhPhi: item.loaiTinhPhi || 'FIXED',
-    }));
 
   const validateContractForm = () => {
     const startDate = ensureISODate(formData.ngayBatDau);
@@ -285,69 +304,6 @@ export default function ThemMoiHopDongPage() {
     }
   };
 
-  useEffect(() => {
-    if (!accessToken) return;
-    fetchData();
-  // fetchData is declared below to preserve the legacy form initialization order.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
-
-  const fetchData = async () => {
-    try {
-      const nhaTroResponse = await fetch('/api/toa-nha?page=1&limit=100', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const nhaTroData = await nhaTroResponse.json().catch(() => ({}));
-      if (nhaTroResponse.ok && nhaTroData.success !== false) {
-        setNhaTroList(unwrapPageData<ToaNha>(nhaTroData.data).map(normalizeToaNha));
-      }
-
-      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const phongData = await phongResponse.json().catch(() => ({}));
-      if (!phongResponse.ok || phongData.success === false) {
-        throw new Error(phongData.message || 'Không tải được danh sách phòng');
-      }
-      const availablePhong = unwrapPageData<Phong>(phongData.data)
-        .map(normalizePhong)
-        .filter((phong: Phong) =>
-          phong.trangThai === 'trong' || phong.trangThai === 'AVAILABLE' || phong.trangThai === 'daDat' || phong.trangThai === 'RESERVED'
-        );
-      setPhongList(availablePhong);
-
-      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const khachThueData = await khachThueResponse.json().catch(() => ({}));
-      if (!khachThueResponse.ok || khachThueData.success === false) {
-        throw new Error(khachThueData.message || 'Không tải được danh sách khách thuê');
-      }
-      setKhachThueList(unwrapPageData<KhachThue>(khachThueData.data).map(normalizeKhachThue));
-
-      const dichVuResponse = await fetch('/api/dich-vu?page=1&limit=100', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const dvData = await dichVuResponse.json().catch(() => ({}));
-      if (!dichVuResponse.ok || dvData.success === false) {
-        toast.error(dvData.message || 'Không tải được danh sách dịch vụ');
-      } else {
-        setGlobalDichVuList(unwrapPageData<ApiDichVu>(dvData.data).map((dv: ApiDichVu) => ({
-          dichVuId: String(dv._id ?? dv.id ?? ''),
-          ten: dv.tenDichVu ?? dv.ten ?? '',
-          loaiTinhPhi: dv.loaiTinhPhi,
-          donVi: dv.donVi,
-          donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
-          batBuoc: dv.batBuoc,
-        })).filter((dv: DichVuOption) => dv.dichVuId && dv.ten));
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải dữ liệu');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -509,7 +465,7 @@ export default function ThemMoiHopDongPage() {
     }
   };
 
-  if (loading) {
+  if (!nhaTroListData || !globalDichVuListData) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">

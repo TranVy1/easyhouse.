@@ -53,4 +53,8 @@ public class Phong {
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
     private ZonedDateTime xoaLuc;
+
+    @Version
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long version;
 }
