@@ -42,6 +42,7 @@ public class HopDongService {
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final DichVuRepository dichVuRepository;
     private final CauHinhGiaRepository cauHinhGiaRepository;
+    private final HoaDonRepository hoaDonRepository;
     private final PermissionService permissionService;
     private final JdbcTemplate jdbcTemplate;
 
@@ -104,6 +105,7 @@ public class HopDongService {
         KhachThue kt = khachThueRepository.findById(khachThueId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
         TrangThaiHopDong trangThai = parseStatus(req.getTrangThai(), TrangThaiHopDong.DRAFT);
+        assertManualStatusAllowed(trangThai);
         validateRoomCanContract(phong, trangThai);
         validateTenantBelongsToRoomOwner(kt, phong);
         BigDecimal giaThue = firstMoney(req.getGiaThueHopDong(), req.getGiaThue(), phong.getGiaHienTai());
@@ -151,7 +153,7 @@ public class HopDongService {
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWrite(hd, userId);
         if (hd.getLockedAt() != null) {
-            throw new RuntimeException("Hop dong da duoc khoa, khong the cap nhat truc tiep");
+            throw new RuntimeException("Hợp đồng đã được khóa, không thể cập nhật trực tiếp");
         }
 
         UUID oldPhongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
@@ -198,6 +200,7 @@ public class HopDongService {
             hd.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) {
             TrangThaiHopDong newStatus = parseStatus(req.getTrangThai(), hd.getTrangThai());
+            assertManualStatusAllowed(newStatus);
             hd.setTrangThai(newStatus);
         }
         if (hd.getMaHopDong() == null || hd.getMaHopDong().isBlank()) {
@@ -231,10 +234,10 @@ public class HopDongService {
     @Transactional
     public HopDongResponse preview(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         assertCanWrite(hd, permissionService.requireCurrentUserId());
         if (hd.getLockedAt() != null) {
-            throw new RuntimeException("Hop dong da duoc xac nhan va khoa du lieu");
+            throw new RuntimeException("Hợp đồng đã được xác nhận và khóa dữ liệu");
         }
 
         hd.setTemplateVersion(hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1");
@@ -246,10 +249,10 @@ public class HopDongService {
     @Transactional
     public HopDongResponse confirm(UUID id) {
         HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         assertCanWrite(hd, permissionService.requireCurrentUserId());
         if (hd.getLockedAt() != null) {
-            throw new RuntimeException("Hop dong da duoc xac nhan truoc do");
+            throw new RuntimeException("Hợp đồng đã được xác nhận trước đó");
         }
 
         validateRoomCanContract(hd.getPhong(), TrangThaiHopDong.ACTIVE);
@@ -322,6 +325,12 @@ public class HopDongService {
         HopDong hd = hopDongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         assertCanWrite(hd, permissionService.requireCurrentUserId());
+        if (hd.getLockedAt() != null || hd.getTrangThai() == TrangThaiHopDong.ACTIVE || hd.getTrangThai() == TrangThaiHopDong.TERMINATED) {
+            throw new RuntimeException("Hợp đồng đã xác nhận hoặc đã phát sinh thực tế, hãy kết thúc hợp đồng thay vì xóa");
+        }
+        if (!hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id).isEmpty()) {
+            throw new RuntimeException("Hợp đồng đã có hóa đơn, không thể xóa");
+        }
         UUID phongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         hd.setXoaLuc(java.time.ZonedDateTime.now());
         hopDongRepository.save(hd);
@@ -330,15 +339,35 @@ public class HopDongService {
         }
     }
 
+    @Transactional
+    public HopDongResponse cancelContract(UUID id) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        assertCanWrite(hd, permissionService.requireCurrentUserId());
+        if (hd.getLockedAt() != null || hd.getTrangThai() == TrangThaiHopDong.ACTIVE || hd.getTrangThai() == TrangThaiHopDong.TERMINATED) {
+            throw new RuntimeException("Hợp đồng đã hoạt động, hãy dùng chức năng kết thúc hợp đồng");
+        }
+        if (!hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id).isEmpty()) {
+            throw new RuntimeException("Hợp đồng đã có hóa đơn, không thể hủy");
+        }
+        hd.setTrangThai(TrangThaiHopDong.CANCELLED);
+        HopDong saved = hopDongRepository.save(hd);
+        if (saved.getPhong() != null) {
+            syncRoomStatus(saved.getPhong().getId());
+        }
+        logAudit(saved, "CANCEL");
+        return toResponse(saved);
+    }
+
     private void assertCanRead(HopDong hopDong, UUID userId) {
         if (!canReadHopDong(hopDong, userId)) {
-            throw new RuntimeException("Ban khong co quyen xem hop dong nay");
+            throw new RuntimeException("Bạn không có quyền xem hợp đồng này");
         }
     }
 
     private void assertCanWrite(HopDong hopDong, UUID userId) {
         if (!canWriteHopDong(hopDong, userId)) {
-            throw new RuntimeException("Ban khong co quyen sua hop dong nay");
+            throw new RuntimeException("Bạn không có quyền sửa hợp đồng này");
         }
     }
 
@@ -362,13 +391,13 @@ public class HopDongService {
 
     private void assertCanReadPhong(Phong phong, UUID userId) {
         if (!canReadPhong(phong, userId)) {
-            throw new RuntimeException("Ban khong co quyen xem du lieu phong nay");
+            throw new RuntimeException("Bạn không có quyền xem dữ liệu phòng này");
         }
     }
 
     private void assertCanWritePhong(Phong phong, UUID userId) {
         if (!canWritePhong(phong, userId)) {
-            throw new RuntimeException("Ban khong co quyen sua hop dong trong nha tro nay");
+            throw new RuntimeException("Bạn không có quyền sửa hợp đồng trong nhà trọ này");
         }
     }
 
@@ -412,6 +441,12 @@ public class HopDongService {
         };
     }
 
+    private void assertManualStatusAllowed(TrangThaiHopDong status) {
+        if (status == TrangThaiHopDong.ACTIVE || status == TrangThaiHopDong.EXPIRED || status == TrangThaiHopDong.TERMINATED || status == TrangThaiHopDong.CANCELLED) {
+            throw new RuntimeException("Trạng thái này phải đổi qua luồng xác nhận, kết thúc hoặc hủy hợp đồng");
+        }
+    }
+
     private UUID parseOptionalUuid(String value) {
         if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
             return null;
@@ -419,7 +454,7 @@ public class HopDongService {
         try {
             return UUID.fromString(value);
         } catch (IllegalArgumentException ex) {
-            throw new RuntimeException("ID khong hop le");
+            throw new RuntimeException("ID không hợp lệ");
         }
     }
 
@@ -749,18 +784,18 @@ public class HopDongService {
         String tenToa = hd.getPhong() != null && hd.getPhong().getNhaTro() != null ? hd.getPhong().getNhaTro().getTen() : "";
         String khachThue = hd.getKhachThue() != null ? hd.getKhachThue().getHoTen() : "";
         return """
-                HOP DONG THUE PHONG
+                HỢP ĐỒNG THUÊ PHÒNG
 
-                Ma hop dong: %s
-                Toa nha: %s
-                Phong: %s
-                Khach thue dai dien: %s
-                Thoi han: %s den %s
-                Gia thue: %s
-                Tien coc: %s
-                Ngay thanh toan hang thang: %s
+                Mã hợp đồng: %s
+                Tòa nhà: %s
+                Phòng: %s
+                Khách thuê đại diện: %s
+                Thời hạn: %s đến %s
+                Giá thuê: %s
+                Tiền cọc: %s
+                Ngày thanh toán hằng tháng: %s
 
-                Noi dung nay duoc sinh tu template %s de phuc vu buoc xem truoc hop dong.
+                Nội dung này được sinh từ template %s để phục vụ bước xem trước hợp đồng.
                 """.formatted(
                 hd.getMaHopDong(),
                 tenToa,
@@ -947,11 +982,18 @@ public class HopDongService {
 
     @Transactional
     public com.example.quanlyphongtro.dto.HopDongResponse terminateContract(java.util.UUID id, com.example.quanlyphongtro.dto.KetThucHopDongRequest req) {
-        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         assertCanWrite(hd, permissionService.requireCurrentUserId());
+        if (hd.getTrangThai() != TrangThaiHopDong.ACTIVE) {
+            throw new RuntimeException("Chỉ hợp đồng đang hoạt động mới được kết thúc");
+        }
+        java.time.LocalDate ngayKetThuc = req.getNgayKetThucThucTe() != null ? req.getNgayKetThucThucTe() : java.time.LocalDate.now();
+        if (hd.getNgayBatDau() != null && ngayKetThuc.isBefore(hd.getNgayBatDau())) {
+            throw new RuntimeException("Ngày kết thúc thực tế không được trước ngày bắt đầu");
+        }
         
         hd.setTrangThai(TrangThaiHopDong.TERMINATED);
-        hd.setNgayKetThucThucTe(req.getNgayKetThucThucTe() != null ? req.getNgayKetThucThucTe() : java.time.LocalDate.now());
+        hd.setNgayKetThucThucTe(ngayKetThuc);
         if (req.getTrangThaiCoc() != null) {
             hd.setTrangThaiCoc(parseCocStatus(req.getTrangThaiCoc()));
         }
@@ -961,7 +1003,7 @@ public class HopDongService {
         hd = hopDongRepository.save(hd);
         syncRoomStatus(hd.getPhong().getId());
         logAudit(hd, "TERMINATE");
-        return com.example.quanlyphongtro.dto.HopDongResponse.fromEntity(hd);
+        return toResponse(hd);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -969,17 +1011,23 @@ public class HopDongService {
 
     @Transactional
     public com.example.quanlyphongtro.dto.HopDongResponse extendContract(java.util.UUID id, com.example.quanlyphongtro.dto.GiaHanHopDongRequest req) {
-        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Khong tim thay hop dong"));
+        HopDong hd = hopDongRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         assertCanWrite(hd, permissionService.requireCurrentUserId());
         
         if (req.getNgayKetThucMoi() == null) {
-            throw new RuntimeException("Ngay ket thuc moi khong duoc de trong");
+            throw new RuntimeException("Ngày kết thúc mới không được để trống");
         }
         if (req.getNgayHieuLuc() == null) {
-            throw new RuntimeException("Ngay hieu luc khong duoc de trong");
+            throw new RuntimeException("Ngày hiệu lực không được để trống");
         }
-        if (req.getNgayKetThucMoi().isBefore(hd.getNgayBatDau())) {
-            throw new RuntimeException("Ngay ket thuc phai sau ngay bat dau");
+        if (hd.getTrangThai() != TrangThaiHopDong.ACTIVE) {
+            throw new RuntimeException("Chỉ hợp đồng đang hoạt động mới được gia hạn");
+        }
+        if (hd.getNgayKetThuc() != null && !req.getNgayKetThucMoi().isAfter(hd.getNgayKetThuc())) {
+            throw new RuntimeException("Ngày kết thúc mới phải sau ngày kết thúc hiện tại");
+        }
+        if (hd.getNgayBatDau() != null && !req.getNgayKetThucMoi().isAfter(hd.getNgayBatDau())) {
+            throw new RuntimeException("Ngày kết thúc phải sau ngày bắt đầu");
         }
         
         ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), req.getNgayKetThucMoi(), id, hd.getTrangThai());
@@ -987,7 +1035,7 @@ public class HopDongService {
         com.example.quanlyphongtro.entity.PhuLucHopDong pl = com.example.quanlyphongtro.entity.PhuLucHopDong.builder()
             .hopDong(hd)
             .loai("GIA_HAN")
-            .noiDung(req.getNoiDung() != null ? req.getNoiDung() : "Gia han hop dong")
+            .noiDung(req.getNoiDung() != null ? req.getNoiDung() : "Gia hạn hợp đồng")
             .ngayHieuLuc(req.getNgayHieuLuc())
             .ngayKetThucMoi(req.getNgayKetThucMoi())
             .giaThueMoi(req.getGiaThueMoi())
@@ -1002,7 +1050,7 @@ public class HopDongService {
         hd = hopDongRepository.save(hd);
         logAudit(hd, "EXTEND");
         
-        return com.example.quanlyphongtro.dto.HopDongResponse.fromEntity(hd);
+        return toResponse(hd);
     }
 
     @org.springframework.transaction.annotation.Transactional

@@ -26,7 +26,7 @@ public class HoaDonPublicController {
     public ApiResponse<Map<String, Object>> getPublicInvoice(@PathVariable UUID id) {
         try {
             // Lấy thông tin hóa đơn (bao gồm chi tiết)
-            HoaDonResponse hoaDon = hoaDonService.getById(id);
+            HoaDonResponse hoaDon = hoaDonService.getPublicById(id);
             
             // Lấy lịch sử thanh toán
             List<ThanhToan> payments = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(id);

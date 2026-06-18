@@ -16,6 +16,7 @@ import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.repository.CauHinhGiaRepository;
 import com.example.quanlyphongtro.repository.DichVuHopDongRepository;
 import com.example.quanlyphongtro.repository.DichVuRepository;
+import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
@@ -42,6 +43,7 @@ class HopDongServiceTest {
     @Mock private DichVuHopDongRepository dichVuHopDongRepository;
     @Mock private DichVuRepository dichVuRepository;
     @Mock private CauHinhGiaRepository cauHinhGiaRepository;
+    @Mock private HoaDonRepository hoaDonRepository;
     @Mock private PermissionService permissionService;
     @Mock private JdbcTemplate jdbcTemplate;
 
@@ -57,6 +59,7 @@ class HopDongServiceTest {
                 dichVuHopDongRepository,
                 dichVuRepository,
                 cauHinhGiaRepository,
+                hoaDonRepository,
                 permissionService,
                 jdbcTemplate
         );
@@ -84,7 +87,7 @@ class HopDongServiceTest {
         when(permissionService.canReadNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.getById(hopDongId));
-        assertEquals("Ban khong co quyen xem hop dong nay", error.getMessage());
+        assertEquals("Bạn không có quyền xem hợp đồng này", error.getMessage());
     }
 
     @Test
@@ -111,7 +114,7 @@ class HopDongServiceTest {
         when(permissionService.canWriteNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
-        assertEquals("Ban khong co quyen sua hop dong trong nha tro nay", error.getMessage());
+        assertEquals("Bạn không có quyền sửa hợp đồng trong nhà trọ này", error.getMessage());
     }
 
     @Test

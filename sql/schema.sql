@@ -955,6 +955,45 @@ CREATE TABLE IF NOT EXISTS "public"."chi_so_dien_nuoc" (
 ALTER TABLE "public"."chi_so_dien_nuoc" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."meter_anomaly_alert" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() PRIMARY KEY,
+    "chi_so_id" "uuid" NOT NULL,
+    "phong_id" "uuid" NOT NULL,
+    "hop_dong_id" "uuid",
+    "loai" character varying(255) NOT NULL,
+    "ky_thang" integer NOT NULL,
+    "ky_nam" integer NOT NULL,
+    "tieu_thu_hien_tai" integer NOT NULL,
+    "tieu_thu_trung_binh" numeric(38,2),
+    "ty_le_tang" numeric(38,2),
+    "muc_do" character varying(255) NOT NULL,
+    "ly_do" text NOT NULL,
+    "trang_thai" character varying(255) DEFAULT 'OPEN' NOT NULL,
+    "resolved_at" timestamp with time zone,
+    "resolved_by" "uuid",
+    "tao_luc" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."meter_anomaly_alert" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."debt_reminder_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() PRIMARY KEY,
+    "hoa_don_id" "uuid" NOT NULL,
+    "reminder_type" character varying(255) NOT NULL,
+    "channel" character varying(255) NOT NULL,
+    "recipient_id" "uuid",
+    "recipient_contact" character varying(255),
+    "status" character varying(255) DEFAULT 'SENT' NOT NULL,
+    "error_message" character varying(255),
+    "sent_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."debt_reminder_log" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."chi_tiet_hoa_don" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "hoa_don_id" "uuid" NOT NULL,
@@ -1001,6 +1040,10 @@ CREATE TABLE IF NOT EXISTS "public"."dat_coc_phong" (
     "ngay_du_kien_vao" "date",
     "trang_thai" character varying(255) DEFAULT 'PENDING'::"public"."trang_thai_dat_coc" NOT NULL,
     "ghi_chu" character varying(255),
+    "ly_do_huy" character varying(255),
+    "confirmed_at" timestamp with time zone,
+    "cancelled_at" timestamp with time zone,
+    "nguoi_xac_nhan_id" "uuid",
     "tao_luc" timestamp with time zone DEFAULT "now"() NOT NULL,
     "cap_nhat_luc" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "chk_dat_coc_tien" CHECK (("so_tien_coc" > (0)::numeric))
@@ -1096,6 +1139,10 @@ CREATE TABLE IF NOT EXISTS "public"."hoa_don" (
     "tao_luc" timestamp with time zone DEFAULT "now"() NOT NULL,
     "cap_nhat_luc" timestamp with time zone DEFAULT "now"() NOT NULL,
     "xoa_luc" timestamp with time zone,
+    "auto_generated" boolean DEFAULT false NOT NULL,
+    "generation_batch_id" "uuid",
+    "source_schedule_id" "uuid",
+    "version" bigint DEFAULT 0 NOT NULL,
     CONSTRAINT "chk_hoa_don_ky" CHECK (((("ky_thang" >= 1) AND ("ky_thang" <= 12)) AND (("ky_nam" >= 2000) AND ("ky_nam" <= 2100)))),
     CONSTRAINT "chk_hoa_don_ngay" CHECK ((("den_ngay" >= "tu_ngay") AND ("han_tra" >= "tu_ngay"))),
     CONSTRAINT "chk_hoa_don_tien" CHECK ((("tong_tien_phat_sinh" >= (0)::numeric) AND ("tong_tien" >= (0)::numeric) AND ("da_tra" >= (0)::numeric)))
@@ -1132,6 +1179,10 @@ CREATE TABLE IF NOT EXISTS "public"."hop_dong" (
     "previewed_at" timestamp with time zone,
     "confirmed_at" timestamp with time zone,
     "locked_at" timestamp with time zone,
+    "signed_pdf_url" "text",
+    "tenant_signed_at" timestamp with time zone,
+    "landlord_signed_at" timestamp with time zone,
+    "signature_status" character varying(30) DEFAULT 'UNSIGNED'::character varying,
     CONSTRAINT "chk_hop_dong_chi_so" CHECK (((("chi_so_dien_ban_dau" IS NULL) OR ("chi_so_dien_ban_dau" >= 0)) AND (("chi_so_nuoc_ban_dau" IS NULL) OR ("chi_so_nuoc_ban_dau" >= 0)))),
     CONSTRAINT "chk_hop_dong_ngay" CHECK (("ngay_ket_thuc" > "ngay_bat_dau")),
     CONSTRAINT "chk_hop_dong_ngay_thanh_toan" CHECK ((("ngay_thanh_toan_hang_thang" >= 1) AND ("ngay_thanh_toan_hang_thang" <= 31))),
@@ -1336,6 +1387,7 @@ CREATE TABLE IF NOT EXISTS "public"."phong" (
     "cap_nhat_luc" timestamp with time zone DEFAULT "now"() NOT NULL,
     "xoa_luc" timestamp with time zone,
     "tang_id" "uuid",
+    "version" bigint DEFAULT 0 NOT NULL,
     CONSTRAINT "chk_phong_dien_tich" CHECK (("dien_tich" > (0)::numeric)),
     CONSTRAINT "chk_phong_gia" CHECK ((("gia_hien_tai" >= (0)::numeric) AND ("tien_coc_mac_dinh" >= (0)::numeric))),
     CONSTRAINT "chk_phong_so_nguoi" CHECK (("so_nguoi_toi_da" > 0)),

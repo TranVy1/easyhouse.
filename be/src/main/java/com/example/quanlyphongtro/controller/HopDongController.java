@@ -70,12 +70,12 @@ public class HopDongController {
 
     @PostMapping("/{id}/preview")
     public ResponseEntity<ApiResponse<HopDongResponse>> preview(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success(hopDongService.preview(id), "Xem truoc hop dong thanh cong"));
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.preview(id), "Xem trước hợp đồng thành công"));
     }
 
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ApiResponse<HopDongResponse>> confirm(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success(hopDongService.confirm(id), "Xac nhan hop dong thanh cong"));
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.confirm(id), "Xác nhận hợp đồng thành công"));
     }
 
     @PostMapping("/{id}/generate-pdf")
@@ -119,17 +119,22 @@ public class HopDongController {
         return ResponseEntity.ok(ApiResponse.success(null, "Xóa hợp đồng thành công"));
     }
 
+    @PutMapping("/{id}/huy")
+    public ResponseEntity<ApiResponse<HopDongResponse>> cancelContract(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.cancelContract(id), "Hủy hợp đồng thành công"));
+    }
+
     @PutMapping("/{id}/ket-thuc")
     public ResponseEntity<com.example.quanlyphongtro.dto.ApiResponse<com.example.quanlyphongtro.dto.HopDongResponse>> terminateContract(
             @PathVariable java.util.UUID id,
             @RequestBody com.example.quanlyphongtro.dto.KetThucHopDongRequest req) {
-        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.terminateContract(id, req), "Ket thuc hop dong thanh cong"));
+        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.terminateContract(id, req), "Kết thúc hợp đồng thành công"));
     }
 
     @PutMapping("/{id}/gia-han")
     public ResponseEntity<com.example.quanlyphongtro.dto.ApiResponse<com.example.quanlyphongtro.dto.HopDongResponse>> extendContract(
             @PathVariable java.util.UUID id,
             @RequestBody com.example.quanlyphongtro.dto.GiaHanHopDongRequest req) {
-        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.extendContract(id, req), "Gia han hop dong thanh cong"));
+        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.extendContract(id, req), "Gia hạn hợp đồng thành công"));
     }
 }

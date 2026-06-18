@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict zN1OJwmaEjc1FoQuAwn6n5Hzhs8MQwQwNwQIdcmgfz3gAc6jCzXDnQzgasxNzpI
+\restrict sKSiuGaIoy2BDCypG4a6uScHR0mpMY4efKPDR9d3fMPaUcHmrolYf2Enno4pbqo
 
 -- Dumped from database version 16.14
 -- Dumped by pg_dump version 16.14
@@ -61,6 +61,7 @@ ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toa
 ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toan_nguoi_ghi_nhan_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toan_khach_thue_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toan_hoa_don_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.tang DROP CONSTRAINT IF EXISTS tang_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_nguoi_phu_trach_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_nguoi_bao_id_fkey;
@@ -70,14 +71,17 @@ ALTER TABLE IF EXISTS ONLY public.phu_luc_hop_dong DROP CONSTRAINT IF EXISTS phu
 ALTER TABLE IF EXISTS ONLY public.phu_luc_hop_dong DROP CONSTRAINT IF EXISTS phu_luc_hop_dong_hop_dong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phong_tien_ich DROP CONSTRAINT IF EXISTS phong_tien_ich_tien_ich_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phong_tien_ich DROP CONSTRAINT IF EXISTS phong_tien_ich_phong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.phong DROP CONSTRAINT IF EXISTS phong_tang_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.phong DROP CONSTRAINT IF EXISTS phong_nha_tro_id_tang_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phong DROP CONSTRAINT IF EXISTS phong_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.nha_tro DROP CONSTRAINT IF EXISTS nha_tro_chu_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_vai_tro DROP CONSTRAINT IF EXISTS nguoi_dung_vai_tro_vai_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_vai_tro DROP CONSTRAINT IF EXISTS nguoi_dung_vai_tro_nguoi_dung_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_nha_tro DROP CONSTRAINT IF EXISTS nguoi_dung_nha_tro_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_nha_tro DROP CONSTRAINT IF EXISTS nguoi_dung_nha_tro_nguoi_dung_id_fkey;
-ALTER TABLE IF EXISTS ONLY public.nguoi_dung DROP CONSTRAINT IF EXISTS nguoi_dung_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.login_history DROP CONSTRAINT IF EXISTS login_history_nguoi_dung_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hop_dong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hoa_don_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_hoa_don DROP CONSTRAINT IF EXISTS lich_su_hoa_don_nguoi_thay_doi_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_hoa_don DROP CONSTRAINT IF EXISTS lich_su_hoa_don_hoa_don_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_hen DROP CONSTRAINT IF EXISTS lich_hen_phong_id_fkey;
@@ -97,6 +101,7 @@ ALTER TABLE IF EXISTS ONLY public.dich_vu DROP CONSTRAINT IF EXISTS dich_vu_chu_
 ALTER TABLE IF EXISTS ONLY public.dat_coc_phong DROP CONSTRAINT IF EXISTS dat_coc_phong_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.dat_coc_phong DROP CONSTRAINT IF EXISTS dat_coc_phong_khach_thue_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.dat_coc_phong DROP CONSTRAINT IF EXISTS dat_coc_phong_hop_dong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.contract_signature DROP CONSTRAINT IF EXISTS contract_signature_hop_dong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_hoa_don_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_dich_vu_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_chi_so_dien_nuoc_id_fkey;
@@ -147,15 +152,19 @@ DROP INDEX IF EXISTS public.idx_tvhd_hop_dong;
 DROP INDEX IF EXISTS public.idx_thong_bao_recipient;
 DROP INDEX IF EXISTS public.idx_thanh_toan_ref;
 DROP INDEX IF EXISTS public.idx_thanh_toan_hoa_don;
+DROP INDEX IF EXISTS public.idx_tang_nha_tro_so_tang;
 DROP INDEX IF EXISTS public.idx_su_co_phong_status;
 DROP INDEX IF EXISTS public.idx_refresh_token_user;
 DROP INDEX IF EXISTS public.idx_phong_trang_thai;
+DROP INDEX IF EXISTS public.idx_phong_tang_id;
 DROP INDEX IF EXISTS public.idx_phong_nha_tro;
 DROP INDEX IF EXISTS public.idx_nha_tro_chu_tro;
 DROP INDEX IF EXISTS public.idx_nguoi_dung_trang_thai;
 DROP INDEX IF EXISTS public.idx_nguoi_dung_email;
 DROP INDEX IF EXISTS public.idx_ndnt_nha_tro_user;
 DROP INDEX IF EXISTS public.idx_login_history_user_time;
+DROP INDEX IF EXISTS public.idx_lich_thanh_toan_hop_dong;
+DROP INDEX IF EXISTS public.idx_lich_thanh_toan_han;
 DROP INDEX IF EXISTS public.idx_lich_hen_phong_time;
 DROP INDEX IF EXISTS public.idx_khach_thue_sdt;
 DROP INDEX IF EXISTS public.idx_khach_thue_chu_tro;
@@ -169,6 +178,7 @@ DROP INDEX IF EXISTS public.idx_file_media_target;
 DROP INDEX IF EXISTS public.idx_dvhd_hop_dong;
 DROP INDEX IF EXISTS public.idx_dat_coc_phong;
 DROP INDEX IF EXISTS public.idx_cthd_hoa_don;
+DROP INDEX IF EXISTS public.idx_contract_signature_hop_dong;
 DROP INDEX IF EXISTS public.idx_chi_so_phong_ky;
 DROP INDEX IF EXISTS public.idx_cau_hinh_gia_nha_tro;
 DROP INDEX IF EXISTS public.idx_audit_log_target;
@@ -240,6 +250,9 @@ ALTER TABLE IF EXISTS ONLY public.thong_bao_nguoi_nhan DROP CONSTRAINT IF EXISTS
 ALTER TABLE IF EXISTS ONLY public.thanh_vien_hop_dong DROP CONSTRAINT IF EXISTS thanh_vien_hop_dong_pkey;
 ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toan_pkey;
 ALTER TABLE IF EXISTS ONLY public.thanh_toan DROP CONSTRAINT IF EXISTS thanh_toan_external_transaction_id_key;
+ALTER TABLE IF EXISTS ONLY public.tang DROP CONSTRAINT IF EXISTS tang_pkey;
+ALTER TABLE IF EXISTS ONLY public.tang DROP CONSTRAINT IF EXISTS tang_nha_tro_id_so_tang_key;
+ALTER TABLE IF EXISTS ONLY public.tang DROP CONSTRAINT IF EXISTS tang_nha_tro_id_id_key;
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_pkey;
 ALTER TABLE IF EXISTS ONLY public.refresh_token DROP CONSTRAINT IF EXISTS refresh_token_token_key;
 ALTER TABLE IF EXISTS ONLY public.refresh_token DROP CONSTRAINT IF EXISTS refresh_token_pkey;
@@ -255,7 +268,10 @@ ALTER TABLE IF EXISTS ONLY public.nguoi_dung DROP CONSTRAINT IF EXISTS nguoi_dun
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_nha_tro DROP CONSTRAINT IF EXISTS nguoi_dung_nha_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_nha_tro DROP CONSTRAINT IF EXISTS nguoi_dung_nha_tro_nguoi_dung_id_nha_tro_id_vai_tro_key;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung DROP CONSTRAINT IF EXISTS nguoi_dung_email_key;
+ALTER TABLE IF EXISTS ONLY public.meter_anomaly_alert DROP CONSTRAINT IF EXISTS meter_anomaly_alert_pkey;
 ALTER TABLE IF EXISTS ONLY public.login_history DROP CONSTRAINT IF EXISTS login_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_pkey;
+ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key;
 ALTER TABLE IF EXISTS ONLY public.lich_su_hoa_don DROP CONSTRAINT IF EXISTS lich_su_hoa_don_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_hen DROP CONSTRAINT IF EXISTS lich_hen_pkey;
 ALTER TABLE IF EXISTS ONLY public.khach_thue DROP CONSTRAINT IF EXISTS khach_thue_pkey;
@@ -273,7 +289,9 @@ ALTER TABLE IF EXISTS ONLY public.dich_vu DROP CONSTRAINT IF EXISTS dich_vu_pkey
 ALTER TABLE IF EXISTS ONLY public.dich_vu_hop_dong DROP CONSTRAINT IF EXISTS dich_vu_hop_dong_pkey;
 ALTER TABLE IF EXISTS ONLY public.dich_vu_hop_dong DROP CONSTRAINT IF EXISTS dich_vu_hop_dong_hop_dong_id_dich_vu_id_bat_dau_tu_key;
 ALTER TABLE IF EXISTS ONLY public.dich_vu DROP CONSTRAINT IF EXISTS dich_vu_chu_tro_id_ten_dich_vu_key;
+ALTER TABLE IF EXISTS ONLY public.debt_reminder_log DROP CONSTRAINT IF EXISTS debt_reminder_log_pkey;
 ALTER TABLE IF EXISTS ONLY public.dat_coc_phong DROP CONSTRAINT IF EXISTS dat_coc_phong_pkey;
+ALTER TABLE IF EXISTS ONLY public.contract_signature DROP CONSTRAINT IF EXISTS contract_signature_pkey;
 ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_so_cccd_key;
 ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_nguoi_dung_id_key;
@@ -319,11 +337,14 @@ ALTER TABLE IF EXISTS ONLY auth.audit_log_entries DROP CONSTRAINT IF EXISTS audi
 ALTER TABLE IF EXISTS ONLY auth.mfa_amr_claims DROP CONSTRAINT IF EXISTS amr_id_pk;
 ALTER TABLE IF EXISTS auth.refresh_tokens ALTER COLUMN id DROP DEFAULT;
 DROP TABLE IF EXISTS public.vai_tro;
+DROP VIEW IF EXISTS public.v_thong_ke_toa_nha;
+DROP VIEW IF EXISTS public.v_so_do_toa_nha;
 DROP TABLE IF EXISTS public.tien_ich;
 DROP TABLE IF EXISTS public.thong_bao_nguoi_nhan;
 DROP TABLE IF EXISTS public.thong_bao;
 DROP TABLE IF EXISTS public.thanh_vien_hop_dong;
 DROP TABLE IF EXISTS public.thanh_toan;
+DROP TABLE IF EXISTS public.tang;
 DROP TABLE IF EXISTS public.su_co;
 DROP TABLE IF EXISTS public.refresh_token;
 DROP TABLE IF EXISTS public.phu_luc_hop_dong;
@@ -333,7 +354,9 @@ DROP TABLE IF EXISTS public.nha_tro;
 DROP TABLE IF EXISTS public.nguoi_dung_vai_tro;
 DROP TABLE IF EXISTS public.nguoi_dung_nha_tro;
 DROP TABLE IF EXISTS public.nguoi_dung;
+DROP TABLE IF EXISTS public.meter_anomaly_alert;
 DROP TABLE IF EXISTS public.login_history;
+DROP TABLE IF EXISTS public.lich_thanh_toan;
 DROP TABLE IF EXISTS public.lich_su_hoa_don;
 DROP TABLE IF EXISTS public.lich_hen;
 DROP TABLE IF EXISTS public.khach_thue;
@@ -343,7 +366,9 @@ DROP TABLE IF EXISTS public.file_media;
 DROP TABLE IF EXISTS public.email_verification_token;
 DROP TABLE IF EXISTS public.dich_vu_hop_dong;
 DROP TABLE IF EXISTS public.dich_vu;
+DROP TABLE IF EXISTS public.debt_reminder_log;
 DROP TABLE IF EXISTS public.dat_coc_phong;
+DROP TABLE IF EXISTS public.contract_signature;
 DROP TABLE IF EXISTS public.chu_tro;
 DROP TABLE IF EXISTS public.chi_tiet_hoa_don;
 DROP TABLE IF EXISTS public.chi_so_dien_nuoc;
@@ -376,6 +401,7 @@ DROP TABLE IF EXISTS auth.custom_oauth_providers;
 DROP TABLE IF EXISTS auth.audit_log_entries;
 DROP FUNCTION IF EXISTS public.update_updated_at_column();
 DROP FUNCTION IF EXISTS public.update_invoice_status_on_payment();
+DROP FUNCTION IF EXISTS public.tao_lich_thanh_toan_hang_thang(p_hop_dong_id uuid);
 DROP FUNCTION IF EXISTS public.recalc_hoa_don_from_thanh_toan();
 DROP FUNCTION IF EXISTS public.recalc_hoa_don_from_chi_tiet();
 DROP FUNCTION IF EXISTS public.is_admin();
@@ -432,7 +458,10 @@ DROP TYPE IF EXISTS auth.factor_type;
 DROP TYPE IF EXISTS auth.factor_status;
 DROP TYPE IF EXISTS auth.code_challenge_method;
 DROP TYPE IF EXISTS auth.aal_level;
-DROP SCHEMA IF EXISTS public;
+DROP EXTENSION IF EXISTS "uuid-ossp";
+DROP EXTENSION IF EXISTS pgcrypto;
+DROP EXTENSION IF EXISTS btree_gist;
+-- *not* dropping schema, since initdb creates it
 DROP SCHEMA IF EXISTS extensions;
 DROP SCHEMA IF EXISTS auth;
 --
@@ -448,23 +477,61 @@ CREATE SCHEMA auth;
 
 CREATE SCHEMA extensions;
 
---
--- Required extensions used by EasyHouse/Supabase-compatible defaults.
---
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
-
-
 
 --
 -- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE SCHEMA public;
+-- *not* creating schema, since initdb creates it
+
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS '';
+
+
+--
+-- Name: btree_gist; Type: EXTENSION; Schema: -; Owner: -
+--
 
 CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
 
+
+--
+-- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION btree_gist IS 'support for indexing common datatypes in GiST';
+
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
 --
@@ -1490,6 +1557,77 @@ $$;
 
 
 --
+-- Name: tao_lich_thanh_toan_hang_thang(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.tao_lich_thanh_toan_hang_thang(p_hop_dong_id uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_hd public.hop_dong%ROWTYPE;
+    v_ngay date;
+    v_tu_ngay date;
+    v_den_ngay date;
+    v_han_thanh_toan date;
+    v_count integer := 0;
+BEGIN
+    SELECT * INTO v_hd
+    FROM public.hop_dong
+    WHERE id = p_hop_dong_id
+      AND xoa_luc IS NULL;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy hợp đồng %', p_hop_dong_id;
+    END IF;
+
+    v_ngay := date_trunc('month', v_hd.ngay_bat_dau)::date;
+
+    WHILE v_ngay <= v_hd.ngay_ket_thuc LOOP
+        v_tu_ngay := greatest(v_hd.ngay_bat_dau, v_ngay);
+        v_den_ngay := least(v_hd.ngay_ket_thuc, (v_ngay + INTERVAL '1 month - 1 day')::date);
+        v_han_thanh_toan := make_date(
+            extract(year from v_ngay)::integer,
+            extract(month from v_ngay)::integer,
+            least(
+                v_hd.ngay_thanh_toan_hang_thang,
+                extract(day from ((v_ngay + INTERVAL '1 month - 1 day')::date))::integer
+            )
+        );
+
+        INSERT INTO public.lich_thanh_toan (
+            hop_dong_id,
+            ky_nam,
+            ky_thang,
+            tu_ngay,
+            den_ngay,
+            han_thanh_toan,
+            so_tien_du_kien
+        ) VALUES (
+            v_hd.id,
+            extract(year from v_ngay)::integer,
+            extract(month from v_ngay)::integer,
+            v_tu_ngay,
+            v_den_ngay,
+            v_han_thanh_toan,
+            v_hd.gia_thue_hop_dong
+        ) ON CONFLICT (hop_dong_id, ky_nam, ky_thang) DO UPDATE
+        SET
+            tu_ngay = EXCLUDED.tu_ngay,
+            den_ngay = EXCLUDED.den_ngay,
+            han_thanh_toan = EXCLUDED.han_thanh_toan,
+            so_tien_du_kien = EXCLUDED.so_tien_du_kien,
+            cap_nhat_luc = now();
+
+        v_count := v_count + 1;
+        v_ngay := (v_ngay + INTERVAL '1 month')::date;
+    END LOOP;
+
+    RETURN v_count;
+END;
+$$;
+
+
+--
 -- Name: update_invoice_status_on_payment(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2341,7 +2479,7 @@ CREATE TABLE public.chi_so_dien_nuoc (
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT chk_chi_so_gia_tri CHECK (((chi_so_cu >= 0) AND (chi_so_moi >= chi_so_cu))),
-    CONSTRAINT chk_chi_so_ky CHECK ((((ky_thang >= 1) AND (ky_thang <= 12)) AND ((ky_nam >= 2000) AND (ky_nam <= 2100))))
+    CONSTRAINT chk_chi_so_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND ((ky_nam >= 2000) AND (ky_nam <= 2100))))
 );
 
 
@@ -2384,6 +2522,22 @@ CREATE TABLE public.chu_tro (
 
 
 --
+-- Name: contract_signature; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.contract_signature (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    signer_id uuid,
+    signer_role character varying(255) NOT NULL,
+    signature_image_url text,
+    signed_at timestamp with time zone DEFAULT now() NOT NULL,
+    ip_address character varying(255),
+    user_agent text
+);
+
+
+--
 -- Name: dat_coc_phong; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2397,9 +2551,30 @@ CREATE TABLE public.dat_coc_phong (
     ngay_du_kien_vao date,
     trang_thai character varying(255) DEFAULT 'PENDING'::public.trang_thai_dat_coc NOT NULL,
     ghi_chu character varying(255),
+    ly_do_huy character varying(255),
+    confirmed_at timestamp with time zone,
+    cancelled_at timestamp with time zone,
+    nguoi_xac_nhan_id uuid,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT chk_dat_coc_tien CHECK ((so_tien_coc > (0)::numeric))
+);
+
+
+--
+-- Name: debt_reminder_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.debt_reminder_log (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hoa_don_id uuid NOT NULL,
+    reminder_type character varying(255) NOT NULL,
+    channel character varying(255) NOT NULL,
+    recipient_id uuid,
+    recipient_contact character varying(255),
+    status character varying(255) DEFAULT 'SENT'::character varying NOT NULL,
+    error_message character varying(255),
+    sent_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2497,7 +2672,11 @@ CREATE TABLE public.hoa_don (
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     xoa_luc timestamp with time zone,
-    CONSTRAINT chk_hoa_don_ky CHECK ((((ky_thang >= 1) AND (ky_thang <= 12)) AND ((ky_nam >= 2000) AND (ky_nam <= 2100)))),
+    auto_generated boolean DEFAULT false NOT NULL,
+    generation_batch_id uuid,
+    source_schedule_id uuid,
+    version bigint DEFAULT 0 NOT NULL,
+    CONSTRAINT chk_hoa_don_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND ((ky_nam >= 2000) AND (ky_nam <= 2100)))),
     CONSTRAINT chk_hoa_don_ngay CHECK (((den_ngay >= tu_ngay) AND (han_tra >= tu_ngay))),
     CONSTRAINT chk_hoa_don_tien CHECK (((tong_tien_phat_sinh >= (0)::numeric) AND (tong_tien >= (0)::numeric) AND (da_tra >= (0)::numeric)))
 );
@@ -2526,6 +2705,14 @@ CREATE TABLE public.hop_dong (
     chi_so_nuoc_ban_dau integer,
     noi_dung_hop_dong text,
     file_pdf text,
+    template_version character varying(100),
+    previewed_at timestamp with time zone,
+    confirmed_at timestamp with time zone,
+    locked_at timestamp with time zone,
+    signed_pdf_url text,
+    tenant_signed_at timestamp with time zone,
+    landlord_signed_at timestamp with time zone,
+    signature_status character varying(30) DEFAULT 'UNSIGNED'::character varying,
     ghi_chu text,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
@@ -2600,6 +2787,31 @@ CREATE TABLE public.lich_su_hoa_don (
 
 
 --
+-- Name: lich_thanh_toan; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lich_thanh_toan (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    ky_nam integer NOT NULL,
+    ky_thang integer NOT NULL,
+    tu_ngay date NOT NULL,
+    den_ngay date NOT NULL,
+    han_thanh_toan date NOT NULL,
+    so_tien_du_kien numeric(15,2) NOT NULL,
+    hoa_don_id uuid,
+    trang_thai character varying(30) DEFAULT 'PENDING'::character varying NOT NULL,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    xoa_luc timestamp with time zone,
+    CONSTRAINT chk_lich_thanh_toan_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND (ky_nam >= 2000) AND (ky_nam <= 2100))),
+    CONSTRAINT chk_lich_thanh_toan_ngay CHECK (((den_ngay >= tu_ngay) AND (han_thanh_toan >= tu_ngay))),
+    CONSTRAINT chk_lich_thanh_toan_tien CHECK ((so_tien_du_kien >= (0)::numeric))
+);
+
+
+--
 -- Name: login_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2611,6 +2823,30 @@ CREATE TABLE public.login_history (
     ip_address inet,
     user_agent text,
     ly_do_that_bai text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: meter_anomaly_alert; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.meter_anomaly_alert (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    chi_so_id uuid NOT NULL,
+    phong_id uuid NOT NULL,
+    hop_dong_id uuid,
+    loai character varying(255) NOT NULL,
+    ky_thang integer NOT NULL,
+    ky_nam integer NOT NULL,
+    tieu_thu_hien_tai integer NOT NULL,
+    tieu_thu_trung_binh numeric(38,2),
+    ty_le_tang numeric(38,2),
+    muc_do character varying(255) NOT NULL,
+    ly_do text NOT NULL,
+    trang_thai character varying(255) DEFAULT 'OPEN'::character varying NOT NULL,
+    resolved_at timestamp with time zone,
+    resolved_by uuid,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -2715,9 +2951,12 @@ CREATE TABLE public.phong (
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     xoa_luc timestamp with time zone,
+    tang_id uuid,
+    version bigint DEFAULT 0 NOT NULL,
     CONSTRAINT chk_phong_dien_tich CHECK ((dien_tich > (0)::numeric)),
     CONSTRAINT chk_phong_gia CHECK (((gia_hien_tai >= (0)::numeric) AND (tien_coc_mac_dinh >= (0)::numeric))),
-    CONSTRAINT chk_phong_so_nguoi CHECK ((so_nguoi_toi_da > 0))
+    CONSTRAINT chk_phong_so_nguoi CHECK ((so_nguoi_toi_da > 0)),
+    CONSTRAINT chk_phong_tang_hop_le CHECK (((tang IS NOT NULL) OR (tang_id IS NOT NULL)))
 );
 
 
@@ -2785,6 +3024,26 @@ CREATE TABLE public.su_co (
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT chk_su_co_chi_phi CHECK ((chi_phi_sua_chua >= (0)::numeric))
+);
+
+
+--
+-- Name: tang; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tang (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    so_tang integer NOT NULL,
+    ten_tang character varying(100),
+    thu_tu_hien_thi integer,
+    so_phong_du_kien integer,
+    trang_thai character varying(30) DEFAULT 'ACTIVE'::character varying NOT NULL,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    xoa_luc timestamp with time zone,
+    CONSTRAINT chk_tang_so_phong_du_kien CHECK (((so_phong_du_kien IS NULL) OR (so_phong_du_kien >= 0))),
+    CONSTRAINT chk_tang_so_tang CHECK ((so_tang >= 0))
 );
 
 
@@ -2880,6 +3139,78 @@ CREATE TABLE public.tien_ich (
 
 
 --
+-- Name: v_so_do_toa_nha; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.v_so_do_toa_nha AS
+ SELECT nt.id AS nha_tro_id,
+    nt.ten AS ten_toa_nha,
+    COALESCE(t.so_tang, p.tang) AS so_tang,
+    COALESCE(t.ten_tang, (('Tang '::text || (COALESCE(t.so_tang, p.tang))::text))::character varying) AS ten_tang,
+    p.id AS phong_id,
+    p.ten AS ma_phong,
+    p.dien_tich,
+    p.gia_hien_tai,
+    p.trang_thai AS trang_thai_vat_ly,
+    hd.id AS hop_dong_id,
+    hd.ma_hop_dong,
+    hd.ngay_bat_dau,
+    hd.ngay_ket_thuc,
+    kt.id AS khach_thue_id,
+    kt.ho_ten AS khach_thue_hien_tai,
+        CASE
+            WHEN (p.trang_thai = 'MAINTENANCE'::public.trang_thai_phong) THEN 'MAINTENANCE'::text
+            WHEN (hd.id IS NULL) THEN 'VACANT'::text
+            WHEN (hd.ngay_ket_thuc <= (CURRENT_DATE + '30 days'::interval)) THEN 'CONTRACT_EXPIRING'::text
+            ELSE 'RENTED'::text
+        END AS trang_thai_hien_thi
+   FROM ((((public.nha_tro nt
+     LEFT JOIN public.tang t ON (((t.nha_tro_id = nt.id) AND (t.xoa_luc IS NULL))))
+     LEFT JOIN public.phong p ON (((p.nha_tro_id = nt.id) AND (p.xoa_luc IS NULL) AND ((p.tang_id = t.id) OR ((p.tang_id IS NULL) AND (p.tang = t.so_tang))))))
+     LEFT JOIN LATERAL ( SELECT h.id,
+            h.phong_id,
+            h.khach_thue_id,
+            h.ma_hop_dong,
+            h.ngay_bat_dau,
+            h.ngay_ket_thuc
+           FROM public.hop_dong h
+          WHERE ((h.phong_id = p.id) AND (h.xoa_luc IS NULL) AND (h.trang_thai = ANY (ARRAY['PENDING'::public.trang_thai_hop_dong, 'ACTIVE'::public.trang_thai_hop_dong])) AND ((CURRENT_DATE >= h.ngay_bat_dau) AND (CURRENT_DATE <= h.ngay_ket_thuc)))
+          ORDER BY h.ngay_bat_dau DESC
+         LIMIT 1) hd ON (true))
+     LEFT JOIN public.khach_thue kt ON ((kt.id = hd.khach_thue_id)))
+  WHERE (nt.xoa_luc IS NULL);
+
+
+--
+-- Name: v_thong_ke_toa_nha; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.v_thong_ke_toa_nha AS
+ SELECT nt.id AS nha_tro_id,
+    nt.ten AS ten_toa_nha,
+    count(DISTINCT t.id) AS tong_so_tang,
+    count(DISTINCT p.id) AS tong_so_phong,
+    count(DISTINCT p.id) FILTER (WHERE ((p.trang_thai = 'AVAILABLE'::public.trang_thai_phong) AND (hd.id IS NULL))) AS phong_trong,
+    count(DISTINCT p.id) FILTER (WHERE (hd.id IS NOT NULL)) AS phong_dang_thue,
+    count(DISTINCT p.id) FILTER (WHERE (p.trang_thai = 'MAINTENANCE'::public.trang_thai_phong)) AS phong_bao_tri,
+    count(DISTINCT p.id) FILTER (WHERE ((hd.id IS NOT NULL) AND (hd.ngay_ket_thuc <= (CURRENT_DATE + '30 days'::interval)))) AS hop_dong_sap_het_han,
+    COALESCE(sum(hd.gia_thue_hop_dong), (0)::numeric) AS doanh_thu_du_kien_thang
+   FROM (((public.nha_tro nt
+     LEFT JOIN public.tang t ON (((t.nha_tro_id = nt.id) AND (t.xoa_luc IS NULL))))
+     LEFT JOIN public.phong p ON (((p.nha_tro_id = nt.id) AND (p.xoa_luc IS NULL))))
+     LEFT JOIN LATERAL ( SELECT h.id,
+            h.phong_id,
+            h.ngay_ket_thuc,
+            h.gia_thue_hop_dong
+           FROM public.hop_dong h
+          WHERE ((h.phong_id = p.id) AND (h.xoa_luc IS NULL) AND (h.trang_thai = ANY (ARRAY['PENDING'::public.trang_thai_hop_dong, 'ACTIVE'::public.trang_thai_hop_dong])) AND ((CURRENT_DATE >= h.ngay_bat_dau) AND (CURRENT_DATE <= h.ngay_ket_thuc)))
+          ORDER BY h.ngay_bat_dau DESC
+         LIMIT 1) hd ON (true))
+  WHERE (nt.xoa_luc IS NULL)
+  GROUP BY nt.id, nt.ten;
+
+
+--
 -- Name: vai_tro; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2898,6 +3229,164 @@ CREATE TABLE public.vai_tro (
 ALTER TABLE ONLY auth.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass);
 
 
+--
+-- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) FROM stdin;
+\.
+
+
+--
+-- Data for Name: custom_oauth_providers; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.custom_oauth_providers (id, provider_type, identifier, name, client_id, client_secret, acceptable_client_ids, scopes, pkce_enabled, attribute_mapping, authorization_params, enabled, email_optional, issuer, discovery_url, skip_nonce_check, cached_discovery, discovery_cached_at, authorization_url, token_url, userinfo_url, jwks_uri, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.flow_state (id, user_id, auth_code, code_challenge_method, code_challenge, provider_type, provider_access_token, provider_refresh_token, created_at, updated_at, authentication_method, auth_code_issued_at, invite_token, referrer, oauth_client_state_id, linking_target_id, email_optional) FROM stdin;
+\.
+
+
+--
+-- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.instances (id, uuid, raw_base_config, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.mfa_amr_claims (session_id, created_at, updated_at, authentication_method, id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.mfa_challenges (id, factor_id, created_at, verified_at, ip_address, otp_code, web_authn_session_data) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret, phone, last_challenged_at, web_authn_credential, web_authn_aaguid, last_webauthn_challenge_data) FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_authorizations; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.oauth_authorizations (id, authorization_id, client_id, user_id, redirect_uri, scope, state, resource, code_challenge, code_challenge_method, response_type, status, authorization_code, created_at, expires_at, approved_at, nonce) FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_client_states; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.oauth_client_states (id, provider_type, code_verifier, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_clients; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.oauth_clients (id, client_secret_hash, registration_type, redirect_uris, grant_types, client_name, client_uri, logo_uri, created_at, updated_at, deleted_at, client_type, token_endpoint_auth_method) FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_consents; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.oauth_consents (id, user_id, client_id, scopes, granted_at, revoked_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.one_time_tokens (id, user_id, token_type, token_hash, relates_to, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.saml_providers (id, sso_provider_id, entity_id, metadata_xml, metadata_url, attribute_mapping, created_at, updated_at, name_id_format) FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.saml_relay_states (id, sso_provider_id, request_id, for_email, redirect_to, created_at, updated_at, flow_state_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.schema_migrations (version) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.sessions (id, user_id, created_at, updated_at, factor_id, aal, not_after, refreshed_at, user_agent, ip, tag, oauth_client_id, refresh_token_hmac_key, refresh_token_counter, scopes) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.sso_domains (id, sso_provider_id, domain, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.sso_providers (id, resource_id, created_at, updated_at, disabled) FROM stdin;
+\.
 
 
 --
@@ -2905,7 +3394,23 @@ ALTER TABLE ONLY auth.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('auth.r
 --
 
 COPY auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) FROM stdin;
-\N	00000000-0000-0000-0000-000000000001	\N	\N	admin@easyhouse.local	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	2026-05-24 09:47:09.734324+00	2026-05-24 09:47:09.734324+00	\N	\N			\N		0	\N		\N	f	\N	f
+\N	00000000-0000-0000-0000-000000000001	\N	\N	admin@easyhouse.local	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G	2026-06-18 02:05:51.097202+00	\N	\N	\N	\N	\N	\N	\N	\N	\N	{"provider": "email", "providers": ["email"]}	{}	\N	2026-05-24 09:47:09.734324+00	2026-06-18 02:05:51.097202+00	\N	\N			\N		0	\N		\N	f	\N	f
+\.
+
+
+--
+-- Data for Name: webauthn_challenges; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.webauthn_challenges (id, user_id, challenge_type, session_data, created_at, expires_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: webauthn_credentials; Type: TABLE DATA; Schema: auth; Owner: -
+--
+
+COPY auth.webauthn_credentials (id, user_id, credential_id, public_key, attestation_type, aaguid, sign_count, transports, backup_eligible, backed_up, friendly_name, created_at, updated_at, last_used_at) FROM stdin;
 \.
 
 
@@ -2922,7 +3427,7 @@ COPY public.audit_log (id, nguoi_dung_id, hanh_dong, bang_tac_dong, ban_ghi_id, 
 --
 
 COPY public.bank_transaction (id, nha_tro_id, hoa_don_id, so_tien, noi_dung_chuyen_khoan, ma_giao_dich, ngan_hang, thoi_gian_giao_dich, payload, da_doi_soat, tao_luc) FROM stdin;
-bbbbbbbb-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	4100000.00	THANH TOAN HOA DON A	E2E-TXN-A	VCB	2026-05-25 09:00:00+07	{}	f	2026-05-25 09:00:00+07
+bbbbbbbb-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	4100000.00	THANH TOAN HOA DON A	E2E-TXN-A	VCB	2026-05-25 02:00:00+00	{}	f	2026-05-25 02:00:00+00
 \.
 
 
@@ -2931,8 +3436,8 @@ bbbbbbbb-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	410
 --
 
 COPY public.cau_hinh_gia (id, nha_tro_id, dich_vu_id, loai, ten_hien_thi, loai_tinh_phi, don_gia, hieu_luc_tu, hieu_luc_den, dang_ap_dung, tao_luc, cap_nhat_luc) FROM stdin;
-ca000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	ELECTRICITY	Dien	FIXED	3500.00	2026-01-01	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
-ca000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	\N	ELECTRICITY	Dien	FIXED	4000.00	2026-01-01	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
+ca000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	\N	ELECTRICITY	Dien	FIXED	3500.00	2026-01-01	\N	t	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00
+ca000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	\N	ELECTRICITY	Dien	FIXED	4000.00	2026-01-01	\N	t	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00
 \.
 
 
@@ -2941,8 +3446,8 @@ ca000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	\N	ELE
 --
 
 COPY public.chi_so_dien_nuoc (id, phong_id, hop_dong_id, loai, ky_nam, ky_thang, ngay_ghi, chi_so_cu, chi_so_moi, anh_dong_ho, nguoi_ghi_id, trang_thai, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
-f0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	d0000000-0000-0000-0000-000000000001	ELECTRICITY	2026	5	2026-05-25	100	120	\N	22222222-2222-2222-2222-222222222222	DRAFT	E2E meter A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
-f0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	d0000000-0000-0000-0000-000000000002	ELECTRICITY	2026	5	2026-05-25	200	215	\N	66666666-6666-6666-6666-666666666666	DRAFT	E2E meter B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+f0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	d0000000-0000-0000-0000-000000000001	ELECTRICITY	2026	5	2026-05-25	100	120	\N	22222222-2222-2222-2222-222222222222	DRAFT	E2E meter A	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
+f0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	d0000000-0000-0000-0000-000000000002	ELECTRICITY	2026	5	2026-05-25	200	215	\N	66666666-6666-6666-6666-666666666666	DRAFT	E2E meter B	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
 \.
 
 
@@ -2951,8 +3456,8 @@ f0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	d00000
 --
 
 COPY public.chi_tiet_hoa_don (id, hoa_don_id, dich_vu_id, chi_so_dien_nuoc_id, su_co_id, loai, mo_ta, so_luong, don_gia, thanh_tien, tao_luc) FROM stdin;
-cd000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	\N	\N	\N	ROOM	Tien phong A	1	4200000.00	4200000.00	2026-05-25 08:00:00+07
-cd000000-0000-0000-0000-000000000002	e0000000-0000-0000-0000-000000000002	\N	\N	\N	ROOM	Tien phong B	1	5000000.00	5000000.00	2026-05-25 08:00:00+07
+cd000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	\N	\N	\N	ROOM	Tien phong A	1.00	4200000.00	4200000.00	2026-05-25 01:00:00+00
+cd000000-0000-0000-0000-000000000002	e0000000-0000-0000-0000-000000000002	\N	\N	\N	ROOM	Tien phong B	1.00	5000000.00	5000000.00	2026-05-25 01:00:00+00
 \.
 
 
@@ -2962,7 +3467,15 @@ cd000000-0000-0000-0000-000000000002	e0000000-0000-0000-0000-000000000002	\N	\N	
 
 COPY public.chu_tro (id, nguoi_dung_id, ten_cong_ty, so_cccd, ma_so_thue, so_tai_khoan, da_xac_minh, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
 55555555-5555-5555-5555-555555555555	44444444-4444-4444-4444-444444444444	Nha Tro Binh Dan	012345678912	\N	\N	t	2026-05-03 17:13:44.013465+00	2026-05-03 17:13:44.013465+00	\N
-77777777-7777-7777-7777-777777777777	66666666-6666-6666-6666-666666666666	Nha Tro Khu B	012345678913	\N	\N	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+77777777-7777-7777-7777-777777777777	66666666-6666-6666-6666-666666666666	Nha Tro Khu B	012345678913	\N	\N	t	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
+\.
+
+
+--
+-- Data for Name: contract_signature; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.contract_signature (id, hop_dong_id, signer_id, signer_role, signature_image_url, signed_at, ip_address, user_agent) FROM stdin;
 \.
 
 
@@ -2970,7 +3483,15 @@ COPY public.chu_tro (id, nguoi_dung_id, ten_cong_ty, so_cccd, ma_so_thue, so_tai
 -- Data for Name: dat_coc_phong; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.dat_coc_phong (id, phong_id, khach_thue_id, hop_dong_id, so_tien_coc, ngay_dat_coc, ngay_du_kien_vao, trang_thai, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
+COPY public.dat_coc_phong (id, phong_id, khach_thue_id, hop_dong_id, so_tien_coc, ngay_dat_coc, ngay_du_kien_vao, trang_thai, ghi_chu, ly_do_huy, confirmed_at, cancelled_at, nguoi_xac_nhan_id, tao_luc, cap_nhat_luc) FROM stdin;
+\.
+
+
+--
+-- Data for Name: debt_reminder_log; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.debt_reminder_log (id, hoa_don_id, reminder_type, channel, recipient_id, recipient_contact, status, error_message, sent_at) FROM stdin;
 \.
 
 
@@ -2979,8 +3500,8 @@ COPY public.dat_coc_phong (id, phong_id, khach_thue_id, hop_dong_id, so_tien_coc
 --
 
 COPY public.dich_vu (id, chu_tro_id, ten_dich_vu, loai_tinh_phi, don_vi, don_gia_mac_dinh, bat_buoc, tao_luc, cap_nhat_luc) FROM stdin;
-de000000-0000-0000-0000-000000000001	44444444-4444-4444-4444-444444444444	Internet	FIXED	thang	100000.00	f	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
-de000000-0000-0000-0000-000000000002	66666666-6666-6666-6666-666666666666	Internet	FIXED	thang	120000.00	f	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07
+de000000-0000-0000-0000-000000000001	44444444-4444-4444-4444-444444444444	Internet	FIXED	thang	100000.00	f	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00
+de000000-0000-0000-0000-000000000002	66666666-6666-6666-6666-666666666666	Internet	FIXED	thang	120000.00	f	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00
 \.
 
 
@@ -3012,9 +3533,9 @@ COPY public.file_media (id, doi_tuong, doi_tuong_id, url, public_id, loai_file, 
 -- Data for Name: hoa_don; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_nam, ky_thang, tu_ngay, den_ngay, so_du_dau_ky, tong_tien_phat_sinh, tong_tien, da_tra, trang_thai, han_tra, ngay_lap_hoa_don, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
-e0000000-0000-0000-0000-000000000001	d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-202605	2026	5	2026-05-01	2026-05-31	0.00	4200000.00	4200000.00	100000.00	PARTIAL	2026-06-05	2026-05-25 08:00:00+07	E2E invoice A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07	\N
-e0000000-0000-0000-0000-000000000002	d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-202605	2026	5	2026-05-01	2026-05-31	0.00	5000000.00	5000000.00	0.00	UNPAID	2026-06-05	2026-05-25 08:00:00+07	E2E invoice B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07	\N
+COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_nam, ky_thang, tu_ngay, den_ngay, so_du_dau_ky, tong_tien_phat_sinh, tong_tien, da_tra, trang_thai, han_tra, ngay_lap_hoa_don, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc, auto_generated, generation_batch_id, source_schedule_id, version) FROM stdin;
+e0000000-0000-0000-0000-000000000001	d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-202605	2026	5	2026-05-01	2026-05-31	0.00	4200000.00	4200000.00	100000.00	PARTIAL	2026-06-05	2026-05-25 01:00:00+00	E2E invoice A	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00	\N	f	\N	\N	0
+e0000000-0000-0000-0000-000000000002	d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-202605	2026	5	2026-05-01	2026-05-31	0.00	5000000.00	5000000.00	0.00	UNPAID	2026-06-05	2026-05-25 01:00:00+00	E2E invoice B	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00	\N	f	\N	\N	0
 \.
 
 
@@ -3022,9 +3543,9 @@ e0000000-0000-0000-0000-000000000002	d0000000-0000-0000-0000-000000000002	bbbbbb
 -- Data for Name: hop_dong; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.hop_dong (id, phong_id, khach_thue_id, ma_hop_dong, ngay_bat_dau, ngay_ket_thuc, ngay_ket_thuc_thuc_te, gia_thue_hop_dong, tien_coc, trang_thai_coc, trang_thai, chu_ky_thanh_toan, ngay_thanh_toan_hang_thang, tu_dong_gia_han, chi_so_dien_ban_dau, chi_so_nuoc_ban_dau, noi_dung_hop_dong, file_pdf, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
-d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-001	2026-01-01	2027-01-01	\N	4200000.00	4200000.00	KEPT	ACTIVE	MONTHLY	5	f	100	10	Hop dong E2E A	\N	\N	2026-01-01 08:00:00+07	2026-01-01 08:00:00+07	\N
-d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-001	2026-01-01	2027-01-01	\N	5000000.00	5000000.00	KEPT	ACTIVE	MONTHLY	5	f	200	20	Hop dong E2E B	\N	\N	2026-01-01 08:00:00+07	2026-01-01 08:00:00+07	\N
+COPY public.hop_dong (id, phong_id, khach_thue_id, ma_hop_dong, ngay_bat_dau, ngay_ket_thuc, ngay_ket_thuc_thuc_te, gia_thue_hop_dong, tien_coc, trang_thai_coc, trang_thai, chu_ky_thanh_toan, ngay_thanh_toan_hang_thang, tu_dong_gia_han, chi_so_dien_ban_dau, chi_so_nuoc_ban_dau, noi_dung_hop_dong, file_pdf, template_version, previewed_at, confirmed_at, locked_at, signed_pdf_url, tenant_signed_at, landlord_signed_at, signature_status, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+d0000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	HD-A-001	2026-01-01	2027-01-01	\N	4200000.00	4200000.00	KEPT	ACTIVE	MONTHLY	5	f	100	10	Hợp đồng E2E A	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED	\N	2026-01-01 01:00:00+00	2026-01-01 01:00:00+00	\N
+d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	HD-B-001	2026-01-01	2027-01-01	\N	5000000.00	5000000.00	KEPT	ACTIVE	MONTHLY	5	f	200	20	Hợp đồng E2E B	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED	\N	2026-01-01 01:00:00+00	2026-01-01 01:00:00+00	\N
 \.
 
 
@@ -3033,8 +3554,8 @@ d0000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccc
 --
 
 COPY public.khach_thue (id, nguoi_dung_id, chu_tro_id, ho_ten, so_dien_thoai, email, so_cccd, ngay_sinh, gioi_tinh, dia_chi, que_quan, nghe_nghiep, ghi_chu, dang_hoat_dong, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
-cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	Tenant A	0900000003	tenant.a@easyhouse.local	012345678921	\N	\N	\N	\N	\N	E2E tenant A	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
-cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	66666666-6666-6666-6666-666666666666	Tenant B	0900000008	tenant.b@easyhouse.local	012345678922	\N	\N	\N	\N	\N	E2E tenant B	t	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	Tenant A	0900000003	tenant.a@easyhouse.local	012345678921	\N	\N	\N	\N	\N	E2E tenant A	t	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
+cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	66666666-6666-6666-6666-666666666666	Tenant B	0900000008	tenant.b@easyhouse.local	012345678922	\N	\N	\N	\N	\N	E2E tenant B	t	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
 \.
 
 
@@ -3042,9 +3563,9 @@ cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	666666
 -- Data for Name: lich_hen; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.lich_hen (id, phong_id, nguoi_dung_id, ho_ten, so_dien_thoai, email, ngay_hen, trang_thai, google_calendar_event_id, da_gui_nhac_nho, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
-ab000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	\N	Khach hen A	0901000001	guest.a@example.test	2026-06-02 09:00:00+07	PENDING	\N	f	E2E appointment A	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
-ab000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	\N	Khach hen B	0901000002	guest.b@example.test	2026-06-03 09:00:00+07	PENDING	\N	f	E2E appointment B	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+COPY public.lich_hen (id, phong_id, nguoi_dung_id, ho_ten, so_dien_thoai, email, ngay_hen, trang_thai, google_calendar_event_id, da_gui_nhac_nho, ghi_chu, ghi_chu_admin, tao_luc, cap_nhat_luc) FROM stdin;
+ab000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	\N	Khach hen A	0901000001	guest.a@example.test	2026-06-02 02:00:00+00	PENDING	\N	f	E2E appointment A	\N	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
+ab000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	\N	Khach hen B	0901000002	guest.b@example.test	2026-06-03 02:00:00+00	PENDING	\N	f	E2E appointment B	\N	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
 \.
 
 
@@ -3057,6 +3578,40 @@ COPY public.lich_su_hoa_don (id, hoa_don_id, trang_thai_truoc, trang_thai_moi, n
 
 
 --
+-- Data for Name: lich_thanh_toan; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.lich_thanh_toan (id, hop_dong_id, ky_nam, ky_thang, tu_ngay, den_ngay, han_thanh_toan, so_tien_du_kien, hoa_don_id, trang_thai, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+22fe859e-e8a9-4f18-9cb3-09048640dfdf	d0000000-0000-0000-0000-000000000001	2026	1	2026-01-01	2026-01-31	2026-01-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+51071911-ab55-48f7-8bad-3631cd77900f	d0000000-0000-0000-0000-000000000001	2026	2	2026-02-01	2026-02-28	2026-02-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+e9cdd8dc-d7c9-46a9-8c73-67ee7300e456	d0000000-0000-0000-0000-000000000001	2026	3	2026-03-01	2026-03-31	2026-03-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+3749e49b-7786-436c-9ed6-ddedf52171f8	d0000000-0000-0000-0000-000000000001	2026	4	2026-04-01	2026-04-30	2026-04-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+7b0dfb13-4976-4969-84c2-6ba6a12e4b79	d0000000-0000-0000-0000-000000000001	2026	5	2026-05-01	2026-05-31	2026-05-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+6495228a-1720-4aa8-9a0c-f8f84e52373e	d0000000-0000-0000-0000-000000000001	2026	6	2026-06-01	2026-06-30	2026-06-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+888db541-34d8-4c1f-8177-af6c499a773f	d0000000-0000-0000-0000-000000000001	2026	7	2026-07-01	2026-07-31	2026-07-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+b80c923a-5424-4d7b-9f07-6ad81ef77731	d0000000-0000-0000-0000-000000000001	2026	8	2026-08-01	2026-08-31	2026-08-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+169d7ee1-3381-4473-8a35-9dd1db90fb72	d0000000-0000-0000-0000-000000000001	2026	9	2026-09-01	2026-09-30	2026-09-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+e5c8b131-f179-4075-921b-e00626bddad1	d0000000-0000-0000-0000-000000000001	2026	10	2026-10-01	2026-10-31	2026-10-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+4ae25870-7f50-4d6e-bea8-f7d73ed5a374	d0000000-0000-0000-0000-000000000001	2026	11	2026-11-01	2026-11-30	2026-11-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+b281d5a0-b436-42f1-b651-f8cab681b692	d0000000-0000-0000-0000-000000000001	2026	12	2026-12-01	2026-12-31	2026-12-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+93d00c49-3720-4273-a93b-728b3fed2ca5	d0000000-0000-0000-0000-000000000001	2027	1	2027-01-01	2027-01-01	2027-01-05	4200000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+924267c1-4c48-46bb-afa7-c4cb6f9250fc	d0000000-0000-0000-0000-000000000002	2026	1	2026-01-01	2026-01-31	2026-01-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+079b0a49-aae3-48a8-b5c2-9e26e715cc3a	d0000000-0000-0000-0000-000000000002	2026	2	2026-02-01	2026-02-28	2026-02-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+b3ca2a58-8e23-48fc-b8c7-9049cc31a208	d0000000-0000-0000-0000-000000000002	2026	3	2026-03-01	2026-03-31	2026-03-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+c4c39656-6143-403b-baa4-eb990e695e95	d0000000-0000-0000-0000-000000000002	2026	4	2026-04-01	2026-04-30	2026-04-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+9f146ef1-9579-457b-a36f-36f7e7d3c077	d0000000-0000-0000-0000-000000000002	2026	5	2026-05-01	2026-05-31	2026-05-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+6fe76102-22dd-470c-8857-d8897fe2592e	d0000000-0000-0000-0000-000000000002	2026	6	2026-06-01	2026-06-30	2026-06-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+4c504836-ccc5-4262-a1b5-e0c5a9aa0e0f	d0000000-0000-0000-0000-000000000002	2026	7	2026-07-01	2026-07-31	2026-07-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+5a916dfa-3768-4e18-8a7d-db096867906b	d0000000-0000-0000-0000-000000000002	2026	8	2026-08-01	2026-08-31	2026-08-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+1065864c-1952-4e9c-b90d-a95d04403db7	d0000000-0000-0000-0000-000000000002	2026	9	2026-09-01	2026-09-30	2026-09-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+4c569495-539a-4886-8635-673535ebe92c	d0000000-0000-0000-0000-000000000002	2026	10	2026-10-01	2026-10-31	2026-10-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+8fc7b766-6c35-41c9-bc6d-27b2985b5b40	d0000000-0000-0000-0000-000000000002	2026	11	2026-11-01	2026-11-30	2026-11-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+cf4edb4d-9942-4811-a85e-1cbcbefcd4df	d0000000-0000-0000-0000-000000000002	2026	12	2026-12-01	2026-12-31	2026-12-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+b8a18200-1161-4c87-a42b-b05c1b11d32f	d0000000-0000-0000-0000-000000000002	2027	1	2027-01-01	2027-01-01	2027-01-05	5000000.00	\N	PENDING	\N	2026-06-18 02:06:38.205362+00	2026-06-18 02:06:38.205362+00	\N
+\.
+
+
+--
 -- Data for Name: login_history; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -3065,16 +3620,24 @@ COPY public.login_history (id, nguoi_dung_id, email, thanh_cong, ip_address, use
 
 
 --
+-- Data for Name: meter_anomaly_alert; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.meter_anomaly_alert (id, chi_so_id, phong_id, hop_dong_id, loai, ky_thang, ky_nam, tieu_thu_hien_tai, tieu_thu_trung_binh, ty_le_tang, muc_do, ly_do, trang_thai, resolved_at, resolved_by, tao_luc) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nguoi_dung; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.nguoi_dung (id, email, ho_ten, so_dien_thoai, anh_dai_dien, ngay_sinh, gioi_tinh, dia_chi, que_quan, so_cccd, trang_thai, so_lan_dang_nhap_sai, khoa_den_luc, lan_dang_nhap_cuoi, cau_hinh_2fa, tao_luc, cap_nhat_luc, xoa_luc, mat_khau) FROM stdin;
-00000000-0000-0000-0000-000000000001	admin@easyhouse.local	EasyHouse Admin	0900000000	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-05-24 09:53:13.171357+00	\N	2026-05-24 09:47:09.734324+00	2026-05-24 09:53:13.109794+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
-44444444-4444-4444-4444-444444444444	landlord.a@easyhouse.local	Landlord A	0900000004	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
-66666666-6666-6666-6666-666666666666	landlord.b@easyhouse.local	Landlord B	0900000006	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
-22222222-2222-2222-2222-222222222222	staff.a@easyhouse.local	Staff A	0900000002	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
-33333333-3333-3333-3333-333333333333	tenant.a@easyhouse.local	Tenant A	0900000003	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
-88888888-8888-8888-8888-888888888888	tenant.b@easyhouse.local	Tenant B	0900000008	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+44444444-4444-4444-4444-444444444444	landlord.a@easyhouse.local	Landlord A	0900000004	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+66666666-6666-6666-6666-666666666666	landlord.b@easyhouse.local	Landlord B	0900000006	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+22222222-2222-2222-2222-222222222222	staff.a@easyhouse.local	Staff A	0900000002	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+33333333-3333-3333-3333-333333333333	tenant.a@easyhouse.local	Tenant A	0900000003	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+88888888-8888-8888-8888-888888888888	tenant.b@easyhouse.local	Tenant B	0900000008	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	\N	\N	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
+00000000-0000-0000-0000-000000000001	admin@easyhouse.local	EasyHouse Admin	0900000000	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-05-24 09:53:13.171357+00	\N	2026-05-24 09:47:09.734324+00	2026-06-18 02:05:51.097202+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G
 \.
 
 
@@ -3083,7 +3646,7 @@ COPY public.nguoi_dung (id, email, ho_ten, so_dien_thoai, anh_dai_dien, ngay_sin
 --
 
 COPY public.nguoi_dung_nha_tro (id, nguoi_dung_id, nha_tro_id, vai_tro, co_quyen_xem, co_quyen_sua, co_quyen_thu_tien, tao_luc) FROM stdin;
-ad000000-0000-0000-0000-000000000001	22222222-2222-2222-2222-222222222222	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	STAFF	t	t	t	2026-05-24 09:00:00+07
+ad000000-0000-0000-0000-000000000001	22222222-2222-2222-2222-222222222222	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	STAFF	t	t	t	2026-05-24 02:00:00+00
 \.
 
 
@@ -3093,11 +3656,11 @@ ad000000-0000-0000-0000-000000000001	22222222-2222-2222-2222-222222222222	aaaaaa
 
 COPY public.nguoi_dung_vai_tro (nguoi_dung_id, vai_tro_id, tao_luc) FROM stdin;
 00000000-0000-0000-0000-000000000001	64df4eeb-df51-468e-b2e1-911edc920d1a	2026-05-24 09:47:09.734324+00
-44444444-4444-4444-4444-444444444444	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 09:00:00+07
-66666666-6666-6666-6666-666666666666	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 09:00:00+07
-22222222-2222-2222-2222-222222222222	87418c2c-9142-4bc6-ae34-eabb13d46e6c	2026-05-24 09:00:00+07
-33333333-3333-3333-3333-333333333333	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 09:00:00+07
-88888888-8888-8888-8888-888888888888	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 09:00:00+07
+44444444-4444-4444-4444-444444444444	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 02:00:00+00
+66666666-6666-6666-6666-666666666666	40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	2026-05-24 02:00:00+00
+22222222-2222-2222-2222-222222222222	87418c2c-9142-4bc6-ae34-eabb13d46e6c	2026-05-24 02:00:00+00
+33333333-3333-3333-3333-333333333333	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 02:00:00+00
+88888888-8888-8888-8888-888888888888	244d7f88-d499-4d6d-accd-46ab4665a622	2026-05-24 02:00:00+00
 \.
 
 
@@ -3106,8 +3669,8 @@ COPY public.nguoi_dung_vai_tro (nguoi_dung_id, vai_tro_id, tao_luc) FROM stdin;
 --
 
 COPY public.nha_tro (id, chu_tro_id, ten, dia_chi, so_nha, duong, phuong, quan, thanh_pho, mo_ta, tien_nghi_chung, noi_quy, trang_thai, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	44444444-4444-4444-4444-444444444444	Nha tro A	1 Duong A	1	Duong A	Phuong A	Quan A	Ho Chi Minh	E2E owner A	\N	\N	ACTIVE	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	66666666-6666-6666-6666-666666666666	Nha tro B	2 Duong B	2	Duong B	Phuong B	Quan B	Ho Chi Minh	E2E owner B	\N	\N	ACTIVE	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	44444444-4444-4444-4444-444444444444	Nha tro A	1 Duong A	1	Duong A	Phuong A	Quan A	Ho Chi Minh	E2E owner A	\N	\N	ACTIVE	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
+bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	66666666-6666-6666-6666-666666666666	Nha tro B	2 Duong B	2	Duong B	Phuong B	Quan B	Ho Chi Minh	E2E owner B	\N	\N	ACTIVE	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
 \.
 
 
@@ -3115,9 +3678,9 @@ bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	66666666-6666-6666-6666-666666666666	Nha tr
 -- Data for Name: phong; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.phong (id, nha_tro_id, ten, khu_vuc, tang, dien_tich, so_nguoi_toi_da, trang_thai, gia_hien_tai, tien_coc_mac_dinh, mo_ta, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
-aaaaaaaa-aaaa-aaaa-aaaa-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	A101	A	1	25.00	2	RENTED	4200000.00	4200000.00	E2E room A	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
-bbbbbbbb-bbbb-bbbb-bbbb-000000000001	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	B101	B	1	28.00	2	RENTED	5000000.00	5000000.00	E2E room B	2026-05-24 09:00:00+07	2026-05-24 09:00:00+07	\N
+COPY public.phong (id, nha_tro_id, ten, khu_vuc, tang, dien_tich, so_nguoi_toi_da, trang_thai, gia_hien_tai, tien_coc_mac_dinh, mo_ta, tao_luc, cap_nhat_luc, xoa_luc, tang_id, version) FROM stdin;
+aaaaaaaa-aaaa-aaaa-aaaa-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	A101	A	1	25.00	2	RENTED	4200000.00	4200000.00	E2E room A	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	aaaaaaaa-aaaa-aaaa-aaaa-0000000000f1	0
+bbbbbbbb-bbbb-bbbb-bbbb-000000000001	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	B101	B	1	28.00	2	RENTED	5000000.00	5000000.00	E2E room B	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N	bbbbbbbb-bbbb-bbbb-bbbb-0000000000f1	0
 \.
 
 
@@ -3151,8 +3714,18 @@ b3cbefd0-f3fd-42cb-85e4-85b850977a72	00000000-0000-0000-0000-000000000001	eyJhbG
 --
 
 COPY public.su_co (id, phong_id, khach_thue_id, nguoi_bao_id, tieu_de, mo_ta, loai_su_co, uu_tien, trang_thai, nguoi_phu_trach_id, chi_phi_sua_chua, tinh_vao_hoa_don, ghi_chu_chu_nha, giai_quyet_luc, tao_luc, cap_nhat_luc) FROM stdin;
-ac000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	Ro nuoc A	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
-ac000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	Ro nuoc B	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 08:00:00+07	2026-05-25 08:00:00+07
+ac000000-0000-0000-0000-000000000001	aaaaaaaa-aaaa-aaaa-aaaa-000000000001	cccccccc-cccc-cccc-cccc-000000000001	33333333-3333-3333-3333-333333333333	Ro nuoc A	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
+ac000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccccc-cccc-cccc-cccc-000000000002	88888888-8888-8888-8888-888888888888	Ro nuoc B	Ro nuoc trong phong	dien_nuoc	cao	PENDING	\N	0.00	f	\N	\N	2026-05-25 01:00:00+00	2026-05-25 01:00:00+00
+\.
+
+
+--
+-- Data for Name: tang; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.tang (id, nha_tro_id, so_tang, ten_tang, thu_tu_hien_thi, so_phong_du_kien, trang_thai, tao_luc, cap_nhat_luc, xoa_luc) FROM stdin;
+aaaaaaaa-aaaa-aaaa-aaaa-0000000000f1	aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa	1	Tang 1	1	1	ACTIVE	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
+bbbbbbbb-bbbb-bbbb-bbbb-0000000000f1	bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb	1	Tang 1	1	1	ACTIVE	2026-05-24 02:00:00+00	2026-05-24 02:00:00+00	\N
 \.
 
 
@@ -3161,7 +3734,7 @@ ac000000-0000-0000-0000-000000000002	bbbbbbbb-bbbb-bbbb-bbbb-000000000001	cccccc
 --
 
 COPY public.thanh_toan (id, hoa_don_id, khach_thue_id, so_tien, ngay_thanh_toan, phuong_thuc_thanh_toan, ma_tham_chieu, external_transaction_id, trang_thai, nguoi_thanh_toan_id, nguoi_ghi_nhan_id, ghi_chu, tao_luc) FROM stdin;
-aa000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	cccccccc-cccc-cccc-cccc-000000000001	100000.00	2026-05-25 08:30:00+07	CASH	E2E-PAY-A	\N	SUCCESS	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	E2E payment A	2026-05-25 08:30:00+07
+aa000000-0000-0000-0000-000000000001	e0000000-0000-0000-0000-000000000001	cccccccc-cccc-cccc-cccc-000000000001	100000.00	2026-05-25 01:30:00+00	CASH	E2E-PAY-A	\N	SUCCESS	33333333-3333-3333-3333-333333333333	44444444-4444-4444-4444-444444444444	E2E payment A	2026-05-25 01:30:00+00
 \.
 
 
@@ -3202,11 +3775,18 @@ COPY public.tien_ich (id, ten, bieu_tuong, tao_luc) FROM stdin;
 --
 
 COPY public.vai_tro (id, ten, mo_ta, tao_luc) FROM stdin;
-64df4eeb-df51-468e-b2e1-911edc920d1a	ADMIN	Quan tri he thong	2026-05-24 09:46:33.972804+00
 40658ea7-6d3e-4bc2-8ed2-c1f40010d89e	LANDLORD	Chu tro	2026-05-24 09:46:33.972804+00
 87418c2c-9142-4bc6-ae34-eabb13d46e6c	STAFF	Nhan vien quan ly	2026-05-24 09:46:33.972804+00
 244d7f88-d499-4d6d-accd-46ab4665a622	TENANT	Nguoi thue	2026-05-24 09:46:33.972804+00
+64df4eeb-df51-468e-b2e1-911edc920d1a	ADMIN	Quan tri he thong	2026-05-24 09:46:33.972804+00
 \.
+
+
+--
+-- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: -
+--
+
+SELECT pg_catalog.setval('auth.refresh_tokens_id_seq', 1, false);
 
 
 --
@@ -3554,11 +4134,27 @@ ALTER TABLE ONLY public.chu_tro
 
 
 --
+-- Name: contract_signature contract_signature_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contract_signature
+    ADD CONSTRAINT contract_signature_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: dat_coc_phong dat_coc_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
     ADD CONSTRAINT dat_coc_phong_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: debt_reminder_log debt_reminder_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.debt_reminder_log
+    ADD CONSTRAINT debt_reminder_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -3698,11 +4294,35 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 
 --
+-- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_thanh_toan
+    ADD CONSTRAINT lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key UNIQUE (hop_dong_id, ky_nam, ky_thang);
+
+
+--
+-- Name: lich_thanh_toan lich_thanh_toan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_thanh_toan
+    ADD CONSTRAINT lich_thanh_toan_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: login_history login_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.login_history
     ADD CONSTRAINT login_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: meter_anomaly_alert meter_anomaly_alert_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.meter_anomaly_alert
+    ADD CONSTRAINT meter_anomaly_alert_pkey PRIMARY KEY (id);
 
 
 --
@@ -3823,6 +4443,30 @@ ALTER TABLE ONLY public.refresh_token
 
 ALTER TABLE ONLY public.su_co
     ADD CONSTRAINT su_co_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tang tang_nha_tro_id_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tang
+    ADD CONSTRAINT tang_nha_tro_id_id_key UNIQUE (nha_tro_id, id);
+
+
+--
+-- Name: tang tang_nha_tro_id_so_tang_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tang
+    ADD CONSTRAINT tang_nha_tro_id_so_tang_key UNIQUE (nha_tro_id, so_tang);
+
+
+--
+-- Name: tang tang_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tang
+    ADD CONSTRAINT tang_pkey PRIMARY KEY (id);
 
 
 --
@@ -4347,6 +4991,13 @@ CREATE INDEX idx_chi_so_phong_ky ON public.chi_so_dien_nuoc USING btree (phong_i
 
 
 --
+-- Name: idx_contract_signature_hop_dong; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_contract_signature_hop_dong ON public.contract_signature USING btree (hop_dong_id, signed_at);
+
+
+--
 -- Name: idx_cthd_hoa_don; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4438,6 +5089,20 @@ CREATE INDEX idx_lich_hen_phong_time ON public.lich_hen USING btree (phong_id, n
 
 
 --
+-- Name: idx_lich_thanh_toan_han; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_lich_thanh_toan_han ON public.lich_thanh_toan USING btree (han_thanh_toan, trang_thai) WHERE (xoa_luc IS NULL);
+
+
+--
+-- Name: idx_lich_thanh_toan_hop_dong; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_lich_thanh_toan_hop_dong ON public.lich_thanh_toan USING btree (hop_dong_id, ky_nam, ky_thang) WHERE (xoa_luc IS NULL);
+
+
+--
 -- Name: idx_login_history_user_time; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4480,6 +5145,13 @@ CREATE INDEX idx_phong_nha_tro ON public.phong USING btree (nha_tro_id);
 
 
 --
+-- Name: idx_phong_tang_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_phong_tang_id ON public.phong USING btree (tang_id) WHERE (xoa_luc IS NULL);
+
+
+--
 -- Name: idx_phong_trang_thai; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4498,6 +5170,13 @@ CREATE INDEX idx_refresh_token_user ON public.refresh_token USING btree (nguoi_d
 --
 
 CREATE INDEX idx_su_co_phong_status ON public.su_co USING btree (phong_id, trang_thai);
+
+
+--
+-- Name: idx_tang_nha_tro_so_tang; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tang_nha_tro_so_tang ON public.tang USING btree (nha_tro_id, so_tang) WHERE (xoa_luc IS NULL);
 
 
 --
@@ -4880,6 +5559,14 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
+-- Name: contract_signature contract_signature_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contract_signature
+    ADD CONSTRAINT contract_signature_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE CASCADE;
+
+
+--
 -- Name: dat_coc_phong dat_coc_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5032,18 +5719,27 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 
 --
+-- Name: lich_thanh_toan lich_thanh_toan_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_thanh_toan
+    ADD CONSTRAINT lich_thanh_toan_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id) ON DELETE SET NULL;
+
+
+--
+-- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_thanh_toan
+    ADD CONSTRAINT lich_thanh_toan_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE CASCADE;
+
+
+--
 -- Name: login_history login_history_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.login_history
     ADD CONSTRAINT login_history_nguoi_dung_id_fkey FOREIGN KEY (nguoi_dung_id) REFERENCES public.nguoi_dung(id) ON DELETE SET NULL;
-
-
---
--- Name: nguoi_dung nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-
 
 
 --
@@ -5092,6 +5788,22 @@ ALTER TABLE ONLY public.nha_tro
 
 ALTER TABLE ONLY public.phong
     ADD CONSTRAINT phong_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE CASCADE;
+
+
+--
+-- Name: phong phong_nha_tro_id_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phong
+    ADD CONSTRAINT phong_nha_tro_id_tang_id_fkey FOREIGN KEY (nha_tro_id, tang_id) REFERENCES public.tang(nha_tro_id, id) ON DELETE RESTRICT;
+
+
+--
+-- Name: phong phong_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phong
+    ADD CONSTRAINT phong_tang_id_fkey FOREIGN KEY (tang_id) REFERENCES public.tang(id) ON DELETE SET NULL;
 
 
 --
@@ -5164,6 +5876,14 @@ ALTER TABLE ONLY public.su_co
 
 ALTER TABLE ONLY public.su_co
     ADD CONSTRAINT su_co_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE CASCADE;
+
+
+--
+-- Name: tang tang_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tang
+    ADD CONSTRAINT tang_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE CASCADE;
 
 
 --
@@ -5843,4 +6563,4 @@ CREATE POLICY vai_tro_read_authenticated ON public.vai_tro FOR SELECT USING ((au
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zN1OJwmaEjc1FoQuAwn6n5Hzhs8MQwQwNwQIdcmgfz3gAc6jCzXDnQzgasxNzpI
+\unrestrict sKSiuGaIoy2BDCypG4a6uScHR0mpMY4efKPDR9d3fMPaUcHmrolYf2Enno4pbqo
