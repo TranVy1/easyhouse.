@@ -26,7 +26,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   if (!data || data.length === 0) {
     return (
       <Card className="col-span-4 h-[400px] flex items-center justify-center border-dashed">
-        <div className="text-center text-slate-500">
+        <div className="text-center text-[#6B7A8C]">
           <p>Chưa có dữ liệu doanh thu</p>
         </div>
       </Card>
@@ -41,7 +41,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
           {payload.map((entry: any, index: number) => (
             <div key={`item-${index}`} className="flex items-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-slate-600">{entry.name}:</span>
+              <span className="text-[#6B7A8C]">{entry.name}:</span>
               <span className="font-semibold">{formatCurrency(entry.value)}</span>
             </div>
           ))}

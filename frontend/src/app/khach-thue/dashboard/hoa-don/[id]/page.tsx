@@ -104,7 +104,7 @@ export default function TenantInvoiceDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -207,7 +207,7 @@ export default function TenantInvoiceDetailPage() {
                   <p className="text-sm text-gray-600 mb-2">Số tiền cần thanh toán:</p>
                   <p className="text-2xl font-bold text-red-600 mb-4">{formatCurrency(invoice.conLai)}</p>
                   <Button 
-                    className="w-full bg-[#005aab] hover:bg-[#004a8b] text-white" 
+                    className="w-full bg-[#243B5A] hover:bg-[#1B2E47] text-white" 
                     onClick={async () => {
                       try {
                         const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice.id}&amount=${invoice.conLai}`);

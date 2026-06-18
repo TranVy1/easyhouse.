@@ -153,7 +153,7 @@ export default function DashboardPage() {
       value: overview.expiringContractCount,
       href: "/dashboard/hop-dong",
       description: "Hợp đồng sắp hết hạn trong 30 ngày tới",
-      tone: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
+      tone: "bg-[#4FA7A0]/10 text-[#243B5A] dark:bg-[#243B5A]/35 dark:text-[#8CCBC5]",
     },
     {
       title: "Sự cố đang mở",

@@ -310,7 +310,7 @@ export default function AccountManagementPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4FA7A0] mx-auto mb-4"></div>
           <p className="text-gray-600">Đang tải danh sách người dùng...</p>
         </div>
       </div>
@@ -449,11 +449,11 @@ export default function AccountManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Chủ nhà</p>
-              <p className="text-base md:text-2xl font-bold text-blue-600">
+              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
                 {users.filter(u => getUserRole(u) === 'chuNha').length}
               </p>
             </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-blue-600" />
+            <Users className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
           </div>
         </Card>
 
@@ -525,7 +525,7 @@ export default function AccountManagementPage() {
                   <div className="flex items-start gap-3">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={getUserAvatar(user)} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
+                      <AvatarFallback className="bg-[#4FA7A0]/15 text-[#243B5A]">
                         {getInitials(getUserName(user))}
                       </AvatarFallback>
                     </Avatar>

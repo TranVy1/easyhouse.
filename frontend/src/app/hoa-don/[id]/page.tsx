@@ -464,7 +464,7 @@ export default function PublicInvoicePage() {
                         </div>
                     </div>
                     
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                    <div className="bg-[#4FA7A0]/10 border border-[#4FA7A0]/30 rounded-lg p-4 space-y-2">
                       <div className="text-sm">
                         <div className="text-gray-600">Ngân hàng</div>
                         <div className="font-semibold">Techcombank - Ngân hàng Kỹ Thương Việt Nam</div>
@@ -485,7 +485,7 @@ export default function PublicInvoicePage() {
                       </div>
                       <div className="text-sm">
                         <div className="text-gray-600">Nội dung chuyển khoản</div>
-                        <div className="font-semibold text-blue-600">
+                        <div className="font-semibold text-[#243B5A]">
                           Thanh toan {hoaDon.maHoaDon}
                         </div>
                       </div>

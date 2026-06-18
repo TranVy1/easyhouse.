@@ -89,7 +89,7 @@ export function PhongImageUpload({
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2">
-        <Home className="h-5 w-5 text-blue-600" />
+        <Home className="h-5 w-5 text-[#243B5A]" />
         <h3 className="text-lg font-medium">Ảnh phòng</h3>
         <Badge variant="secondary" className="text-xs">
           {images.length}/{maxImages} ảnh

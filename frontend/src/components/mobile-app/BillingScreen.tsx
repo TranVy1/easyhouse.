@@ -7,19 +7,19 @@ import { StatusBadge } from "@/components/ui/status-badge";
 // Simple QR-like visual
 function QRPlaceholder() {
   return (
-    <div className="w-44 h-44 mx-auto rounded-2xl bg-white border-4 border-indigo-600 p-3 relative shadow-md">
+    <div className="w-44 h-44 mx-auto rounded-2xl bg-[#FFFDF8] border-4 border-indigo-600 p-3 relative shadow-md">
       <div className="w-full h-full grid grid-cols-7 grid-rows-7 gap-0.5">
         {Array.from({ length: 49 }).map((_, i) => {
           const corners = [0,1,2,3,4,5,6,7,13,14,20,21,27,28,34,35,41,42,43,44,45,46,47,48];
           const inner = [8,9,10,15,16,17,22,23,24,29,30,31,36,37,38];
           const filled = [...corners, ...inner, 3, 10, 17, 24, 31, 25, 26, 32, 33];
           return (
-            <div key={i} className={`rounded-sm ${filled.includes(i) ? "bg-slate-900" : "bg-transparent"}`} />
+            <div key={i} className={`rounded-sm ${filled.includes(i) ? "bg-[#243B5A]" : "bg-transparent"}`} />
           );
         })}
       </div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-9 h-9 bg-white rounded-md flex items-center justify-center border border-slate-200">
+        <div className="w-9 h-9 bg-[#FFFDF8] rounded-md flex items-center justify-center border border-[#E8DED2]">
           <div className="text-indigo-600 font-black text-[7px] leading-tight text-center">Viet<br />QR</div>
         </div>
       </div>
@@ -90,7 +90,7 @@ export function BillingScreen() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center gap-2.5 text-slate-400">
+      <div className="flex h-full items-center justify-center gap-2.5 text-[#6B7A8C]">
         <RefreshCw size={18} className="animate-spin text-indigo-500" />
         <span className="text-sm font-medium">Đang tải hóa đơn...</span>
       </div>
@@ -101,7 +101,7 @@ export function BillingScreen() {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-4 px-8 text-center">
         <AlertTriangle size={36} className="text-red-400" />
-        <p className="text-sm text-slate-600 font-medium">{error}</p>
+        <p className="text-sm text-[#6B7A8C] font-medium">{error}</p>
         <button onClick={loadBills}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl">
           <RefreshCw size={14} /> Thử lại
@@ -124,20 +124,20 @@ export function BillingScreen() {
 
       {/* Tab Toggle */}
       <div className="px-4 -mt-3 relative z-10">
-        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
+        <div className="flex bg-[#FFFDF8] rounded-2xl p-1 shadow-sm border border-[#E8DED2]">
           {(["unpaid", "paid"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                tab === t ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+                tab === t ? "bg-indigo-600 text-white shadow-sm" : "text-[#6B7A8C] hover:text-[#243B5A]"
               }`}
             >
               {t === "unpaid" ? (
                 <span className="flex items-center justify-center gap-1.5">
                   Chưa thanh toán
                   {bills.unpaid.length > 0 && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${tab === "unpaid" ? "bg-white/25" : "bg-red-500 text-white"}`}>
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${tab === "unpaid" ? "bg-[#FFFDF8]/25" : "bg-red-500 text-white"}`}>
                       {bills.unpaid.length}
                     </span>
                   )}
@@ -152,13 +152,13 @@ export function BillingScreen() {
       <div className="flex-1 px-4 pt-4 pb-10 space-y-3">
         {currentBills.length === 0 && (
           <div className="flex flex-col items-center py-16 gap-3 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-[#FFFDF8] border border-[#E8DED2] flex items-center justify-center text-slate-300 shadow-sm">
               <Receipt size={26} />
             </div>
-            <p className="font-bold text-slate-600 text-sm">
+            <p className="font-bold text-[#6B7A8C] text-sm">
               {tab === "unpaid" ? "Không có hóa đơn chưa thanh toán" : "Chưa có hóa đơn đã thanh toán"}
             </p>
-            <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+            <p className="text-xs text-[#6B7A8C] max-w-xs leading-relaxed">
               {tab === "unpaid" ? "Tuyệt vời! Bạn đã thanh toán đầy đủ tất cả hóa đơn." : "Lịch sử thanh toán sẽ xuất hiện tại đây."}
             </p>
           </div>
@@ -167,12 +167,12 @@ export function BillingScreen() {
         {currentBills.map((bill) => {
           const isUnpaid = bill.status !== 'PAID';
           return (
-            <div key={bill.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+            <div key={bill.id} className="bg-[#FFFDF8] rounded-2xl overflow-hidden shadow-sm border border-[#E8DED2]">
               {/* Bill Header */}
               <div className="px-4 py-3.5 flex items-center justify-between border-b border-slate-50">
                 <div>
-                  <p className="font-bold text-slate-800 text-sm">{bill.period}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="font-bold text-[#243B5A] text-sm">{bill.period}</p>
+                  <p className="text-[10px] text-[#6B7A8C] mt-0.5">
                     {bill.maHoaDon}
                     {bill.dueDate && ` · Hạn: ${bill.dueDate}`}
                   </p>
@@ -185,12 +185,12 @@ export function BillingScreen() {
                 <div className="px-4 py-3 space-y-2">
                   {bill.breakdown.map((item, i) => (
                     <div key={i} className="flex justify-between text-sm">
-                      <span className="text-slate-500">{item.label}</span>
-                      <span className="text-slate-700 font-semibold">{item.amount}đ</span>
+                      <span className="text-[#6B7A8C]">{item.label}</span>
+                      <span className="text-[#243B5A] font-semibold">{item.amount}đ</span>
                     </div>
                   ))}
-                  <div className="border-t border-dashed border-slate-200 pt-2 mt-2 flex justify-between">
-                    <span className="font-black text-slate-800">Tổng cộng</span>
+                  <div className="border-t border-dashed border-[#E8DED2] pt-2 mt-2 flex justify-between">
+                    <span className="font-black text-[#243B5A]">Tổng cộng</span>
                     <span className="font-black text-indigo-700 text-base">{bill.total}đ</span>
                   </div>
                 </div>
@@ -198,12 +198,12 @@ export function BillingScreen() {
 
               {/* QR Payment for unpaid */}
               {isUnpaid && (
-                <div className="px-4 pb-5 pt-2 border-t border-dashed border-slate-100">
-                  <p className="text-center text-xs text-slate-500 mb-4 font-medium">
+                <div className="px-4 pb-5 pt-2 border-t border-dashed border-[#E8DED2]">
+                  <p className="text-center text-xs text-[#6B7A8C] mb-4 font-medium">
                     Quét mã để thanh toán qua ứng dụng ngân hàng
                   </p>
                   <QRPlaceholder />
-                  <p className="text-center text-xs text-slate-400 mt-3">
+                  <p className="text-center text-xs text-[#6B7A8C] mt-3">
                     Vietcombank · 1234567890 · NGUYEN VAN AN
                   </p>
                   <div className="flex gap-2 mt-4">

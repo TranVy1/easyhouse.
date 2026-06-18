@@ -186,7 +186,7 @@ export default function TenantProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -232,7 +232,7 @@ export default function TenantProfilePage() {
                       <User className="h-10 w-10 text-gray-400" />
                     )}
                   </div>
-                  <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full text-white cursor-pointer hover:bg-blue-700 shadow-sm transition-colors">
+                  <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-[#243B5A] p-1.5 rounded-full text-white cursor-pointer hover:bg-[#1B2E47] shadow-sm transition-colors">
                     <Camera className="h-4 w-4" />
                   </label>
                   <input 

@@ -133,19 +133,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-slate-950 px-4 py-12 relative">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8F3EC] dark:bg-[#172A42] px-4 py-12 relative">
       {/* Back to Home Button */}
       <div className="absolute top-6 left-6 z-20">
         <Link 
           href="/" 
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-50"
+          className="flex items-center gap-1.5 text-xs font-bold text-[#6B7A8C] hover:text-[#243B5A] transition-colors bg-[#FFFDF8] dark:bg-[#243B5A] border border-[#E8DED2] dark:border-[#243B5A]/25 px-4 py-2.5 rounded-xl shadow-sm hover:bg-[#F8F3EC]"
         >
           <ArrowLeft size={14} /> Trở về trang chủ
         </Link>
       </div>
 
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]" />
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-[#4FA7A0]/5 blur-[120px]" />
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#FF5A3D]/5 blur-[120px]" />
       </div>
 
@@ -153,22 +153,22 @@ export default function LoginPage() {
         {/* Brand Logo Banner */}
         <div className="flex flex-col items-center justify-center mb-8">
           <Link href="/" className="flex flex-col items-center select-none cursor-pointer group">
-            <h1 className="text-3xl font-black text-blue-600 tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
-              EASY<span className="text-slate-800 dark:text-white">HOUSE</span>
+            <h1 className="text-3xl font-black text-[#243B5A] tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
+              EASY<span className="text-[#243B5A] dark:text-white">HOUSE</span>
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
+            <p className="text-[10px] text-[#6B7A8C] font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
           </Link>
         </div>
 
-        <Card className="border-none shadow-2xl shadow-slate-200/80 dark:shadow-none dark:bg-slate-900/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
+        <Card className="border-none shadow-2xl shadow-[#243B5A]/10 dark:shadow-none dark:bg-[#243B5A]/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
           {/* Brand Gradient Bar */}
           <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-[#FF5A3D]" />
           <CardHeader className="space-y-3 p-8 pb-2 text-center">
             <div className="space-y-1">
-              <CardTitle className="text-2xl font-black text-slate-900 dark:text-white">
+              <CardTitle className="text-2xl font-black text-[#243B5A] dark:text-white">
                 ĐĂNG NHẬP
               </CardTitle>
-              <CardDescription className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <CardDescription className="text-sm font-medium text-[#6B7A8C] dark:text-[#6B7A8C]">
                 Chào mừng quay trở lại với EasyHouse
               </CardDescription>
             </div>
@@ -182,13 +182,13 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
+                <Label htmlFor="email" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   {...register('email')}
-                  className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.email ? 'border-red-500' : ''}`}
                 />
                 {errors.email && (
                   <p className="text-xs text-red-500 font-bold ml-1">{errors.email.message}</p>
@@ -197,36 +197,36 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
-                  <Label htmlFor="matKhau" className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Mật khẩu</Label>
+                  <Label htmlFor="matKhau" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 uppercase tracking-wider">Mật khẩu</Label>
                   
                   <Dialog open={isForgotPassOpen} onOpenChange={setIsForgotPassOpen}>
                     <DialogTrigger asChild>
-                      <button type="button" className="text-xs font-bold text-blue-600 hover:text-blue-500 hover:underline transition-all">
+                      <button type="button" className="text-xs font-bold text-[#243B5A] hover:text-[#4FA7A0] hover:underline transition-all">
                         Quên mật khẩu?
                       </button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px] rounded-2xl">
                       <DialogHeader>
                         <DialogTitle className="font-extrabold uppercase">Quên mật khẩu</DialogTitle>
-                        <DialogDescription className="text-xs font-medium text-slate-500">
+                        <DialogDescription className="text-xs font-medium text-[#6B7A8C]">
                           Nhập email của bạn để nhận mật khẩu mới.
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleForgotPassSubmit} className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="forgot-email" className="text-xs font-bold uppercase text-slate-700">Email tài khoản</Label>
+                          <Label htmlFor="forgot-email" className="text-xs font-bold uppercase text-[#243B5A]">Email tài khoản</Label>
                           <Input
                             id="forgot-email"
                             type="email"
                             placeholder="your-email@example.com"
                             value={forgotPassEmail}
                             onChange={(e) => setForgotPassEmail(e.target.value)}
-                            className="h-12 rounded-xl border-slate-200"
+                            className="h-12 rounded-xl border-[#E8DED2]"
                             required
                           />
                         </div>
                         <DialogFooter>
-                          <Button type="submit" disabled={isForgotPassLoading} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                          <Button type="submit" disabled={isForgotPassLoading} className="w-full h-11 rounded-xl bg-[#243B5A] hover:bg-[#1B2E47] text-white font-bold">
                             {isForgotPassLoading ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -247,11 +247,11 @@ export default function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     {...register('matKhau')}
-                    className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
                   />
                   <button
                     type="button"
-                    className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    className="absolute right-0 top-0 h-full px-4 text-[#6B7A8C] hover:text-[#6B7A8C] dark:hover:text-slate-300 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -282,17 +282,17 @@ export default function LoginPage() {
 
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-100 dark:border-slate-800"></span>
+                <span className="w-full border-t border-[#E8DED2] dark:border-[#243B5A]/25"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-[#0f172a] px-4 text-slate-400 dark:text-slate-400 font-bold">Hoặc</span>
+                <span className="bg-[#FFFDF8] dark:bg-[#1E344E] px-4 text-[#6B7A8C] dark:text-[#6B7A8C] font-bold">Hoặc</span>
               </div>
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-sm text-[#6B7A8C] dark:text-[#6B7A8C] font-medium">
                 Bạn mới sử dụng hệ thống?{' '}
-                <Link href="/dang-ky" className="font-extrabold text-blue-600 hover:text-blue-700 transition-colors hover:underline">
+                <Link href="/dang-ky" className="font-extrabold text-[#243B5A] hover:text-[#243B5A] transition-colors hover:underline">
                   Đăng ký tài khoản
                 </Link>
               </p>
@@ -300,7 +300,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-8 text-center text-xs text-slate-400">
+        <p className="mt-8 text-center text-xs text-[#6B7A8C]">
           &copy; 2026 EasyHouse. All rights reserved.
         </p>
       </div>

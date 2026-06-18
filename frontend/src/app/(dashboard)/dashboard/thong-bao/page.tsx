@@ -422,11 +422,11 @@ export default function ThongBaoPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Chung</p>
-              <p className="text-base md:text-2xl font-bold text-blue-600">
+              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
                 {thongBaoList.filter(t => t.loai === 'chung').length}
               </p>
             </div>
-            <Bell className="h-3 w-3 md:h-4 md:w-4 text-blue-600" />
+            <Bell className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
           </div>
         </Card>
 

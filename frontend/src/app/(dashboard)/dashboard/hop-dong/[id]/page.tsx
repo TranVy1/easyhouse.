@@ -175,7 +175,7 @@ function SignatureCanvas({ onSave, onCancel }: { onSave: (base64: string) => voi
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-slate-50 p-1">
+      <div className="rounded-lg border bg-[#F8F3EC] p-1">
         <canvas
           ref={canvasRef}
           width={500}
@@ -819,7 +819,7 @@ export default function ChinhSuaHopDongPage() {
             <div className="mb-1 flex items-center gap-2">
               <Badge variant="outline">{contractStatusLabel[formData.trangThai] || formData.trangThai}</Badge>
               {isLocked && (
-                <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                <Badge variant="outline" className="border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A]">
                   <LockKeyhole className="mr-1 h-3 w-3" />
                   Đã khóa
                 </Badge>
@@ -861,7 +861,7 @@ export default function ChinhSuaHopDongPage() {
             />
           </div>
           {isLocked && (
-            <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+            <div className="mt-4 rounded-md border border-[#4FA7A0]/30 bg-[#4FA7A0]/10 p-3 text-sm text-[#243B5A]">
               Hợp đồng đã được xác nhận và khóa. Các thay đổi trực tiếp nên được xử lý bằng phụ lục hoặc quy trình điều chỉnh hợp đồng.
             </div>
           )}
@@ -1007,7 +1007,7 @@ export default function ChinhSuaHopDongPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+              <div className="rounded-md border border-[#4FA7A0]/30 bg-[#4FA7A0]/10 px-3 py-2 text-xs text-[#243B5A]">
                 Người đại diện là người đứng tên hợp đồng. Danh sách bên dưới chỉ là bạn cùng phòng và được lưu vào thành viên hợp đồng.
               </div>
               <Label className="text-xs md:text-sm">Bạn cùng phòng / thành viên ở cùng</Label>
@@ -1474,8 +1474,8 @@ export default function ChinhSuaHopDongPage() {
           <CardContent className="p-4 md:p-6 space-y-6">
             {/* esign status summary & action */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-xl p-4 bg-slate-50/50 space-y-3">
-                <h4 className="font-semibold text-slate-800 text-sm">Trạng thái chữ ký Bên A (Chủ trọ)</h4>
+              <div className="border rounded-xl p-4 bg-[#F8F3EC]/70 space-y-3">
+                <h4 className="font-semibold text-[#243B5A] text-sm">Trạng thái chữ ký Bên A (Chủ trọ)</h4>
                 {hopDong?.landlordSignedAt ? (
                   <div className="space-y-2">
                     <div className="text-xs text-green-600 flex items-center gap-1.5 font-medium">
@@ -1497,8 +1497,8 @@ export default function ChinhSuaHopDongPage() {
                 )}
               </div>
 
-              <div className="border rounded-xl p-4 bg-slate-50/50 space-y-3">
-                <h4 className="font-semibold text-slate-800 text-sm">Trạng thái chữ ký Bên B (Khách thuê đại diện)</h4>
+              <div className="border rounded-xl p-4 bg-[#F8F3EC]/70 space-y-3">
+                <h4 className="font-semibold text-[#243B5A] text-sm">Trạng thái chữ ký Bên B (Khách thuê đại diện)</h4>
                 {hopDong?.tenantSignedAt ? (
                   <div className="space-y-2">
                     <div className="text-xs text-green-600 flex items-center gap-1.5 font-medium">
@@ -1524,7 +1524,7 @@ export default function ChinhSuaHopDongPage() {
             {/* PDF preview iframe */}
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
                   <FileDown className="h-5 w-5 text-indigo-500" />
                   Văn bản hợp đồng PDF
                 </h3>
@@ -1555,18 +1555,18 @@ export default function ChinhSuaHopDongPage() {
                   </div>
                 </div>
               ) : (
-                <div className="border border-dashed rounded-lg p-12 text-center bg-slate-50/50 space-y-3">
-                  <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                <div className="border border-dashed rounded-lg p-12 text-center bg-[#F8F3EC]/70 space-y-3">
+                  <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-[#6B7A8C]">
                     <FileDown className="h-6 w-6" />
                   </div>
-                  <p className="text-sm text-slate-500 max-w-sm mx-auto">Hợp đồng chưa được sinh tài liệu PDF. Chủ trọ cần bấm "Sinh tài liệu PDF" để tạo mẫu hợp đồng thô trước.</p>
+                  <p className="text-sm text-[#6B7A8C] max-w-sm mx-auto">Hợp đồng chưa được sinh tài liệu PDF. Chủ trọ cần bấm "Sinh tài liệu PDF" để tạo mẫu hợp đồng thô trước.</p>
                 </div>
               )}
             </div>
 
             {/* Signatures Audit Logs */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+              <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
                 <History className="h-5 w-5 text-indigo-500" />
                 Nhật ký chữ ký pháp lý
               </h3>
@@ -1574,8 +1574,8 @@ export default function ChinhSuaHopDongPage() {
                 <div className="text-center p-6 border rounded-lg text-sm text-muted-foreground">Chưa có dữ liệu chữ ký pháp lý nào được ghi nhận.</div>
               ) : (
                 <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full text-sm text-left text-slate-500">
-                    <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+                  <table className="w-full text-sm text-left text-[#6B7A8C]">
+                    <thead className="text-xs text-[#243B5A] uppercase bg-[#F8F3EC]">
                       <tr>
                         <th className="px-4 py-3">Người ký</th>
                         <th className="px-4 py-3">Vai trò</th>
@@ -1586,10 +1586,10 @@ export default function ChinhSuaHopDongPage() {
                     </thead>
                     <tbody className="divide-y">
                       {signatures.map((sig) => (
-                        <tr key={sig.id} className="bg-white hover:bg-slate-50">
-                          <td className="px-4 py-3 font-medium text-slate-900">{sig.signerName}</td>
+                        <tr key={sig.id} className="bg-white hover:bg-[#F8F3EC]">
+                          <td className="px-4 py-3 font-medium text-[#243B5A]">{sig.signerName}</td>
                           <td className="px-4 py-3">
-                            <Badge variant="outline" className={sig.signerRole === 'LANDLORD' ? 'text-blue-700 bg-blue-50 border-blue-100' : 'text-orange-700 bg-orange-50 border-orange-100'}>
+                            <Badge variant="outline" className={sig.signerRole === 'LANDLORD' ? 'text-[#243B5A] bg-[#4FA7A0]/10 border-[#4FA7A0]/20' : 'text-orange-700 bg-orange-50 border-orange-100'}>
                               {sig.signerRole === 'LANDLORD' ? 'Chủ trọ Bên A' : 'Khách thuê Bên B'}
                             </Badge>
                           </td>
@@ -1692,8 +1692,8 @@ function WorkflowStep({
     <div
       className={cn(
         'rounded-lg border p-3',
-        done && 'border-emerald-200 bg-emerald-50',
-        !done && active && 'border-blue-200 bg-blue-50',
+        done && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10',
+        !done && active && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10',
         !done && !active && 'bg-muted/30 text-muted-foreground'
       )}
     >
@@ -1701,8 +1701,8 @@ function WorkflowStep({
         <div
           className={cn(
             'rounded-md border bg-background p-2',
-            done && 'border-emerald-200 text-emerald-700',
-            !done && active && 'border-blue-200 text-blue-700'
+            done && 'border-[#4FA7A0]/30 text-[#267D76]',
+            !done && active && 'border-[#4FA7A0]/30 text-[#243B5A]'
           )}
         >
           {icon}

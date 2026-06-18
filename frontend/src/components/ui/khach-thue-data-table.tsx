@@ -151,7 +151,7 @@ export const columns = (
       
       return (
         <div className="text-sm">
-          <div className="font-medium text-blue-600">
+          <div className="font-medium text-[#243B5A]">
             {hopDong.phong.toaNha?.tenToaNha || 'N/A'}
           </div>
           <div className="text-gray-600 text-xs flex items-center gap-1">

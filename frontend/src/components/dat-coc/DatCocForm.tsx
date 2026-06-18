@@ -63,7 +63,7 @@ export function DatCocForm({ datCoc, onClose, onSuccess }: { datCoc?: any, onClo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#243B5A]/45 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{datCoc ? 'Chi tiết đặt cọc' : 'Tạo đặt cọc mới'}</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

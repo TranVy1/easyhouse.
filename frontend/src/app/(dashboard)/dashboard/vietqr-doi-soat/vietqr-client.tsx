@@ -304,7 +304,7 @@ export function VietQRClient() {
                           return (
                             <TableRow 
                               key={hd._id || hd.id} 
-                              className={`cursor-pointer ${selectedHoaDonId === (hd._id || hd.id) ? "bg-blue-50" : ""}`}
+                              className={`cursor-pointer ${selectedHoaDonId === (hd._id || hd.id) ? "bg-[#4FA7A0]/10" : ""}`}
                               onClick={() => setSelectedHoaDonId((hd._id || hd.id) as string)}
                             >
                               <TableCell>

@@ -93,10 +93,10 @@ export function BaoCaoClient() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Tỷ lệ lấp đầy</CardTitle>
-            <Percent className="h-4 w-4 text-blue-500" />
+            <Percent className="h-4 w-4 text-[#4FA7A0]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{baoCao.tyLeLapDay.toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-[#243B5A]">{baoCao.tyLeLapDay.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               Tỷ lệ phòng đang cho thuê trên tổng số phòng
             </p>
@@ -119,10 +119,10 @@ export function BaoCaoClient() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Hợp đồng sắp hết hạn</CardTitle>
-            <FileText className="h-4 w-4 text-purple-500" />
+            <FileText className="h-4 w-4 text-[#F2A45B]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{baoCao.hopDongSapHetHan}</div>
+            <div className="text-2xl font-bold text-[#9A5A1B]">{baoCao.hopDongSapHetHan}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Trong 30 ngày tới
             </p>

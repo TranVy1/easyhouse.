@@ -201,7 +201,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
       const percentage = total > 0 ? Math.round((phongDangThue / total) * 100) : 0
       return (
         <div className="text-center">
-          <div className="font-medium text-blue-600">{phongDangThue}</div>
+          <div className="font-medium text-[#243B5A]">{phongDangThue}</div>
           <div className="text-xs text-muted-foreground">({percentage}%)</div>
         </div>
       )
@@ -221,7 +221,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
             <span className="font-medium">{percentage}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-blue-500" style={{ width: `${percentage}%` }} />
+            <div className="h-full rounded-full bg-[#4FA7A0]" style={{ width: `${percentage}%` }} />
           </div>
         </div>
       )

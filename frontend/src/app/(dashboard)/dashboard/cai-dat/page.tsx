@@ -179,20 +179,20 @@ export default function CaiDatPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900">Cài đặt hệ thống</h1>
-          <p className="text-xs md:text-sm text-slate-600">Tùy chỉnh font chữ, màu sắc và mật độ hiển thị</p>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[#243B5A]">Cài đặt hệ thống</h1>
+          <p className="text-xs md:text-sm text-[#6B7A8C]">Tùy chỉnh font chữ, màu sắc và mật độ hiển thị</p>
         </div>
         <div className="p-2 bg-slate-100 rounded-full">
-          <Settings className="h-6 w-6 text-slate-500 animate-spin-slow" />
+          <Settings className="h-6 w-6 text-[#6B7A8C] animate-spin-slow" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {/* Font Settings */}
         <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
-            <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-800">
-              <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+          <CardHeader className="bg-[#F8F3EC]/70 border-b border-[#E8DED2] p-6">
+            <CardTitle className="flex items-center gap-3 text-lg font-bold text-[#243B5A]">
+              <div className="p-2 bg-[#4FA7A0]/15 rounded-lg text-[#243B5A]">
                 <Type className="h-5 w-5" />
               </div>
               Cấu hình Font chữ
@@ -205,12 +205,12 @@ export default function CaiDatPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Font Family */}
               <div className="space-y-3">
-                <Label htmlFor="fontFamily" className="text-sm font-semibold text-slate-700">Font chữ hệ thống</Label>
+                <Label htmlFor="fontFamily" className="text-sm font-semibold text-[#243B5A]">Font chữ hệ thống</Label>
                 <Select 
                   value={fontSettings.fontFamily} 
                   onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontFamily: value }))}
                 >
-                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-[#4FA7A0]/25">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -223,12 +223,12 @@ export default function CaiDatPage() {
 
               {/* Font Size */}
               <div className="space-y-3">
-                <Label htmlFor="fontSize" className="text-sm font-semibold text-slate-700">Kích thước hiển thị</Label>
+                <Label htmlFor="fontSize" className="text-sm font-semibold text-[#243B5A]">Kích thước hiển thị</Label>
                 <Select 
                   value={fontSettings.fontSize} 
                   onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontSize: value }))}
                 >
-                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-[#4FA7A0]/25">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -242,12 +242,12 @@ export default function CaiDatPage() {
 
               {/* Line Height */}
               <div className="space-y-3">
-                <Label htmlFor="lineHeight" className="text-sm font-semibold text-slate-700">Khoảng cách dòng</Label>
+                <Label htmlFor="lineHeight" className="text-sm font-semibold text-[#243B5A]">Khoảng cách dòng</Label>
                 <Select 
                   value={fontSettings.lineHeight} 
                   onValueChange={(value) => setFontSettings(prev => ({ ...prev, lineHeight: value }))}
                 >
-                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-[#4FA7A0]/25">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -261,12 +261,12 @@ export default function CaiDatPage() {
 
               {/* Font Weight */}
               <div className="space-y-3">
-                <Label htmlFor="fontWeight" className="text-sm font-semibold text-slate-700">Độ đậm của chữ</Label>
+                <Label htmlFor="fontWeight" className="text-sm font-semibold text-[#243B5A]">Độ đậm của chữ</Label>
                 <Select 
                   value={fontSettings.fontWeight} 
                   onValueChange={(value) => setFontSettings(prev => ({ ...prev, fontWeight: value }))}
                 >
-                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-[#4FA7A0]/25">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -282,8 +282,8 @@ export default function CaiDatPage() {
 
             {/* Preview Section */}
             <div className="space-y-3 pt-4">
-              <Label className="text-sm font-semibold text-slate-700">Bản xem trước trực tiếp</Label>
-              <div className="p-6 md:p-8 rounded-2xl bg-slate-900 text-slate-100 shadow-inner border border-slate-800">
+              <Label className="text-sm font-semibold text-[#243B5A]">Bản xem trước trực tiếp</Label>
+              <div className="p-6 md:p-8 rounded-2xl bg-[#243B5A] text-[#FFFDF8] shadow-inner border border-[#243B5A]/25">
                 <p 
                   style={{
                     fontFamily: fontSettings.fontFamily,
@@ -306,7 +306,7 @@ export default function CaiDatPage() {
               </div>
             </div>
 
-            <Button onClick={handleSaveFontSettings} size="lg" className="w-full h-12 shadow-lg shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 transition-all">
+            <Button onClick={handleSaveFontSettings} size="lg" className="w-full h-12 shadow-lg shadow-[#243B5A]/15 bg-[#243B5A] hover:bg-[#1B2E47] transition-all">
               <Save className="h-5 w-5 mr-2" />
               Lưu thay đổi kiểu chữ
             </Button>
@@ -315,9 +315,9 @@ export default function CaiDatPage() {
 
         {/* UI Settings */}
         <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
-            <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-800">
-              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+          <CardHeader className="bg-[#F8F3EC]/70 border-b border-[#E8DED2] p-6">
+            <CardTitle className="flex items-center gap-3 text-lg font-bold text-[#243B5A]">
+              <div className="p-2 bg-[#F2A45B]/15 rounded-lg text-[#9A5A1B]">
                 <Monitor className="h-5 w-5" />
               </div>
               Giao diện & Trải nghiệm
@@ -329,7 +329,7 @@ export default function CaiDatPage() {
           <CardContent className="p-6 md:p-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <Label htmlFor="theme" className="text-sm font-semibold text-slate-700">Chế độ hiển thị (Theme)</Label>
+                <Label htmlFor="theme" className="text-sm font-semibold text-[#243B5A]">Chế độ hiển thị (Theme)</Label>
                 <Select value={uiSettings.theme} onValueChange={handleThemeChange}>
                   <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-purple-500/20">
                     <SelectValue />
@@ -343,7 +343,7 @@ export default function CaiDatPage() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="density" className="text-sm font-semibold text-slate-700">Mật độ hiển thị (Density)</Label>
+                <Label htmlFor="density" className="text-sm font-semibold text-[#243B5A]">Mật độ hiển thị (Density)</Label>
                 <Select value={uiSettings.density} onValueChange={handleDensityChange}>
                   <SelectTrigger className="h-11 transition-all focus:ring-2 focus:ring-purple-500/20">
                     <SelectValue />
@@ -360,7 +360,7 @@ export default function CaiDatPage() {
             <Button 
               variant="outline"
               size="lg"
-              className="w-full h-12 border-slate-200 hover:bg-slate-50 text-slate-700 transition-all font-semibold"
+              className="w-full h-12 border-[#E8DED2] hover:bg-[#F8F3EC] text-[#243B5A] transition-all font-semibold"
               onClick={() => {
                 localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
                 alert('Đã lưu cài đặt giao diện thành công!');

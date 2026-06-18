@@ -251,11 +251,11 @@ export default function KhachThuePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang thuê</p>
-              <p className="text-base md:text-2xl font-bold text-blue-600">
+              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
                 {khachThueList.filter(k => k.trangThai === 'dangThue' || k.trangThai === 'ACTIVE').length}
               </p>
             </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-blue-600" />
+            <Users className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
           </div>
         </Card>
 

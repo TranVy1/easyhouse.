@@ -70,7 +70,7 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
           <div className="ml-auto flex items-center gap-2">
             <Link
               href="/"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-[#243B5A] bg-white border border-[#E8DED2] hover:bg-[#F8F3EC] dark:bg-slate-800 dark:border-white/15 dark:text-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm shrink-0"
             >
               <Home size={15} className="text-[#FF5A3D]" />
               <span className="hidden sm:inline">Quay về trang chủ</span>

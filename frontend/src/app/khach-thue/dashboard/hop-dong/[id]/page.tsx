@@ -105,7 +105,7 @@ function SignatureCanvas({ onSave, onCancel }: { onSave: (base64: string) => voi
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-slate-50 p-1">
+      <div className="rounded-lg border bg-[#F8F3EC] p-1">
         <canvas
           ref={canvasRef}
           width={500}
@@ -263,7 +263,7 @@ export default function TenantContractDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
+        <Loader2 className="animate-spin h-12 w-12 text-[#243B5A]" />
       </div>
     );
   }
@@ -301,27 +301,27 @@ export default function TenantContractDetailPage() {
       {/* Tóm tắt điều khoản */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="flex items-center p-4 gap-4">
-          <div className="bg-blue-50 p-3 rounded-lg text-blue-600"><Home className="h-6 w-6" /></div>
+          <div className="bg-[#4FA7A0]/10 p-3 rounded-lg text-[#243B5A]"><Home className="h-6 w-6" /></div>
           <div>
             <p className="text-xs text-muted-foreground uppercase font-semibold">Phòng thuê</p>
-            <p className="font-bold text-slate-800 text-lg">{contract.phong?.maPhong || '---'}</p>
-            <p className="text-xs text-slate-500">{contract.phong?.toaNha?.tenToaNha || '---'}</p>
+            <p className="font-bold text-[#243B5A] text-lg">{contract.phong?.maPhong || '---'}</p>
+            <p className="text-xs text-[#6B7A8C]">{contract.phong?.toaNha?.tenToaNha || '---'}</p>
           </div>
         </Card>
         <Card className="flex items-center p-4 gap-4">
           <div className="bg-green-50 p-3 rounded-lg text-green-600"><DollarSign className="h-6 w-6" /></div>
           <div>
             <p className="text-xs text-muted-foreground uppercase font-semibold">Giá thuê phòng</p>
-            <p className="font-bold text-slate-800 text-lg">{formatCurrency(contract.giaThue || contract.giaThueHopDong || 0)}</p>
-            <p className="text-xs text-slate-500">Đặt cọc: {formatCurrency(contract.tienCoc || 0)}</p>
+            <p className="font-bold text-[#243B5A] text-lg">{formatCurrency(contract.giaThue || contract.giaThueHopDong || 0)}</p>
+            <p className="text-xs text-[#6B7A8C]">Đặt cọc: {formatCurrency(contract.tienCoc || 0)}</p>
           </div>
         </Card>
         <Card className="flex items-center p-4 gap-4">
           <div className="bg-orange-50 p-3 rounded-lg text-orange-600"><Calendar className="h-6 w-6" /></div>
           <div>
             <p className="text-xs text-muted-foreground uppercase font-semibold">Thời hạn thuê</p>
-            <p className="font-semibold text-slate-800 text-sm">{formatDate(contract.ngayBatDau)}</p>
-            <p className="text-xs text-slate-500">Đến: {formatDate(contract.ngayKetThuc)}</p>
+            <p className="font-semibold text-[#243B5A] text-sm">{formatDate(contract.ngayBatDau)}</p>
+            <p className="text-xs text-[#6B7A8C]">Đến: {formatDate(contract.ngayKetThuc)}</p>
           </div>
         </Card>
       </div>
@@ -363,23 +363,23 @@ export default function TenantContractDetailPage() {
               />
             </div>
           ) : (
-            <div className="text-center p-12 border border-dashed rounded-lg bg-slate-50 text-slate-500">
+            <div className="text-center p-12 border border-dashed rounded-lg bg-[#F8F3EC] text-[#6B7A8C]">
               Chưa có văn bản PDF hợp đồng. Vui lòng liên hệ chủ trọ để sinh tài liệu PDF.
             </div>
           )}
 
           {/* Nhật ký ký số */}
           <div className="space-y-3 pt-4 border-t">
-            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-              <History className="h-5 w-5 text-blue-500" />
+            <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
+              <History className="h-5 w-5 text-[#4FA7A0]" />
               Nhật ký chữ ký pháp lý
             </h3>
             {signatures.length === 0 ? (
               <div className="text-center p-6 border rounded-lg text-sm text-muted-foreground">Chưa có chữ ký nào.</div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left text-slate-500">
-                  <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+                <table className="w-full text-sm text-left text-[#6B7A8C]">
+                  <thead className="text-xs text-[#243B5A] uppercase bg-[#F8F3EC]">
                     <tr>
                       <th className="px-4 py-3">Người ký</th>
                       <th className="px-4 py-3">Vai trò</th>
@@ -390,10 +390,10 @@ export default function TenantContractDetailPage() {
                   </thead>
                   <tbody className="divide-y">
                     {signatures.map((sig) => (
-                      <tr key={sig.id} className="bg-white hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-900">{sig.signerName}</td>
+                      <tr key={sig.id} className="bg-white hover:bg-[#F8F3EC]">
+                        <td className="px-4 py-3 font-medium text-[#243B5A]">{sig.signerName}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline" className={sig.signerRole === 'LANDLORD' ? 'text-blue-700 bg-blue-50 border-blue-100' : 'text-orange-700 bg-orange-50 border-orange-100'}>
+                          <Badge variant="outline" className={sig.signerRole === 'LANDLORD' ? 'text-[#243B5A] bg-[#4FA7A0]/10 border-[#4FA7A0]/20' : 'text-orange-700 bg-orange-50 border-orange-100'}>
                             {sig.signerRole === 'LANDLORD' ? 'Chủ trọ Bên A' : 'Khách thuê Bên B (Bạn)'}
                           </Badge>
                         </td>

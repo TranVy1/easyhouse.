@@ -250,7 +250,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
               />
             </div>
 
-            <div className="text-xs text-slate-500 mt-2">
+            <div className="text-xs text-[#6B7A8C] mt-2">
               Bằng việc gửi yêu cầu này, bạn đồng ý để chủ phòng/quản lý liên hệ qua số điện thoại và email đã cung cấp.
             </div>
           </div>

@@ -29,13 +29,13 @@ import { cn } from '@/lib/utils';
 const statusConfig: Record<TrangThaiPhongHienThi, { label: string; className: string; badge: string }> = {
   VACANT: {
     label: 'Phòng trống',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100',
-    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    className: 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A] hover:bg-[#4FA7A0]/15',
+    badge: 'bg-[#4FA7A0]/15 text-[#267D76] border-[#4FA7A0]/30',
   },
   RENTED: {
     label: 'Đang thuê',
-    className: 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100',
-    badge: 'bg-blue-100 text-blue-700 border-blue-200',
+    className: 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A] hover:bg-[#4FA7A0]/15',
+    badge: 'bg-[#4FA7A0]/15 text-[#243B5A] border-[#4FA7A0]/30',
   },
   CONTRACT_EXPIRING: {
     label: 'Sắp hết hạn',
@@ -44,8 +44,8 @@ const statusConfig: Record<TrangThaiPhongHienThi, { label: string; className: st
   },
   MAINTENANCE: {
     label: 'Bảo trì',
-    className: 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200',
-    badge: 'bg-slate-100 text-slate-700 border-slate-200',
+    className: 'border-[#E8DED2] bg-slate-100 text-[#243B5A] hover:bg-slate-200',
+    badge: 'bg-slate-100 text-[#243B5A] border-[#E8DED2]',
   },
 };
 
@@ -373,7 +373,7 @@ function Metric({
       <CardContent className="flex items-center justify-between p-4">
         <div>
           <p className="text-xs text-muted-foreground">{title}</p>
-          <p className={cn('mt-1 text-2xl font-semibold', tone === 'green' && 'text-emerald-600', tone === 'blue' && 'text-blue-600')}>
+          <p className={cn('mt-1 text-2xl font-semibold', tone === 'green' && 'text-[#267D76]', tone === 'blue' && 'text-[#243B5A]')}>
             {value}
           </p>
         </div>
