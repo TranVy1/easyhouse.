@@ -88,7 +88,19 @@ public class ThanhVienHopDongService {
         member.setSoDienThoai(request.getSoDienThoai() != null ? request.getSoDienThoai().trim() : null);
         if (request.getNgayVao() != null) member.setNgayVao(request.getNgayVao());
         member.setNgayRoi(request.getNgayRoi());
-        if (request.getDangO() != null) member.setDangO(request.getDangO());
+        if (request.getDangO() != null) {
+            if (Boolean.FALSE.equals(member.getDangO()) && Boolean.TRUE.equals(request.getDangO())) {
+                // Kiểm tra lại số lượng tối đa nếu chuyển từ không ở sang đang ở
+                long currentCount = thanhVienHopDongRepository.findByHopDongId(member.getHopDong().getId()).stream()
+                        .filter(m -> Boolean.TRUE.equals(m.getDangO()) && !m.getId().equals(member.getId()))
+                        .count();
+                Integer maxPeople = member.getHopDong().getPhong().getSoNguoiToiDa();
+                if (maxPeople != null && currentCount + 1 > maxPeople) {
+                    throw new RuntimeException("Phòng đã đạt số người ở tối đa (" + maxPeople + " người)");
+                }
+            }
+            member.setDangO(request.getDangO());
+        }
         member.setGhiChu(request.getGhiChu());
 
         if (member.getNgayRoi() != null && member.getNgayRoi().isBefore(member.getNgayVao())) {

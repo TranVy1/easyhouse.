@@ -40,7 +40,39 @@ public class SchedulerService {
         log.info("Bắt đầu chạy quét kiểm tra hợp đồng và hóa đơn hàng ngày...");
         checkExpiringContracts();
         checkInvoices();
+        checkPendingContracts();
         log.info("Hoàn thành quét kiểm tra hàng ngày.");
+    }
+
+    /**
+     * Kiểm tra và hủy các hợp đồng treo (PENDING) chưa đóng cọc sau 24h.
+     */
+    @Transactional
+    public void checkPendingContracts() {
+        log.info("Đang kiểm tra các hợp đồng treo chưa đóng cọc...");
+        java.time.ZonedDateTime limitDate = java.time.ZonedDateTime.now().minusHours(24);
+        List<HopDong> pendingContracts = hopDongRepository.findPendingContractsBefore(
+                TrangThaiHopDong.PENDING, 
+                com.example.quanlyphongtro.entity.TrangThaiCocHopDong.NOT_PAID, 
+                limitDate
+        );
+
+        for (HopDong hd : pendingContracts) {
+            log.info("Hủy hợp đồng {} do quá 24h chưa thanh toán cọc.", hd.getMaHopDong());
+            hd.setTrangThai(TrangThaiHopDong.CANCELLED);
+            hd.setGhiChu((hd.getGhiChu() == null ? "" : hd.getGhiChu() + "\n") + "Tự động hủy do quá hạn thanh toán cọc 24h.");
+            hopDongRepository.save(hd);
+            
+            // Gửi thông báo cho khách thuê
+            if (hd.getKhachThue() != null) {
+                thongBaoService.createSystemNotification(
+                        "Hủy hợp đồng do quá hạn cọc",
+                        "Hợp đồng " + hd.getMaHopDong() + " của bạn đã bị hủy do quá 24h không thanh toán tiền cọc.",
+                        com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
+                        List.of(hd.getKhachThue().getId())
+                );
+            }
+        }
     }
 
     /**

@@ -21,6 +21,9 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
 
     List<HopDong> findByXoaLucIsNullOrderByTaoLucDesc();
 
+    @Query("SELECT hd FROM HopDong hd WHERE hd.trangThai = :trangThai AND hd.trangThaiCoc = :trangThaiCoc AND hd.taoLuc < :date AND hd.xoaLuc IS NULL")
+    List<HopDong> findPendingContractsBefore(@Param("trangThai") TrangThaiHopDong trangThai, @Param("trangThaiCoc") com.example.quanlyphongtro.entity.TrangThaiCocHopDong trangThaiCoc, @Param("date") java.time.ZonedDateTime date);
+
     @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p LEFT JOIN p.nhaTro nt " +
            "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +

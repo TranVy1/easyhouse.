@@ -110,6 +110,11 @@ public class HopDongService {
         validateTenantBelongsToRoomOwner(kt, phong);
         BigDecimal giaThue = firstMoney(req.getGiaThueHopDong(), req.getGiaThue(), phong.getGiaHienTai());
         BigDecimal tienCoc = firstMoney(req.getTienCoc(), phong.getTienCocMacDinh(), BigDecimal.ZERO);
+        TrangThaiCocHopDong trangThaiCocVal = parseCocStatus(req.getTrangThaiCoc());
+        
+        if (tienCoc.compareTo(BigDecimal.ZERO) > 0 && trangThaiCocVal == TrangThaiCocHopDong.NOT_PAID) {
+            trangThai = TrangThaiHopDong.PENDING;
+        }
         Integer ngayThanhToan = req.getNgayThanhToanHangThang() != null ? req.getNgayThanhToanHangThang()
                 : (req.getNgayThanhToan() != null ? req.getNgayThanhToan() : 5);
         validateContractPayload(req.getNgayBatDau(), req.getNgayKetThuc(), giaThue, tienCoc, ngayThanhToan);
@@ -127,7 +132,7 @@ public class HopDongService {
                 .ngayKetThuc(req.getNgayKetThuc())
                 .giaThueHopDong(giaThue)
                 .tienCoc(tienCoc)
-                .trangThaiCoc(parseCocStatus(req.getTrangThaiCoc()))
+                .trangThaiCoc(trangThaiCocVal)
                 .trangThai(trangThai)
                 .chuKyThanhToan(parseChuKy(req.getChuKyThanhToan()))
                 .ngayThanhToanHangThang(ngayThanhToan)
@@ -144,6 +149,27 @@ public class HopDongService {
         replaceDichVuHopDong(saved, req);
         syncRoomStatus(phong.getId());
         return toResponse(saved);
+    }
+
+    @Transactional
+    public HopDongResponse thanhToanCoc(UUID id) {
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        UUID userId = permissionService.requireCurrentUserId();
+        
+        // Kiểm tra quyền của người thuê
+        if (!hd.getKhachThue().getNguoiDung().getId().equals(userId) && !permissionService.isAdmin(userId)) {
+            throw new RuntimeException("Bạn không có quyền thao tác trên hợp đồng này");
+        }
+
+        if (hd.getTrangThai() != TrangThaiHopDong.PENDING) {
+            throw new RuntimeException("Hợp đồng không ở trạng thái chờ thanh toán cọc");
+        }
+
+        hd.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
+        hd.setTrangThai(TrangThaiHopDong.ACTIVE);
+        
+        return toResponse(hopDongRepository.save(hd));
     }
 
     @Transactional
@@ -833,12 +859,12 @@ public class HopDongService {
         if (khachThue == null || khachThue.getXoaLuc() != null || Boolean.FALSE.equals(khachThue.getDangHoatDong())) {
             throw new RuntimeException("Khách thuê không tồn tại hoặc đã ngừng hoạt động");
         }
-        UUID roomOwnerId = phong != null && phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null
-                ? phong.getNhaTro().getChuTro().getId() : null;
-        UUID tenantOwnerId = khachThue.getChuTro() != null ? khachThue.getChuTro().getId() : null;
-        if (roomOwnerId != null && tenantOwnerId != null && !roomOwnerId.equals(tenantOwnerId)) {
-            throw new RuntimeException("Khách thuê không thuộc cùng chủ trọ với phòng");
-        }
+        // UUID roomOwnerId = phong != null && phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null
+        //         ? phong.getNhaTro().getChuTro().getId() : null;
+        // UUID tenantOwnerId = khachThue.getChuTro() != null ? khachThue.getChuTro().getId() : null;
+        // if (roomOwnerId != null && tenantOwnerId != null && !roomOwnerId.equals(tenantOwnerId)) {
+        //     throw new RuntimeException("Khách thuê không thuộc cùng chủ trọ với phòng");
+        // }
     }
 
     private void validateMemberPayload(HopDongRequest req, Phong phong, KhachThue representative,

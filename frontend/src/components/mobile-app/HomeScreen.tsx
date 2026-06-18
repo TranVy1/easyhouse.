@@ -227,21 +227,6 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   useEffect(() => {
     setFilterCat(initialViewState.filterCat);
 
-    fetch("/api/user/profile")
-      .then(async (res) => {
-        const text = await res.text();
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        try {
-          return text ? JSON.parse(text) : {};
-        } catch (e) {
-          throw new Error("Invalid JSON in profile response: " + text.slice(0, 50));
-        }
-      })
-      .then((data) => {
-        if (data?.data) setUserProfile(data.data);
-      })
-      .catch(() => {});
-
     fetch("/api/public/phong")
       .then(async (res) => {
         const text = await res.text();
@@ -258,6 +243,14 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       })
       .catch((error) => console.error("API Fetch Error:", error.message || error));
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      setUserProfile(session.user);
+    } else {
+      setUserProfile(null);
+    }
+  }, [session]);
 
   const filteredRooms = useMemo(() => {
     const price = PRICE_RANGES.find((item) => item.id === filterPrice) || PRICE_RANGES[0];
