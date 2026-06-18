@@ -45,7 +45,9 @@ public class MeterAnomalyController {
         }
 
         List<MeterAnomalyAlert> alerts;
-        if (nhaTroIds.isEmpty()) {
+        if (nhaTroIds == null) {
+            alerts = alertRepository.findByTrangThai(TrangThaiAlert.OPEN);
+        } else if (nhaTroIds.isEmpty()) {
              alerts = List.of();
         } else {
              alerts = alertRepository.findByTrangThaiAndNhaTroIds(TrangThaiAlert.OPEN, nhaTroIds);

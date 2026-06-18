@@ -102,6 +102,18 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/cong-no/:path*`
       },
       {
+        source: '/api/debt-reminders/:path*',
+        destination: `${backendUrl}/api/debt-reminders/:path*`
+      },
+      {
+        source: '/api/dat-coc',
+        destination: `${backendUrl}/api/dat-coc`
+      },
+      {
+        source: '/api/dat-coc/:path*',
+        destination: `${backendUrl}/api/dat-coc/:path*`
+      },
+      {
         source: '/api/upload',
         destination: `${backendUrl}/api/upload`
       },
@@ -184,6 +196,14 @@ const nextConfig: NextConfig = {
       {
         source: '/api/media/:path*',
         destination: `${backendUrl}/api/media/:path*`
+      },
+      {
+        source: '/api/meter-alerts',
+        destination: `${backendUrl}/api/meter-alerts`
+      },
+      {
+        source: '/api/meter-alerts/:path*',
+        destination: `${backendUrl}/api/meter-alerts/:path*`
       },
       {
         source: '/api/bao-cao/:path*',

@@ -181,6 +181,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 value={formData.hoTen}
                 onChange={(e) => setFormData({ ...formData, hoTen: e.target.value })}
                 placeholder="Nhập họ và tên của bạn"
+                autoComplete="off"
                 required
               />
             </div>
@@ -191,6 +192,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 value={formData.soDienThoai}
                 onChange={(e) => setFormData({ ...formData, soDienThoai: e.target.value })}
                 placeholder="Nhập số điện thoại của bạn"
+                autoComplete="off"
                 required
               />
             </div>
@@ -202,6 +204,7 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="Nhập email (không bắt buộc)"
+                autoComplete="off"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

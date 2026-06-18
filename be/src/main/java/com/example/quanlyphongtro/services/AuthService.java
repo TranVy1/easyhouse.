@@ -505,13 +505,15 @@ public class AuthService {
     
     private void saveLoginHistory(NguoiDung user, String email, boolean thanhCong, String ipAddress, String userAgent, String lyDoThatBai) {
         try {
+            String safeUserAgent = userAgent != null && userAgent.length() > 255 ? userAgent.substring(0, 255) : userAgent;
+            String safeLyDo = lyDoThatBai != null && lyDoThatBai.length() > 255 ? lyDoThatBai.substring(0, 255) : lyDoThatBai;
             LoginHistory history = LoginHistory.builder()
                     .nguoiDung(user)
                     .email(email)
                     .thanhCong(thanhCong)
                     .ipAddress(ipAddress)
-                    .userAgent(userAgent)
-                    .lyDoThatBai(lyDoThatBai)
+                    .userAgent(safeUserAgent)
+                    .lyDoThatBai(safeLyDo)
                     .taoLuc(ZonedDateTime.now())
                     .build();
             loginHistoryRepository.save(history);

@@ -108,6 +108,16 @@ public class HoaDonService {
         return HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(id));
     }
 
+    @Transactional(readOnly = true)
+    public HoaDonResponse getPublicById(UUID id) {
+        HoaDon hd = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+        if (hd.getXoaLuc() != null) {
+            throw new RuntimeException("Hoa don da bi xoa");
+        }
+        return HoaDonResponse.fromEntity(hd, chiTietHoaDonRepository.findByHoaDonId(id));
+    }
+
     @Transactional
     public HoaDonResponse create(HoaDonRequest req) {
         InvoiceContext ctx = resolveContext(req, null);
