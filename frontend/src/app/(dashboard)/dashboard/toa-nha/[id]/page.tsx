@@ -14,6 +14,7 @@ import {
   Hammer,
   Home,
   RefreshCw,
+  Plus,
   Search,
   UserRound,
   Trash2,
@@ -41,6 +42,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { SoDoPhong, SoDoToaNha, TrangThaiPhongHienThi } from '@/types';
 import { cn } from '@/lib/utils';
+import { PhongForm } from '@/components/ui/phong-form';
 
 const statusConfig: Record<TrangThaiPhongHienThi, { label: string; className: string; badge: string }> = {
   VACANT: {
@@ -84,6 +86,7 @@ export default function ToaNhaDetailPage() {
   const [selectedRoom, setSelectedRoom] = useState<SoDoPhong | null>(null);
   const [statusFilter, setStatusFilter] = useState<TrangThaiPhongHienThi | 'ALL'>('ALL');
   const [roomSearch, setRoomSearch] = useState('');
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
 
   const fetchSoDo = useCallback(async () => {
     if (!params.id) return;
@@ -176,11 +179,37 @@ export default function ToaNhaDetailPage() {
             Sơ đồ vận hành phòng, hợp đồng hiện tại và trạng thái cần xử lý.
           </p>
         </div>
-        <Button variant="outline" onClick={fetchSoDo}>
+                <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchSoDo}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Tải mới
         </Button>
+          <Button onClick={() => setIsAddRoomOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm phòng
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
+          <DialogHeader>
+            <DialogTitle className="text-base md:text-lg">Thêm phòng mới</DialogTitle>
+          </DialogHeader>
+          {data && (
+            <PhongForm
+              phong={null}
+              toaNhaList={[{ _id: params.id, tenToaNha: data.tenToaNha } as any]}
+              onClose={() => setIsAddRoomOpen(false)}
+              onSuccess={() => {
+                setIsAddRoomOpen(false);
+                fetchSoDo();
+                toast.success('Thêm phòng thành công!');
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Metric title="Tầng" value={data.tongSoTang} icon={<Building2 className="h-4 w-4" />} />

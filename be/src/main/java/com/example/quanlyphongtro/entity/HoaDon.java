@@ -80,7 +80,4 @@ public class HoaDon {
     private UUID generationBatchId;
     private UUID sourceScheduleId;
 
-    @Version
-    @Column(nullable = false, columnDefinition = "bigint default 0")
-    private Long version;
 }

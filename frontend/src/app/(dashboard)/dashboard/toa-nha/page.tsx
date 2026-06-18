@@ -662,7 +662,7 @@ function ToaNhaForm({
   };
 
   useEffect(() => {
-    fetch('https://provinces.open-api.vn/api/p/')
+    fetch('https://provinces.open-api.vn/api/v1/p/')
       .then(res => res.json())
       .then(data => {
         setProvinces(data);
@@ -689,7 +689,7 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (provinceCode) {
-      fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+      fetch(`https://provinces.open-api.vn/api/v1/p/${provinceCode}?depth=2`)
         .then(res => res.json())
         .then(data => {
           setDistricts(data.districts || []);
@@ -716,7 +716,7 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (districtCode) {
-      fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+      fetch(`https://provinces.open-api.vn/api/v1/d/${districtCode}?depth=2`)
         .then(res => res.json())
         .then(data => {
           setWards(data.wards || []);
@@ -907,7 +907,7 @@ function ToaNhaForm({
 
       <div className="space-y-2">
         <Label htmlFor="thanhPho" className="text-sm">Tỉnh / Thành phố</Label>
-        <Popover open={openProvince} onOpenChange={setOpenProvince}>
+        <Popover open={openProvince} onOpenChange={setOpenProvince} modal={true}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -935,6 +935,12 @@ function ToaNhaForm({
                         handleProvinceChange(String(p.code));
                         setOpenProvince(false);
                       }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleProvinceChange(String(p.code));
+                        setOpenProvince(false);
+                      }}
                     >
                       <Check
                         className={cn(
@@ -955,7 +961,7 @@ function ToaNhaForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="quan" className="text-sm">Quận / Huyện</Label>
-          <Popover open={openDistrict} onOpenChange={setOpenDistrict}>
+          <Popover open={openDistrict} onOpenChange={setOpenDistrict} modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -984,6 +990,12 @@ function ToaNhaForm({
                           handleDistrictChange(String(d.code));
                           setOpenDistrict(false);
                         }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDistrictChange(String(d.code));
+                          setOpenDistrict(false);
+                        }}
                       >
                         <Check
                           className={cn(
@@ -1003,7 +1015,7 @@ function ToaNhaForm({
         
         <div className="space-y-2">
           <Label htmlFor="phuong" className="text-sm">Phường / Xã</Label>
-          <Popover open={openWard} onOpenChange={setOpenWard}>
+          <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -1027,6 +1039,12 @@ function ToaNhaForm({
                         key={w.code}
                         value={w.name}
                         onSelect={() => {
+                          handleWardChange(w.name);
+                          setOpenWard(false);
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           handleWardChange(w.name);
                           setOpenWard(false);
                         }}
