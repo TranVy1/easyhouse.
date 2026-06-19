@@ -243,7 +243,7 @@ export function createColumns(
         
         return (
           <div className="text-xs space-y-1">
-            <div className="font-medium text-blue-600">⚡ Điện:</div>
+            <div className="font-medium text-[#243B5A]">⚡ Điện:</div>
             <div className="ml-2">
               <div>Ban đầu: {chiSoDienBanDau} kWh</div>
               <div>Cuối kỳ: {chiSoDienCuoiKy} kWh</div>

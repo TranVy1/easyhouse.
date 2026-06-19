@@ -266,7 +266,7 @@ const createColumns = (props: KhachThueTableProps): ColumnDef<KhachThue>[] => [
       
       return (
         <div className="text-sm">
-          <div className="font-medium text-blue-600">
+          <div className="font-medium text-[#243B5A]">
             {toaNha?.tenToaNha || 'N/A'}
           </div>
           <div className="text-gray-600 text-xs flex items-center gap-1">

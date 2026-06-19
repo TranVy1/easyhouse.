@@ -293,7 +293,7 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
       }
       return (
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-blue-600" />
+          <User className="h-4 w-4 text-[#243B5A]" />
           <span className="text-sm font-medium">{nguoiDaiDien.hoTen}</span>
         </div>
       );
@@ -304,7 +304,7 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
     header: () => <div className="text-center">Người ở tối đa</div>,
     cell: ({ row }) => (
       <div className="text-center">
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+        <Badge variant="outline" className="bg-[#4FA7A0]/10 text-[#243B5A] border-[#4FA7A0]/30">
           {row.original.soNguoiToiDa || 0}
         </Badge>
       </div>
@@ -334,7 +334,7 @@ const createColumns = (props: PhongTableProps): ColumnDef<Phong>[] => [
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-8 w-8 text-[#243B5A] hover:text-[#243B5A] hover:bg-[#4FA7A0]/10"
             title="Sao chép link xem phòng"
             onClick={() => {
               const publicUrl = `${window.location.origin}/xem-phong?phong=${maPhong}`;

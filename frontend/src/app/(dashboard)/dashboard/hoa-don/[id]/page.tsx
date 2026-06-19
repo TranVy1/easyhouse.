@@ -380,7 +380,7 @@ export default function ChinhSuaHoaDonPage() {
                   
                   <div className="space-y-1">
                     <Label htmlFor="hopDong" className="text-sm">Hợp đồng *</Label>
-                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                    <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded mb-1">
                       {hopDongList.filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE').length} hợp đồng hoạt động
                     </div>
                     <Select value={formData.hopDong} onValueChange={(value) => setFormData(prev => ({ ...prev, hopDong: value }))}>
@@ -626,7 +626,7 @@ export default function ChinhSuaHoaDonPage() {
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
                         <span className="text-sm font-medium">{phi.ten}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-blue-600 font-medium">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
+                          <span className="text-sm text-[#243B5A] font-medium">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
                           <Button
                             type="button"
                             variant="outline"

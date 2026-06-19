@@ -91,9 +91,9 @@ const roomName = (item: ChiSoDienNuoc) => {
 function statusBadge(status?: TrangThaiChiSo) {
   switch (status) {
     case "CONFIRMED":
-      return <Badge className="border-transparent bg-blue-100 text-blue-800">Đã chốt</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#243B5A]">Đã chốt</Badge>
     case "BILLED":
-      return <Badge className="border-transparent bg-emerald-100 text-emerald-800">Đã lên hóa đơn</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#267D76]">Đã lên hóa đơn</Badge>
     case "CANCELLED":
       return <Badge variant="secondary">Đã hủy</Badge>
     default:

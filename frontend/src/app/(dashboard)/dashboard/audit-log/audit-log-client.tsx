@@ -184,7 +184,7 @@ export function AuditLogClient() {
                   <TableCell>
                     <Badge variant="outline" className={
                       log.hanhDong === 'CREATE' ? 'bg-green-50 text-green-700' :
-                      log.hanhDong === 'UPDATE' ? 'bg-blue-50 text-blue-700' :
+                      log.hanhDong === 'UPDATE' ? 'bg-[#4FA7A0]/10 text-[#243B5A]' :
                       log.hanhDong === 'DELETE' ? 'bg-red-50 text-red-700' : 'bg-gray-50'
                     }>
                       {log.hanhDong}
@@ -262,13 +262,13 @@ export function AuditLogClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">Dữ liệu cũ</h4>
-                  <pre className="bg-slate-950 text-slate-50 p-4 rounded-md text-xs overflow-auto max-h-[300px]">
+                  <pre className="bg-[#172A42] text-[#FFFDF8] p-4 rounded-md text-xs overflow-auto max-h-[300px]">
                     {formatJson(selectedLog.duLieuCu)}
                   </pre>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">Dữ liệu mới</h4>
-                  <pre className="bg-slate-950 text-slate-50 p-4 rounded-md text-xs overflow-auto max-h-[300px]">
+                  <pre className="bg-[#172A42] text-[#FFFDF8] p-4 rounded-md text-xs overflow-auto max-h-[300px]">
                     {formatJson(selectedLog.duLieuMoi)}
                   </pre>
                 </div>

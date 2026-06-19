@@ -121,13 +121,13 @@ function methodLabel(method: PhuongThucThanhToanDb | undefined) {
 function StatusBadge({ status }: { status?: TrangThaiThanhToan }) {
   switch (status) {
     case "SUCCESS":
-      return <Badge className="border-transparent bg-emerald-100 text-emerald-800">Đã thu</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#267D76]">Đã thu</Badge>
     case "PENDING":
       return <Badge className="border-transparent bg-amber-100 text-amber-800">Chờ xác nhận</Badge>
     case "FAILED":
       return <Badge className="border-transparent bg-red-100 text-red-800">Thất bại</Badge>
     case "REFUNDED":
-      return <Badge className="border-transparent bg-blue-100 text-blue-800">Đã hoàn</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#243B5A]">Đã hoàn</Badge>
     default:
       return <Badge variant="secondary">Đã hủy</Badge>
   }

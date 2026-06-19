@@ -73,7 +73,7 @@ export default function TenantContractsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -107,13 +107,13 @@ export default function TenantContractsPage() {
             <Card key={contract.id || contract._id} className="flex flex-col hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start mb-2">
-                  <div className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                  <div className="bg-[#4FA7A0]/10 text-[#243B5A] px-2 py-1 rounded text-xs font-semibold">
                     {contract.maHopDong}
                   </div>
                   {getStatusBadge(contract.trangThai as string)}
                 </div>
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <Home className="h-5 w-5 text-blue-600" />
+                  <Home className="h-5 w-5 text-[#243B5A]" />
                   {contract.phong?.maPhong || '---'}
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1 mt-1">

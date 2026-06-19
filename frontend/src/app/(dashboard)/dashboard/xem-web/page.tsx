@@ -298,20 +298,20 @@ export default function XemWebPage() {
       )}
 
       {/* Info Card */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-[#4FA7A0]/30 bg-[#4FA7A0]/10">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <div className="text-blue-600">
+            <div className="text-[#243B5A]">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="flex-1 space-y-2">
-              <h4 className="text-sm font-semibold text-blue-900">📌 Hướng dẫn sử dụng</h4>
-              <div className="text-sm text-blue-800 space-y-2">
+              <h4 className="text-sm font-semibold text-[#243B5A]">📌 Hướng dẫn sử dụng</h4>
+              <div className="text-sm text-[#243B5A] space-y-2">
                 <p>
-                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều trang web sử dụng <code className="bg-blue-100 px-1 rounded">X-Frame-Options</code> 
-                  hoặc <code className="bg-blue-100 px-1 rounded">Content-Security-Policy</code> để ngăn chặn việc nhúng vào iframe, 
+                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều trang web sử dụng <code className="bg-[#4FA7A0]/15 px-1 rounded">X-Frame-Options</code> 
+                  hoặc <code className="bg-[#4FA7A0]/15 px-1 rounded">Content-Security-Policy</code> để ngăn chặn việc nhúng vào iframe, 
                   bảo vệ người dùng khỏi các cuộc tấn công clickjacking.
                 </p>
                 <p>

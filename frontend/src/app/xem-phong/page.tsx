@@ -138,7 +138,7 @@ export default function XemPhongPage() {
   const getTrangThaiBadge = (trangThai: string) => {
     const variants = {
       trong: { variant: 'secondary' as const, label: 'Trống', color: 'text-green-600' },
-      daDat: { variant: 'outline' as const, label: 'Đã đặt', color: 'text-blue-600' },
+      daDat: { variant: 'outline' as const, label: 'Đã đặt', color: 'text-[#243B5A]' },
       dangThue: { variant: 'default' as const, label: 'Đang thuê', color: 'text-orange-600' },
       baoTri: { variant: 'destructive' as const, label: 'Bảo trì', color: 'text-red-600' },
     };
@@ -216,7 +216,7 @@ export default function XemPhongPage() {
               <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-cyan-700 bg-clip-text text-transparent">
                 Danh sách phòng cho thuê
               </h1>
-              <p className="text-xs md:text-sm text-slate-600">Tìm phòng phù hợp với nhu cầu của bạn</p>
+              <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
             </div>
             <Link href="/" className="w-full sm:w-auto">
               <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -247,7 +247,7 @@ export default function XemPhongPage() {
                     <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-indigo-700 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                       Tìm kiếm phòng
                     </h2>
-                    <p className="text-xs md:text-sm text-slate-500">Tìm phòng phù hợp với nhu cầu của bạn</p>
+                    <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
                   </div>
                 </div>
 
@@ -255,16 +255,16 @@ export default function XemPhongPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
                   {/* Search input */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                    <label className="block text-sm font-medium text-[#243B5A] mb-2">Tìm kiếm</label>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-300" />
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6B7A8C] group-focus-within:text-indigo-500 transition-colors duration-300" />
                         <Input
                           placeholder="Nhập mã phòng, mô tả..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
+                          className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
                         />
                       </div>
                     </div>
@@ -272,18 +272,18 @@ export default function XemPhongPage() {
 
                   {/* Building filter */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Tòa nhà</label>
+                    <label className="block text-sm font-medium text-[#243B5A] mb-2">Tòa nhà</label>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative">
                         <Select value={selectedToaNha} onValueChange={setSelectedToaNha}>
-                          <SelectTrigger className="h-12 text-sm border-0 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
+                          <SelectTrigger className="h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/25 focus:border-[#4FA7A0]/30 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
                             <SelectValue placeholder="Chọn tòa nhà" />
                           </SelectTrigger>
                           <SelectContent className="border-0 shadow-xl rounded-xl bg-white/95 backdrop-blur-md">
-                            <SelectItem value="all" className="text-sm hover:bg-slate-50">Tất cả tòa nhà</SelectItem>
+                            <SelectItem value="all" className="text-sm hover:bg-[#F8F3EC]">Tất cả tòa nhà</SelectItem>
                             {toaNhaList.map((toaNha) => (
-                              <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm hover:bg-slate-50">
+                              <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm hover:bg-[#F8F3EC]">
                                 {toaNha.tenToaNha}
                               </SelectItem>
                             ))}
@@ -295,28 +295,28 @@ export default function XemPhongPage() {
 
                   {/* Minimum price */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Giá từ</label>
-                    <Input type="number" min="0" placeholder="2.000.000" value={minGia} onChange={(e) => setMinGia(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
+                    <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá từ</label>
+                    <Input type="number" min="0" placeholder="2.000.000" value={minGia} onChange={(e) => setMinGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
                   </div>
 
                   {/* Maximum price */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Giá đến</label>
-                    <Input type="number" min="0" placeholder="5.000.000" value={maxGia} onChange={(e) => setMaxGia(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
+                    <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá đến</label>
+                    <Input type="number" min="0" placeholder="5.000.000" value={maxGia} onChange={(e) => setMaxGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
                   </div>
 
                   {/* Minimum area */}
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Diện tích từ (m2)</label>
-                    <Input type="number" min="0" placeholder="20" value={minDienTich} onChange={(e) => setMinDienTich(e.target.value)} className="h-12 rounded-xl bg-slate-50/50" />
+                    <label className="block text-sm font-medium text-[#243B5A] mb-2">Diện tích từ (m2)</label>
+                    <Input type="number" min="0" placeholder="20" value={minDienTich} onChange={(e) => setMinDienTich(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
                   </div>
                 </div>
 
                 {/* Results summary */}
-                <div className="mt-6 pt-6 border-t border-slate-200/50">
+                <div className="mt-6 pt-6 border-t border-[#E8DED2]/50">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-600">
-                      Hiển thị <span className="font-semibold text-slate-800">{filteredPhong.length}</span> trong <span className="font-semibold text-slate-800">{totalElements}</span> phòng trống phù hợp
+                    <p className="text-sm text-[#6B7A8C]">
+                      Hiển thị <span className="font-semibold text-[#243B5A]">{filteredPhong.length}</span> trong <span className="font-semibold text-[#243B5A]">{totalElements}</span> phòng trống phù hợp
                     </p>
                     {(searchTerm || selectedToaNha || minGia || maxGia || minDienTich) && (
                       <Button
@@ -329,7 +329,7 @@ export default function XemPhongPage() {
                           setMaxGia('');
                           setMinDienTich('');
                         }}
-                        className="text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                        className="text-xs text-[#6B7A8C] hover:text-[#243B5A] hover:bg-slate-100"
                       >
                         Xóa bộ lọc
                       </Button>
@@ -342,22 +342,22 @@ export default function XemPhongPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-8">
-          <Card className="p-4 border border-slate-200 bg-white shadow-sm">
+          <Card className="p-4 border border-[#E8DED2] bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500">Phòng trống phù hợp</p>
-                <p className="text-2xl font-bold text-slate-900">{totalElements}</p>
+                <p className="text-xs font-medium text-[#6B7A8C]">Phòng trống phù hợp</p>
+                <p className="text-2xl font-bold text-[#243B5A]">{totalElements}</p>
               </div>
-              <Home className="h-5 w-5 text-emerald-600" />
+              <Home className="h-5 w-5 text-[#267D76]" />
             </div>
           </Card>
-          <Card className="p-4 border border-slate-200 bg-white shadow-sm">
+          <Card className="p-4 border border-[#E8DED2] bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500">Tòa nhà đang hiển thị</p>
-                <p className="text-2xl font-bold text-slate-900">{selectedToaNha && selectedToaNha !== 'all' ? '1' : toaNhaList.length}</p>
+                <p className="text-xs font-medium text-[#6B7A8C]">Tòa nhà đang hiển thị</p>
+                <p className="text-2xl font-bold text-[#243B5A]">{selectedToaNha && selectedToaNha !== 'all' ? '1' : toaNhaList.length}</p>
               </div>
-              <MapPin className="h-5 w-5 text-slate-600" />
+              <MapPin className="h-5 w-5 text-[#6B7A8C]" />
             </div>
           </Card>
         </div>
@@ -475,7 +475,7 @@ export default function XemPhongPage() {
               <h3 className="text-base md:text-lg font-medium bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent mb-2">
                 Không tìm thấy phòng nào
               </h3>
-              <p className="text-xs md:text-sm text-slate-500 text-center">
+              <p className="text-xs md:text-sm text-[#6B7A8C] text-center">
                 Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
               </p>
             </CardContent>
@@ -487,7 +487,7 @@ export default function XemPhongPage() {
             <Button variant="outline" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
               Trang trước
             </Button>
-            <span className="text-sm text-slate-600">Trang {page} / {totalPages}</span>
+            <span className="text-sm text-[#6B7A8C]">Trang {page} / {totalPages}</span>
             <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)}>
               Trang sau
             </Button>

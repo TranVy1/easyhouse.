@@ -11,7 +11,7 @@ type MetricTone = "default" | "success" | "warning" | "danger"
 
 const metricTones: Record<MetricTone, string> = {
   default: "bg-indigo-50/50 border border-indigo-100/80 text-indigo-600 dark:bg-indigo-950/20 dark:border-indigo-900/40 dark:text-indigo-400",
-  success: "bg-emerald-50/50 border border-emerald-100/80 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-900/40 dark:text-emerald-400",
+  success: "bg-[#4FA7A0]/10 border border-[#4FA7A0]/20/80 text-[#267D76] dark:bg-[#4FA7A0]/20 dark:border-[#4FA7A0]/30 dark:text-[#8CCBC5]",
   warning: "bg-amber-50/50 border border-amber-100/80 text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/40 dark:text-amber-400",
   danger: "bg-red-50/50 border border-red-100/80 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-400",
 }
@@ -59,8 +59,8 @@ export function MetricCard({
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-            <p className="truncate text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">{value}</p>
+            <p className="text-sm font-medium text-[#6B7A8C] dark:text-[#6B7A8C]">{label}</p>
+            <p className="truncate text-2xl font-bold tracking-tight text-[#243B5A] dark:text-slate-50">{value}</p>
             <p className="text-xs text-muted-foreground">{hint}</p>
           </div>
           <div className={cn("rounded-2xl p-3 shadow-2xs transition-transform duration-300 group-hover:scale-110", metricTones[tone])}>
@@ -86,13 +86,13 @@ export function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex min-h-24 items-start gap-4 rounded-2xl border border-border/70 bg-card p-4 transition-all duration-300 hover:border-primary/25 hover:bg-slate-50/30 hover:shadow-md hover:-translate-y-0.5"
+      className="group flex min-h-24 items-start gap-4 rounded-2xl border border-border/70 bg-card p-4 transition-all duration-300 hover:border-primary/25 hover:bg-[#F8F3EC]/30 hover:shadow-md hover:-translate-y-0.5"
     >
       <div className="rounded-xl bg-primary/5 p-3 text-primary border border-primary/5 group-hover:bg-primary/10 group-hover:border-primary/10 transition-colors shadow-2xs">
         <Icon className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors">{title}</p>
+        <p className="text-sm font-semibold text-[#243B5A] dark:text-slate-100 group-hover:text-primary transition-colors">{title}</p>
         <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{description}</p>
       </div>
       <ArrowRight className="mt-1.5 size-4 text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />

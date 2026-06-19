@@ -152,7 +152,7 @@ export default function TenantIncidentsPage() {
       case 'PENDING':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Chờ xử lý</Badge>;
       case 'IN_PROGRESS':
-        return <Badge className="bg-blue-600">Đang xử lý</Badge>;
+        return <Badge className="bg-[#243B5A]">Đang xử lý</Badge>;
       case 'RESOLVED':
         return <Badge className="bg-green-600">Đã giải quyết</Badge>;
       case 'CANCELLED':
@@ -177,7 +177,7 @@ export default function TenantIncidentsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -337,11 +337,11 @@ export default function TenantIncidentsPage() {
                   </p>
 
                   {incident.ghiChuChuNha && (
-                    <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md">
-                      <p className="text-xs font-semibold text-blue-800 mb-1 flex items-center gap-1">
+                    <div className="mt-3 p-3 bg-[#4FA7A0]/10 border border-[#4FA7A0]/20 rounded-md">
+                      <p className="text-xs font-semibold text-[#243B5A] mb-1 flex items-center gap-1">
                         <Wrench className="h-3 w-3" /> Quản lý phản hồi:
                       </p>
-                      <p className="text-sm text-blue-900">{incident.ghiChuChuNha}</p>
+                      <p className="text-sm text-[#243B5A]">{incident.ghiChuChuNha}</p>
                     </div>
                   )}
                   

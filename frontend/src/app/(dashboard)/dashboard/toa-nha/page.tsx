@@ -83,16 +83,16 @@ function KpiCard({
           <p className="text-xs font-medium text-muted-foreground">{title}</p>
           <p className={cn(
             'mt-1 text-2xl font-semibold tracking-normal',
-            tone === 'emerald' && 'text-emerald-600',
-            tone === 'blue' && 'text-blue-600'
+            tone === 'emerald' && 'text-[#267D76]',
+            tone === 'blue' && 'text-[#243B5A]'
           )}>
             {value}
           </p>
         </div>
         <div className={cn(
           'rounded-md border bg-muted p-2 text-muted-foreground',
-          tone === 'emerald' && 'border-emerald-200 bg-emerald-50 text-emerald-700',
-          tone === 'blue' && 'border-blue-200 bg-blue-50 text-blue-700'
+          tone === 'emerald' && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#267D76]',
+          tone === 'blue' && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A]'
         )}>
           {icon}
         </div>
@@ -349,9 +349,9 @@ export default function ToaNhaPage() {
                   <div className="rounded-lg border p-3 text-sm">
                     <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                       <div className="rounded-md bg-muted/40 p-2">Tổng dòng: <b>{importPreview.tongDong}</b></div>
-                      <div className="rounded-md bg-emerald-50 p-2 text-emerald-800">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
+                      <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#267D76]">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
                       <div className="rounded-md bg-red-50 p-2 text-red-700">Lỗi: <b>{importPreview.dongLoi}</b></div>
-                      <div className="rounded-md bg-blue-50 p-2 text-blue-800">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
+                      <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#243B5A]">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
                     </div>
                     {importPreview.rows?.some(row => !row.hopLe) && (
                       <div className="mt-3 max-h-40 overflow-auto rounded border">
@@ -498,7 +498,7 @@ export default function ToaNhaPage() {
                         <span className="font-medium">{tyLeToa}%</span>
                       </div>
                       <div className="mb-3 h-2 overflow-hidden rounded-full bg-background">
-                        <div className="h-full rounded-full bg-blue-500" style={{ width: `${tyLeToa}%` }} />
+                        <div className="h-full rounded-full bg-[#4FA7A0]" style={{ width: `${tyLeToa}%` }} />
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                       <div className="text-center">
@@ -507,11 +507,11 @@ export default function ToaNhaPage() {
                       </div>
                       <div className="text-center border-x border-gray-200">
                         <div className="text-xs text-gray-600">Trống</div>
-                        <div className="text-sm font-semibold text-emerald-600">{phongTrong}</div>
+                        <div className="text-sm font-semibold text-[#267D76]">{phongTrong}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xs text-gray-600">Thuê</div>
-                        <div className="text-sm font-semibold text-blue-600">{phongDangThue}</div>
+                        <div className="text-sm font-semibold text-[#243B5A]">{phongDangThue}</div>
                       </div>
                       </div>
                     </div>
@@ -544,7 +544,7 @@ export default function ToaNhaPage() {
                             navigator.clipboard.writeText(publicUrl);
                             toast.success('Đã sao chép link trang xem phòng');
                           }}
-                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          className="text-[#267D76] hover:text-[#267D76] hover:bg-[#4FA7A0]/10"
                           title="Sao chép liên kết trang xem phòng"
                         >
                           <Copy className="h-3.5 w-3.5" />

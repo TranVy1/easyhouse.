@@ -51,7 +51,7 @@ function KhachThueDangNhapContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto w-16 h-16 bg-[#243B5A] rounded-full flex items-center justify-center">
             <Home className="h-8 w-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold">Đăng nhập Khách thuê</CardTitle>

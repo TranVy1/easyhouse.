@@ -671,7 +671,7 @@ export default function ThemMoiHopDongPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+              <div className="rounded-md border border-[#4FA7A0]/30 bg-[#4FA7A0]/10 px-3 py-2 text-xs text-[#243B5A]">
                 Chọn người đại diện đứng tên hợp đồng trước. Danh sách bên dưới chỉ dùng để thêm bạn cùng phòng, không thay thế người đại diện.
               </div>
               <Label className="text-xs md:text-sm">Bạn cùng phòng / thành viên ở cùng</Label>

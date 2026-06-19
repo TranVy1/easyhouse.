@@ -445,7 +445,7 @@ export default function PhongPage() {
                     </div>
                     <div className="flex flex-col text-right">
                       <span className="text-gray-400">Đang thuê:</span>
-                      <span className="font-semibold text-blue-600">{toaNha.phongDangThue ?? 0} phòng</span>
+                      <span className="font-semibold text-[#243B5A]">{toaNha.phongDangThue ?? 0} phòng</span>
                     </div>
                   </div>
                 </div>
@@ -463,7 +463,7 @@ export default function PhongPage() {
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng số phòng</p>
               <p className="text-lg md:text-xl font-bold">{totalElements}</p>
             </div>
-            <Home className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            <Home className="h-4 w-4 md:h-5 md:w-5 text-[#4FA7A0]" />
           </div>
         </Card>
 
@@ -483,11 +483,11 @@ export default function PhongPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang thuê</p>
-              <p className="text-lg md:text-xl font-bold text-blue-600">
+              <p className="text-lg md:text-xl font-bold text-[#243B5A]">
                 {phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length}
               </p>
             </div>
-            <Users className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            <Users className="h-4 w-4 md:h-5 md:w-5 text-[#4FA7A0]" />
           </div>
         </Card>
 
@@ -582,7 +582,7 @@ export default function PhongPage() {
                   case 'daDat':
                   case 'RESERVED': return 'bg-yellow-100 text-yellow-800';
                   case 'dangThue':
-                  case 'RENTED': return 'bg-blue-100 text-blue-800';
+                  case 'RENTED': return 'bg-[#4FA7A0]/15 text-[#243B5A]';
                   case 'baoTri':
                   case 'MAINTENANCE':
                   case 'INACTIVE': return 'bg-red-100 text-red-800';
@@ -654,10 +654,10 @@ export default function PhongPage() {
                         const soLuongKhachThue = hopDong.khachThueId.length;
 
                         return (
-                          <div className="mb-3 p-2 bg-blue-50 rounded-md border border-blue-200">
+                          <div className="mb-3 p-2 bg-[#4FA7A0]/10 rounded-md border border-[#4FA7A0]/30">
                             <div className="flex items-center gap-1.5 mb-1">
-                              <Users className="h-3.5 w-3.5 text-blue-600" />
-                              <span className="text-xs font-medium text-blue-900">Người thuê</span>
+                              <Users className="h-3.5 w-3.5 text-[#243B5A]" />
+                              <span className="text-xs font-medium text-[#243B5A]">Người thuê</span>
                             </div>
                             <div className="text-sm text-gray-900 font-medium">
                               {nguoiDaiDien?.hoTen || 'N/A'}
@@ -671,7 +671,7 @@ export default function PhongPage() {
                               <Button
                                 variant="link"
                                 size="sm"
-                                className="text-xs text-blue-600 hover:text-blue-700 h-auto p-0 mt-0.5"
+                                className="text-xs text-[#243B5A] hover:text-[#243B5A] h-auto p-0 mt-0.5"
                                 onClick={() => handleViewTenants(phong)}
                               >
                                 +{soLuongKhachThue - 1} người khác
@@ -709,7 +709,7 @@ export default function PhongPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleViewImages(phong)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-[#243B5A] hover:text-[#243B5A] hover:bg-[#4FA7A0]/10"
                             title="Xem ảnh phòng"
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -723,7 +723,7 @@ export default function PhongPage() {
                             navigator.clipboard.writeText(publicUrl);
                             toast.success(`Đã sao chép link xem phòng ${phong.maPhong}`);
                           }}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="text-[#243B5A] hover:text-[#243B5A] hover:bg-[#4FA7A0]/10"
                           title="Sao chép link xem phòng"
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -832,8 +832,8 @@ export default function PhongPage() {
                 <CardContent className="p-3 md:p-4">
                   <div className="flex items-start gap-3 md:gap-4">
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Users className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#4FA7A0]/15 flex items-center justify-center">
+                        <Users className="h-5 w-5 md:h-6 md:w-6 text-[#243B5A]" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">

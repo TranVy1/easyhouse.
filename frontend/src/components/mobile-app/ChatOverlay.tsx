@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useRef, useEffect } from "react";
 import { X, Send, Mic, Bot, User } from "lucide-react";
 
@@ -60,22 +60,22 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
         style={{ height: "85%" }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-[#E8DED2]">
+          <div className="w-10 h-10 bg-[#243B5A] rounded-full flex items-center justify-center">
             <Bot size={20} className="text-white" />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-slate-900 text-sm">EasyHouse AI</p>
+            <p className="font-semibold text-[#243B5A] text-sm">EasyHouse AI</p>
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-              <p className="text-xs text-slate-500">LuÃ´n sáºµn sÃ ng há»— trá»£</p>
+              <p className="text-xs text-[#6B7A8C]">LuÃ´n sáºµn sÃ ng há»— trá»£</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center active:bg-slate-200 transition-colors"
           >
-            <X size={16} className="text-slate-600" />
+            <X size={16} className="text-[#6B7A8C]" />
           </button>
         </div>
 
@@ -87,19 +87,19 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
               className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
               {msg.role === "bot" ? (
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                  <Bot size={14} className="text-blue-600" />
+                <div className="w-8 h-8 bg-[#4FA7A0]/15 rounded-full flex items-center justify-center shrink-0">
+                  <Bot size={14} className="text-[#243B5A]" />
                 </div>
               ) : (
                 <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center shrink-0">
-                  <User size={14} className="text-slate-600" />
+                  <User size={14} className="text-[#6B7A8C]" />
                 </div>
               )}
               <div
                 className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
                   msg.role === "bot"
-                    ? "bg-[#F1F5F9] text-slate-800 rounded-tl-sm"
-                    : "bg-blue-600 text-white rounded-tr-sm"
+                    ? "bg-[#F1F5F9] text-[#243B5A] rounded-tl-sm"
+                    : "bg-[#243B5A] text-white rounded-tr-sm"
                 }`}
               >
                 {msg.text}
@@ -110,12 +110,12 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
         </div>
 
         {/* Quick replies */}
-        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-none border-t border-slate-100">
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-none border-t border-[#E8DED2]">
           {quickReplies.map((q) => (
             <button
               key={q}
               onClick={() => sendMessage(q)}
-              className="shrink-0 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2 rounded-full active:bg-blue-100 transition-colors"
+              className="shrink-0 text-xs bg-[#4FA7A0]/10 text-[#243B5A] border border-[#4FA7A0]/30 px-3 py-2 rounded-full active:bg-[#4FA7A0]/15 transition-colors"
             >
               {q}
             </button>
@@ -123,7 +123,7 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
         </div>
 
         {/* Input */}
-        <div className="px-4 py-3 pb-8 flex items-center gap-2 border-t border-slate-100 bg-white">
+        <div className="px-4 py-3 pb-8 flex items-center gap-2 border-t border-[#E8DED2] bg-white">
           <div className="flex-1 flex items-center gap-2 bg-[#F1F5F9] rounded-2xl px-4 py-3">
             <input
               type="text"
@@ -131,15 +131,15 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
               placeholder="Nháº­p cÃ¢u há»i..."
-              className="flex-1 bg-transparent outline-none text-sm text-slate-700 placeholder:text-slate-400"
+              className="flex-1 bg-transparent outline-none text-sm text-[#243B5A] placeholder:text-[#6B7A8C]"
             />
-            <button className="text-slate-400 active:text-blue-500 transition-colors">
+            <button className="text-[#6B7A8C] active:text-[#4FA7A0] transition-colors">
               <Mic size={18} />
             </button>
           </div>
           <button
             onClick={() => sendMessage(input)}
-            className="w-11 h-11 bg-blue-600 rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+            className="w-11 h-11 bg-[#243B5A] rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
           >
             <Send size={16} className="text-white" />
           </button>

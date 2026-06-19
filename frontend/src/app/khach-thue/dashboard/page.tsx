@@ -13,7 +13,7 @@ export default function KhachThueDashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function KhachThueDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg">
                   <div className="bg-white p-2 rounded-md shadow-sm">
-                    <Home className="h-5 w-5 text-blue-600" />
+                    <Home className="h-5 w-5 text-[#243B5A]" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Mã phòng</p>
@@ -135,7 +135,7 @@ export default function KhachThueDashboardPage() {
                 </div>
                 <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg">
                   <div className="bg-white p-2 rounded-md shadow-sm">
-                    <MapPin className="h-5 w-5 text-blue-600" />
+                    <MapPin className="h-5 w-5 text-[#243B5A]" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Địa chỉ</p>
@@ -171,7 +171,7 @@ export default function KhachThueDashboardPage() {
                 </div>
                 <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg">
                   <div className="bg-white p-2 rounded-md shadow-sm">
-                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <Calendar className="h-5 w-5 text-[#243B5A]" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Thời hạn</p>
@@ -233,7 +233,7 @@ export default function KhachThueDashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium uppercase">Tổng tiền</p>
-                <p className="font-bold text-blue-700 text-lg mt-1">{formatCurrency(hoaDonGanNhat.tongTien)}</p>
+                <p className="font-bold text-[#243B5A] text-lg mt-1">{formatCurrency(hoaDonGanNhat.tongTien)}</p>
               </div>
               <div className="flex items-center justify-start md:justify-end">
                 {hoaDonGanNhat.trangThai === 'daThanhToan' ? (
@@ -265,9 +265,9 @@ export default function KhachThueDashboardPage() {
 
       {/* Thông tin liên hệ */}
       {lienHe ? (
-        <Card className="border-blue-100 shadow-sm">
-          <CardHeader className="bg-blue-50/50 pb-4 border-b border-blue-50">
-            <CardTitle className="text-blue-900 flex items-center gap-2">
+        <Card className="border-[#4FA7A0]/20 shadow-sm">
+          <CardHeader className="bg-[#4FA7A0]/10 pb-4 border-b border-[#4FA7A0]/20">
+            <CardTitle className="text-[#243B5A] flex items-center gap-2">
               <Phone className="h-5 w-5" />
               Thông tin hỗ trợ
             </CardTitle>
@@ -278,7 +278,7 @@ export default function KhachThueDashboardPage() {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-4 bg-white border rounded-xl p-4 shadow-sm">
-                <div className="bg-blue-100 p-3 rounded-full text-blue-600">
+                <div className="bg-[#4FA7A0]/15 p-3 rounded-full text-[#243B5A]">
                   <User className="h-6 w-6" />
                 </div>
                 <div>
@@ -287,7 +287,7 @@ export default function KhachThueDashboardPage() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 bg-white border rounded-xl p-4 shadow-sm hover:border-blue-300 transition-colors cursor-pointer" onClick={() => window.location.href = `tel:${lienHe.soDienThoai}`}>
+              <div className="flex items-center gap-4 bg-white border rounded-xl p-4 shadow-sm hover:border-[#4FA7A0]/45 transition-colors cursor-pointer" onClick={() => window.location.href = `tel:${lienHe.soDienThoai}`}>
                 <div className="bg-green-100 p-3 rounded-full text-green-600">
                   <Phone className="h-6 w-6" />
                 </div>
@@ -299,7 +299,7 @@ export default function KhachThueDashboardPage() {
 
               {lienHe.email && (
                 <div className="flex items-center gap-4 bg-white border rounded-xl p-4 shadow-sm md:col-span-2">
-                  <div className="bg-purple-100 p-3 rounded-full text-purple-600">
+                  <div className="bg-[#F2A45B]/15 p-3 rounded-full text-[#9A5A1B]">
                     <Mail className="h-6 w-6" />
                   </div>
                   <div>

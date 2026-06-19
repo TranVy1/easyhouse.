@@ -121,7 +121,7 @@ export default function TenantNotificationsPage() {
     switch (type) {
       case 'hoaDon':
       case 'INVOICE':
-        return <FileText className="h-5 w-5 text-blue-500" />;
+        return <FileText className="h-5 w-5 text-[#4FA7A0]" />;
       case 'thanhToan':
       case 'PAYMENT':
         return <Banknote className="h-5 w-5 text-green-500" />;
@@ -130,7 +130,7 @@ export default function TenantNotificationsPage() {
         return <AlertTriangle className="h-5 w-5 text-orange-500" />;
       case 'hopDong':
       case 'CONTRACT':
-        return <FileText className="h-5 w-5 text-purple-500" />;
+        return <FileText className="h-5 w-5 text-[#F2A45B]" />;
       default:
         return <Info className="h-5 w-5 text-gray-500" />;
     }
@@ -139,7 +139,7 @@ export default function TenantNotificationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }
@@ -186,10 +186,10 @@ export default function TenantNotificationsPage() {
               return (
                 <div 
                   key={id as string} 
-                  className={`p-4 md:p-5 flex gap-4 transition-colors ${read ? 'bg-white' : 'bg-blue-50/50 hover:bg-blue-50'} cursor-pointer`}
+                  className={`p-4 md:p-5 flex gap-4 transition-colors ${read ? 'bg-white' : 'bg-[#4FA7A0]/10 hover:bg-[#4FA7A0]/10'} cursor-pointer`}
                   onClick={() => !read && markAsRead(id as string)}
                 >
-                  <div className={`mt-1 shrink-0 bg-white p-2 rounded-full border ${!read ? 'border-blue-200 shadow-sm' : 'border-gray-100'}`}>
+                  <div className={`mt-1 shrink-0 bg-white p-2 rounded-full border ${!read ? 'border-[#4FA7A0]/30 shadow-sm' : 'border-gray-100'}`}>
                     {getIcon(notification.loai as string)}
                   </div>
                   
@@ -199,7 +199,7 @@ export default function TenantNotificationsPage() {
                         {notification.tieuDe}
                       </h4>
                       {!read && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0 mt-1.5 hidden md:block"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#243B5A] shrink-0 mt-1.5 hidden md:block"></span>
                       )}
                     </div>
                     

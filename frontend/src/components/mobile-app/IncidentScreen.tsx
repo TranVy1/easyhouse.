@@ -11,7 +11,7 @@ const statusMeta: Record<string, { label: string; color: string; icon: React.Rea
   },
   in_progress: {
     label: "Đang xử lý",
-    color: "bg-blue-100 text-blue-700",
+    color: "bg-[#4FA7A0]/15 text-[#243B5A]",
     icon: <Clock size={12} />,
   },
   resolved: {
@@ -80,7 +80,7 @@ export function IncidentScreen() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center gap-2.5 text-slate-400">
+      <div className="flex h-full items-center justify-center gap-2.5 text-[#6B7A8C]">
         <RefreshCw size={18} className="animate-spin text-indigo-500" />
         <span className="text-sm font-medium">Đang tải sự cố...</span>
       </div>
@@ -91,7 +91,7 @@ export function IncidentScreen() {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-4 px-8 text-center">
         <AlertCircle size={36} className="text-red-400" />
-        <p className="text-sm text-slate-600 font-medium">{fetchError}</p>
+        <p className="text-sm text-[#6B7A8C] font-medium">{fetchError}</p>
         <button onClick={fetchIncidents}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl cursor-pointer">
           <RefreshCw size={14} /> Thử lại
@@ -114,11 +114,11 @@ export function IncidentScreen() {
 
       {/* Tabs */}
       <div className="px-4 -mt-3 relative z-10">
-        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
+        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-[#E8DED2]">
           <button
             onClick={() => setActiveTab("list")}
             className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-              activeTab === "list" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+              activeTab === "list" ? "bg-indigo-600 text-white shadow-sm" : "text-[#6B7A8C] hover:text-[#243B5A]"
             }`}
           >
             Yêu cầu của tôi
@@ -126,7 +126,7 @@ export function IncidentScreen() {
           <button
             onClick={() => setActiveTab("new")}
             className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-              activeTab === "new" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+              activeTab === "new" ? "bg-indigo-600 text-white shadow-sm" : "text-[#6B7A8C] hover:text-[#243B5A]"
             }`}
           >
             <Plus size={14} />
@@ -150,8 +150,8 @@ export function IncidentScreen() {
                 onClick={() => setFilterStatus(f.key)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   filterStatus === f.key
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-slate-600 border border-slate-200"
+                    ? "bg-[#243B5A] text-white"
+                    : "bg-white text-[#6B7A8C] border border-[#E8DED2]"
                 }`}
               >
                 {f.label}
@@ -164,7 +164,7 @@ export function IncidentScreen() {
             return (
               <div key={ticket.id} className="bg-white rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-slate-900 font-semibold text-sm leading-snug flex-1">
+                  <h3 className="text-[#243B5A] font-semibold text-sm leading-snug flex-1">
                     {ticket.title}
                   </h3>
                   <span className={`flex items-center gap-1 shrink-0 text-xs px-2 py-1 rounded-full font-semibold ${meta.color}`}>
@@ -172,8 +172,8 @@ export function IncidentScreen() {
                     {meta.label}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">{ticket.date}</p>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">{ticket.desc}</p>
+                <p className="text-xs text-[#6B7A8C] mt-1">{ticket.date}</p>
+                <p className="text-sm text-[#6B7A8C] mt-2 leading-relaxed">{ticket.desc}</p>
               </div>
             );
           })}
@@ -181,7 +181,7 @@ export function IncidentScreen() {
           {filteredTickets.length === 0 && (
             <div className="text-center py-12">
               <AlertCircle size={40} className="text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">Không có yêu cầu nào</p>
+              <p className="text-[#6B7A8C] text-sm">Không có yêu cầu nào</p>
             </div>
           )}
         </div>
@@ -190,7 +190,7 @@ export function IncidentScreen() {
           {/* Form */}
           <div className="bg-white rounded-2xl p-4 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[#243B5A] mb-1.5">
                 Tiêu đề sự cố <span className="text-red-500">*</span>
               </label>
               <input
@@ -198,11 +198,11 @@ export function IncidentScreen() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="VD: Máy lạnh bị hỏng, Rò rỉ nước..."
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+                className="w-full bg-[#F8F3EC] border border-[#E8DED2] rounded-xl px-4 py-3 text-sm text-[#243B5A] outline-none focus:border-[#4FA7A0] focus:ring-2 focus:ring-[#4FA7A0]/20 transition-all placeholder:text-[#6B7A8C]"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[#243B5A] mb-1.5">
                 Mô tả chi tiết
               </label>
               <textarea
@@ -210,14 +210,14 @@ export function IncidentScreen() {
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Mô tả vấn đề để chủ nhà có thể hiểu và hỗ trợ nhanh hơn..."
                 rows={4}
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400 resize-none"
+                className="w-full bg-[#F8F3EC] border border-[#E8DED2] rounded-xl px-4 py-3 text-sm text-[#243B5A] outline-none focus:border-[#4FA7A0] focus:ring-2 focus:ring-[#4FA7A0]/20 transition-all placeholder:text-[#6B7A8C] resize-none"
               />
             </div>
           </div>
 
           {/* Image Upload */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <label className="block text-sm font-semibold text-slate-700 mb-3">
+            <label className="block text-sm font-semibold text-[#243B5A] mb-3">
               Ảnh đính kèm
             </label>
             <button
@@ -230,11 +230,11 @@ export function IncidentScreen() {
                   setImages((prev) => [...prev, demoImages[prev.length % demoImages.length]]);
                 }
               }}
-              className="w-full border-2 border-dashed border-blue-200 rounded-2xl py-8 flex flex-col items-center gap-2 text-blue-500 active:bg-blue-50 transition-colors"
+              className="w-full border-2 border-dashed border-[#4FA7A0]/30 rounded-2xl py-8 flex flex-col items-center gap-2 text-[#4FA7A0] active:bg-[#4FA7A0]/10 transition-colors"
             >
               <Camera size={32} />
               <span className="text-sm font-medium">Chụp ảnh hoặc chọn từ thư viện</span>
-              <span className="text-xs text-slate-400">Tối đa 4 ảnh</span>
+              <span className="text-xs text-[#6B7A8C]">Tối đa 4 ảnh</span>
             </button>
 
             {images.length > 0 && (
@@ -262,7 +262,7 @@ export function IncidentScreen() {
 
       {/* Sticky Submit Button */}
       {activeTab === "new" && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm bg-white border-t border-slate-100 px-4 py-4 pb-8 z-10" style={{ transform: "translate(-50%, 0)", left: "auto", position: "absolute" }}>
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm bg-white border-t border-[#E8DED2] px-4 py-4 pb-8 z-10" style={{ transform: "translate(-50%, 0)", left: "auto", position: "absolute" }}>
           <button
             onClick={handleSubmit}
             disabled={!title.trim() || submitted}
@@ -270,7 +270,7 @@ export function IncidentScreen() {
               submitted
                 ? "bg-green-500"
                 : title.trim()
-                ? "bg-blue-600 shadow-md active:scale-95"
+                ? "bg-[#243B5A] shadow-md active:scale-95"
                 : "bg-slate-300"
             }`}
           >

@@ -440,7 +440,7 @@ export default function ThemMoiHoaDonPage() {
                       </Button>
                     </div>
                     {formData.maHoaDon && (
-                      <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded">
                         💡 Mã hóa đơn sẽ được tự động sinh nếu để trống
                       </div>
                     )}
@@ -448,7 +448,7 @@ export default function ThemMoiHoaDonPage() {
                   
                   <div className="space-y-1">
                     <Label htmlFor="hopDong" className="text-xs md:text-sm">Hợp đồng *</Label>
-                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                    <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded mb-1">
                       {hopDongList.filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE').length} hợp đồng hoạt động
                     </div>
                     <Select value={formData.hopDong} onValueChange={(value) => setFormData(prev => ({ ...prev, hopDong: value }))}>
@@ -492,7 +492,7 @@ export default function ThemMoiHoaDonPage() {
                                 >
                                   <div className="flex flex-col gap-1 py-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-blue-700">{hopDong.maHopDong}</span>
+                                      <span className="font-semibold text-[#243B5A]">{hopDong.maHopDong}</span>
                                       <span className="text-gray-400">•</span>
                                       <span className="text-sm font-medium text-gray-700">Phòng {phongName}</span>
                                       {toaNhaName !== 'N/A' && (
@@ -625,7 +625,7 @@ export default function ThemMoiHoaDonPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-semibold">⚡💧 Chỉ số điện & nước</h3>
                   {readingSource && (
-                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded">
                       {readingSource.isFirstInvoice 
                         ? "📋 Từ hợp đồng"
                         : `📄 Từ hóa đơn ${readingSource.lastInvoiceMonth}`
@@ -701,7 +701,7 @@ export default function ThemMoiHoaDonPage() {
                             <span className={`font-medium ${
                               formData.soDien < 0 ? 'text-red-600' : 
                               formData.soDien === 0 ? 'text-gray-500' : 
-                              'text-blue-600'
+                              'text-[#243B5A]'
                             }`}>
                               {formData.soDien}
                             </span>
@@ -731,7 +731,7 @@ export default function ThemMoiHoaDonPage() {
                       <tr>
                         <td className="border border-gray-200 px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Droplets className="h-4 w-4 text-blue-500" />
+                            <Droplets className="h-4 w-4 text-[#4FA7A0]" />
                             <span className="font-medium">Nước</span>
                           </div>
                         </td>
@@ -781,7 +781,7 @@ export default function ThemMoiHoaDonPage() {
                             <span className={`font-medium ${
                               formData.soNuoc < 0 ? 'text-red-600' : 
                               formData.soNuoc === 0 ? 'text-gray-500' : 
-                              'text-blue-600'
+                              'text-[#243B5A]'
                             }`}>
                               {formData.soNuoc}
                             </span>
@@ -818,7 +818,7 @@ export default function ThemMoiHoaDonPage() {
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-gray-600 mb-1">Tổng tiền nước</div>
-                    <div className="text-lg font-bold text-blue-600">{formData.tienNuoc.toLocaleString('vi-VN')} VNĐ</div>
+                    <div className="text-lg font-bold text-[#243B5A]">{formData.tienNuoc.toLocaleString('vi-VN')} VNĐ</div>
                   </div>
                 </div>
               </TabsContent>
@@ -832,7 +832,7 @@ export default function ThemMoiHoaDonPage() {
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
                         <span className="text-sm font-medium">{phi.ten}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-blue-600 font-medium">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
+                          <span className="text-sm text-[#243B5A] font-medium">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
                           <Button
                             type="button"
                             variant="outline"

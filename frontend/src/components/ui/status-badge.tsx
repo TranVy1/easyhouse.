@@ -1,6 +1,6 @@
 /**
- * Shared StatusBadge component — dùng chung cho Dashboard và Mobile App.
- * Map từ backend enum strings → label tiếng Việt + màu sắc.
+ * Shared StatusBadge component - dung chung cho Dashboard va Mobile App.
+ * Map tu backend enum strings -> label tieng Viet + mau sac EasyHouse.
  */
 
 interface BadgeConfig {
@@ -8,42 +8,51 @@ interface BadgeConfig {
   cls: string;
 }
 
+const badgeTone = {
+  success: 'bg-[#4FA7A0]/10 text-[#267D76] border-[#4FA7A0]/25',
+  neutral: 'bg-[#F8F3EC] text-[#6B7A8C] border-[#E8DED2]',
+  warning: 'bg-[#F2A45B]/15 text-[#9A5A1B] border-[#F2A45B]/30',
+  danger: 'bg-[#C75345]/10 text-[#A13C33] border-[#C75345]/25',
+  dangerStrong: 'bg-[#C75345]/15 text-[#8F3028] border-[#C75345]/30',
+  info: 'bg-[#243B5A]/10 text-[#243B5A] border-[#243B5A]/20',
+};
+
 const STATUS_MAP: Record<string, BadgeConfig> = {
-  // ── Hợp đồng ──────────────────────────────────────────────
-  ACTIVE:      { label: 'Đang hiệu lực',    cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  hoatDong:    { label: 'Đang hiệu lực',    cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  DRAFT:       { label: 'Nháp',             cls: 'bg-slate-50  text-slate-600   border-slate-200' },
-  nhap:        { label: 'Nháp',             cls: 'bg-slate-50  text-slate-600   border-slate-200' },
-  PENDING:     { label: 'Chờ kích hoạt',    cls: 'bg-amber-50  text-amber-700   border-amber-200' },
-  choKichHoat: { label: 'Chờ kích hoạt',    cls: 'bg-amber-50  text-amber-700   border-amber-200' },
-  EXPIRED:     { label: 'Hết hạn',          cls: 'bg-red-50   text-red-700     border-red-200' },
-  hetHan:      { label: 'Hết hạn',          cls: 'bg-red-50   text-red-700     border-red-200' },
-  TERMINATED:  { label: 'Đã kết thúc',      cls: 'bg-slate-50  text-slate-600   border-slate-200' },
-  daKetThuc:   { label: 'Đã kết thúc',      cls: 'bg-slate-50  text-slate-600   border-slate-200' },
-  CANCELLED:   { label: 'Đã hủy',           cls: 'bg-red-50   text-red-700     border-red-200' },
-  daHuy:       { label: 'Đã hủy',           cls: 'bg-red-50   text-red-700     border-red-200' },
+  // Hop dong
+  ACTIVE:      { label: 'Đang hiệu lực',    cls: badgeTone.success },
+  hoatDong:    { label: 'Đang hiệu lực',    cls: badgeTone.success },
+  DRAFT:       { label: 'Nháp',             cls: badgeTone.neutral },
+  nhap:        { label: 'Nháp',             cls: badgeTone.neutral },
+  PENDING:     { label: 'Chờ kích hoạt',    cls: badgeTone.warning },
+  choKichHoat: { label: 'Chờ kích hoạt',    cls: badgeTone.warning },
+  EXPIRED:     { label: 'Hết hạn',          cls: badgeTone.danger },
+  hetHan:      { label: 'Hết hạn',          cls: badgeTone.danger },
+  TERMINATED:  { label: 'Đã kết thúc',      cls: badgeTone.neutral },
+  daKetThuc:   { label: 'Đã kết thúc',      cls: badgeTone.neutral },
+  CANCELLED:   { label: 'Đã hủy',           cls: badgeTone.danger },
+  daHuy:       { label: 'Đã hủy',           cls: badgeTone.danger },
 
-  // ── Hóa đơn ───────────────────────────────────────────────
-  UNPAID:      { label: 'Chưa thanh toán',        cls: 'bg-red-50   text-red-700    border-red-200' },
-  PARTIAL:     { label: 'Thanh toán một phần',     cls: 'bg-amber-50 text-amber-700  border-amber-200' },
-  PAID:        { label: 'Đã thanh toán',           cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  OVERDUE:     { label: 'Quá hạn',                 cls: 'bg-red-100  text-red-800    border-red-300' },
-  OVERPAID:    { label: 'Thanh toán dư',            cls: 'bg-blue-50  text-blue-700   border-blue-200' },
+  // Hoa don
+  UNPAID:      { label: 'Chưa thanh toán',        cls: badgeTone.danger },
+  PARTIAL:     { label: 'Thanh toán một phần',    cls: badgeTone.warning },
+  PAID:        { label: 'Đã thanh toán',          cls: badgeTone.success },
+  OVERDUE:     { label: 'Quá hạn',                cls: badgeTone.dangerStrong },
+  OVERPAID:    { label: 'Thanh toán dư',          cls: badgeTone.info },
 
-  // ── Sự cố ─────────────────────────────────────────────────
-  IN_PROGRESS: { label: 'Đang xử lý',      cls: 'bg-blue-50  text-blue-700   border-blue-200' },
-  RESOLVED:    { label: 'Đã xử lý',        cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  CLOSED:      { label: 'Đã đóng',         cls: 'bg-slate-50  text-slate-600  border-slate-200' },
+  // Su co
+  IN_PROGRESS: { label: 'Đang xử lý',      cls: badgeTone.info },
+  RESOLVED:    { label: 'Đã xử lý',        cls: badgeTone.success },
+  CLOSED:      { label: 'Đã đóng',         cls: badgeTone.neutral },
 
-  // ── Phòng ─────────────────────────────────────────────────
-  AVAILABLE:   { label: 'Còn trống',        cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  RENTED:      { label: 'Đang thuê',        cls: 'bg-blue-50  text-blue-700   border-blue-200' },
-  MAINTENANCE: { label: 'Bảo trì',          cls: 'bg-amber-50 text-amber-700  border-amber-200' },
-  RESERVED:    { label: 'Đã đặt',           cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+  // Phong
+  AVAILABLE:   { label: 'Còn trống',       cls: badgeTone.success },
+  RENTED:      { label: 'Đang thuê',       cls: badgeTone.info },
+  MAINTENANCE: { label: 'Bảo trì',         cls: badgeTone.warning },
+  RESERVED:    { label: 'Đã đặt',          cls: badgeTone.warning },
 
-  // ── Người dùng ─────────────────────────────────────────────
-  INACTIVE:    { label: 'Chưa kích hoạt',   cls: 'bg-slate-50  text-slate-500  border-slate-200' },
-  BANNED:      { label: 'Bị khóa',          cls: 'bg-red-50   text-red-700    border-red-200' },
+  // Nguoi dung
+  INACTIVE:    { label: 'Chưa kích hoạt',  cls: badgeTone.neutral },
+  BANNED:      { label: 'Bị khóa',         cls: badgeTone.danger },
 };
 
 interface StatusBadgeProps {
@@ -56,7 +65,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, label, size = 'xs' }: StatusBadgeProps) {
   const config = STATUS_MAP[status] ?? {
     label: label || status,
-    cls: 'bg-slate-100 text-slate-600 border-slate-200',
+    cls: badgeTone.neutral,
   };
 
   const textSize = size === 'xs' ? 'text-[10px]' : 'text-xs';

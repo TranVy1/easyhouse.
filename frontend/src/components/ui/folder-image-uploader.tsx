@@ -363,7 +363,7 @@ export function FolderImageUploader({
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <FolderOpen className="h-5 w-5 text-blue-600" />
+            <FolderOpen className="h-5 w-5 text-[#243B5A]" />
             Upload ảnh hàng loạt từ thư mục
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -395,7 +395,7 @@ export function FolderImageUploader({
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">2. Chọn thư mục ảnh</Label>
             <div
-              className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+              className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center cursor-pointer hover:border-[#4FA7A0] hover:bg-[#4FA7A0]/10 transition-colors"
               onClick={() => !uploading && inputRef.current?.click()}
             >
               <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
@@ -406,7 +406,7 @@ export function FolderImageUploader({
                 Hỗ trợ JPG, PNG, WEBP, HEIC – Tối đa {MAX_FILE_MB}MB/ảnh
               </p>
               {phase !== 'idle' && (
-                <p className="text-xs font-medium text-blue-600 mt-2">
+                <p className="text-xs font-medium text-[#243B5A] mt-2">
                   Đã chọn: {imageCount} ảnh trong {phongCount} phòng
                 </p>
               )}
@@ -512,7 +512,7 @@ export function FolderImageUploader({
 
           {/* Tips */}
           {phase === 'idle' && (
-            <div className="rounded-md bg-blue-50 border border-blue-200 p-3 text-xs text-blue-700 space-y-1">
+            <div className="rounded-md bg-[#4FA7A0]/10 border border-[#4FA7A0]/30 p-3 text-xs text-[#243B5A] space-y-1">
               <p className="font-semibold">📁 Cấu trúc thư mục cần có:</p>
               <pre className="font-mono text-[11px] leading-relaxed">
 {`TòaNhà/
@@ -525,7 +525,7 @@ export function FolderImageUploader({
     201/
       img1.jpg`}
               </pre>
-              <Separator className="bg-blue-200 my-1" />
+              <Separator className="bg-[#4FA7A0]/25 my-1" />
               <p>Hệ thống sẽ tự động khớp tên thư mục &quot;101&quot; với phòng &quot;Phòng 101&quot; trong database.</p>
             </div>
           )}

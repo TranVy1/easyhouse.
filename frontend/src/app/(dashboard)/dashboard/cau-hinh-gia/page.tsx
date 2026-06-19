@@ -289,12 +289,12 @@ export default function CauHinhGiaPage() {
       {/* Building Selector Dropdown */}
       <Card className="border-none shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50/50">
         <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div className="flex items-center gap-2 text-slate-700 font-semibold min-w-[120px]">
+          <div className="flex items-center gap-2 text-[#243B5A] font-semibold min-w-[120px]">
             <Building2 className="h-5 w-5 text-indigo-600" />
             <span>Chọn tòa nhà:</span>
           </div>
           <Select value={selectedToaNhaId} onValueChange={setSelectedToaNhaId}>
-            <SelectTrigger className="w-full md:w-[320px] bg-white border-slate-200">
+            <SelectTrigger className="w-full md:w-[320px] bg-white border-[#E8DED2]">
               <SelectValue placeholder="Chọn tòa nhà để xem giá" />
             </SelectTrigger>
             <SelectContent>
@@ -311,7 +311,7 @@ export default function CauHinhGiaPage() {
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6">
         <Card className="border-none shadow-sm">
-          <CardHeader className="pb-3 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <CardHeader className="pb-3 border-b border-[#E8DED2] flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
               <CardTitle className="text-base md:text-lg">Danh sách cấu hình đơn giá</CardTitle>
               <CardDescription>Các mức giá dịch vụ đang được áp dụng cho tòa nhà này</CardDescription>
@@ -357,45 +357,45 @@ export default function CauHinhGiaPage() {
 
           <CardContent className="p-0">
             {loadingConfigs ? (
-              <div className="p-8 text-center text-slate-500 animate-pulse">Đang tải cấu hình giá...</div>
+              <div className="p-8 text-center text-[#6B7A8C] animate-pulse">Đang tải cấu hình giá...</div>
             ) : filteredConfigs.length === 0 ? (
               <div className="p-12 text-center">
-                <Info className="h-10 w-10 mx-auto text-slate-400 mb-2" />
-                <p className="font-medium text-slate-900">Không tìm thấy cấu hình giá nào</p>
-                <p className="text-xs text-slate-500 mt-1">Vui lòng kiểm tra lại bộ lọc hoặc tạo cấu hình giá mới.</p>
+                <Info className="h-10 w-10 mx-auto text-[#6B7A8C] mb-2" />
+                <p className="font-medium text-[#243B5A]">Không tìm thấy cấu hình giá nào</p>
+                <p className="text-xs text-[#6B7A8C] mt-1">Vui lòng kiểm tra lại bộ lọc hoặc tạo cấu hình giá mới.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table className="text-xs md:text-sm">
                   <TableHeader>
-                    <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
-                      <TableHead className="font-semibold text-slate-700">Tên hiển thị</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Loại mục</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Đơn giá</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Cách tính phí</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Thời gian hiệu lực</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Trạng thái</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-right">Thao tác</TableHead>
+                    <TableRow className="bg-[#F8F3EC]/70 hover:bg-[#F8F3EC]/70">
+                      <TableHead className="font-semibold text-[#243B5A]">Tên hiển thị</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Loại mục</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Đơn giá</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Cách tính phí</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Thời gian hiệu lực</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Trạng thái</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A] text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredConfigs.map((config) => (
-                      <TableRow key={config._id || config.id} className="hover:bg-slate-50/30">
-                        <TableCell className="font-medium text-slate-900">{config.tenHienThi}</TableCell>
+                      <TableRow key={config._id || config.id} className="hover:bg-[#F8F3EC]/30">
+                        <TableCell className="font-medium text-[#243B5A]">{config.tenHienThi}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-normal text-xs bg-slate-50 text-slate-700 border-slate-200">
+                          <Badge variant="outline" className="font-normal text-xs bg-[#F8F3EC] text-[#243B5A] border-[#E8DED2]">
                             {LOAI_MUC_LABEL[config.loai] || config.loai}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-bold text-slate-900 text-base">
+                        <TableCell className="font-bold text-[#243B5A] text-base">
                           {formatCurrency(config.donGia)}
                         </TableCell>
-                        <TableCell className="text-slate-600">
+                        <TableCell className="text-[#6B7A8C]">
                           {LOAI_TINH_PHI_LABEL[config.loaiTinhPhi] || config.loaiTinhPhi}
                         </TableCell>
-                        <TableCell className="text-slate-600">
+                        <TableCell className="text-[#6B7A8C]">
                           <div className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            <Calendar className="h-3.5 w-3.5 text-[#6B7A8C]" />
                             <span>Từ {String(config.hieuLucTu)}</span>
                             {config.hieuLucDen && <span>đến {String(config.hieuLucDen)}</span>}
                           </div>
@@ -406,7 +406,7 @@ export default function CauHinhGiaPage() {
                               Đang áp dụng
                             </Badge>
                           ) : (
-                            <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 border-none font-medium">
+                            <Badge className="bg-slate-100 text-[#6B7A8C] hover:bg-slate-100 border-none font-medium">
                               Ngừng áp dụng
                             </Badge>
                           )}
@@ -674,7 +674,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         <div className="space-y-1">
           <Label htmlFor="form-donGia" className="text-xs font-semibold">Đơn giá (VND)</Label>
           <div className="relative">
-            <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-[#6B7A8C]" />
             <Input
               id="form-donGia"
               type="number"
@@ -745,7 +745,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
           onChange={(e) => setFormData(prev => ({ ...prev, dangApDung: e.target.checked }))}
           className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
         />
-        <Label htmlFor="form-dangApDung" className="text-xs font-medium text-slate-700 cursor-pointer">
+        <Label htmlFor="form-dangApDung" className="text-xs font-medium text-[#243B5A] cursor-pointer">
           Áp dụng ngay lập tức
         </Label>
       </div>

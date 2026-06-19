@@ -308,7 +308,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
       }
 
       return (
-        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">
+        <Badge variant="outline" className="bg-[#4FA7A0]/10 text-[#267D76] border-[#4FA7A0]/30">
           Bình thường
         </Badge>
       )

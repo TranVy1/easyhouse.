@@ -141,7 +141,7 @@ export function MediaClient() {
   };
 
   const getFileIcon = (loaiFile: string) => {
-    if (loaiFile?.startsWith("image/")) return <ImageIcon className="h-5 w-5 text-blue-500" />;
+    if (loaiFile?.startsWith("image/")) return <ImageIcon className="h-5 w-5 text-[#4FA7A0]" />;
     if (loaiFile?.startsWith("video/")) return <Video className="h-5 w-5 text-red-500" />;
     if (loaiFile?.includes("pdf") || loaiFile?.includes("document")) return <FileText className="h-5 w-5 text-green-500" />;
     return <File className="h-5 w-5 text-gray-500" />;
@@ -202,7 +202,7 @@ export function MediaClient() {
                     <div className="flex items-center space-x-3">
                       {getFileIcon(media.loaiFile || "")}
                       <div className="max-w-[200px] truncate" title={media.url}>
-                        <a href={media.url} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline">
+                        <a href={media.url} target="_blank" rel="noreferrer" className="font-medium text-[#243B5A] hover:underline">
                           {media.publicId ? media.publicId.split("/").pop() : "File"}
                         </a>
                         <div className="text-xs text-gray-500 truncate">{media.loaiFile}</div>
