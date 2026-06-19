@@ -80,6 +80,7 @@ const fmtDate = (d?: string) => {
 };
 
 // ─── Status maps ──────────────────────────────────────────────────────────────
+
 const EMPTY_VALUE = "Chưa cập nhật";
 
 const roleLabels: Record<string, string> = {
@@ -128,6 +129,15 @@ const getInitials = (name?: string) => {
 
 const contractStatusMap: Record<string, { label: string; cls: string; icon: ReactNode }> = {
   hoatDong: { label: "Đang hiệu lực", cls: "text-[#267D76] bg-[#4FA7A0]/10 border-[#4FA7A0]/30", icon: <CheckCircle2 size={11} /> },
+const contractStatusMap: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
+  ACTIVE: { label: "Đang hiệu lực", cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11} /> },
+  PENDING: { label: "Chờ cọc", cls: "text-orange-700   bg-orange-50   border-orange-200", icon: <Clock size={11} /> },
+  EXPIRED: { label: "Hết hạn", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
+  TERMINATED: { label: "Đã kết thúc", cls: "text-slate-600  bg-slate-50  border-slate-200", icon: <XCircle size={11} /> },
+  CANCELLED: { label: "Đã hủy", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
+  DRAFT: { label: "Nháp", cls: "text-slate-500  bg-slate-50  border-slate-200", icon: <Clock size={11} /> },
+  // Fallback map
+  hoatDong: { label: "Đang hiệu lực", cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11} /> },
   choKichHoat: { label: "Chờ kích hoạt", cls: "text-amber-700   bg-amber-50   border-amber-200", icon: <Clock size={11} /> },
   hetHan: { label: "Hết hạn", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
   daKetThuc: { label: "Đã kết thúc", cls: "text-[#6B7A8C]  bg-[#F8F3EC]  border-[#E8DED2]", icon: <XCircle size={11} /> },
@@ -582,13 +592,16 @@ function ChangePassword() {
 }
 
 // ─── Contract Section ─────────────────────────────────────────────────────────
-function ContractSection() {
+function ContractSection({ accessToken }: { accessToken?: string }) {
   const [contracts, setContracts] = useState<HopDong[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/tenant/hop-dong?limit=5")
+  const fetchContracts = useCallback(() => {
+    setLoading(true);
+    fetch("/api/tenant/hop-dong?limit=5", {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       .then(r => r.json())
       .then(d => {
         const items = d?.data?.items || d?.data?.data || d?.data || [];
@@ -596,7 +609,31 @@ function ContractSection() {
       })
       .catch(() => setContracts([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) fetchContracts();
+  }, [accessToken, fetchContracts]);
+
+  const handlePayDeposit = async (id: string) => {
+    if (!accessToken) return;
+    if (!confirm("Xác nhận thanh toán cọc cho hợp đồng này?")) return;
+    try {
+      const res = await fetch(`/api/tenant/hop-dong/${id}/thanh-toan-coc`, {
+        method: "PUT",
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Thanh toán cọc thành công!");
+        fetchContracts();
+      } else {
+        alert("Lỗi: " + data.message);
+      }
+    } catch (err: any) {
+      alert("Đã xảy ra lỗi khi thanh toán: " + err.message);
+    }
+  };
 
   if (loading) return <Loader />;
 
@@ -664,6 +701,14 @@ function ContractSection() {
                         <ExternalLink size={13} /> Xem hợp đồng PDF
                       </a>
                     )}
+                    {hd.trangThai === "PENDING" && (
+                      <button 
+                        onClick={() => handlePayDeposit(hd._id)}
+                        className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors shadow-sm"
+                      >
+                        <Receipt size={13} /> Thanh toán cọc ngay
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -685,12 +730,15 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 // ─── Invoices Section ─────────────────────────────────────────────────────────
-function InvoicesSection() {
+function InvoicesSection({ accessToken }: { accessToken?: string }) {
   const [invoices, setInvoices] = useState<HoaDon[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/tenant/hoa-don?limit=10")
+    if (!accessToken) return;
+    fetch("/api/tenant/hoa-don?limit=10", {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       .then(r => r.json())
       .then(d => {
         const items = d?.data?.items || d?.data?.data || d?.data || [];
@@ -698,7 +746,7 @@ function InvoicesSection() {
       })
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [accessToken]);
 
   if (loading) return <Loader />;
 
@@ -773,12 +821,15 @@ function InvoicesSection() {
 }
 
 // ─── Incidents Section ────────────────────────────────────────────────────────
-function IncidentsSection() {
+function IncidentsSection({ accessToken }: { accessToken?: string }) {
   const [incidents, setIncidents] = useState<SuCo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/tenant/su-co?limit=10")
+    if (!accessToken) return;
+    fetch("/api/tenant/su-co?limit=10", {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
       .then(r => r.json())
       .then(d => {
         const items = d?.data?.items || d?.data?.data || d?.data || [];
@@ -786,7 +837,7 @@ function IncidentsSection() {
       })
       .catch(() => setIncidents([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [accessToken]);
 
   if (loading) return <Loader />;
 
@@ -836,7 +887,7 @@ function IncidentsSection() {
 }
 
 // ─── Sidebar nav ──────────────────────────────────────────────────────────────
-type Section = "profile" | "password" | "contract" | "bills" | "incidents";
+type Section = "profile" | "password" | "contract" | "bills" | "incidents" | "roommates";
 
 const NAV: { section: Section; icon: ReactNode; label: string }[] = [
   { section: "profile", icon: <User size={16} />, label: "Thông tin cá nhân" },
@@ -844,6 +895,7 @@ const NAV: { section: Section; icon: ReactNode; label: string }[] = [
   { section: "contract", icon: <FileText size={16} />, label: "Hợp đồng thuê nhà" },
   { section: "bills", icon: <Receipt size={16} />, label: "Hóa đơn phòng" },
   { section: "incidents", icon: <AlertTriangle size={16} />, label: "Báo cáo sự cố" },
+  { section: "roommates", icon: <User size={16} />, label: "Yêu cầu ở ghép" },
 ];
 
 function SideNavItem({ item, active, onClick }: { item: typeof NAV[0]; active: Section; onClick: (s: Section) => void }) {
@@ -1043,9 +1095,9 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
           <div className="min-h-96 p-5 sm:p-7">
             {activeSection === "profile" && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
             {activeSection === "password" && <ChangePassword />}
-            {activeSection === "contract" && <ContractSection />}
-            {activeSection === "bills" && <InvoicesSection />}
-            {activeSection === "incidents" && <IncidentsSection />}
+            {activeSection === "contract" && <ContractSection accessToken={session?.accessToken} />}
+            {activeSection === "bills" && <InvoicesSection accessToken={session?.accessToken} />}
+            {activeSection === "incidents" && <IncidentsSection accessToken={session?.accessToken} />}
           </div>
         </main>
       </div>

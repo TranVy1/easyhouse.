@@ -31,6 +31,7 @@ class SchedulerServiceTest {
     @Mock private LichHenRepository lichHenRepository;
     @Mock private ThongBaoService thongBaoService;
     @Mock private EmailService emailService;
+    @Mock private DebtReminderService debtReminderService;
 
     @InjectMocks
     private SchedulerService schedulerService;
@@ -147,79 +148,9 @@ class SchedulerServiceTest {
     }
 
     @Test
-    void testCheckOverdueInvoices() {
-        LocalDate today = LocalDate.now();
-        HoaDon hd = HoaDon.builder()
-                .id(UUID.randomUUID())
-                .maHoaDon("HD-OVERDUE-01")
-                .kyThang(5)
-                .kyNam(2026)
-                .tongTien(BigDecimal.valueOf(3000000))
-                .daTra(BigDecimal.ZERO)
-                .hanTra(today.minusDays(1)) // đã quá hạn 1 ngày
-                .phong(mockPhong)
-                .khachThue(mockKhachThue)
-                .trangThai(TrangThaiHoaDon.UNPAID)
-                .build();
-
-        when(hoaDonRepository.findOverdueInvoices(anyList(), eq(today))).thenReturn(List.of(hd));
-
-        schedulerService.checkOverdueInvoices();
-
-        // Trạng thái hóa đơn được cập nhật sang OVERDUE
-        verify(hoaDonRepository).save(eq(hd));
-        assert hd.getTrangThai() == TrangThaiHoaDon.OVERDUE;
-
-        // Xác thực thông báo In-app cho chủ trọ và khách thuê
-        verify(thongBaoService).createSystemNotification(
-                eq("Cảnh báo quá hạn: Hóa đơn phòng " + mockPhong.getTen()),
-                anyString(),
-                eq(LoaiThongBao.INVOICE),
-                eq(List.of(mockChuTro.getId()))
-        );
-
-        verify(thongBaoService).createSystemNotification(
-                eq("Cảnh báo: Hóa đơn tiền phòng quá hạn thanh toán"),
-                anyString(),
-                eq(LoaiThongBao.INVOICE),
-                eq(List.of(mockKhachThue.getId()))
-        );
-
-        // Xác thực gửi email quá hạn
-        verify(emailService).sendInvoiceOverdueEmail(eq(hd), eq(mockKhachThue));
-    }
-
-    @Test
-    void testCheckUpcomingInvoices() {
-        LocalDate today = LocalDate.now();
-        LocalDate targetDate = today.plusDays(2);
-        HoaDon hd = HoaDon.builder()
-                .id(UUID.randomUUID())
-                .maHoaDon("HD-UPCOMING-01")
-                .kyThang(6)
-                .kyNam(2026)
-                .tongTien(BigDecimal.valueOf(3000000))
-                .daTra(BigDecimal.ZERO)
-                .hanTra(targetDate) // hạn trả là 2 ngày tới
-                .phong(mockPhong)
-                .khachThue(mockKhachThue)
-                .trangThai(TrangThaiHoaDon.UNPAID)
-                .build();
-
-        when(hoaDonRepository.findUnpaidInvoicesDueOn(anyList(), eq(targetDate))).thenReturn(List.of(hd));
-
-        schedulerService.checkUpcomingInvoices();
-
-        // Xác thực thông báo In-app cho khách thuê
-        verify(thongBaoService).createSystemNotification(
-                eq("Thông báo: Hóa đơn tiền phòng sắp đến hạn thanh toán"),
-                anyString(),
-                eq(LoaiThongBao.INVOICE),
-                eq(List.of(mockKhachThue.getId()))
-        );
-
-        // Xác thực gửi email nhắc nhở sắp đến hạn
-        verify(emailService).sendInvoiceUpcomingReminderEmail(eq(hd), eq(mockKhachThue), eq(2));
+    void testCheckInvoices() {
+        schedulerService.checkInvoices();
+        verify(debtReminderService).runDailyDebtReminders();
     }
 
     @Test

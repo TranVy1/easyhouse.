@@ -103,27 +103,23 @@ public class ThanhToanService {
     @Transactional(readOnly = true)
     public List<ThanhToanResponse> getByHoaDon(UUID hoaDonId) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         assertCanReadHoaDon(hoaDon, permissionService.requireCurrentUserId());
+        // FIX #5: Load chi tiết hóa đơn 1 lần duy nhất, tránh N+1 query
+        List<ChiTietHoaDon> chiTiet = chiTietHoaDonRepository.findByHoaDonId(hoaDonId);
         return thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId).stream()
-                .map(tt -> toResponse(tt, chiTietHoaDonRepository.findByHoaDonId(hoaDonId)))
+                .map(tt -> toResponse(tt, chiTiet))
                 .toList();
     }
 
     @Transactional
     public ThanhToanResponse create(ThanhToanRequest req) {
-        if (req.getHoaDonId() == null) {
-            throw new RuntimeException("Hóa đơn là bắt buộc khi ghi nhận thanh toán");
-        }
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWriteHoaDon(hoaDon, userId);
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
             throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
-        }
-        if (req.getSoTien() == null || req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Số tiền thanh toán phải lớn hơn 0");
         }
 
         TrangThaiThanhToan status = TrangThaiThanhToan.SUCCESS;
@@ -198,9 +194,6 @@ public class ThanhToanService {
             tt.setKhachThue(hoaDon.getKhachThue());
         }
         if (req.getSoTien() != null) {
-            if (req.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("So tien thanh toan phai lon hon 0");
-            }
             tt.setSoTien(req.getSoTien());
         }
         if (req.getPhuongThuc() != null) tt.setPhuongThucThanhToan(parsePhuongThuc(req.getPhuongThuc()));

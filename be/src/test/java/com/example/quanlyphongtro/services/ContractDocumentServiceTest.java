@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.thymeleaf.TemplateEngine;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,6 +29,8 @@ class ContractDocumentServiceTest {
     @Mock
     private HopDongRepository hopDongRepository;
     @Mock
+    private PhongRepository phongRepository;
+    @Mock
     private ContractSignatureRepository contractSignatureRepository;
     @Mock
     private NguoiDungRepository nguoiDungRepository;
@@ -41,6 +44,8 @@ class ContractDocumentServiceTest {
     private PermissionService permissionService;
     @Mock
     private JdbcTemplate jdbcTemplate;
+    @Mock
+    private TemplateEngine templateEngine;
 
     @InjectMocks
     private ContractDocumentService contractDocumentService;
@@ -104,7 +109,7 @@ class ContractDocumentServiceTest {
                 .giaThueHopDong(BigDecimal.valueOf(3000000))
                 .tienCoc(BigDecimal.valueOf(3000000))
                 .trangThai(TrangThaiHopDong.DRAFT)
-                .signatureStatus("UNSIGNED")
+                .signatureStatus(SignatureStatus.UNSIGNED)
                 .build();
     }
 
@@ -112,13 +117,12 @@ class ContractDocumentServiceTest {
     void signContract_LandlordSignsFirst_SavesSignatureAndUpdatesStatus() throws IOException {
         // Mock
         when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
-        when(permissionService.requireCurrentUserId()).thenReturn(landlordUserId);
-        when(permissionService.isAdmin(landlordUserId)).thenReturn(false);
+        when(templateEngine.process(eq("contract-template"), any())).thenReturn("<html><body>contract</body></html>");
         
         // Mock upload chữ ký
         Map<String, Object> uploadResult = new HashMap<>();
-        uploadResult.put("secure_url", "http://cloudinary.com/sig_landlord.png");
-        when(cloudinaryService.uploadImage(any(byte[].class), anyString())).thenReturn(uploadResult);
+        uploadResult.put("secure_url", "http://cloudinary.com/contract.pdf");
+        when(cloudinaryService.uploadPdf(any(byte[].class), anyString())).thenReturn(uploadResult);
         
         // Mock save signature
         ContractSignature expectedSig = ContractSignature.builder()
@@ -126,7 +130,7 @@ class ContractDocumentServiceTest {
                 .hopDong(hopDong)
                 .signerId(landlordUserId)
                 .signerRole("LANDLORD")
-                .signatureImageUrl("http://cloudinary.com/sig_landlord.png")
+                .signatureImageUrl("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
                 .signedAt(ZonedDateTime.now())
                 .build();
         when(contractSignatureRepository.save(any(ContractSignature.class))).thenReturn(expectedSig);
@@ -137,6 +141,8 @@ class ContractDocumentServiceTest {
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "127.0.0.1",
                 "Mozilla/5.0",
+                null,
+                "LANDLORD",
                 null
         );
         ContractSignature signature = contractDocumentService.signContract(hopDongId, request);
@@ -144,25 +150,25 @@ class ContractDocumentServiceTest {
         // Verify
         assertNotNull(signature);
         assertEquals("LANDLORD", signature.getSignerRole());
-        assertEquals("http://cloudinary.com/sig_landlord.png", signature.getSignatureImageUrl());
-        assertEquals("LANDLORD_SIGNED", hopDong.getSignatureStatus());
+        assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", signature.getSignatureImageUrl());
+        assertEquals(SignatureStatus.LANDLORD_SIGNED, hopDong.getSignatureStatus());
         assertNotNull(hopDong.getLandlordSignedAt());
         assertNull(hopDong.getTenantSignedAt());
         
         verify(contractSignatureRepository, times(1)).save(any(ContractSignature.class));
-        verify(hopDongRepository, times(1)).save(hopDong);
+        verify(hopDongRepository, times(2)).save(hopDong);
     }
 
     @Test
     void signContract_TenantSignsFirst_SavesSignatureAndUpdatesStatus() throws IOException {
         // Mock
         when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
-        when(permissionService.requireCurrentUserId()).thenReturn(tenantUserId);
+        when(templateEngine.process(eq("contract-template"), any())).thenReturn("<html><body>contract</body></html>");
         
         // Mock upload chữ ký
         Map<String, Object> uploadResult = new HashMap<>();
-        uploadResult.put("secure_url", "http://cloudinary.com/sig_tenant.png");
-        when(cloudinaryService.uploadImage(any(byte[].class), anyString())).thenReturn(uploadResult);
+        uploadResult.put("secure_url", "http://cloudinary.com/contract.pdf");
+        when(cloudinaryService.uploadPdf(any(byte[].class), anyString())).thenReturn(uploadResult);
         
         // Mock save signature
         ContractSignature expectedSig = ContractSignature.builder()
@@ -170,7 +176,7 @@ class ContractDocumentServiceTest {
                 .hopDong(hopDong)
                 .signerId(tenantUserId)
                 .signerRole("TENANT")
-                .signatureImageUrl("http://cloudinary.com/sig_tenant.png")
+                .signatureImageUrl("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
                 .signedAt(ZonedDateTime.now())
                 .build();
         when(contractSignatureRepository.save(any(ContractSignature.class))).thenReturn(expectedSig);
@@ -181,6 +187,8 @@ class ContractDocumentServiceTest {
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "127.0.0.1",
                 "Mozilla/5.0",
+                null,
+                "TENANT",
                 null
         );
         ContractSignature signature = contractDocumentService.signContract(hopDongId, request);
@@ -188,30 +196,30 @@ class ContractDocumentServiceTest {
         // Verify
         assertNotNull(signature);
         assertEquals("TENANT", signature.getSignerRole());
-        assertEquals("http://cloudinary.com/sig_tenant.png", signature.getSignatureImageUrl());
-        assertEquals("TENANT_SIGNED", hopDong.getSignatureStatus());
+        assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", signature.getSignatureImageUrl());
+        assertEquals(SignatureStatus.TENANT_SIGNED, hopDong.getSignatureStatus());
         assertNotNull(hopDong.getTenantSignedAt());
         assertNull(hopDong.getLandlordSignedAt());
         
         verify(contractSignatureRepository, times(1)).save(any(ContractSignature.class));
-        verify(hopDongRepository, times(1)).save(hopDong);
+        verify(hopDongRepository, times(2)).save(hopDong);
     }
 
     @Test
     void rejectContract_UpdatesStatusToRejectedAndSavesReason() {
         // Mock
         when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
-        when(permissionService.requireCurrentUserId()).thenReturn(tenantUserId);
         when(hopDongRepository.save(any(HopDong.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Execute
-        ContractSignRequest request = new ContractSignRequest(null, "127.0.0.1", "Mozilla/5.0", "Sai thông tin tiền cọc");
+        String reason = "Sai thông tin tiền cọc";
+        ContractSignRequest request = new ContractSignRequest(null, "127.0.0.1", "Mozilla/5.0", reason, null, null);
         HopDong rejected = contractDocumentService.rejectContract(hopDongId, request);
 
         // Verify
         assertNotNull(rejected);
-        assertEquals("REJECTED", rejected.getSignatureStatus());
-        assertTrue(rejected.getGhiChu().contains("Lý do: Sai thông tin tiền cọc"));
+        assertEquals(SignatureStatus.REJECTED, rejected.getSignatureStatus());
+        assertTrue(rejected.getGhiChu().contains(reason));
         verify(hopDongRepository, times(1)).save(hopDong);
     }
 }

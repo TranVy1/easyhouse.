@@ -92,6 +92,16 @@ export default function DashboardPage() {
     try {
       const headers = { Authorization: `Bearer ${session?.accessToken}` }
       
+      const parseRes = async (res: Response, name: string) => {
+        const text = await res.text();
+        if (!res.ok) throw new Error(`Lỗi máy chủ (${name}): ${res.status} ${text.substring(0, 50)}`);
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch (e) {
+          throw new Error(`JSON lỗi (${name}): ${text.substring(0, 50)}`);
+        }
+      };
+
       const [overviewRes, revRes, debtRes, debtorsRes] = await Promise.all([
         fetch("/api/dashboard/analytics/overview", { headers }),
         fetch("/api/dashboard/analytics/revenue-chart?months=12", { headers }),
@@ -99,10 +109,10 @@ export default function DashboardPage() {
         fetch("/api/dashboard/analytics/top-debtors?limit=5", { headers })
       ]);
 
-      const oData = await overviewRes.json();
-      const rData = await revRes.json();
-      const dData = await debtRes.json();
-      const tdData = await debtorsRes.json();
+      const oData = await parseRes(overviewRes, "overview");
+      const rData = await parseRes(revRes, "revenue");
+      const dData = await parseRes(debtRes, "debt");
+      const tdData = await parseRes(debtorsRes, "debtors");
 
       if (oData.success) setOverview(oData.data);
       if (rData.success) setRevenueData(rData.data);

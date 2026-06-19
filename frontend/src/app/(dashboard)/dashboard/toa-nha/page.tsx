@@ -383,7 +383,7 @@ export default function ToaNhaPage() {
                 <span className="sm:hidden">Thêm</span>
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
+          <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base md:text-lg">
                 {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
@@ -631,8 +631,38 @@ function ToaNhaForm({
   const [openWard, setOpenWard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleAutoFillCustomFloors = () => {
+    const numFloors = parseInt(formData.soTang, 10);
+    if (isNaN(numFloors) || numFloors <= 0) {
+      toast.error('Vui lòng nhập số tầng hợp lệ lớn hơn 0 ở phần Cấu hình chung phía trên.');
+      return;
+    }
+    if (numFloors > 200) {
+      toast.error('Số tầng tối đa cho phép là 200 để đảm bảo hiệu suất.');
+      return;
+    }
+
+    if (cauTrucTang.length > 0 && cauTrucTang.some(f => f.soTang || f.soPhong)) {
+      if (!window.confirm(`Thao tác này sẽ ghi đè danh sách hiện tại bằng ${numFloors} tầng mới. Bạn có chắc chắn không?`)) {
+        return;
+      }
+    }
+
+    const newFloors = Array.from({ length: numFloors }).map((_, i) => ({
+      soTang: String(i + 1),
+      soPhong: formData.soPhongMoiTang || '',
+      dienTichMacDinh: formData.dienTichMacDinh || '',
+      giaThueMacDinh: formData.giaThueMacDinh || '',
+      tienCocMacDinh: formData.tienCocMacDinh || '',
+      soNguoiToiDa: formData.soNguoiToiDa || '',
+    }));
+
+    setCauTrucTang(newFloors);
+    toast.success(`Đã tự động điền danh sách ${numFloors} tầng.`);
+  };
+
   useEffect(() => {
-    fetch('https://provinces.open-api.vn/api/p/')
+    fetch('https://provinces.open-api.vn/api/v1/p/')
       .then(res => res.json())
       .then(data => {
         setProvinces(data);
@@ -659,7 +689,7 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (provinceCode) {
-      fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+      fetch(`https://provinces.open-api.vn/api/v1/p/${provinceCode}?depth=2`)
         .then(res => res.json())
         .then(data => {
           setDistricts(data.districts || []);
@@ -686,7 +716,7 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (districtCode) {
-      fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+      fetch(`https://provinces.open-api.vn/api/v1/d/${districtCode}?depth=2`)
         .then(res => res.json())
         .then(data => {
           setWards(data.wards || []);
@@ -877,7 +907,7 @@ function ToaNhaForm({
 
       <div className="space-y-2">
         <Label htmlFor="thanhPho" className="text-sm">Tỉnh / Thành phố</Label>
-        <Popover open={openProvince} onOpenChange={setOpenProvince}>
+        <Popover open={openProvince} onOpenChange={setOpenProvince} modal={true}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -905,6 +935,12 @@ function ToaNhaForm({
                         handleProvinceChange(String(p.code));
                         setOpenProvince(false);
                       }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleProvinceChange(String(p.code));
+                        setOpenProvince(false);
+                      }}
                     >
                       <Check
                         className={cn(
@@ -925,7 +961,7 @@ function ToaNhaForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="quan" className="text-sm">Quận / Huyện</Label>
-          <Popover open={openDistrict} onOpenChange={setOpenDistrict}>
+          <Popover open={openDistrict} onOpenChange={setOpenDistrict} modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -954,6 +990,12 @@ function ToaNhaForm({
                           handleDistrictChange(String(d.code));
                           setOpenDistrict(false);
                         }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDistrictChange(String(d.code));
+                          setOpenDistrict(false);
+                        }}
                       >
                         <Check
                           className={cn(
@@ -973,7 +1015,7 @@ function ToaNhaForm({
         
         <div className="space-y-2">
           <Label htmlFor="phuong" className="text-sm">Phường / Xã</Label>
-          <Popover open={openWard} onOpenChange={setOpenWard}>
+          <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -997,6 +1039,12 @@ function ToaNhaForm({
                         key={w.code}
                         value={w.name}
                         onSelect={() => {
+                          handleWardChange(w.name);
+                          setOpenWard(false);
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           handleWardChange(w.name);
                           setOpenWard(false);
                         }}
@@ -1089,9 +1137,12 @@ function ToaNhaForm({
               <SelectContent>
                 <SelectItem value="NONE">Chỉ tạo tòa nhà</SelectItem>
                 <SelectItem value="FIXED">Tạo tầng/phòng cố định</SelectItem>
-                <SelectItem value="CUSTOM">Tùy chỉnh từng tầng</SelectItem>
+                <SelectItem value="CUSTOM">Tùy chỉnh từng tầng (Tầng có số phòng khác nhau)</SelectItem>
               </SelectContent>
             </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Gợi ý: Chọn "Tùy chỉnh từng tầng" nếu tầng 2 có 3 phòng, tầng 3 có 6 phòng,...
+            </p>
           </div>
 
           {formData.cheDoTaoPhong === 'FIXED' && (
@@ -1129,32 +1180,44 @@ function ToaNhaForm({
 
           {formData.cheDoTaoPhong === 'CUSTOM' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-muted-foreground">
                   Cấu hình số phòng, diện tích và giá riêng cho từng tầng.
+                  <br className="hidden sm:block" />
+                  <span className="text-blue-600 font-medium">Giải quyết vấn đề: Tầng 2 có 3 phòng, tầng 3 có 6 phòng,...</span>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCauTrucTang(prev => [
-                    ...prev,
-                    {
-                      soTang: String(prev.length + 1),
-                      soPhong: formData.soPhongMoiTang,
-                      dienTichMacDinh: formData.dienTichMacDinh,
-                      giaThueMacDinh: formData.giaThueMacDinh,
-                      tienCocMacDinh: formData.tienCocMacDinh,
-                      soNguoiToiDa: formData.soNguoiToiDa,
-                    },
-                  ])}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Thêm tầng
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAutoFillCustomFloors}
+                  >
+                    Tự động điền {formData.soTang || 'N'} tầng
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCauTrucTang(prev => [
+                      ...prev,
+                      {
+                        soTang: String(prev.length + 1),
+                        soPhong: formData.soPhongMoiTang,
+                        dienTichMacDinh: formData.dienTichMacDinh,
+                        giaThueMacDinh: formData.giaThueMacDinh,
+                        tienCocMacDinh: formData.tienCocMacDinh,
+                        soNguoiToiDa: formData.soNguoiToiDa,
+                      },
+                    ])}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm tầng
+                  </Button>
+                </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 pb-2">
                 {cauTrucTang.map((floor, index) => (
                   <div key={index} className="grid grid-cols-2 gap-2 rounded-md border p-3 md:grid-cols-7">
                     <div className="space-y-1">

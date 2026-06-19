@@ -3,9 +3,11 @@ package com.example.quanlyphongtro.services;
 import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.ContractSignatureRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
+import com.example.quanlyphongtro.repository.PhongRepository;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
@@ -19,6 +21,7 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,10 +31,12 @@ import java.util.UUID;
 public class ContractDocumentService {
 
     private final HopDongRepository hopDongRepository;
+    private final PhongRepository phongRepository;
     private final ContractSignatureRepository signatureRepository;
     private final CloudinaryService cloudinaryService;
     private final TemplateEngine templateEngine;
     private final ThongBaoService thongBaoService;
+    private final JdbcTemplate jdbcTemplate;
 
     private String formatMoney(BigDecimal amount) {
         if (amount == null) return "0";
@@ -122,6 +127,7 @@ public class ContractDocumentService {
                 .hopDong(hd)
                 .signerId(request.getSignerId())
                 .signerRole(role)
+                .signatureImageUrl(request.getSignatureBase64())
                 .ipAddress(request.getIpAddress())
                 .userAgent(request.getUserAgent())
                 .build();
@@ -148,21 +154,59 @@ public class ContractDocumentService {
             }
         }
 
+        boolean completed = hd.getSignatureStatus() == SignatureStatus.COMPLETED;
+        if (completed) {
+            ZonedDateTime now = ZonedDateTime.now();
+            hd.setTrangThai(TrangThaiHopDong.ACTIVE);
+            hd.setConfirmedAt(hd.getConfirmedAt() != null ? hd.getConfirmedAt() : now);
+            hd.setLockedAt(hd.getLockedAt() != null ? hd.getLockedAt() : now);
+        }
+
         hopDongRepository.save(hd);
+        if (completed) {
+            syncRoomRented(hd);
+            jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hd.getId());
+        }
         
         // Re-generate PDF to include signatures
         generatePdf(hd.getId());
 
         // Notify
         if (hd.getSignatureStatus() == SignatureStatus.COMPLETED) {
+            List<UUID> recipients = new ArrayList<>();
+            if (hd.getKhachThue() != null && hd.getKhachThue().getNguoiDung() != null && hd.getKhachThue().getNguoiDung().getId() != null) {
+                recipients.add(hd.getKhachThue().getNguoiDung().getId());
+            }
+            if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null
+                    && hd.getPhong().getNhaTro().getChuTro().getId() != null) {
+                recipients.add(hd.getPhong().getNhaTro().getChuTro().getId());
+            }
+            if (recipients.isEmpty()) {
+                return signature;
+            }
             thongBaoService.createSystemNotification(
                     "Hợp đồng đã được ký hoàn tất",
                     "Hợp đồng thuê phòng " + hd.getPhong().getTen() + " đã được cả hai bên ký xác nhận thành công.",
                     LoaiThongBao.CONTRACT,
-                    List.of(hd.getKhachThue().getNguoiDung().getId(), hd.getPhong().getNhaTro().getChuTro().getId())
+                    recipients
             );
         }
         return signature;
+    }
+
+    private void syncRoomRented(HopDong hd) {
+        if (hd.getPhong() == null || hd.getPhong().getId() == null) {
+            return;
+        }
+        Phong phong = phongRepository.findById(hd.getPhong().getId()).orElse(null);
+        if (phong == null || phong.getXoaLuc() != null) {
+            return;
+        }
+        if (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE) {
+            return;
+        }
+        phong.setTrangThai(TrangThaiPhong.RENTED);
+        phongRepository.save(phong);
     }
 
     @Transactional

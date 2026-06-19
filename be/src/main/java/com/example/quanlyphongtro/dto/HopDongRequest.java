@@ -3,6 +3,9 @@ package com.example.quanlyphongtro.dto;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,29 +17,56 @@ import java.util.UUID;
 public class HopDongRequest {
     private String maHopDong;
     private UUID phongId;
+    
+    @NotNull(message = "Phòng không được để trống")
     private UUID phong;
+    
     private UUID khachThueId;    // Primary tenant / representative
     private List<UUID> khachThueIds = new ArrayList<>();
+    
+    @NotNull(message = "Người đại diện không được để trống")
     private UUID nguoiDaiDien;
+    
     private List<ThanhVienRequest> thanhVien = new ArrayList<>();
     @JsonIgnore
     private boolean khachThueIdsProvided;
     @JsonIgnore
     private boolean thanhVienProvided;
+    
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDate ngayBatDau;
+    
+    @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDate ngayKetThuc;
+    
     private LocalDate ngayKetThucThucTe;
+    
+    @NotNull(message = "Giá thuê hợp đồng không được để trống")
+    @Min(value = 0, message = "Giá thuê hợp đồng không được âm")
     private BigDecimal giaThueHopDong;
+    
     private BigDecimal giaThue;
+    
+    @NotNull(message = "Tiền cọc không được để trống")
+    @Min(value = 0, message = "Tiền cọc không được âm")
     private BigDecimal tienCoc;
+    
     private String trangThaiCoc; // NOT_PAID, KEPT, REFUNDED, DEDUCTED, FORFEITED
     private String trangThai;    // DRAFT, PENDING, ACTIVE, EXPIRED, TERMINATED, CANCELLED
     private String chuKyThanhToan;
+    
+    @Min(value = 1, message = "Ngày thanh toán hàng tháng phải từ 1 đến 31")
     private Integer ngayThanhToanHangThang;
+    
     private Integer ngayThanhToan;
     private Boolean tuDongGiaHan;
+    
+    @Min(value = 0, message = "Chỉ số điện ban đầu không được âm")
     private Integer chiSoDienBanDau;
+    
+    @Min(value = 0, message = "Chỉ số nước ban đầu không được âm")
     private Integer chiSoNuocBanDau;
+    
     private String noiDungHopDong;
     private String dieuKhoan;
     private String filePdf;

@@ -57,6 +57,23 @@ export function LichHenClient() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
+  // Status transition rules
+  const allStatusLabels: Record<string, string> = {
+    PENDING: "Chờ duyệt",
+    CONFIRMED: "Đã xác nhận",
+    COMPLETED: "Hoàn thành",
+    CANCELLED: "Đã hủy",
+    NO_SHOW: "Khách không đến"
+  };
+  const getAvailableStatuses = (currentStatus: string): string[] => {
+    switch (currentStatus) {
+      case 'PENDING': return ['PENDING', 'CONFIRMED', 'CANCELLED'];
+      case 'CONFIRMED': return ['CONFIRMED', 'COMPLETED', 'NO_SHOW', 'CANCELLED'];
+      default: return [currentStatus]; // Terminal statuses: no change allowed
+    }
+  };
+  const isTerminalStatus = (status: string) => ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(status);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -491,16 +508,15 @@ export function LichHenClient() {
               <Select 
                 value={formData.trangThai} 
                 onValueChange={(value) => setFormData({...formData, trangThai: value})}
+                disabled={selectedLichHen ? isTerminalStatus(selectedLichHen.trangThai) : false}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PENDING">Chờ duyệt</SelectItem>
-                  <SelectItem value="CONFIRMED">Đã xác nhận</SelectItem>
-                  <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
-                  <SelectItem value="CANCELLED">Đã hủy</SelectItem>
-                  <SelectItem value="NO_SHOW">Khách không đến</SelectItem>
+                  {getAvailableStatuses(selectedLichHen?.trangThai || 'PENDING').map((s) => (
+                    <SelectItem key={s} value={s}>{allStatusLabels[s] || s}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

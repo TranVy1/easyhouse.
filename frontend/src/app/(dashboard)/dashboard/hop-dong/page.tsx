@@ -304,7 +304,7 @@ export default function HopDongPage() {
         toast.error(result.message || 'Có lỗi xảy ra khi xóa hợp đồng');
       }
     } catch (error) {
-      console.error('Error deleting hop dong:', error);
+      console.error('Lỗi khi xóa hợp đồng:', error);
       toast.error('Có lỗi xảy ra khi xóa hợp đồng');
     } finally {
       setActionLoading(null);
@@ -338,10 +338,27 @@ export default function HopDongPage() {
       return `${year}-${month}-${day}`;
     }
     const parsed = new Date(dateStr);
-    return Number.isNaN(parsed.getTime()) ? dateStr : parsed.toISOString().split('T')[0];
+    return Number.isNaN(parsed.getTime()) ? dateStr : formatLocalISODate(parsed);
   };
 
   const getEndDateValue = (hopDong: HopDong) => String(hopDong.ngayKetThuc || '').split('T')[0];
+
+  const formatLocalISODate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const addDays = (dateStr: string, days: number) => {
+    const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+    const date = parts
+      ? new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]))
+      : new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return formatLocalISODate(new Date());
+    date.setDate(date.getDate() + days);
+    return formatLocalISODate(date);
+  };
 
   const requestGiaHan = (hopDong: HopDong) => {
     setExtendTarget(hopDong);
@@ -363,14 +380,16 @@ export default function HopDongPage() {
 
     setActionLoading(`giahan-${extendTarget._id}`);
     try {
-      const response = await fetch(`/api/hop-dong/${extendTarget._id}`, {
+      const response = await fetch(`/api/hop-dong/${extendTarget._id}/gia-han`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
-          ngayKetThuc: nextEndDate,
+          ngayKetThucMoi: nextEndDate,
+          ngayHieuLuc: currentEndDate ? addDays(currentEndDate, 1) : formatLocalISODate(new Date()),
+          noiDung: 'Gia hạn hợp đồng',
         }),
       });
       const result = await response.json().catch(() => ({}));
@@ -402,15 +421,18 @@ export default function HopDongPage() {
     if (!cancelTarget?._id) return;
     setActionLoading(`huy-${cancelTarget._id}`);
     try {
-      const response = await fetch(`/api/hop-dong/${cancelTarget._id}`, {
+      const active = isActiveStatus(cancelTarget.trangThai);
+      const response = await fetch(`/api/hop-dong/${cancelTarget._id}/${active ? 'ket-thuc' : 'huy'}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        body: JSON.stringify({
-          trangThai: 'daHuy',
-        }),
+        body: active ? JSON.stringify({
+          ngayKetThucThucTe: formatLocalISODate(new Date()),
+          trangThaiCoc: 'KEPT',
+          ghiChu: 'Kết thúc hợp đồng từ danh sách',
+        }) : undefined,
       });
       const result = await response.json().catch(() => ({}));
       
@@ -504,18 +526,18 @@ export default function HopDongPage() {
       <Dialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Hủy hợp đồng</DialogTitle>
+            <DialogTitle>{cancelTarget && isActiveStatus(cancelTarget.trangThai) ? 'Kết thúc hợp đồng' : 'Hủy hợp đồng'}</DialogTitle>
             <DialogDescription>
-              Hợp đồng {cancelTarget?.maHopDong} sẽ chuyển sang trạng thái Đã hủy. Phòng sẽ được đồng bộ lại trạng thái sau khi lưu.
+              Hợp đồng {cancelTarget?.maHopDong} sẽ được cập nhật theo trạng thái thực tế. Phòng sẽ được đồng bộ lại trạng thái sau khi lưu.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={!!actionLoading}>
-              Không hủy
+              Đóng
             </Button>
             <Button variant="destructive" onClick={confirmHuy} disabled={actionLoading === `huy-${cancelTarget?._id}`}>
               {actionLoading === `huy-${cancelTarget?._id}` && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận hủy
+              {cancelTarget && isActiveStatus(cancelTarget.trangThai) ? 'Xác nhận kết thúc' : 'Xác nhận hủy'}
             </Button>
           </DialogFooter>
         </DialogContent>

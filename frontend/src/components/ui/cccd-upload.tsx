@@ -136,7 +136,7 @@ export function CCCDUpload({
                     src={anhCCCD.matTruoc}
                     alt="CCCD mặt trước"
                     fill
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
                   />
                   <Button
@@ -206,7 +206,7 @@ export function CCCDUpload({
                     src={anhCCCD.matSau}
                     alt="CCCD mặt sau"
                     fill
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
                   />
                   <Button

@@ -6,16 +6,21 @@ import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.entity.ThanhToan;
 import com.example.quanlyphongtro.entity.HopDong;
 import com.example.quanlyphongtro.entity.KhachThue;
+import com.example.quanlyphongtro.entity.LichHen;
 import com.example.quanlyphongtro.repository.EmailVerificationTokenRepository;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.UUID;
 import java.math.BigDecimal;
 
@@ -126,6 +131,120 @@ public class EmailService {
     private String formatMoney(BigDecimal amount) {
         if (amount == null) return "0 VNĐ";
         return String.format("%,.0f VNĐ", amount);
+    }
+
+    // ── HTML Email Helpers ──────────────────────────────────────────────
+
+    private void sendHtmlEmail(String to, String subject, String htmlContent) throws Exception {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        mailSender.send(mimeMessage);
+    }
+
+    private String formatNgayHenVi(ZonedDateTime ngayHen) {
+        if (ngayHen == null) return "Chưa xác định";
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm - EEEE, dd/MM/yyyy", new Locale("vi", "VN"));
+        return ngayHen.format(fmt);
+    }
+
+    private String buildAppointmentHtmlTemplate(String title, String statusColor, String statusLabel,
+                                                 String greeting, String mainMessage,
+                                                 LichHen lh, String adminNote, String footerNote) {
+        String phongTen = (lh.getPhong() != null) ? lh.getPhong().getTen() : "N/A";
+        String diaChi = (lh.getPhong() != null && lh.getPhong().getNhaTro() != null)
+                ? lh.getPhong().getNhaTro().getDiaChi() : "N/A";
+        String thoiGian = formatNgayHenVi(lh.getNgayHen());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html>");
+        sb.append("<html lang='vi'><head><meta charset='UTF-8'>");
+        sb.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
+        sb.append("<title>").append(title).append("</title></head>");
+        sb.append("<body style='margin:0;padding:0;background-color:#f1f5f9;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>");
+
+        // Wrapper
+        sb.append("<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background-color:#f1f5f9;padding:32px 16px;'>");
+        sb.append("<tr><td align='center'>");
+
+        // Container
+        sb.append("<table role='presentation' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);'>");
+
+        // Header
+        sb.append("<tr><td style='background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);padding:32px 40px;text-align:center;'>");
+        sb.append("<h1 style='margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;'>🏠 EasyHouse</h1>");
+        sb.append("<p style='margin:6px 0 0;color:#94a3b8;font-size:13px;'>Hệ thống quản lý phòng trọ thông minh</p>");
+        sb.append("</td></tr>");
+
+        // Status badge
+        sb.append("<tr><td style='padding:28px 40px 0;text-align:center;'>");
+        sb.append("<span style='display:inline-block;padding:8px 20px;background-color:").append(statusColor).append(";color:#ffffff;border-radius:20px;font-size:13px;font-weight:600;letter-spacing:0.5px;'>");
+        sb.append(statusLabel).append("</span>");
+        sb.append("</td></tr>");
+
+        // Greeting & main message
+        sb.append("<tr><td style='padding:24px 40px 0;'>");
+        sb.append("<p style='margin:0 0 8px;font-size:16px;color:#1e293b;font-weight:600;'>").append(greeting).append("</p>");
+        sb.append("<p style='margin:0;font-size:14px;color:#475569;line-height:1.7;'>").append(mainMessage).append("</p>");
+        sb.append("</td></tr>");
+
+        // Info box
+        sb.append("<tr><td style='padding:20px 40px;'>");
+        sb.append("<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;'>");
+
+        sb.append("<tr><td style='padding:20px 24px 12px;border-bottom:1px solid #e2e8f0;'>");
+        sb.append("<p style='margin:0 0 4px;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;'>Phòng xem</p>");
+        sb.append("<p style='margin:0;font-size:15px;color:#1e293b;font-weight:600;'>").append(phongTen).append("</p>");
+        sb.append("</td></tr>");
+
+        sb.append("<tr><td style='padding:12px 24px;border-bottom:1px solid #e2e8f0;'>");
+        sb.append("<p style='margin:0 0 4px;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;'>Địa chỉ</p>");
+        sb.append("<p style='margin:0;font-size:14px;color:#334155;'>").append(diaChi).append("</p>");
+        sb.append("</td></tr>");
+
+        sb.append("<tr><td style='padding:12px 24px;'>");
+        sb.append("<p style='margin:0 0 4px;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;'>Thời gian hẹn</p>");
+        sb.append("<p style='margin:0;font-size:15px;color:#1e293b;font-weight:600;'>").append(thoiGian).append("</p>");
+        sb.append("</td></tr>");
+
+        sb.append("</table>");
+        sb.append("</td></tr>");
+
+        // Admin note (optional)
+        if (adminNote != null && !adminNote.isBlank()) {
+            sb.append("<tr><td style='padding:0 40px 20px;'>");
+            sb.append("<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background-color:#eff6ff;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;'>");
+            sb.append("<tr><td style='padding:16px 20px;'>");
+            sb.append("<p style='margin:0 0 4px;font-size:11px;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;font-weight:700;'>💬 Phản hồi từ quản lý</p>");
+            sb.append("<p style='margin:0;font-size:14px;color:#1e40af;line-height:1.6;font-style:italic;'>\"").append(adminNote).append("\"</p>");
+            sb.append("</td></tr></table>");
+            sb.append("</td></tr>");
+        }
+
+        // Footer note
+        if (footerNote != null && !footerNote.isBlank()) {
+            sb.append("<tr><td style='padding:0 40px 24px;'>");
+            sb.append("<p style='margin:0;font-size:13px;color:#64748b;line-height:1.6;'>").append(footerNote).append("</p>");
+            sb.append("</td></tr>");
+        }
+
+        // Divider
+        sb.append("<tr><td style='padding:0 40px;'><hr style='border:none;border-top:1px solid #e2e8f0;margin:0;'></td></tr>");
+
+        // Footer
+        sb.append("<tr><td style='padding:24px 40px 32px;text-align:center;'>");
+        sb.append("<p style='margin:0 0 4px;font-size:13px;color:#94a3b8;'>Cần hỗ trợ? Liên hệ chúng tôi</p>");
+        sb.append("<p style='margin:0;font-size:13px;color:#64748b;'>📧 support@easyhouse.vn &nbsp;|&nbsp; 📞 1900 8888</p>");
+        sb.append("<p style='margin:12px 0 0;font-size:11px;color:#cbd5e1;'>© 2026 EasyHouse. Mọi quyền được bảo lưu.</p>");
+        sb.append("</td></tr>");
+
+        sb.append("</table>"); // container
+        sb.append("</td></tr></table>"); // wrapper
+        sb.append("</body></html>");
+        return sb.toString();
     }
 
     public void sendInvoiceCreatedEmail(HoaDon hoaDon, KhachThue tenant) {
@@ -309,64 +428,59 @@ public class EmailService {
         }
     }
 
-    public void sendAppointmentCreatedEmail(com.example.quanlyphongtro.entity.LichHen lh) {
-        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) {
-            return;
-        }
+    // ── Appointment HTML Emails ─────────────────────────────────────────
+
+    public void sendAppointmentCreatedEmail(LichHen lh) {
+        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) return;
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(lh.getEmail());
-            message.setSubject("[EasyHouse] Xác nhận đăng ký đặt lịch xem phòng thành công");
-            
-            String thoiGian = lh.getNgayHen() != null ? lh.getNgayHen().toString() : "";
-            
-            message.setText(
-                "Xin chào " + lh.getHoTen() + ",\n\n" +
-                "EasyHouse xác nhận bạn đã đăng ký đặt lịch xem phòng thành công.\n" +
-                "Thông tin chi tiết:\n" +
-                "- Phòng: " + (lh.getPhong() != null ? lh.getPhong().getTen() : "N/A") + "\n" +
-                "- Địa chỉ: " + (lh.getPhong() != null && lh.getPhong().getNhaTro() != null ? lh.getPhong().getNhaTro().getDiaChi() : "N/A") + "\n" +
-                "- Thời gian hẹn: " + thoiGian + "\n" +
-                "- Ghi chú: " + (lh.getGhiChu() != null ? lh.getGhiChu() : "") + "\n\n" +
-                "Người quản lý sẽ liên hệ với bạn qua số điện thoại " + lh.getSoDienThoai() + " để xác nhận lại lịch hẹn.\n" +
-                "Cảm ơn bạn đã quan tâm đến dịch vụ của EasyHouse.\n\n" +
-                "Trân trọng,\nĐội ngũ EasyHouse"
+            String html = buildAppointmentHtmlTemplate(
+                "Đăng ký lịch hẹn thành công",
+                "#f59e0b", "⏳ CHỜ DUYỆT",
+                "Xin chào " + lh.getHoTen() + ",",
+                "Chúng tôi đã nhận được yêu cầu đặt lịch xem phòng của bạn. Quản lý sẽ xem xét và phản hồi trong thời gian sớm nhất.",
+                lh, null,
+                "Chúng tôi sẽ liên hệ qua số điện thoại <strong>" + lh.getSoDienThoai() + "</strong> để xác nhận lịch hẹn. Cảm ơn bạn đã tin tưởng EasyHouse!"
             );
-            mailSender.send(message);
-            log.info("Appointment confirmation email sent to customer {}", lh.getEmail());
+            sendHtmlEmail(lh.getEmail(), "[EasyHouse] Xác nhận đăng ký đặt lịch xem phòng thành công", html);
+            log.info("Appointment created HTML email sent to {}", lh.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send appointment confirmation email to {}: {}", lh.getEmail(), e.getMessage());
+            log.error("Failed to send appointment created email to {}: {}", lh.getEmail(), e.getMessage());
         }
     }
 
-    public void sendAppointmentConfirmedEmail(com.example.quanlyphongtro.entity.LichHen lh) {
-        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) {
-            return;
-        }
+    public void sendAppointmentConfirmedEmail(LichHen lh) {
+        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) return;
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(lh.getEmail());
-            message.setSubject("[EasyHouse] Lịch hẹn xem phòng của bạn đã được xác nhận!");
-            
-            String thoiGian = lh.getNgayHen() != null ? lh.getNgayHen().toString() : "";
-            
-            message.setText(
-                "Xin chào " + lh.getHoTen() + ",\n\n" +
-                "EasyHouse xin thông báo lịch hẹn xem phòng của bạn đã được quản lý xác nhận thành công.\n" +
-                "Thông tin chi tiết:\n" +
-                "- Phòng: " + (lh.getPhong() != null ? lh.getPhong().getTen() : "N/A") + "\n" +
-                "- Địa chỉ: " + (lh.getPhong() != null && lh.getPhong().getNhaTro() != null ? lh.getPhong().getNhaTro().getDiaChi() : "N/A") + "\n" +
-                "- Thời gian hẹn: " + thoiGian + "\n" +
-                "- Ghi chú phản hồi từ quản lý: " + (lh.getGhiChuAdmin() != null ? lh.getGhiChuAdmin() : "Không có") + "\n\n" +
-                "Vui lòng đến đúng giờ hẹn. Nếu có bất kỳ thay đổi nào, vui lòng liên hệ hotline 1900 8888 hoặc phản hồi qua email này.\n" +
-                "Trân trọng,\nĐội ngũ EasyHouse"
+            String html = buildAppointmentHtmlTemplate(
+                "Lịch hẹn đã được xác nhận",
+                "#22c55e", "✅ ĐÃ XÁC NHẬN",
+                "Xin chào " + lh.getHoTen() + ",",
+                "Tin vui! Lịch hẹn xem phòng của bạn đã được quản lý xác nhận thành công. Vui lòng đến đúng giờ hẹn bên dưới.",
+                lh, lh.getGhiChuAdmin(),
+                "Nếu bạn cần thay đổi lịch hẹn, vui lòng liên hệ hotline <strong>1900 8888</strong> hoặc phản hồi trực tiếp email này."
             );
-            mailSender.send(message);
-            log.info("Appointment confirmation approved email sent to customer {}", lh.getEmail());
+            sendHtmlEmail(lh.getEmail(), "[EasyHouse] ✅ Lịch hẹn xem phòng đã được xác nhận!", html);
+            log.info("Appointment confirmed HTML email sent to {}", lh.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send appointment confirmation approved email to {}: {}", lh.getEmail(), e.getMessage());
+            log.error("Failed to send appointment confirmed email to {}: {}", lh.getEmail(), e.getMessage());
+        }
+    }
+
+    public void sendAppointmentCancelledEmail(LichHen lh) {
+        if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) return;
+        try {
+            String html = buildAppointmentHtmlTemplate(
+                "Lịch hẹn đã bị hủy",
+                "#ef4444", "❌ ĐÃ HỦY",
+                "Xin chào " + lh.getHoTen() + ",",
+                "Rất tiếc, lịch hẹn xem phòng của bạn đã bị hủy. Dưới đây là thông tin chi tiết lịch hẹn đã hủy.",
+                lh, lh.getGhiChuAdmin(),
+                "Nếu bạn vẫn quan tâm, bạn có thể đặt lại lịch hẹn mới tại <a href='" + frontendBaseUrl + "' style='color:#3b82f6;text-decoration:underline;'>EasyHouse</a>. Chúng tôi luôn sẵn sàng hỗ trợ bạn."
+            );
+            sendHtmlEmail(lh.getEmail(), "[EasyHouse] Thông báo hủy lịch hẹn xem phòng", html);
+            log.info("Appointment cancelled HTML email sent to {}", lh.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send appointment cancelled email to {}: {}", lh.getEmail(), e.getMessage());
         }
     }
 }

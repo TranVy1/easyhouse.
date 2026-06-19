@@ -23,9 +23,18 @@ public class JwtService {
     private final long refreshTtlMs;
 
     public JwtService(
-            @Value("${jwt.secret:EasyHouse-Secret-Key-Must-Be-At-Least-256-Bits-Long!!}") String secret,
+            // FIX #4: Bỏ fallback default — app sẽ fail-fast khi khởi động nếu jwt.secret chưa được cấu hình
+            // Để tạo secret an toàn: openssl rand -base64 48
+            @Value("${jwt.secret}") String secret,
             @Value("${jwt.access-ttl-minutes:60}") long accessMinutes,
             @Value("${jwt.refresh-ttl-days:30}") long refreshDays) {
+        if (secret == null || secret.isBlank() || secret.length() < 32) {
+            throw new IllegalStateException(
+                "[Security] jwt.secret phải có ít nhất 32 ký tự. " +
+                "Thêm vào application-secrets.properties. " +
+                "Dùng lệnh sau để sinh secret: openssl rand -base64 48"
+            );
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessTtlMs = accessMinutes * 60 * 1000;
         this.refreshTtlMs = refreshDays * 24 * 60 * 60 * 1000;
