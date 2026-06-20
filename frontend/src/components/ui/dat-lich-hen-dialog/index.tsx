@@ -10,11 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CCCDUpload } from "@/components/ui/cccd-upload";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface DatLichHenDialogProps {
   isOpen: boolean;
@@ -62,6 +63,8 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
   };
 
   const initialDateTime = getInitialDateTime();
+
+  const [isCccdExpanded, setIsCccdExpanded] = useState(false);
 
   const [formData, setFormData] = useState({
     hoTen: "",
@@ -260,46 +263,65 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
             </div>
             
             <div className="border-t pt-4 mt-2">
-              <h4 className="text-sm font-medium mb-3 text-gray-900">Xác nhận Danh tính (Không bắt buộc)</h4>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="soCccd">Số CCCD / CMND</Label>
-                  <Input
-                    id="soCccd"
-                    value={formData.soCccd}
-                    onChange={(e) => setFormData({ ...formData, soCccd: e.target.value })}
-                    placeholder="Nhập số CCCD của bạn"
-                    autoComplete="off"
-                  />
+              <Collapsible
+                open={isCccdExpanded}
+                onOpenChange={setIsCccdExpanded}
+                className="w-full space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-gray-900">Xác nhận Danh tính (Không bắt buộc)</h4>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-9 p-0">
+                      {isCccdExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Toggle</span>
+                    </Button>
+                  </CollapsibleTrigger>
                 </div>
                 
-                <CCCDUpload
-                  anhCCCD={{ matTruoc: formData.anhCccdTruoc, matSau: formData.anhCccdSau }}
-                  onCCCDChange={({ matTruoc, matSau }) => setFormData({ ...formData, anhCccdTruoc: matTruoc, anhCccdSau: matSau })}
-                />
-                
-                {(formData.soCccd || formData.anhCccdTruoc || formData.anhCccdSau) && (
-                  <div className="flex items-start space-x-2 bg-blue-50 p-3 rounded-md border border-blue-100">
-                    <Checkbox
-                      id="dongYDieuKhoan"
-                      checked={formData.dongYDieuKhoan}
-                      onCheckedChange={(checked) => setFormData({ ...formData, dongYDieuKhoan: checked as boolean })}
-                      className="mt-0.5"
+                <CollapsibleContent className="space-y-4 pt-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="soCccd">Số CCCD / CMND</Label>
+                    <Input
+                      id="soCccd"
+                      value={formData.soCccd}
+                      onChange={(e) => setFormData({ ...formData, soCccd: e.target.value })}
+                      placeholder="Nhập số CCCD của bạn"
+                      autoComplete="off"
                     />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="dongYDieuKhoan"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-blue-900"
-                      >
-                        Đồng ý cung cấp thông tin <span className="text-red-500">*</span>
-                      </label>
-                      <p className="text-xs text-blue-800">
-                        Tôi đồng ý cung cấp thông tin Căn cước công dân và hình ảnh (nếu có) để phục vụ mục đích xác minh danh tính và lập hồ sơ thuê phòng theo quy định pháp luật. Phía cho thuê cam kết bảo mật tuyệt đối thông tin này.
-                      </p>
-                    </div>
                   </div>
-                )}
-              </div>
+                  
+                  <CCCDUpload
+                    anhCCCD={{ matTruoc: formData.anhCccdTruoc, matSau: formData.anhCccdSau }}
+                    onCCCDChange={({ matTruoc, matSau }) => setFormData({ ...formData, anhCccdTruoc: matTruoc, anhCccdSau: matSau })}
+                  />
+                  
+                  {(formData.soCccd || formData.anhCccdTruoc || formData.anhCccdSau) && (
+                    <div className="flex items-start space-x-2 bg-blue-50 p-3 rounded-md border border-blue-100">
+                      <Checkbox
+                        id="dongYDieuKhoan"
+                        checked={formData.dongYDieuKhoan}
+                        onCheckedChange={(checked) => setFormData({ ...formData, dongYDieuKhoan: checked as boolean })}
+                        className="mt-0.5"
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor="dongYDieuKhoan"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-blue-900"
+                        >
+                          Đồng ý cung cấp thông tin <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-blue-800">
+                          Tôi đồng ý cung cấp thông tin Căn cước công dân và hình ảnh (nếu có) để phục vụ mục đích xác minh danh tính và lập hồ sơ thuê phòng theo quy định pháp luật. Phía cho thuê cam kết bảo mật tuyệt đối thông tin này.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             
             {/* Honeypot field - invisible to real users */}
