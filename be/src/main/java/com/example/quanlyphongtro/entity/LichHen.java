@@ -29,6 +29,7 @@ public class LichHen {
     private String hoTen;
     private String soDienThoai;
     private String email;
+    private String soCccd;
 
     @Column(nullable = false)
     private ZonedDateTime ngayHen;

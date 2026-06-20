@@ -21,6 +21,9 @@ public class LichHenResponse {
     private String hoTen;
     private String soDienThoai;
     private String email;
+    private String soCccd;
+    private String anhCccdTruoc;
+    private String anhCccdSau;
     private ZonedDateTime ngayHen;
     private String trangThai;
     private Boolean daGuiNhacNho;
@@ -48,6 +51,7 @@ public class LichHenResponse {
                 .hoTen(lichHen.getHoTen())
                 .soDienThoai(lichHen.getSoDienThoai())
                 .email(lichHen.getEmail())
+                .soCccd(lichHen.getSoCccd())
                 .ngayHen(lichHen.getNgayHen())
                 .trangThai(lichHen.getTrangThai() != null ? lichHen.getTrangThai().name() : null)
                 .daGuiNhacNho(lichHen.getDaGuiNhacNho())

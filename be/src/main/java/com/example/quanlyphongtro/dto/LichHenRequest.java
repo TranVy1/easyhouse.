@@ -10,6 +10,9 @@ public class LichHenRequest {
     private String hoTen;
     private String soDienThoai;
     private String email;
+    private String soCccd;
+    private String anhCccdTruoc;
+    private String anhCccdSau;
     private ZonedDateTime ngayHen;
     private String ghiChu;
     private String ghiChuAdmin;

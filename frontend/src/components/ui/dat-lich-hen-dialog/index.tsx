@@ -13,6 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CCCDUpload } from "@/components/ui/cccd-upload";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DatLichHenDialogProps {
   isOpen: boolean;
@@ -69,6 +71,10 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
     gioHen: initialDateTime.gioHen,
     ghiChu: "",
     honeypot: "",
+    soCccd: "",
+    anhCccdTruoc: "",
+    anhCccdSau: "",
+    dongYDieuKhoan: false,
   });
 
   // Autofill user info if logged in
@@ -96,6 +102,12 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
       return;
     }
 
+    const hasCccdInfo = formData.soCccd || formData.anhCccdTruoc || formData.anhCccdSau;
+    if (hasCccdInfo && !formData.dongYDieuKhoan) {
+      toast.error("Vui lòng đồng ý với điều khoản bảo mật CCCD");
+      return;
+    }
+
     if (formData.honeypot) {
       // Spam detected via honeypot
       toast.success("Đặt lịch xem phòng thành công. Chúng tôi sẽ liên hệ lại sớm nhất.");
@@ -118,6 +130,9 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
           ngayHen: ngayHenIso,
           ghiChu: formData.ghiChu,
           honeypot: formData.honeypot,
+          soCccd: formData.soCccd,
+          anhCccdTruoc: formData.anhCccdTruoc,
+          anhCccdSau: formData.anhCccdSau,
         }),
       });
       
@@ -151,6 +166,10 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
           gioHen: resetDateTime.gioHen,
           ghiChu: "",
           honeypot: "",
+          soCccd: "",
+          anhCccdTruoc: "",
+          anhCccdSau: "",
+          dongYDieuKhoan: false,
         });
       } else {
         toast.error(data.message || "Đã xảy ra lỗi");
@@ -238,6 +257,49 @@ export function DatLichHenDialog({ isOpen, onClose, phongId, maPhong }: DatLichH
                 onChange={(e) => setFormData({ ...formData, ghiChu: e.target.value })}
                 placeholder="Bạn có yêu cầu gì đặc biệt không?"
               />
+            </div>
+            
+            <div className="border-t pt-4 mt-2">
+              <h4 className="text-sm font-medium mb-3 text-gray-900">Xác nhận Danh tính (Không bắt buộc)</h4>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="soCccd">Số CCCD / CMND</Label>
+                  <Input
+                    id="soCccd"
+                    value={formData.soCccd}
+                    onChange={(e) => setFormData({ ...formData, soCccd: e.target.value })}
+                    placeholder="Nhập số CCCD của bạn"
+                    autoComplete="off"
+                  />
+                </div>
+                
+                <CCCDUpload
+                  anhCCCD={{ matTruoc: formData.anhCccdTruoc, matSau: formData.anhCccdSau }}
+                  onCCCDChange={({ matTruoc, matSau }) => setFormData({ ...formData, anhCccdTruoc: matTruoc, anhCccdSau: matSau })}
+                />
+                
+                {(formData.soCccd || formData.anhCccdTruoc || formData.anhCccdSau) && (
+                  <div className="flex items-start space-x-2 bg-blue-50 p-3 rounded-md border border-blue-100">
+                    <Checkbox
+                      id="dongYDieuKhoan"
+                      checked={formData.dongYDieuKhoan}
+                      onCheckedChange={(checked) => setFormData({ ...formData, dongYDieuKhoan: checked as boolean })}
+                      className="mt-0.5"
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="dongYDieuKhoan"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-blue-900"
+                      >
+                        Đồng ý cung cấp thông tin <span className="text-red-500">*</span>
+                      </label>
+                      <p className="text-xs text-blue-800">
+                        Tôi đồng ý cung cấp thông tin Căn cước công dân và hình ảnh (nếu có) để phục vụ mục đích xác minh danh tính và lập hồ sơ thuê phòng theo quy định pháp luật. Phía cho thuê cam kết bảo mật tuyệt đối thông tin này.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Honeypot field - invisible to real users */}
