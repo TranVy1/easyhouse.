@@ -20,6 +20,7 @@ import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.KhachThueRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.ChiTietHoaDonRepository;
 import com.example.quanlyphongtro.repository.ThanhVienHopDongRepository;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ class HopDongServiceTest {
     @Mock private DichVuRepository dichVuRepository;
     @Mock private CauHinhGiaRepository cauHinhGiaRepository;
     @Mock private HoaDonRepository hoaDonRepository;
+    @Mock private ChiTietHoaDonRepository chiTietHoaDonRepository;
     @Mock private PermissionService permissionService;
     @Mock private JdbcTemplate jdbcTemplate;
 
@@ -60,6 +62,7 @@ class HopDongServiceTest {
                 dichVuRepository,
                 cauHinhGiaRepository,
                 hoaDonRepository,
+                chiTietHoaDonRepository,
                 permissionService,
                 jdbcTemplate
         );
