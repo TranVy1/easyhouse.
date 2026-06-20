@@ -30,6 +30,7 @@ public class ThanhToanService {
     private final ThanhToanRepository thanhToanRepository;
     private final HoaDonRepository hoaDonRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
+    private final HopDongRepository hopDongRepository;
     private final MediaService mediaService;
     private final PermissionService permissionService;
     private final EmailService emailService;
@@ -240,6 +241,15 @@ public class ThanhToanService {
         hd.setDaTra(total);
         hd.setTrangThai(resolveInvoiceStatus(total, hd.getTongTien(), hd.getHanTra()));
         hoaDonRepository.save(hd);
+
+        // Kích hoạt hợp đồng nếu thanh toán đủ và hợp đồng đang chờ kích hoạt
+        if (hd.getTrangThai() == TrangThaiHoaDon.PAID || hd.getTrangThai() == TrangThaiHoaDon.OVERPAID) {
+            com.example.quanlyphongtro.entity.HopDong hopDong = hd.getHopDong();
+            if (hopDong != null && hopDong.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHopDong.PENDING) {
+                hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
+                hopDongRepository.save(hopDong);
+            }
+        }
     }
 
     private void assertCanReadHoaDon(HoaDon hoaDon, UUID userId) {
