@@ -167,18 +167,18 @@ const mapRoom = (room: LooseRoom, index: number): RoomCard => {
   const images = getRoomImages(room);
 
   return {
-    id: room?._id || room?.id || index,
-    name: getRoomName(room, index),
-    location: getRoomLocation(room),
+    id: (room?._id || room?.id || index) as RoomId,
+    name: String(getRoomName(room, index)),
+    location: String(getRoomLocation(room)),
     priceValue,
     priceLabel: formatCurrency(priceValue),
     areaValue,
     areaLabel: areaValue ? `${areaValue}m2` : "Đang cập nhật",
     amenities: normalizeAmenities(room),
-    image: images[0],
-    images,
-    description: room?.moTa || room?.description || room?.mo_ta || "Đang cập nhật",
-    status: room?.trangThai,
+    image: images[0] as string | undefined,
+    images: images as string[],
+    description: String(room?.moTa || room?.description || room?.mo_ta || "Đang cập nhật"),
+    status: room?.trangThai as string | undefined,
     maxPeople: parseNumber(room?.soNguoiToiDa),
   };
 };
@@ -368,7 +368,6 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         if (data?.data) setUserProfile(data.data);
       })
       .catch(() => {});
-    setFilterCat(initialViewState.filterCat);
 
 
     fetch("/api/public/phong")
@@ -422,7 +421,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const showingFrom = filteredRooms.length === 0 ? 0 : featuredRooms.length + ((currentPage - 1) * ROOMS_PER_PAGE + 1);
   const showingTo = filteredRooms.length === 0 ? 0 : featuredRooms.length + Math.min(currentPage * ROOMS_PER_PAGE, listSource.length);
   const savedCount = savedRooms.size;
-  const currentUserName = userProfile?.name || userProfile?.hoTen || "Khách thuê";
+  const currentUserName = String(userProfile?.name || userProfile?.hoTen || "Khách thuê");
   const selectedPriceLabel = PRICE_RANGES.find((item) => item.id === filterPrice)?.shortLabel || "Giá";
   const selectedAreaLabel = AREA_RANGES.find((item) => item.id === filterArea)?.shortLabel || "Diện tích";
 

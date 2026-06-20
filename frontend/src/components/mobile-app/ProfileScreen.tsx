@@ -129,7 +129,6 @@ const getInitials = (name?: string) => {
 
 const contractStatusMap: Record<string, { label: string; cls: string; icon: ReactNode }> = {
   hoatDong: { label: "Đang hiệu lực", cls: "text-[#267D76] bg-[#4FA7A0]/10 border-[#4FA7A0]/30", icon: <CheckCircle2 size={11} /> },
-const contractStatusMap: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
   ACTIVE: { label: "Đang hiệu lực", cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11} /> },
   PENDING: { label: "Chờ cọc", cls: "text-orange-700   bg-orange-50   border-orange-200", icon: <Clock size={11} /> },
   EXPIRED: { label: "Hết hạn", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
@@ -137,7 +136,6 @@ const contractStatusMap: Record<string, { label: string; cls: string; icon: Reac
   CANCELLED: { label: "Đã hủy", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
   DRAFT: { label: "Nháp", cls: "text-slate-500  bg-slate-50  border-slate-200", icon: <Clock size={11} /> },
   // Fallback map
-  hoatDong: { label: "Đang hiệu lực", cls: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: <CheckCircle2 size={11} /> },
   choKichHoat: { label: "Chờ kích hoạt", cls: "text-amber-700   bg-amber-50   border-amber-200", icon: <Clock size={11} /> },
   hetHan: { label: "Hết hạn", cls: "text-red-700    bg-red-50    border-red-200", icon: <XCircle size={11} /> },
   daKetThuc: { label: "Đã kết thúc", cls: "text-[#6B7A8C]  bg-[#F8F3EC]  border-[#E8DED2]", icon: <XCircle size={11} /> },
@@ -569,8 +567,8 @@ function ChangePassword() {
         <div className="mt-3 flex gap-1.5 items-center">
           {[6, 10, 14].map((min, i) => (
             <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${form.newPassword.length >= min
-                ? i === 0 ? "bg-red-400" : i === 1 ? "bg-amber-400" : "bg-[#4FA7A0]"
-                : "bg-slate-200"
+              ? i === 0 ? "bg-red-400" : i === 1 ? "bg-amber-400" : "bg-[#4FA7A0]"
+              : "bg-slate-200"
               }`} />
           ))}
           <span className="text-[10px] text-[#6B7A8C] font-semibold ml-1">
@@ -702,7 +700,7 @@ function ContractSection({ accessToken }: { accessToken?: string }) {
                       </a>
                     )}
                     {hd.trangThai === "PENDING" && (
-                      <button 
+                      <button
                         onClick={() => handlePayDeposit(hd._id)}
                         className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors shadow-sm"
                       >
@@ -978,88 +976,88 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
   return (
     <div className="flex min-h-full flex-col overflow-y-auto bg-[#F8F3EC] px-4 pb-20 pt-5 text-[#243B5A] sm:px-6 md:px-8 md:pb-12">
       <div className="mx-auto w-full max-w-[1180px] space-y-6">
-      <section className="relative overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_80%_18%,rgba(79,167,160,0.42),transparent_28%),linear-gradient(135deg,#0F1F3D_0%,#243B5A_38%,#3741B6_72%,#1A73E8_100%)] px-5 py-6 text-white shadow-[0_22px_70px_rgba(36,59,90,0.28)] sm:px-7 md:px-8 md:py-8">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] [background-size:36px_36px]" />
-        <div className="pointer-events-none absolute -right-8 bottom-0 hidden h-44 w-[360px] opacity-25 md:block">
-          <div className="absolute bottom-0 left-4 h-28 w-24 rounded-t-[1.8rem] border border-white/45" />
-          <div className="absolute bottom-0 left-28 h-40 w-28 rounded-t-[2rem] border border-white/45" />
-          <div className="absolute bottom-0 left-64 h-32 w-24 rounded-t-[1.8rem] border border-white/45" />
-          <div className="absolute bottom-20 left-44 h-px w-10 bg-white/45" />
-          <div className="absolute bottom-28 left-44 h-px w-10 bg-white/45" />
-          <div className="absolute bottom-16 left-[19rem] h-px w-10 bg-white/45" />
-        </div>
+        <section className="relative overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_80%_18%,rgba(79,167,160,0.42),transparent_28%),linear-gradient(135deg,#0F1F3D_0%,#243B5A_38%,#3741B6_72%,#1A73E8_100%)] px-5 py-6 text-white shadow-[0_22px_70px_rgba(36,59,90,0.28)] sm:px-7 md:px-8 md:py-8">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] [background-size:36px_36px]" />
+          <div className="pointer-events-none absolute -right-8 bottom-0 hidden h-44 w-[360px] opacity-25 md:block">
+            <div className="absolute bottom-0 left-4 h-28 w-24 rounded-t-[1.8rem] border border-white/45" />
+            <div className="absolute bottom-0 left-28 h-40 w-28 rounded-t-[2rem] border border-white/45" />
+            <div className="absolute bottom-0 left-64 h-32 w-24 rounded-t-[1.8rem] border border-white/45" />
+            <div className="absolute bottom-20 left-44 h-px w-10 bg-white/45" />
+            <div className="absolute bottom-28 left-44 h-px w-10 bg-white/45" />
+            <div className="absolute bottom-16 left-[19rem] h-px w-10 bg-white/45" />
+          </div>
 
-        <div className="relative z-20 mb-5 sm:absolute sm:left-6 sm:top-6 sm:mb-0">
-          <button
-            onClick={() => {
-              if (onBack) {
-                onBack();
-              } else {
-                router.push("/");
-              }
-            }}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-sm backdrop-blur transition hover:bg-white/20"
-            title="Quay lại"
-          >
-            <ArrowLeft size={18} />
-          </button>
-        </div>
+          <div className="relative z-20 mb-5 sm:absolute sm:left-6 sm:top-6 sm:mb-0">
+            <button
+              onClick={() => {
+                if (onBack) {
+                  onBack();
+                } else {
+                  router.push("/");
+                }
+              }}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-sm backdrop-blur transition hover:bg-white/20"
+              title="Quay lại"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          </div>
 
-        <div className="relative z-10 flex flex-col gap-7 sm:pl-16 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-          {displayAvatar ? (
-            <img
-              src={displayAvatar}
-              alt={displayName}
-              className="h-24 w-24 shrink-0 rounded-[1.6rem] border-4 border-white/55 bg-white/10 object-cover shadow-2xl md:h-28 md:w-28"
-            />
-          ) : (
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.6rem] border-4 border-white/55 bg-white/12 text-3xl font-extrabold text-white shadow-2xl backdrop-blur md:h-28 md:w-28">
-              {initials || <User size={34} className="text-white/80" />}
-            </div>
-          )}
-            <div className="min-w-0">
-              <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.22em] text-white/70">
-                {roleLabel ? `Tài khoản ${roleLabel}` : "Tài khoản EasyHouse"}
-              </p>
-              <h1 className="max-w-full truncate text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-                {displayName}
-              </h1>
-              <div className="mt-2 flex min-w-0 items-center gap-2 text-sm font-medium text-white/80">
-                <Mail size={15} className="shrink-0" />
-                <span className="truncate">{displayEmail}</span>
+          <div className="relative z-10 flex flex-col gap-7 sm:pl-16 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              {displayAvatar ? (
+                <img
+                  src={displayAvatar}
+                  alt={displayName}
+                  className="h-24 w-24 shrink-0 rounded-[1.6rem] border-4 border-white/55 bg-white/10 object-cover shadow-2xl md:h-28 md:w-28"
+                />
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.6rem] border-4 border-white/55 bg-white/12 text-3xl font-extrabold text-white shadow-2xl backdrop-blur md:h-28 md:w-28">
+                  {initials || <User size={34} className="text-white/80" />}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.22em] text-white/70">
+                  {roleLabel ? `Tài khoản ${roleLabel}` : "Tài khoản EasyHouse"}
+                </p>
+                <h1 className="max-w-full truncate text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+                  {displayName}
+                </h1>
+                <div className="mt-2 flex min-w-0 items-center gap-2 text-sm font-medium text-white/80">
+                  <Mail size={15} className="shrink-0" />
+                  <span className="truncate">{displayEmail}</span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {roleLabel && (
+                    <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#243B5A] shadow-sm">
+                      {roleLabel}
+                    </span>
+                  )}
+                  {statusLabel && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4FA7A0]/30/70 bg-[#4FA7A0]/10 px-4 py-1.5 text-xs font-extrabold text-[#267D76] shadow-sm">
+                      <ShieldCheck size={13} />
+                      {statusLabel}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {roleLabel && (
-                  <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#243B5A] shadow-sm">
-                    {roleLabel}
-                  </span>
-                )}
-                {statusLabel && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4FA7A0]/30/70 bg-[#4FA7A0]/10 px-4 py-1.5 text-xs font-extrabold text-[#267D76] shadow-sm">
-                    <ShieldCheck size={13} />
-                    {statusLabel}
-                  </span>
-                )}
+            </div>
+
+            <div className="w-full max-w-sm rounded-[1.6rem] border border-white/20 bg-white/12 p-4 shadow-2xl shadow-black/10 backdrop-blur-md">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-white/20">
+                  <Home size={27} />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-white/70">EasyHouse</p>
+                  <p className="text-lg font-extrabold leading-tight text-white">Quản lý thuê phòng</p>
+                </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <div className="w-full max-w-sm rounded-[1.6rem] border border-white/20 bg-white/12 p-4 shadow-2xl shadow-black/10 backdrop-blur-md">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-white/20">
-                <Home size={27} />
-              </div>
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-white/70">EasyHouse</p>
-                <p className="text-lg font-extrabold leading-tight text-white">Quản lý thuê phòng</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid gap-6 md:grid-cols-[290px_minmax(0,1fr)] md:items-start">
+        <div className="grid gap-6 md:grid-cols-[290px_minmax(0,1fr)] md:items-start">
           <aside className="overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)] max-md:pr-14 md:pr-0">
             <div className="px-5 pb-2 pt-5">
               <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#243B5A]/55">Điều hướng</p>
@@ -1089,18 +1087,18 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
                 <span className="flex-1 text-left">Đăng xuất</span>
               </button>
             </div>
-        </aside>
+          </aside>
 
-        <main className="min-w-0 overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)]">
-          <div className="min-h-96 p-5 sm:p-7">
-            {activeSection === "profile" && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
-            {activeSection === "password" && <ChangePassword />}
-            {activeSection === "contract" && <ContractSection accessToken={session?.accessToken} />}
-            {activeSection === "bills" && <InvoicesSection accessToken={session?.accessToken} />}
-            {activeSection === "incidents" && <IncidentsSection accessToken={session?.accessToken} />}
-          </div>
-        </main>
-      </div>
+          <main className="min-w-0 overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)]">
+            <div className="min-h-96 p-5 sm:p-7">
+              {activeSection === "profile" && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
+              {activeSection === "password" && <ChangePassword />}
+              {activeSection === "contract" && <ContractSection accessToken={session?.accessToken as string | undefined} />}
+              {activeSection === "bills" && <InvoicesSection accessToken={session?.accessToken as string | undefined} />}
+              {activeSection === "incidents" && <IncidentsSection accessToken={session?.accessToken as string | undefined} />}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

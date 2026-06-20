@@ -275,9 +275,9 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
                   <div className="flex flex-1 flex-col bg-white p-6">
                     <h3 className="truncate text-base font-extrabold text-[#243B5A]">{roomName}</h3>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7A8C] sm:text-sm">
-                      <span className="text-sm font-extrabold text-[#F2A45B] sm:text-base">{room.priceLabel || room.price || "Liên hệ"}</span>
+                      <span className="text-sm font-extrabold text-[#F2A45B] sm:text-base">{String(room.priceLabel || room.price || "Liên hệ")}</span>
                       <span className="text-slate-300">•</span>
-                      <span className="text-[#243B5A]">{room.areaLabel || room.area || "Đang cập nhật"}</span>
+                      <span className="text-[#243B5A]">{String(room.areaLabel || room.area || "Đang cập nhật")}</span>
                       <span className="text-slate-300">•</span>
                       <span className="inline-flex max-w-[200px] items-center gap-1 truncate text-[#6B7A8C]">
                         <MapPin size={13} className="shrink-0 text-[#4FA7A0]" />
