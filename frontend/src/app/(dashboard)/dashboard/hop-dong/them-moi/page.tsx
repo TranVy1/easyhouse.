@@ -1100,67 +1100,88 @@ export default function ThemMoiHopDongPage() {
             <DialogTitle>Xem trước Hợp đồng</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-4 border rounded-md bg-white text-black">
-            <div className="max-w-2xl mx-auto space-y-4 font-serif text-sm">
+            <div className="max-w-2xl mx-auto space-y-4 font-legal text-sm leading-relaxed">
               <div className="text-center font-bold">
                 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br/>
-                Độc lập - Tự do - Hạnh phúc
+                Độc lập - Tự do - Hạnh phúc<br/>
+                -----------------
               </div>
               <h2 className="text-xl font-bold text-center mt-6 mb-4">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h2>
-              <p className="font-bold">1. Đại diện bên cho thuê (Bên A):</p>
-              <p>Ban Quản Lý Tòa Nhà</p>
               
-              <p className="font-bold mt-4">2. Bên thuê phòng trọ (Bên B):</p>
-              <p>Ông/Bà: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.hoTen || '[Chưa chọn]'}</p>
+              <p className="italic mb-6 text-justify">
+                - Căn cứ Bộ Luật Dân sự số 91/2015/QH13 của Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam;<br/>
+                - Căn cứ vào nhu cầu và khả năng của hai bên;
+              </p>
+              
+              <p>Hôm nay, ngày ... tháng ... năm ..., tại địa chỉ nhà trọ, chúng tôi gồm:</p>
+
+              <p className="font-bold uppercase mt-4">BÊN CHO THUÊ (BÊN A):</p>
+              <p>Ông/Bà: <strong>Ban Quản Lý Tòa Nhà</strong></p>
+              <p>Đại diện cho nhà trọ: {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}</p>
+              
+              <p className="font-bold uppercase mt-4">BÊN THUÊ (BÊN B):</p>
+              <p>Ông/Bà: <strong>{khachThueList.find(k => k._id === formData.nguoiDaiDien)?.hoTen || '[Chưa chọn]'}</strong></p>
               <p>SĐT: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.soDienThoai}</p>
               <p>CCCD: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.cccd}</p>
               
-              <div className="font-bold mt-4">3. Điều khoản thỏa thuận:</div>
-              <p>- Cho thuê phòng: <strong>{phongList.find(p => p._id === formData.phong)?.maPhong}</strong> tại {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}</p>
-              <p>- Giá thuê: <strong>{formatCurrency(Number(formData.giaThue))}</strong> /tháng (Thanh toán vào ngày {formData.ngayThanhToan} hàng tháng)</p>
-              <p>- Tiền đặt cọc: <strong>{formatCurrency(Number(formData.tienCoc))}</strong></p>
-              <p>- Tiền điện: (Theo thỏa thuận / Dịch vụ)</p>
-              <p>- Tiền nước: (Theo thỏa thuận / Dịch vụ)</p>
-              {formData.phiDichVu.length > 0 && (
-                <div>
-                  <p>- Phí dịch vụ bổ sung:</p>
-                  <ul className="list-disc pl-5">
-                    {formData.phiDichVu.map((phi, i) => (
-                      <li key={i}>{phi.ten}: {formatCurrency(phi.gia)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <p>- Thời hạn: Từ ngày {formData.ngayBatDau} đến {formData.ngayKetThuc}</p>
-              <div className="mt-6">
-                <h3 className="font-bold text-lg mb-2 text-center">TRÁCH NHIỆM CỦA CÁC BÊN</h3>
-                
-                <p className="font-bold mt-3">* Trách nhiệm của bên A:</p>
-                <p>- Tạo mọi điều kiện thuận lợi để bên B thực hiện theo hợp đồng.</p>
-                <p>- Cung cấp nguồn điện, nước đầy đủ cho bên B sử dụng.</p>
+              <p className="mt-4 italic font-bold">Hai bên cùng thỏa thuận và ký kết Hợp đồng thuê phòng trọ với các điều khoản sau:</p>
 
-                <p className="font-bold mt-3">* Trách nhiệm của bên B:</p>
-                <p>- Thanh toán đầy đủ tiền theo đúng thỏa thuận.</p>
-                <p>- Bảo quản các trang thiết bị và cơ sở vật chất của bên A trang bị cho ban đầu (làm hỏng phải sửa, mất phải đền).</p>
-                <p>- Không được tự ý sửa chữa, cải tạo cơ sở vật chất khi chưa được sự đồng ý của bên A.</p>
-                <p>- Luôn có ý thức giữ gìn vệ sinh trong và ngoài khu vực phòng trọ.</p>
-                <p>- Bên B phải chấp hành mọi quy định của pháp luật Nhà nước và quy định của địa phương.</p>
-                <p>- Nếu bên B cho khách ở qua đêm thì phải báo trước và được sự đồng ý của bên A, đồng thời phải chịu trách nhiệm về các hành vi vi phạm pháp luật của khách trong thời gian ở lại (nếu có).</p>
-              </div>
+              <div className="font-bold mt-4 uppercase">ĐIỀU 1: ĐỐI TƯỢNG HỢP ĐỒNG VÀ THỜI GIAN THUÊ</div>
+              <p>1.1 Bên A đồng ý cho bên B thuê phòng số <strong>{phongList.find(p => p._id === formData.phong)?.maPhong}</strong> tại {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}.</p>
+              <p>1.2 Mục đích thuê: Để ở. Số lượng người ở tối đa theo quy định của tòa nhà.</p>
+              <p>1.3 Thời hạn thuê: Từ ngày <strong>{formData.ngayBatDau}</strong> đến ngày <strong>{formData.ngayKetThuc}</strong>.</p>
 
-              <div className="mt-6">
-                <h3 className="font-bold text-lg mb-2 text-center">TRÁCH NHIỆM CHUNG</h3>
-                <p>- Hai bên phải tạo điều kiện thuận lợi cho nhau để thực hiện hợp đồng.</p>
-                <p>- Nếu một trong hai bên vi phạm hợp đồng trong thời gian hợp đồng vẫn còn hiệu lực thì bên còn lại có quyền đơn phương chấm dứt hợp đồng thuê nhà trọ. Ngoài ra, nếu hành vi vi phạm đó gây tổn thất cho bên bị vi phạm thì bên vi phạm sẽ phải bồi thường mọi thiệt hại đã gây ra.</p>
-                <p>- Trong trường hợp muốn chấm dứt hợp đồng trước thời hạn, cần phải báo trước cho bên kia ít nhất 30 ngày và hai bên phải có sự thống nhất với nhau.</p>
-                <p>- Kết thúc hợp đồng, Bên A phải trả lại đầy đủ tiền đặt cọc cho bên B.</p>
-                <p>- Bên nào vi phạm các điều khoản chung thì phải chịu trách nhiệm trước pháp luật.</p>
-                <p>- Hợp đồng này được lập thành 02 bản và có giá trị pháp lý như nhau, mỗi bên giữ một bản.</p>
-              </div>
-              
+              <div className="font-bold mt-6 uppercase">ĐIỀU 2: GIÁ THUÊ VÀ PHƯƠNG THỨC THANH TOÁN</div>
+              <p>2.1 Giá thuê phòng: <strong>{formatCurrency(Number(formData.giaThue))}</strong> /tháng (Giá thuê này chưa bao gồm các chi phí dịch vụ khác).</p>
+              <p>2.2 Phí dịch vụ:</p>
+              <ul className="list-disc pl-5 mb-2 space-y-1">
+                <li>Tiền điện: (Theo thỏa thuận / Dịch vụ)</li>
+                <li>Tiền nước: (Theo thỏa thuận / Dịch vụ)</li>
+                {formData.phiDichVu.map((phi, i) => (
+                  <li key={i}>{phi.ten}: {formatCurrency(phi.gia)}</li>
+                ))}
+              </ul>
+              <p>2.3 Tiền đặt cọc: <strong>{formatCurrency(Number(formData.tienCoc))}</strong>. Bên A sẽ hoàn trả lại số tiền cọc này cho Bên B khi chấm dứt hợp đồng và Bên B đã thanh toán đầy đủ các khoản chi phí phát sinh.</p>
+              <p>2.4 Phương thức thanh toán: Thanh toán bằng tiền mặt hoặc chuyển khoản vào ngày <strong>{formData.ngayThanhToan}</strong> hàng tháng.</p>
+
+              <div className="font-bold mt-6 uppercase">ĐIỀU 3: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Bàn giao phòng trọ và trang thiết bị kèm theo (nếu có) cho Bên B đúng thời gian thỏa thuận.</li>
+                <li>Đảm bảo quyền sử dụng trọn vẹn, độc lập của Bên B trong thời gian thuê.</li>
+                <li>Hỗ trợ Bên B trong việc đăng ký tạm trú (nếu Bên B có yêu cầu và cung cấp đủ giấy tờ).</li>
+                <li>Được quyền chấm dứt hợp đồng đơn phương nếu Bên B vi phạm các điều khoản trong hợp đồng hoặc quy định của khu trọ.</li>
+              </ul>
+
+              <div className="font-bold mt-6 uppercase">ĐIỀU 4: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Sử dụng phòng trọ đúng mục đích, không sử dụng vào các mục đích vi phạm pháp luật.</li>
+                <li>Thanh toán tiền thuê phòng và các chi phí dịch vụ đầy đủ và đúng hạn.</li>
+                <li>Có trách nhiệm bảo quản tài sản, trang thiết bị do Bên A cung cấp. Nếu làm hư hỏng, mất mát phải bồi thường theo giá trị hiện tại.</li>
+                <li>Không được tự ý sửa chữa, thay đổi cấu trúc phòng trọ khi chưa có sự đồng ý của Bên A.</li>
+                <li>Chấp hành nghiêm chỉnh các quy định về an ninh trật tự, phòng cháy chữa cháy và quy chế của khu trọ.</li>
+                <li>Không được cho thuê lại hoặc chuyển nhượng hợp đồng thuê phòng cho người khác.</li>
+                <li>Nếu cho khách ở qua đêm phải báo trước và được sự đồng ý của Bên A, chịu trách nhiệm về các hành vi của khách.</li>
+              </ul>
+
+              <div className="font-bold mt-6 uppercase">ĐIỀU 5: ĐIỀU KHOẢN CHẤM DỨT HỢP ĐỒNG VÀ XỬ LÝ TIỀN CỌC</div>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Hợp đồng đương nhiên chấm dứt khi hết hạn. Nếu Bên B muốn gia hạn phải thông báo cho Bên A trước 15 ngày.</li>
+                <li>Nếu Bên B đơn phương chấm dứt hợp đồng trước hạn, Bên B phải báo trước cho Bên A ít nhất 30 ngày và sẽ KHÔNG được hoàn lại tiền cọc.</li>
+                <li>Nếu Bên A đơn phương chấm dứt hợp đồng trước hạn không do lỗi của Bên B, Bên A phải báo trước ít nhất 30 ngày và hoàn lại tiền cọc cùng một khoản bồi thường tương đương tiền cọc cho Bên B.</li>
+                <li>Bên A có quyền đơn phương chấm dứt hợp đồng không cần báo trước, không hoàn cọc và yêu cầu Bên B dời đi ngay lập tức nếu Bên B vi phạm nghiêm trọng (Tàng trữ chất cấm, đánh nhau gây rối, chậm thanh toán tiền phòng quá 15 ngày...).</li>
+              </ul>
+
+              <div className="font-bold mt-6 uppercase">ĐIỀU 6: ĐIỀU KHOẢN CHUNG</div>
+              <ul className="list-disc pl-5 mb-4 space-y-1">
+                <li>Hai bên cam kết thực hiện đúng các điều khoản đã ghi trong hợp đồng.</li>
+                <li>Những vấn đề phát sinh chưa được ghi trong hợp đồng sẽ được hai bên thỏa thuận giải quyết trên tinh thần hợp tác.</li>
+                <li>Hợp đồng được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.</li>
+              </ul>
+
               {formData.dieuKhoan && (
                 <div className="mt-6">
-                  <h3 className="font-bold text-lg mb-2 text-center">ĐIỀU KHOẢN BỔ SUNG</h3>
-                  <div className="whitespace-pre-line">{formData.dieuKhoan}</div>
+                  <div className="font-bold mt-6 uppercase">ĐIỀU KHOẢN BỔ SUNG (NỘI QUY)</div>
+                  <div className="whitespace-pre-line ml-4 mt-2">{formData.dieuKhoan}</div>
                 </div>
               )}
 
