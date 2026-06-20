@@ -417,6 +417,7 @@ export default function ThemMoiHopDongPage() {
           khachThueIds: thanhVienIds,
           ngayBatDau: ensureISODate(formData.ngayBatDau),
           ngayKetThuc: ensureISODate(formData.ngayKetThuc),
+          giaThueHopDong: Number(formData.giaThue || 0),
           phiDichVu: formData.phiDichVu.map((phi: any) => ({
              ...phi,
              gia: Number(phi.gia || 0)
