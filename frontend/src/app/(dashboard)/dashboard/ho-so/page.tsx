@@ -91,26 +91,24 @@ export default function ProfilePage() {
 
   useEffect(() => {
     document.title = 'Hồ sơ cá nhân';
+    const fetchProvinces = async () => {
+      try {
+        const res = await fetch("https://provinces.open-api.vn/api/v1/p/");
+        const data = await res.json();
+        setProvinces(data);
+      } catch (err) {
+        console.error("Error fetching provinces:", err);
+      }
+    };
     fetchProvinces();
   }, []);
-
-  // Fetch Provinces
-  const fetchProvinces = async () => {
-    try {
-      const res = await fetch("https://provinces.open-api.vn/api/p/");
-      const data = await res.json();
-      setProvinces(data);
-    } catch (err) {
-      console.error("Error fetching provinces:", err);
-    }
-  };
 
   // Fetch Districts when province changes
   useEffect(() => {
     if (selectedProvince) {
       const province = provinces.find(p => p.name === selectedProvince);
       if (province) {
-        fetch(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
+        fetch(`https://provinces.open-api.vn/api/v1/p/${province.code}?depth=2`)
           .then(res => res.json())
           .then(data => {
             setDistricts(data.districts);
@@ -127,7 +125,7 @@ export default function ProfilePage() {
     if (selectedDistrict) {
       const district = districts.find(d => d.name === selectedDistrict);
       if (district) {
-        fetch(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
+        fetch(`https://provinces.open-api.vn/api/v1/d/${district.code}?depth=2`)
           .then(res => res.json())
           .then(data => {
             setWards(data.wards);

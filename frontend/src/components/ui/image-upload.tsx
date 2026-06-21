@@ -85,7 +85,7 @@ export function ImageUpload({
               src={imageUrl}
               alt="Ảnh đã tải lên"
               fill
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
             />
             <Button

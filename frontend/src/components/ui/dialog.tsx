@@ -66,6 +66,8 @@ function DialogContent({
         {...props}
       >
         {children}
+        {/* Hidden fallback description to suppress Radix UI warning when no DialogDescription is provided */}
+        <DialogPrimitive.Description className="sr-only" />
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"

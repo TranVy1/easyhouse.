@@ -170,7 +170,7 @@ export default function ThemMoiHopDongPage() {
     chiSoDienBanDau: 0 as number | string,
     chiSoNuocBanDau: 0 as number | string,
     phiDichVu: [] as PhiDichVuForm[],
-    trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
+    trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
   const [openPhong, setOpenPhong] = useState(false);
@@ -866,10 +866,10 @@ export default function ThemMoiHopDongPage() {
                   <SelectContent>
                     <SelectItem value="nhap">Nháp</SelectItem>
                     <SelectItem value="choKichHoat">Chờ kích hoạt</SelectItem>
-                    <SelectItem value="hoatDong">Hoạt động</SelectItem>
-                    <SelectItem value="hetHan">Hết hạn</SelectItem>
-                    <SelectItem value="daKetThuc">Đã kết thúc</SelectItem>
-                    <SelectItem value="daHuy">Đã hủy</SelectItem>
+                    <SelectItem value="hoatDong" disabled>Hoạt động sau khi xác nhận</SelectItem>
+                    <SelectItem value="hetHan" disabled>Hết hạn tự động</SelectItem>
+                    <SelectItem value="daKetThuc" disabled>Kết thúc bằng chức năng riêng</SelectItem>
+                    <SelectItem value="daHuy" disabled>Hủy bằng chức năng riêng</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -244,7 +244,7 @@ export default function ChinhSuaHopDongPage() {
     chiSoDienBanDau: 0 as number | string,
     chiSoNuocBanDau: 0 as number | string,
     phiDichVu: [] as PhiDichVuForm[],
-    trangThai: 'hoatDong' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
+    trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
   const [openPhong, setOpenPhong] = useState(false);
@@ -1232,10 +1232,10 @@ export default function ChinhSuaHopDongPage() {
                   <SelectContent>
                     <SelectItem value="nhap" className="text-sm">Nháp</SelectItem>
                     <SelectItem value="choKichHoat" className="text-sm">Chờ kích hoạt</SelectItem>
-                    <SelectItem value="hoatDong" className="text-sm">Hoạt động</SelectItem>
-                    <SelectItem value="hetHan" className="text-sm">Hết hạn</SelectItem>
-                    <SelectItem value="daKetThuc" className="text-sm">Đã kết thúc</SelectItem>
-                    <SelectItem value="daHuy" className="text-sm">Đã hủy</SelectItem>
+                    <SelectItem value="hoatDong" className="text-sm" disabled>Hoạt động sau khi xác nhận</SelectItem>
+                    <SelectItem value="hetHan" className="text-sm" disabled>Hết hạn tự động</SelectItem>
+                    <SelectItem value="daKetThuc" className="text-sm" disabled>Kết thúc bằng chức năng riêng</SelectItem>
+                    <SelectItem value="daHuy" className="text-sm" disabled>Hủy bằng chức năng riêng</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

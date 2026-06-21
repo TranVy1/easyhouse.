@@ -119,6 +119,15 @@ public class TenantApiController {
         }
     }
 
+    @PutMapping("/hop-dong/{id}/thanh-toan-coc")
+    public ResponseEntity<ApiResponse<HopDongResponse>> thanhToanCoc(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(hopDongService.thanhToanCoc(id)));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
     private <T> ResponseEntity<ApiResponse<T>> badRequest(String message) {
         return ResponseEntity.badRequest().body(ApiResponse.error(message));
     }

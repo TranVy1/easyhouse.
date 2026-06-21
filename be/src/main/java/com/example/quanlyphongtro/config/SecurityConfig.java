@@ -50,10 +50,12 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/public/**",
+                    "/api/hoa-don-public/**",
                     "/actuator/**",
                     "/error"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/lich-hen").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/vnpay/ipn").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
