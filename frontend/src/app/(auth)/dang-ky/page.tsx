@@ -88,12 +88,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-slate-950 px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8F3EC] dark:bg-[#172A42] px-4 py-12 relative overflow-hidden">
       {/* Back to Home Button */}
       <div className="absolute top-6 left-6 z-20">
         <Link 
           href="/" 
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-50"
+          className="flex items-center gap-1.5 text-xs font-bold text-[#6B7A8C] hover:text-[#243B5A] transition-colors bg-[#FFFDF8] dark:bg-[#243B5A] border border-[#E8DED2] dark:border-[#243B5A]/25 px-4 py-2.5 rounded-xl shadow-sm hover:bg-[#F8F3EC]"
         >
           <ArrowLeft size={14} /> Trở về trang chủ
         </Link>
@@ -101,7 +101,7 @@ export default function RegisterPage() {
 
       {/* Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[120px]" />
+        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#4FA7A0]/5 blur-[120px]" />
         <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-[#FF5A3D]/5 blur-[120px]" />
       </div>
 
@@ -109,22 +109,22 @@ export default function RegisterPage() {
         {/* Brand Logo Banner */}
         <div className="flex flex-col items-center justify-center mb-8">
           <Link href="/" className="flex flex-col items-center select-none cursor-pointer group">
-            <h1 className="text-3xl font-black text-blue-600 tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
-              EASY<span className="text-slate-800 dark:text-white">HOUSE</span>
+            <h1 className="text-3xl font-black text-[#243B5A] tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
+              EASY<span className="text-[#243B5A] dark:text-white">HOUSE</span>
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
+            <p className="text-[10px] text-[#6B7A8C] font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
           </Link>
         </div>
 
-        <Card className="border-none shadow-2xl shadow-slate-200/80 dark:shadow-none dark:bg-slate-900/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
+        <Card className="border-none shadow-2xl shadow-[#243B5A]/10 dark:shadow-none dark:bg-[#243B5A]/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
           {/* Brand Gradient Bar */}
           <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-[#FF5A3D]" />
           <CardHeader className="space-y-3 p-8 pb-2 text-center">
             <div className="space-y-1">
-              <CardTitle className="text-2xl font-black text-slate-900 dark:text-white">
+              <CardTitle className="text-2xl font-black text-[#243B5A] dark:text-white">
                 ĐĂNG KÝ
               </CardTitle>
-              <CardDescription className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <CardDescription className="text-sm font-medium text-[#6B7A8C] dark:text-[#6B7A8C]">
                 Tạo tài khoản mới trên EasyHouse
               </CardDescription>
             </div>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
               )}
 
               {success && (
-                <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400 rounded-xl">
+                <Alert className="border-[#4FA7A0]/30 bg-[#4FA7A0]/10 dark:bg-[#4FA7A0]/20 text-[#267D76] dark:text-[#8CCBC5] rounded-xl">
                   <MailCheck className="h-5 w-5 mr-3" />
                   <AlertDescription className="font-bold text-xs">{success}</AlertDescription>
                 </Alert>
@@ -147,12 +147,12 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Họ tên */}
                 <div className="space-y-2">
-                  <Label htmlFor="ten" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Họ và tên</Label>
+                  <Label htmlFor="ten" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Họ và tên</Label>
                   <Input
                     id="ten"
                     placeholder="Nguyễn Văn A"
                     {...register('ten')}
-                    className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.ten ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.ten ? 'border-red-500' : ''}`}
                   />
                   {errors.ten && (
                     <p className="text-xs text-red-500 font-bold ml-1">{errors.ten.message}</p>
@@ -161,13 +161,13 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
+                  <Label htmlFor="email" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="name@example.com"
                     {...register('email')}
-                    className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.email ? 'border-red-500' : ''}`}
                   />
                   {errors.email && (
                     <p className="text-xs text-red-500 font-bold ml-1">{errors.email.message}</p>
@@ -176,12 +176,12 @@ export default function RegisterPage() {
 
                 {/* Số điện thoại */}
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="soDienThoai" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Số điện thoại</Label>
+                  <Label htmlFor="soDienThoai" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Số điện thoại</Label>
                   <Input
                     id="soDienThoai"
                     placeholder="0912345678"
                     {...register('soDienThoai')}
-                    className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.soDienThoai ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.soDienThoai ? 'border-red-500' : ''}`}
                   />
                   {errors.soDienThoai && (
                     <p className="text-xs text-red-500 font-bold ml-1">{errors.soDienThoai.message}</p>
@@ -190,18 +190,18 @@ export default function RegisterPage() {
 
                 {/* Mật khẩu */}
                 <div className="space-y-2">
-                  <Label htmlFor="matKhau" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Mật khẩu</Label>
+                  <Label htmlFor="matKhau" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Mật khẩu</Label>
                   <div className="relative">
                     <Input
                       id="matKhau"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('matKhau')}
-                      className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                      className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
                     />
                     <button
                       type="button"
-                      className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                      className="absolute right-0 top-0 h-full px-4 text-[#6B7A8C] hover:text-[#6B7A8C] dark:hover:text-slate-300 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -214,18 +214,18 @@ export default function RegisterPage() {
 
                 {/* Xác nhận mật khẩu */}
                 <div className="space-y-2">
-                  <Label htmlFor="xacNhanMatKhau" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Xác nhận mật khẩu</Label>
+                  <Label htmlFor="xacNhanMatKhau" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Xác nhận mật khẩu</Label>
                   <div className="relative">
                     <Input
                       id="xacNhanMatKhau"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('xacNhanMatKhau')}
-                      className={`h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.xacNhanMatKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
+                      className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.xacNhanMatKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
                     />
                     <button
                       type="button"
-                      className="absolute right-0 top-0 h-full px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                      className="absolute right-0 top-0 h-full px-4 text-[#6B7A8C] hover:text-[#6B7A8C] dark:hover:text-slate-300 transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -239,12 +239,12 @@ export default function RegisterPage() {
 
               {/* Vai trò */}
               <div className="space-y-2">
-                <Label htmlFor="vaiTro" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Bạn là</Label>
+                <Label htmlFor="vaiTro" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Bạn là</Label>
                 <Select
                   defaultValue="ADMIN"
                   onValueChange={(value) => setValue('vaiTro', value as 'ADMIN' | 'TENANT')}
                 >
-                  <SelectTrigger className="h-12 rounded-xl bg-[#F8FAFC]/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25">
                     <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
@@ -277,22 +277,22 @@ export default function RegisterPage() {
 
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-100 dark:border-slate-800"></span>
+                <span className="w-full border-t border-[#E8DED2] dark:border-[#243B5A]/25"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-[#0f172a] px-4 text-slate-400 dark:text-slate-400 font-bold">Bạn đã có tài khoản?</span>
+                <span className="bg-[#FFFDF8] dark:bg-[#1E344E] px-4 text-[#6B7A8C] dark:text-[#6B7A8C] font-bold">Bạn đã có tài khoản?</span>
               </div>
             </div>
 
             <div className="text-center">
-              <Link href="/dang-nhap" className="inline-flex items-center text-sm font-extrabold text-blue-600 hover:text-blue-700 transition-colors hover:underline">
+              <Link href="/dang-nhap" className="inline-flex items-center text-sm font-extrabold text-[#243B5A] hover:text-[#243B5A] transition-colors hover:underline">
                 Quay lại đăng nhập
               </Link>
             </div>
           </CardContent>
         </Card>
 
-        <p className="mt-8 text-center text-xs text-slate-400">
+        <p className="mt-8 text-center text-xs text-[#6B7A8C]">
           Bằng cách đăng ký, bạn đồng ý với Điều khoản & Chính sách bảo mật của chúng tôi.
         </p>
       </div>

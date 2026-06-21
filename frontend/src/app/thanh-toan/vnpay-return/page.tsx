@@ -37,12 +37,12 @@ function VNPayReturnContent() {
   }, [searchParams]);
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-12 shadow-lg border-t-4 border-t-primary">
+    <Card className="w-full max-w-md mx-auto mt-12 border-[#E8DED2] border-t-4 border-t-[#4FA7A0] bg-[#FFFDF8] shadow-lg shadow-[#243B5A]/10">
       <CardHeader className="text-center">
         <div className="mx-auto mb-4">
           {status === "loading" && <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />}
-          {status === "success" && <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />}
-          {status === "error" && <XCircle className="w-16 h-16 text-red-500 mx-auto" />}
+          {status === "success" && <CheckCircle className="w-16 h-16 text-[#4FA7A0] mx-auto" />}
+          {status === "error" && <XCircle className="w-16 h-16 text-[#C75345] mx-auto" />}
         </div>
         <CardTitle className="text-2xl font-bold">
           {status === "loading" ? "Đang xử lý..." : status === "success" ? "Thanh toán thành công" : "Thanh toán thất bại"}
@@ -50,8 +50,8 @@ function VNPayReturnContent() {
         <CardDescription>Kết quả giao dịch qua cổng VNPay</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="bg-slate-50 p-4 rounded-lg border">
-          <p className="text-center text-slate-700">{message}</p>
+        <div className="bg-[#F8F3EC] p-4 rounded-lg border border-[#E8DED2]">
+          <p className="text-center text-[#243B5A]">{message}</p>
           {amount > 0 && status === "success" && (
             <p className="text-center font-bold text-lg mt-2 text-primary">
               {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)}
@@ -73,7 +73,7 @@ function VNPayReturnContent() {
 
 export default function VNPayReturnPage() {
   return (
-    <div className="min-h-screen bg-slate-50 p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-[#F8F3EC] p-4 flex items-center justify-center">
       <Suspense fallback={<div className="text-center p-8">Đang tải...</div>}>
         <VNPayReturnContent />
       </Suspense>

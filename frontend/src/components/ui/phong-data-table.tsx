@@ -160,7 +160,7 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
               <div key={khach._id ?? khach.hoTen ?? 'khach'} className="text-sm">
                 <span className="font-medium">{khach.hoTen}</span>
                 {hopDong.nguoiDaiDien && hopDong.nguoiDaiDien._id === khach._id && (
-                  <span className="text-xs text-blue-600 ml-1">(Đại diện)</span>
+                  <span className="text-xs text-[#243B5A] ml-1">(Đại diện)</span>
                 )}
               </div>
             ))}

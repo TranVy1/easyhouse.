@@ -310,7 +310,7 @@ export function LichHenClient() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING': return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Chờ duyệt</Badge>;
-      case 'CONFIRMED': return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Đã xác nhận</Badge>;
+      case 'CONFIRMED': return <Badge variant="outline" className="bg-[#4FA7A0]/10 text-[#243B5A] border-[#4FA7A0]/30">Đã xác nhận</Badge>;
       case 'COMPLETED': return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Hoàn thành</Badge>;
       case 'CANCELLED': return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Đã hủy</Badge>;
       case 'NO_SHOW': return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Không đến</Badge>;
@@ -374,9 +374,9 @@ export function LichHenClient() {
                     {getStatusBadge(lh.trangThai)}
                   </TableCell>
                   <TableCell className="max-w-[200px]">
-                    <div className="truncate text-slate-700" title={lh.ghiChu}>{lh.ghiChu || "-"}</div>
+                    <div className="truncate text-[#243B5A]" title={lh.ghiChu}>{lh.ghiChu || "-"}</div>
                     {lh.ghiChuAdmin && (
-                      <div className="text-[11px] text-blue-600 font-medium truncate mt-0.5" title={lh.ghiChuAdmin}>
+                      <div className="text-[11px] text-[#243B5A] font-medium truncate mt-0.5" title={lh.ghiChuAdmin}>
                         Admin: {lh.ghiChuAdmin}
                       </div>
                     )}
@@ -384,7 +384,7 @@ export function LichHenClient() {
                   <TableCell>
                     <div className="flex space-x-2 justify-end">
                       {lh.trangThai === 'PENDING' && (
-                        <Button variant="outline" size="sm" onClick={() => handleStatusChange(lh._id!, 'CONFIRMED')} className="h-8 text-blue-600">Duyệt</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleStatusChange(lh._id!, 'CONFIRMED')} className="h-8 text-[#243B5A]">Duyệt</Button>
                       )}
                       {lh.trangThai === 'CONFIRMED' && (
                         <Button variant="outline" size="sm" onClick={() => handleStatusChange(lh._id!, 'COMPLETED')} className="h-8 text-green-600">Hoàn thành</Button>
@@ -578,7 +578,7 @@ export function LichHenClient() {
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="ghiChuAdmin" className="font-bold text-blue-600">Ý kiến / Ghi chú của Admin</Label>
+              <Label htmlFor="ghiChuAdmin" className="font-bold text-[#243B5A]">Ý kiến / Ghi chú của Admin</Label>
               <Input 
                 id="ghiChuAdmin" 
                 value={formData.ghiChuAdmin}

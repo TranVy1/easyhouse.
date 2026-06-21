@@ -74,28 +74,28 @@ export default function DashboardNotFound() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-              <Link href="/dashboard/phong" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/phong" className="text-[#243B5A] hover:underline">
                 Quản lý phòng
               </Link>
-              <Link href="/dashboard/khach-thue" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/khach-thue" className="text-[#243B5A] hover:underline">
                 Khách thuê
               </Link>
-              <Link href="/dashboard/hoa-don" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/hoa-don" className="text-[#243B5A] hover:underline">
                 Hóa đơn
               </Link>
-              <Link href="/dashboard/hop-dong" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/hop-dong" className="text-[#243B5A] hover:underline">
                 Hợp đồng
               </Link>
-              <Link href="/dashboard/su-co" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/su-co" className="text-[#243B5A] hover:underline">
                 Sự cố
               </Link>
-              <Link href="/dashboard/thanh-toan" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/thanh-toan" className="text-[#243B5A] hover:underline">
                 Thanh toán
               </Link>
-              <Link href="/dashboard/toa-nha" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/toa-nha" className="text-[#243B5A] hover:underline">
                 Tòa nhà
               </Link>
-              <Link href="/dashboard/thong-bao" className="text-blue-600 hover:underline">
+              <Link href="/dashboard/thong-bao" className="text-[#243B5A] hover:underline">
                 Thông báo
               </Link>
             </div>

@@ -40,9 +40,9 @@ function TenantNavigation({
         fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white border-r hidden lg:block
       `}>
         <div className="h-full px-4 py-6 overflow-y-auto">
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <h2 className="text-lg font-bold text-blue-900">Xin chào,</h2>
-            <p className="text-sm text-blue-700 font-medium">{data?.khachThue?.hoTen}</p>
+          <div className="mb-6 p-4 bg-[#4FA7A0]/10 rounded-lg">
+            <h2 className="text-lg font-bold text-[#243B5A]">Xin chào,</h2>
+            <p className="text-sm text-[#243B5A] font-medium">{data?.khachThue?.hoTen}</p>
           </div>
 
           <nav className="space-y-2">
@@ -56,7 +56,7 @@ function TenantNavigation({
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative
                     ${isActive 
-                      ? 'bg-blue-600 text-white' 
+                      ? 'bg-[#243B5A] text-white' 
                       : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
@@ -97,7 +97,7 @@ function TenantNavigation({
               href={item.href}
               className={`
                 flex flex-col items-center justify-center w-full h-full relative
-                ${isActive ? 'text-blue-600' : 'text-gray-500'}
+                ${isActive ? 'text-[#243B5A]' : 'text-gray-500'}
               `}
             >
               <div className="relative">
@@ -126,7 +126,7 @@ function TenantNavigation({
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden flex flex-col justify-end">
           <div 
-            className="absolute inset-0 bg-black/50" 
+            className="absolute inset-0 bg-[#243B5A]/45" 
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div className="relative bg-white rounded-t-2xl p-4 pb-safe space-y-4 animate-in slide-in-from-bottom">
@@ -136,9 +136,9 @@ function TenantNavigation({
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg mb-4">
-              <h2 className="text-sm font-bold text-blue-900">Xin chào,</h2>
-              <p className="text-lg text-blue-700 font-medium">{data?.khachThue?.hoTen}</p>
+            <div className="p-4 bg-[#4FA7A0]/10 rounded-lg mb-4">
+              <h2 className="text-sm font-bold text-[#243B5A]">Xin chào,</h2>
+              <p className="text-lg text-[#243B5A] font-medium">{data?.khachThue?.hoTen}</p>
             </div>
             <div className="space-y-2">
               {navigation.slice(4).map((item) => {
@@ -197,7 +197,7 @@ function KhachThueDashboardLayoutContent({
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
       </div>
     );
   }

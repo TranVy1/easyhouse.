@@ -88,7 +88,7 @@ export function CCCDUpload({
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center gap-2 mb-4">
-        <CreditCard className="h-5 w-5 text-blue-600" />
+        <CreditCard className="h-5 w-5 text-[#243B5A]" />
         <h3 className="text-lg font-medium">Ảnh CCCD</h3>
       </div>
 

@@ -138,7 +138,7 @@ const getRoleBadge = (role: string) => {
       )
     case 'chuNha':
       return (
-        <Badge className="gap-1 bg-blue-100 text-blue-800 border-none hover:bg-blue-100">
+        <Badge className="gap-1 bg-[#4FA7A0]/15 text-[#243B5A] border-none hover:bg-[#4FA7A0]/15">
           Chủ nhà
         </Badge>
       )

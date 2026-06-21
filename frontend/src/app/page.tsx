@@ -1,19 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { SessionProvider, useSession } from "next-auth/react";
-import { Home, Heart, Receipt, User, Bot, Star, Play, Camera, Trash2, MapPin, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bot, Building2, Heart, Home, MapPin, Receipt, User } from "lucide-react";
 import { HomeScreen } from "@/components/mobile-app/HomeScreen";
 import { RoomDetailScreen } from "@/components/mobile-app/RoomDetailScreen";
 import { BillingScreen } from "@/components/mobile-app/BillingScreen";
-import { IncidentScreen } from "@/components/mobile-app/IncidentScreen";
 import { ProfileScreen } from "@/components/mobile-app/ProfileScreen";
 import { ChatOverlay } from "@/components/mobile-app/ChatOverlay";
 
 type Tab = "home" | "saved" | "bills" | "profile";
 type RoomId = string | number;
+type SavedRoom = Record<string, unknown> & {
+  id: RoomId;
+  images?: unknown[];
+  hinhAnh?: unknown[];
+  anhList?: unknown[];
+  image?: string;
+};
 
-const navItems: { tab: Tab; icon: React.ReactNode; label: string }[] = [
+const navItems: { tab: Tab; icon: ReactNode; label: string }[] = [
   { tab: "home", icon: <Home size={22} />, label: "Trang chủ" },
   { tab: "saved", icon: <Heart size={22} />, label: "Đã lưu" },
   { tab: "bills", icon: <Receipt size={22} />, label: "Hóa đơn" },
@@ -34,12 +41,10 @@ function MainApp() {
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get("tab");
-      if (tabParam === "profile" || tabParam === "home" || tabParam === "saved" || tabParam === "bills") {
-        setActiveTab(tabParam as Tab);
-      }
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    if (tabParam === "profile" || tabParam === "home" || tabParam === "saved" || tabParam === "bills") {
+      setActiveTab(tabParam as Tab);
     }
   }, []);
 
@@ -55,6 +60,7 @@ function MainApp() {
     if (viewingRoom !== null) {
       return <RoomDetailScreen onBack={handleBack} roomId={viewingRoom} />;
     }
+
     switch (activeTab) {
       case "home":
         return <HomeScreen onRoomSelect={handleRoomSelect} onTabChange={setActiveTab} />;
@@ -68,69 +74,57 @@ function MainApp() {
   };
 
   return (
-    <div className="flex h-[100dvh] min-h-screen bg-[#F8FAFC] font-sans">
-      {/* Main Content Area */}
+    <div className="flex h-[100dvh] min-h-screen bg-[#F8F3EC] font-sans">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        {/* Main scrollable view */}
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div className="h-full w-full">
-            {renderContent()}
-          </div>
+          <div className="h-full w-full">{renderContent()}</div>
         </div>
 
-        {/* Bottom Nav - Mobile Only */}
         {viewingRoom === null && (
-          <div className="md:hidden shrink-0 bg-white border-t border-slate-100 px-2 pt-2 pb-6 safe-area-bottom z-40 relative">
+          <div className="md:hidden relative z-40 shrink-0 border-t border-[#E8DED1] bg-white px-2 pb-6 pt-2 safe-area-bottom">
             <div className="flex">
               {navItems.map(({ tab, icon, label }) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-1 transition-all ${
-                    activeTab === tab ? "text-blue-600" : "text-slate-400"
+                  className={`flex flex-1 flex-col items-center gap-1 py-1 transition-all ${
+                    activeTab === tab ? "text-[#4FA7A0]" : "text-[#6B7A8C]"
                   }`}
                 >
                   <div className={`relative transition-transform ${activeTab === tab ? "scale-110" : ""}`}>
                     {icon}
-                    {tab === "bills" && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-                    )}
+                    {tab === "bills" && <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />}
                   </div>
                   <span className="text-xs">{label}</span>
-                  {activeTab === tab && (
-                    <span className="w-1 h-1 bg-blue-600 rounded-full" />
-                  )}
+                  {activeTab === tab && <span className="h-1 w-1 rounded-full bg-[#4FA7A0]" />}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Floating AI Chat Button (Mobile Only) */}
         {!chatOpen && viewingRoom === null && (
           <button
             onClick={() => setChatOpen(true)}
-            className="md:hidden absolute bottom-24 right-4 w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform z-30"
+            className="absolute bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#243B5A] shadow-lg transition-transform active:scale-95 md:hidden"
           >
             <Bot size={24} className="text-white" />
           </button>
         )}
 
-        {/* Chat Overlay */}
         {chatOpen && <ChatOverlay onClose={() => setChatOpen(false)} />}
       </div>
     </div>
   );
 }
 
-// Premium Saved screen component
 interface SavedScreenProps {
   onRoomSelect: (id: RoomId) => void;
   onTabChange?: (tab: Tab) => void;
 }
 
 function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
-  const [savedRooms, setSavedRooms] = useState<any[]>([]);
+  const [savedRooms, setSavedRooms] = useState<SavedRoom[]>([]);
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
@@ -143,173 +137,168 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
-        setSavedRooms(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
+        const parsed = JSON.parse(saved);
+        setSavedRooms(Array.isArray(parsed) ? parsed : []);
+      } catch (error) {
+        console.error(error);
       }
     } else {
       setSavedRooms([]);
     }
   }, [userId]);
 
-  const handleUnsave = (id: RoomId, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleUnsave = (id: RoomId, event: React.MouseEvent) => {
+    event.stopPropagation();
     const key = getStorageKey(userId);
-    const updated = savedRooms.filter((r) => r.id !== id);
+    const updated = savedRooms.filter((room) => room.id !== id);
     setSavedRooms(updated);
     localStorage.setItem(key, JSON.stringify(updated));
   };
 
-  const getRoomImagesLocal = (room: any) => {
-    const defaults = [
-      "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&fit=crop",
-      "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=300&fit=crop",
-      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&fit=crop",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300&fit=crop"
-    ];
+  const getRoomImagesLocal = (room: SavedRoom) => {
+    const rawImages = room.images || room.hinhAnh || room.anhList || [];
+    const imageList = Array.isArray(rawImages) ? rawImages : [];
+    const normalized = imageList
+      .map((image) => {
+        if (typeof image === "string") return image;
+        const imageRecord = typeof image === "object" && image !== null ? image as Record<string, unknown> : {};
+        return typeof imageRecord.url === "string" ? imageRecord.url : typeof imageRecord.hinhAnh === "string" ? imageRecord.hinhAnh : "";
+      })
+      .filter(Boolean);
 
-    const roomImages = room.hinhAnh && room.hinhAnh.length > 0
-      ? room.hinhAnh.map((img: any) => typeof img === 'string' ? img : img.url || img.hinhAnh || defaults[0])
-      : [room.image || defaults[0]];
-
-    const finalImages = [...roomImages];
-    while (finalImages.length < 4) {
-      finalImages.push(defaults[finalImages.length % defaults.length]);
+    if (room.image && !normalized.includes(room.image)) {
+      return [room.image, ...normalized];
     }
-    return finalImages;
+
+    return normalized;
   };
 
+  const getRoomField = (value: unknown, fallback = "Đang cập nhật") => {
+    const text = String(value || "").trim();
+    return text || fallback;
+  };
+
+  const SavedRoomImage = ({ src, alt }: { src?: string; alt: string }) => (
+    <div className="relative h-full w-full bg-gradient-to-br from-[#F8F3EC] via-white to-[#DCEFEB]">
+      {src ? (
+        <img src={src} alt={alt} className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E8DED1]">
+            <Building2 size={26} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
-      {/* Header */}
-      <div className="bg-white px-4 md:px-8 xl:px-12 pt-12 pb-6 shadow-sm border-b border-slate-100 shrink-0">
-        <div className="mx-auto max-w-screen-xl flex items-center justify-between gap-4">
+    <div className="flex h-full flex-col overflow-y-auto bg-[#F8F3EC]">
+      <div className="shrink-0 border-b border-[#E8DED1] bg-white px-4 pb-6 pt-12 shadow-sm md:px-8 xl:px-12">
+        <div className="mx-auto flex max-w-screen-xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => onTabChange?.("home")}
-              className="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F8F3EC] text-[#243B5A] transition-colors hover:bg-[#EDE5D9]"
               title="Quay lại trang chủ"
             >
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-slate-900 font-extrabold tracking-tight text-2xl">
-                Tin Đã Lưu
-              </h1>
-              <p className="text-sm text-slate-500 font-medium">Danh sách các phòng trọ bạn đã đánh dấu quan tâm</p>
+              <h1 className="text-2xl font-extrabold tracking-tight text-[#243B5A]">Tin đã lưu</h1>
+              <p className="text-sm font-medium text-[#243B5A]/60">Danh sách phòng bạn đã đánh dấu quan tâm</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 border border-teal-100">
-              <Heart size={16} className="text-teal-700" /> {savedRooms.length} đã lưu
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#4FA7A0]/20 bg-[#4FA7A0]/10 px-3 py-2 text-sm font-semibold text-[#267D76]">
+              <Heart size={16} /> {savedRooms.length} đã lưu
             </span>
-            <button onClick={() => onTabChange?.("home")} className="hidden sm:inline-flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200/50">
+            <button
+              onClick={() => onTabChange?.("home")}
+              className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#243B5A] shadow-sm ring-1 ring-[#E8DED1] sm:inline-flex"
+            >
               Khám phá
             </button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-          <div className="flex-1 px-4 md:px-8 xl:px-12 pt-6 pb-12">
+      <div className="flex-1 px-4 pb-12 pt-6 md:px-8 xl:px-12">
         {savedRooms.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center max-w-2xl mx-auto mt-10 p-8">
-            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-500 shadow-inner">
-              <Heart size={28} className="fill-red-100" />
+          <div className="mx-auto mt-10 flex max-w-2xl flex-col items-center justify-center rounded-2xl border border-[#E8DED1] bg-white p-8 py-20 text-center shadow-sm">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2A45B]/10 text-[#F2A45B] shadow-inner">
+              <Heart size={28} />
             </div>
-            <h3 className="text-lg font-bold text-slate-800">Chưa có phòng đã lưu</h3>
-            <p className="text-slate-500 text-sm mt-2 max-w-sm leading-relaxed">
-              Bạn chưa bấm lưu phòng trọ nào. Hãy khám phá và lưu lại những căn phòng bạn ưng ý nhất để dễ dàng theo dõi nhé!
+            <h3 className="text-lg font-bold text-[#243B5A]">Chưa có phòng đã lưu</h3>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#243B5A]/60">
+              Hãy khám phá và lưu lại những phòng bạn quan tâm để dễ theo dõi trước khi liên hệ.
             </p>
-            <button 
+            <button
               onClick={() => onTabChange?.("home")}
-              className="mt-6 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all text-sm"
+              className="mt-6 rounded-2xl bg-[#4FA7A0] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#4FA7A0]/15 transition active:scale-95"
             >
-              Khám Phá Phòng Trọ Ngay
+              Khám phá phòng trọ ngay
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-screen-xl mx-auto">
+          <div className="mx-auto grid max-w-screen-xl grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
             {savedRooms.map((room) => {
-              const imgs = getRoomImagesLocal(room);
+              const images = getRoomImagesLocal(room);
+              const roomName = getRoomField(room.name, "Phòng đã lưu");
               return (
-                <div
+                <article
                   key={room.id}
                   onClick={() => onRoomSelect(room.id)}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border border-slate-100 flex flex-col cursor-pointer active:scale-[0.99] p-0"
+                  className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#E8DED1] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg active:scale-[0.99]"
                 >
-                  {/* Collage Images */}
-                  <div className="grid grid-cols-5 gap-0.5 h-44 sm:h-48 w-full relative overflow-hidden shrink-0">
-                    {/* Left large image */}
-                    <div className="col-span-3 relative h-full">
-                      <img src={imgs[0]} alt={room.name} className="w-full h-full object-cover" />
-                      {/* Play button overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                          <Play size={20} className="fill-white text-white translate-x-0.5" />
-                        </div>
+                  <div className="relative grid h-48 w-full shrink-0 grid-cols-5 gap-0.5 overflow-hidden">
+                    <div className="col-span-3 h-full">
+                      <SavedRoomImage src={images[0]} alt={roomName} />
+                    </div>
+                    <div className="col-span-2 grid h-full grid-rows-2 gap-0.5">
+                      <SavedRoomImage src={images[1]} alt={roomName} />
+                      <div className="grid h-full grid-cols-2 gap-0.5">
+                        <SavedRoomImage src={images[2]} alt={roomName} />
+                        <SavedRoomImage src={images[3]} alt={roomName} />
                       </div>
-                      {/* Camera count overlay */}
-                      <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-md flex items-center gap-1 font-bold shadow-sm">
-                        <Camera size={12} className="text-white" /> 7
+                    </div>
+                    <button
+                      onClick={(event) => handleUnsave(room.id, event)}
+                      className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-md transition hover:scale-110 hover:bg-white active:scale-95"
+                      title="Bỏ lưu phòng này"
+                    >
+                      <Heart size={16} className="fill-[#F2A45B] text-[#F2A45B]" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-1 flex-col bg-white p-6">
+                    <h3 className="truncate text-base font-extrabold text-[#243B5A]">{roomName}</h3>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7A8C] sm:text-sm">
+                      <span className="text-sm font-extrabold text-[#F2A45B] sm:text-base">{String(room.priceLabel || room.price || "Liên hệ")}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-[#243B5A]">{String(room.areaLabel || room.area || "Đang cập nhật")}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="inline-flex max-w-[200px] items-center gap-1 truncate text-[#6B7A8C]">
+                        <MapPin size={13} className="shrink-0 text-[#4FA7A0]" />
+                        {getRoomField(room.location)}
                       </span>
                     </div>
-                    {/* Right column */}
-                    <div className="col-span-2 grid grid-rows-2 gap-0.5 h-full">
-                      {/* Right Top image */}
-                      <img src={imgs[1]} alt={room.name} className="w-full h-full object-cover" />
-                      {/* Right Bottom row split */}
-                      <div className="grid grid-cols-2 gap-0.5 h-full">
-                        <img src={imgs[2]} alt={room.name} className="w-full h-full object-cover" />
-                        <img src={imgs[3]} alt={room.name} className="w-full h-full object-cover" />
-                      </div>
-                    </div>
-                    {/* Save heart button overlay (click to unsave) */}
-                    <div className="absolute top-3 right-3 z-10">
+
+                    <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-[#6B7A8C]">
+                      {getRoomField(room.description)}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <button className="rounded-full bg-[#4FA7A0] px-3 py-2 text-sm font-bold text-white shadow-sm">Xem chi tiết</button>
                       <button
-                        onClick={(e) => handleUnsave(room.id, e)}
-                        className="w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white hover:scale-110 active:scale-95 transition-all"
-                        title="Bỏ lưu phòng này"
+                        onClick={(event) => handleUnsave(room.id, event)}
+                        className="rounded-full border border-[#E8DED1] px-3 py-2 text-sm font-semibold text-[#243B5A]"
                       >
-                        <Heart
-                          size={16}
-                          className="fill-red-500 text-red-500"
-                        />
+                        Bỏ lưu
                       </button>
                     </div>
                   </div>
-
-                  {/* Card Info */}
-                  <div className="p-6 flex flex-col flex-1 bg-white">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                      <h3 className="text-slate-900 font-extrabold text-sm sm:text-base truncate flex-1">
-                        {room.name.includes("Phòng") || room.name.includes("Căn hộ") ? room.name : `CHO THUÊ PHÒNG TRỌ ${room.name}`}
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-slate-500 text-xs sm:text-sm mt-2 flex-wrap font-semibold">
-                      <span className="text-[#0F9675] font-extrabold text-sm sm:text-base">{room.price}</span>
-                      <span className="text-slate-300 font-normal">•</span>
-                      <span className="text-slate-700">{room.area || "38m²"}</span>
-                      <span className="text-slate-300 font-normal">•</span>
-                      <span className="text-slate-600 truncate max-w-[200px]">{room.location.replace("Chưa cập nhật địa chỉ", "Bình Thạnh, Hồ Chí Minh")}</span>
-                    </div>
-
-                    <p className="text-sm text-slate-600 line-clamp-2 mt-2.5 leading-relaxed font-normal">
-                      {room.description}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between gap-2">
-                      <button className="rounded-full bg-teal-600 px-3 py-2 text-sm font-bold text-white shadow-sm">Xem chi tiết</button>
-                      <button onClick={(e) => handleUnsave(room.id, e)} className="rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">Bỏ lưu</button>
-                    </div>
-                  </div>
-                </div>
+                </article>
               );
             })}
           </div>

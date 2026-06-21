@@ -72,7 +72,7 @@ function tenantLabel(invoice: HoaDon) {
 function InvoiceStatus({ status }: { status: TrangThaiHoaDon }) {
   switch (status) {
     case "PAID":
-      return <Badge className="border-transparent bg-emerald-100 text-emerald-800">Đã thanh toán</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#267D76]">Đã thanh toán</Badge>
     case "PARTIAL":
       return <Badge className="border-transparent bg-amber-100 text-amber-800">Thanh toán một phần</Badge>
     case "OVERDUE":
@@ -82,7 +82,7 @@ function InvoiceStatus({ status }: { status: TrangThaiHoaDon }) {
     case "CANCELLED":
       return <Badge variant="secondary">Đã hủy</Badge>
     case "OVERPAID":
-      return <Badge className="border-transparent bg-blue-100 text-blue-800">Thu dư</Badge>
+      return <Badge className="border-transparent bg-[#4FA7A0]/15 text-[#243B5A]">Thu dư</Badge>
     default:
       return <Badge className="border-transparent bg-orange-100 text-orange-800">Chưa thanh toán</Badge>
   }
@@ -550,7 +550,7 @@ export default function HoaDonPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-blue-600" />
+              <CalendarDays className="h-5 w-5 text-[#243B5A]" />
               Sinh hóa đơn hàng tháng tự động
             </DialogTitle>
             <DialogDescription>
@@ -632,7 +632,7 @@ export default function HoaDonPage() {
                 <Button 
                   onClick={handlePreview} 
                   disabled={previewLoading || generating}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  className="bg-[#243B5A] hover:bg-[#1B2E47] text-white font-medium"
                 >
                   {previewLoading ? "Đang xử lý..." : "Xem trước hóa đơn"}
                 </Button>
@@ -644,9 +644,9 @@ export default function HoaDonPage() {
           {genResult && (
             <div className="space-y-4 py-4 flex-1 overflow-hidden flex flex-col">
               <div className="grid gap-4 grid-cols-3 text-center">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-xl">
-                  <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Thành công</p>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{genResult.createdCount}</p>
+                <div className="p-3 bg-[#4FA7A0]/10 dark:bg-[#4FA7A0]/20 border border-[#4FA7A0]/20 dark:border-[#4FA7A0]/30 rounded-xl">
+                  <p className="text-sm font-medium text-[#267D76] dark:text-[#8CCBC5]">Thành công</p>
+                  <p className="text-2xl font-bold text-[#267D76] dark:text-[#8CCBC5]">{genResult.createdCount}</p>
                 </div>
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl">
                   <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Bỏ qua</p>
@@ -664,11 +664,11 @@ export default function HoaDonPage() {
                   {genResult.logs && genResult.logs.length > 0 ? (
                     genResult.logs.map((log: any, idx: number) => (
                       <div key={idx} className="flex justify-between items-center py-1 border-b last:border-0 px-2">
-                        <span>Phòng: <span className="font-bold text-slate-800 dark:text-slate-200">{log.maPhong || "Chưa rõ"}</span></span>
+                        <span>Phòng: <span className="font-bold text-[#243B5A] dark:text-slate-200">{log.maPhong || "Chưa rõ"}</span></span>
                         <div className="flex items-center gap-2">
                           <Badge 
                             variant={log.status === "SUCCESS" ? "default" : log.status === "SKIPPED" ? "secondary" : "destructive"}
-                            className={log.status === "SUCCESS" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none" : undefined}
+                            className={log.status === "SUCCESS" ? "bg-[#4FA7A0]/15 text-[#267D76] hover:bg-[#4FA7A0]/15 border-none" : undefined}
                           >
                             {log.status === "SUCCESS" ? "Thành công" : log.status === "SKIPPED" ? "Bỏ qua" : "Lỗi"}
                           </Badge>
@@ -689,7 +689,7 @@ export default function HoaDonPage() {
             <div className="flex-1 overflow-hidden flex flex-col space-y-3 mt-2 min-h-[300px]">
               <div className="flex justify-between items-center text-sm font-semibold border-b pb-2">
                 <span>Danh sách ứng viên ({previewData.candidates?.length || 0} hợp đồng)</span>
-                <span className="text-blue-600">Tổng tiền dự kiến: {currency(previewData.tongEstimatedAmount)}</span>
+                <span className="text-[#243B5A]">Tổng tiền dự kiến: {currency(previewData.tongEstimatedAmount)}</span>
               </div>
               <ScrollArea className="flex-1 border rounded-xl bg-background">
                 <Table>
@@ -711,7 +711,7 @@ export default function HoaDonPage() {
                           <TableCell>
                             <Badge 
                               variant={cand.status === "READY" ? "default" : cand.status === "EXISTS" ? "secondary" : "destructive"}
-                              className={cand.status === "READY" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none" : undefined}
+                              className={cand.status === "READY" ? "bg-[#4FA7A0]/15 text-[#267D76] hover:bg-[#4FA7A0]/15 border-none" : undefined}
                             >
                               {cand.status === "READY" ? "Sẵn sàng" : cand.status === "EXISTS" ? "Đã có HĐ" : "Thiếu chỉ số"}
                             </Badge>
@@ -734,9 +734,9 @@ export default function HoaDonPage() {
               </ScrollArea>
 
               {/* Stats card */}
-              <div className="flex justify-between items-center text-sm p-3 bg-slate-50 dark:bg-slate-900 border rounded-xl">
+              <div className="flex justify-between items-center text-sm p-3 bg-[#F8F3EC] dark:bg-[#243B5A] border rounded-xl">
                 <div>
-                  Hợp đồng ready: <span className="font-bold text-emerald-600 dark:text-emerald-400">{previewData.tongReady}</span> / {previewData.tongHopDong}
+                  Hợp đồng ready: <span className="font-bold text-[#267D76] dark:text-[#8CCBC5]">{previewData.tongReady}</span> / {previewData.tongHopDong}
                 </div>
                 <div className="font-bold">
                   Tổng tiền chốt dự kiến: {currency(previewData.tongEstimatedAmount)}
@@ -759,7 +759,7 @@ export default function HoaDonPage() {
                   setGenResult(null)
                   setPreviewData(null)
                 }}
-                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-medium"
+                className="w-full sm:w-auto bg-[#243B5A] hover:bg-[#243B5A] text-white font-medium"
               >
                 Đóng lại
               </Button>
@@ -777,7 +777,7 @@ export default function HoaDonPage() {
                   <Button
                     onClick={handleGenerate}
                     disabled={previewData.tongReady === 0 || generating}
-                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                    className="w-full sm:w-auto bg-[#4FA7A0] hover:bg-[#3F8F89] text-white font-medium"
                   >
                     {generating ? "Đang sinh hóa đơn..." : `Xác nhận sinh ${previewData.tongReady} hóa đơn`}
                   </Button>

@@ -32,13 +32,13 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-5 p-8 text-center bg-slate-50">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-5 p-8 text-center bg-[#F8F3EC]">
           <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
             <AlertOctagon size={32} className="text-red-500" />
           </div>
           <div className="max-w-sm">
-            <h2 className="text-lg font-black text-slate-800">Đã xảy ra lỗi không mong muốn</h2>
-            <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+            <h2 className="text-lg font-black text-[#243B5A]">Đã xảy ra lỗi không mong muốn</h2>
+            <p className="text-sm text-[#6B7A8C] mt-2 leading-relaxed">
               {this.state.error?.message || 'Ứng dụng gặp sự cố. Vui lòng thử tải lại trang.'}
             </p>
           </div>

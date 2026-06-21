@@ -67,7 +67,7 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
   const getTrangThaiBadge = (trangThai: string) => {
     const variants = {
       AVAILABLE: { variant: 'secondary' as const, label: 'Trống', color: 'text-green-600' },
-      RESERVED: { variant: 'outline' as const, label: 'Đã đặt', color: 'text-blue-600' },
+      RESERVED: { variant: 'outline' as const, label: 'Đã đặt', color: 'text-[#243B5A]' },
       RENTED: { variant: 'default' as const, label: 'Đang thuê', color: 'text-orange-600' },
       MAINTENANCE: { variant: 'destructive' as const, label: 'Bảo trì', color: 'text-red-600' },
     };
@@ -143,7 +143,7 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
               <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-cyan-700 bg-clip-text text-transparent">
                 Phòng {phong.ten}
               </h1>
-              <p className="text-xs md:text-sm text-slate-600">
+              <p className="text-xs md:text-sm text-[#6B7A8C]">
                 {phong.nhaTro?.tenNhaTro} - Tầng {phong.tang || 'N/A'}
               </p>
             </div>
@@ -151,7 +151,7 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
               <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                 {formatCurrency(phong.giaHienTai)}
               </div>
-              <div className="text-xs md:text-sm text-slate-500">/ tháng</div>
+              <div className="text-xs md:text-sm text-[#6B7A8C]">/ tháng</div>
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
                           key={index} 
                           className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
                             index === selectedImageIndex 
-                              ? 'border-blue-500 ring-2 ring-blue-200' 
+                              ? 'border-[#4FA7A0] ring-2 ring-[#4FA7A0]/30' 
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                           onClick={() => setSelectedImageIndex(index)}
@@ -310,7 +310,7 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
                   <CardTitle className="text-base md:text-lg bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">Liên hệ thuê phòng</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
-                  <p className="text-xs md:text-sm text-slate-600">
+                  <p className="text-xs md:text-sm text-[#6B7A8C]">
                     Phòng này hiện đang trống và có thể cho thuê. Vui lòng liên hệ để biết thêm thông tin.
                   </p>
                   <Button 

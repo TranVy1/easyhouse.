@@ -18,6 +18,7 @@ import com.example.quanlyphongtro.entity.ThanhToan;
 import com.example.quanlyphongtro.repository.ChiTietHoaDonRepository;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.ThanhToanRepository;
+import com.example.quanlyphongtro.repository.HopDongRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -39,6 +40,7 @@ class ThanhToanServiceTest {
     @Mock private ThanhToanRepository thanhToanRepository;
     @Mock private HoaDonRepository hoaDonRepository;
     @Mock private ChiTietHoaDonRepository chiTietHoaDonRepository;
+    @Mock private HopDongRepository hopDongRepository;
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
     @Mock private EmailService emailService;
@@ -51,6 +53,7 @@ class ThanhToanServiceTest {
                 thanhToanRepository,
                 hoaDonRepository,
                 chiTietHoaDonRepository,
+                hopDongRepository,
                 mediaService,
                 permissionService,
                 emailService

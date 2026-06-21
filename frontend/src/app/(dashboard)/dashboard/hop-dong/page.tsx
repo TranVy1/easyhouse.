@@ -568,7 +568,7 @@ export default function HopDongPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4">
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black/50" 
+            className="fixed inset-0 bg-[#243B5A]/45" 
             onClick={() => setViewingHopDong(null)}
           />
           
@@ -952,7 +952,7 @@ export default function HopDongPage() {
                       </div>
                       <div>
                         <span className="text-gray-500">Tiền cọc:</span>
-                        <p className="font-semibold text-blue-600">{formatCurrency(hopDong.tienCoc)}</p>
+                        <p className="font-semibold text-[#243B5A]">{formatCurrency(hopDong.tienCoc)}</p>
                       </div>
                     </div>
                   </div>

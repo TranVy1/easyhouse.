@@ -26,7 +26,7 @@ export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
   if (!data || data.totalOutstanding === 0) {
     return (
       <Card className="col-span-3 h-[400px] flex items-center justify-center border-dashed">
-        <div className="text-center text-slate-500">
+        <div className="text-center text-[#6B7A8C]">
           <p>Chưa có công nợ</p>
         </div>
       </Card>
@@ -46,10 +46,10 @@ export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
       return (
         <div className="bg-white p-3 border rounded shadow-md text-sm">
           <p className="font-bold mb-1">{payload[0].name}</p>
-          <p className="text-slate-700">
+          <p className="text-[#243B5A]">
             {formatCurrency(payload[0].value)}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[#6B7A8C] mt-1">
             {((payload[0].value / data.totalOutstanding) * 100).toFixed(1)}% tổng nợ
           </p>
         </div>
