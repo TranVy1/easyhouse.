@@ -78,15 +78,25 @@ export default function LoginPage() {
 
         const searchParams = new URLSearchParams(window.location.search);
         let targetUrl = searchParams.get('callbackUrl');
+        let targetPath = '/';
+        
+        if (targetUrl) {
+          try {
+            const parsedUrl = new URL(targetUrl, window.location.origin);
+            targetPath = parsedUrl.pathname;
+          } catch (e) {
+            targetPath = targetUrl;
+          }
+        }
 
         if (role === 'TENANT') {
           // Tenants should not access the /dashboard area
-          if (!targetUrl || targetUrl.startsWith('/dashboard')) {
+          if (!targetUrl || targetPath.startsWith('/dashboard')) {
             targetUrl = '/';
           }
         } else {
           // Landlords/Admins should go to the dashboard by default
-          if (!targetUrl || targetUrl === '/') {
+          if (!targetUrl || targetPath === '/') {
             targetUrl = '/dashboard';
           }
         }

@@ -40,6 +40,7 @@ public class LichHenService {
     private final com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
     private final ThongBaoService thongBaoService;
     private final EmailService emailService;
+    private final MediaService mediaService;
     private final ConcurrentMap<String, List<Instant>> publicRequestsByIp = new ConcurrentHashMap<>();
 
     public PaginatedResponse<LichHenResponse> getAll(UUID nhaTroId, UUID phongId, String trangThai, Pageable pageable) {
@@ -73,9 +74,18 @@ public class LichHenService {
 
         Page<LichHen> page = lichHenRepository.findAll(spec, pageable);
         List<LichHenResponse> data = page.getContent().stream()
-                .map(LichHenResponse::fromEntity)
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
         return PaginatedResponse.of(page, data);
+    }
+
+    private LichHenResponse mapToResponse(LichHen lichHen) {
+        LichHenResponse res = LichHenResponse.fromEntity(lichHen);
+        if (res != null) {
+            res.setAnhCccdTruoc(mediaService.firstUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, lichHen.getId(), MediaService.CCCD_FRONT));
+            res.setAnhCccdSau(mediaService.firstUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, lichHen.getId(), MediaService.CCCD_BACK));
+        }
+        return res;
     }
 
     public LichHenResponse getById(UUID id) {
@@ -85,7 +95,7 @@ public class LichHenService {
         if (lichHen.getPhong() != null && !permissionService.canWritePhong(userId, lichHen.getPhong().getId())) {
             throw new RuntimeException("Khong co quyen xem lich hen nay");
         }
-        return LichHenResponse.fromEntity(lichHen);
+        return mapToResponse(lichHen);
     }
 
     @Transactional
@@ -144,6 +154,7 @@ public class LichHenService {
         lichHen.setHoTen(req.getHoTen());
         lichHen.setSoDienThoai(req.getSoDienThoai());
         lichHen.setEmail(req.getEmail());
+        lichHen.setSoCccd(req.getSoCccd());
         lichHen.setNgayHen(req.getNgayHen());
         lichHen.setGhiChu(req.getGhiChu());
         lichHen.setGhiChuAdmin(req.getGhiChuAdmin());
@@ -179,7 +190,14 @@ public class LichHenService {
             }
         }
 
-        return LichHenResponse.fromEntity(saved);
+        if (req.getAnhCccdTruoc() != null) {
+            mediaService.replaceUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, saved.getId(), req.getAnhCccdTruoc(), MediaService.CCCD_FRONT);
+        }
+        if (req.getAnhCccdSau() != null) {
+            mediaService.replaceUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, saved.getId(), req.getAnhCccdSau(), MediaService.CCCD_BACK);
+        }
+
+        return mapToResponse(saved);
     }
 
     private void enforcePublicIpRateLimit(String sourceIp) {
@@ -218,6 +236,7 @@ public class LichHenService {
         if (req.getHoTen() != null) lichHen.setHoTen(req.getHoTen());
         if (req.getSoDienThoai() != null) lichHen.setSoDienThoai(req.getSoDienThoai());
         if (req.getEmail() != null) lichHen.setEmail(req.getEmail());
+        if (req.getSoCccd() != null) lichHen.setSoCccd(req.getSoCccd());
         if (req.getNgayHen() != null) lichHen.setNgayHen(req.getNgayHen());
         if (req.getGhiChu() != null) lichHen.setGhiChu(req.getGhiChu());
         if (req.getGhiChuAdmin() != null) lichHen.setGhiChuAdmin(req.getGhiChuAdmin());
@@ -234,7 +253,14 @@ public class LichHenService {
         // Only send email when status actually changes to CONFIRMED or CANCELLED
         sendStatusChangeEmail(previousStatus, saved);
 
-        return LichHenResponse.fromEntity(saved);
+        if (req.getAnhCccdTruoc() != null) {
+            mediaService.replaceUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, saved.getId(), req.getAnhCccdTruoc(), MediaService.CCCD_FRONT);
+        }
+        if (req.getAnhCccdSau() != null) {
+            mediaService.replaceUrl(com.example.quanlyphongtro.entity.LoaiDoiTuongMedia.APPOINTMENT, saved.getId(), req.getAnhCccdSau(), MediaService.CCCD_BACK);
+        }
+
+        return mapToResponse(saved);
     }
 
     @Transactional

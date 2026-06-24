@@ -48,6 +48,7 @@ const mainSections: NavigationSection[] = [
       { title: "Đặt cọc", url: "/dashboard/dat-coc" },
       { title: "Khách thuê", url: "/dashboard/khach-thue" },
       { title: "Hợp đồng", url: "/dashboard/hop-dong" },
+      { title: "Yêu cầu ở ghép", url: "/dashboard/yeu-cau-o-ghep" },
       { title: "Dịch vụ & tiện ích", url: "/dashboard/dich-vu" },
     ],
   },

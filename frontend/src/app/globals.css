@@ -228,4 +228,7 @@
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 24px);
   }
+  .font-legal {
+    font-family: "Times New Roman", Times, serif !important;
+  }
 }
