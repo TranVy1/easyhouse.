@@ -200,6 +200,13 @@ export default function ProfilePage() {
       if (result.success) {
         toast.success('Đổi mật khẩu thành công');
         setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        await update({
+          ...session,
+          user: {
+            ...session?.user,
+            requirePasswordChange: false
+          }
+        });
       } else {
         toast.error(result.message || 'Đổi mật khẩu thất bại');
       }

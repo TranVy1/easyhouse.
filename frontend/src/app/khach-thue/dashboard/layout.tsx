@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ function TenantNavigation({
   setIsMobileMenuOpen
 }: TenantNavigationProps) {
   const { data } = useTenantDashboard();
-  
+
   const navigation = [
     { name: 'Tổng quan', href: '/khach-thue/dashboard', icon: Home, badge: 0 },
     { name: 'Hóa đơn', href: '/khach-thue/dashboard/hoa-don', icon: FileText, badge: data?.soHoaDonChuaThanhToan || 0 },
@@ -55,8 +55,8 @@ function TenantNavigation({
                   href={item.href}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative
-                    ${isActive 
-                      ? 'bg-[#243B5A] text-white' 
+                    ${isActive
+                      ? 'bg-[#243B5A] text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
@@ -125,8 +125,8 @@ function TenantNavigation({
       {/* Mobile More Options Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden flex flex-col justify-end">
-          <div 
-            className="absolute inset-0 bg-[#243B5A]/45" 
+          <div
+            className="absolute inset-0 bg-[#243B5A]/45"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div className="relative bg-white rounded-t-2xl p-4 pb-safe space-y-4 animate-in slide-in-from-bottom">
@@ -156,7 +156,7 @@ function TenantNavigation({
                   </Link>
                 );
               })}
-              <button 
+              <button
                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600"
               >
@@ -186,8 +186,17 @@ function KhachThueDashboardLayoutContent({
       router.push('/khach-thue/dang-nhap');
     },
   });
+  const session = sessionState?.data;
   const status = sessionState?.status ?? 'loading';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.requirePasswordChange) {
+      if (pathname !== '/khach-thue/doi-mat-khau') {
+        router.replace('/khach-thue/doi-mat-khau');
+      }
+    }
+  }, [status, session, pathname, router]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/khach-thue/dang-nhap' });
@@ -202,10 +211,15 @@ function KhachThueDashboardLayoutContent({
     );
   }
 
+  // If requires password change, just render nothing while redirecting
+  if (status === 'authenticated' && session?.user?.requirePasswordChange) {
+    return null;
+  }
+
   return (
     <TenantProvider>
       <div className="min-h-screen bg-gray-50 pb-16 lg:pb-0">
-        <TenantNavigation 
+        <TenantNavigation
           pathname={pathname}
           handleLogout={handleLogout}
           isMobileMenuOpen={isMobileMenuOpen}

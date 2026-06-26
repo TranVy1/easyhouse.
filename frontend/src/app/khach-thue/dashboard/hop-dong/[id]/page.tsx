@@ -198,7 +198,8 @@ export default function TenantContractDetailPage() {
         body: JSON.stringify({
           signatureBase64: base64,
           ipAddress: '127.0.0.1',
-          userAgent: navigator.userAgent
+          userAgent: navigator.userAgent,
+          role: 'TENANT'
         })
       });
       const data = await res.json();
@@ -357,10 +358,13 @@ export default function TenantContractDetailPage() {
           {contract.filePdf ? (
             <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
               <iframe 
-                src={`https://docs.google.com/gview?url=${encodeURIComponent(contract.filePdf)}&embedded=true`}
+                src={contract.filePdf}
                 className="w-full h-[600px] border-0"
                 title="Contract PDF Viewer"
               />
+              <div className="bg-white p-2 border-t text-center text-xs text-muted-foreground">
+                Nếu tài liệu không hiển thị, vui lòng <a href={contract.filePdf} target="_blank" rel="noreferrer" className="text-[#4FA7A0] underline font-semibold">bấm vào đây để tải xuống trực tiếp</a>.
+              </div>
             </div>
           ) : (
             <div className="text-center p-12 border border-dashed rounded-lg bg-[#F8F3EC] text-[#6B7A8C]">

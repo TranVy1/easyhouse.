@@ -160,11 +160,18 @@ public class AuthService {
 
         // Generate tokens
         String role = resolveRole(user);
+        
+        // Prevent tenants from logging into landlord portal
+        if ("USER".equals(role)) {
+            throw new RuntimeException("Tài khoản khách thuê không được phép đăng nhập vào trang quản lý. Vui lòng đăng nhập tại cổng Khách thuê.");
+        }
+        
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), role);
         String refreshToken = createRefreshToken(user);
         logAudit(user, "LOGIN");
 
         boolean verified = user.getTrangThai() == TrangThaiNguoiDung.ACTIVE;
+        boolean requirePasswordChange = user.getMatKhau() != null && passwordEncoder.matches("123456", user.getMatKhau());
 
         return AuthResponse.builder()
                 .id(user.getId())
@@ -176,6 +183,7 @@ public class AuthService {
                 .token(accessToken)
                 .refreshToken(refreshToken)
                 .emailVerified(verified)
+                .requirePasswordChange(requirePasswordChange)
                 .build();
     }
 
@@ -317,7 +325,11 @@ public class AuthService {
         }
         NguoiDung user = userOpt.get();
 
-        if (user.getMatKhau() != null && !passwordEncoder.matches(request.getMatKhau(), user.getMatKhau())) {
+        if (user.getMatKhau() == null) {
+            saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), false, ipAddress, userAgent, "Tài khoản chưa có mật khẩu");
+            throw new RuntimeException("Tài khoản chưa có mật khẩu, vui lòng liên hệ quản lý");
+        }
+        if (!passwordEncoder.matches(request.getMatKhau(), user.getMatKhau())) {
             saveLoginHistory(user, user.getEmail() != null ? user.getEmail() : request.getSoDienThoai(), false, ipAddress, userAgent, "Sai mật khẩu");
             throw new RuntimeException("Mật khẩu không đúng");
         }
@@ -332,10 +344,13 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), "TENANT");
         String refreshToken = createRefreshToken(user);
 
+        boolean requirePasswordChange = user.getMatKhau() != null && passwordEncoder.matches("123456", user.getMatKhau());
+
         return KhachThueLoginResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
                 .khachThue(KhachThueResponse.fromEntity(khachThue))
+                .requirePasswordChange(requirePasswordChange)
                 .build();
     }
 

@@ -1,0 +1,1 @@
+ALTER TYPE public.loai_muc_hoa_don ADD VALUE IF NOT EXISTS 'DEPOSIT';

@@ -484,7 +484,8 @@ export default function ChinhSuaHopDongPage() {
         body: JSON.stringify({
           signatureBase64: base64,
           ipAddress: '127.0.0.1',
-          userAgent: navigator.userAgent
+          userAgent: navigator.userAgent,
+          role: 'LANDLORD'
         })
       });
       const data = await res.json();
@@ -702,6 +703,7 @@ export default function ChinhSuaHopDongPage() {
         },
         body: JSON.stringify({
           ...formData,
+          giaThueHopDong: Number(formData.giaThue || 0),
           nguoiDaiDien: formData.nguoiDaiDien,
           khachThueId: thanhVienIds,
           khachThueIds: thanhVienIds,
@@ -757,6 +759,7 @@ export default function ChinhSuaHopDongPage() {
       sessionStorage.removeItem('hop-dong-data');
       toast.success(result.message || (action === 'preview' ? 'Đã tạo bản xem trước hợp đồng' : 'Đã xác nhận hợp đồng'));
       if (action === 'confirm') {
+        router.push('/dashboard/hop-dong');
         router.refresh();
       }
     } catch (error) {
@@ -1546,7 +1549,7 @@ export default function ChinhSuaHopDongPage() {
               {hopDong?.filePdf ? (
                 <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
                   <iframe 
-                    src={`https://docs.google.com/gview?url=${encodeURIComponent(hopDong.filePdf)}&embedded=true`}
+                    src={hopDong.filePdf}
                     className="w-full h-[600px] border-0"
                     title="Contract PDF Viewer"
                   />

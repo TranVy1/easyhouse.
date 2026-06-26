@@ -201,6 +201,26 @@ export default function ThemMoiHopDongPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         toast.success('Thêm khách thuê thành công');
+        
+        // Cập nhật SWR cache ngay lập tức để danh sách hiển thị
+        if (result.data) {
+          mutateKhachThue((prev: any) => {
+            const newList = prev ? [result.data, ...prev] : [result.data];
+            return newList;
+          }, false);
+          
+          // Tự động chọn làm người đại diện
+          const newId = result.data._id || result.data.id;
+          if (newId) {
+            setFormData(prev => ({
+              ...prev,
+              nguoiDaiDien: String(newId),
+              khachThueId: prev.khachThueId.filter((id: string) => id !== String(newId))
+            }));
+          }
+        }
+        
+        // Gọi mutate để fetch lại data từ server background
         mutateKhachThue();
         setOpenAddKhachThue(false);
         setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '' });

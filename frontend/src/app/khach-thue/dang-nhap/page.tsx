@@ -110,8 +110,8 @@ function KhachThueDangNhapContent() {
             </Button>
 
             <div className="text-center text-sm text-gray-600 mt-4">
-              <p>Chưa có mật khẩu?</p>
-              <p className="text-xs mt-1">Vui lòng liên hệ quản lý để được tạo tài khoản</p>
+              <p>Mật khẩu mặc định là 123456</p>
+              <p className="text-xs mt-1">Vui lòng đổi mật khẩu sau khi đăng nhập thành công</p>
             </div>
           </form>
         </CardContent>

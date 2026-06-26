@@ -210,7 +210,7 @@ export default function TenantInvoiceDetailPage() {
                     className="w-full bg-[#243B5A] hover:bg-[#1B2E47] text-white" 
                     onClick={async () => {
                       try {
-                        const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice.id}&amount=${invoice.conLai}`);
+                        const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice._id || invoice.id}&amount=${invoice.conLai}`);
                         const data = await res.json();
                         if (data.success && data.data) {
                           window.location.href = data.data;

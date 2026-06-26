@@ -9,6 +9,7 @@ declare module 'next-auth' {
       phone?: string;
       avatar?: string;
       emailVerified?: boolean;
+      requirePasswordChange?: boolean;
     } & DefaultSession['user'];
     accessToken?: unknown;
     /** Set to 'RefreshAccessTokenError' when refresh token is expired/revoked */
@@ -24,6 +25,7 @@ declare module 'next-auth' {
     refreshToken?: string;
     emailVerified?: boolean;
     accessTokenExpires?: number;
+    requirePasswordChange?: boolean;
   }
 }
 
@@ -37,5 +39,6 @@ declare module 'next-auth/jwt' {
     emailVerified?: boolean;
     accessTokenExpires?: number;
     error?: string;
+    requirePasswordChange?: boolean;
   }
 }

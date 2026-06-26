@@ -9,4 +9,5 @@ public class KhachThueLoginResponse {
     private String token;
     private String refreshToken;
     private KhachThueResponse khachThue;
+    private boolean requirePasswordChange;
 }

@@ -32,4 +32,7 @@ public class AuthResponse {
 
     /** Whether the user has verified their email */
     private boolean emailVerified;
+
+    /** Whether the user needs to change their password (e.g. default password used) */
+    private boolean requirePasswordChange;
 }

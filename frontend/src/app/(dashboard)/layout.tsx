@@ -38,6 +38,11 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
     // If refresh token expired, force re-login
     if (session.error === 'RefreshAccessTokenError') {
       signOut({ callbackUrl: '/dang-nhap' });
+      return;
+    }
+
+    if (session.user?.requirePasswordChange && !window.location.pathname.includes('/ho-so')) {
+      router.push('/dashboard/ho-so');
     }
   }, [session, status, router]);
 

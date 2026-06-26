@@ -26,36 +26,34 @@ export const authOptions: NextAuthOptions = {
             })
           });
 
-          if (res.ok) {
-            const result = await res.json();
-            if (result.success && result.data) {
-              const user = result.data;
-              return {
-                id: user.id || '1',
-                email: user.email,
-                name: user.hoTen || user.name || 'User',
-                role: user.vaiTro || user.role || 'LANDLORD',
-                phone: user.soDienThoai || user.phone || '',
-                avatar: user.anhDaiDien || user.avatar || '',
-                accessToken: user.token,
-                refreshToken: user.refreshToken || '',
-                emailVerified: user.emailVerified ?? true,
-                // Store token expiry (access token = 1 hour from now)
-                accessTokenExpires: Date.now() + 60 * 60 * 1000,
-              };
-            }
+          let result;
+          try {
+            result = await res.json();
+          } catch {
+            throw new Error('Không thể kết nối đến máy chủ');
+          }
+
+          if (res.ok && result.success && result.data) {
+            const user = result.data;
+            return {
+              id: user.id || '1',
+              email: user.email,
+              name: user.hoTen || user.name || 'User',
+              role: user.vaiTro || user.role || 'LANDLORD',
+              phone: user.soDienThoai || user.phone || '',
+              avatar: user.anhDaiDien || user.avatar || '',
+              accessToken: user.token,
+              refreshToken: user.refreshToken || '',
+              emailVerified: user.emailVerified ?? true,
+              requirePasswordChange: user.requirePasswordChange || false,
+              accessTokenExpires: Date.now() + 60 * 60 * 1000,
+            };
           }
           
-          // Try to get error message from response
-          try {
-            const err = await res.json();
-            throw new Error(err.message || 'Đăng nhập thất bại');
-          } catch {
-            return null;
-          }
-        } catch (error) {
+          throw new Error(result.message || 'Đăng nhập thất bại');
+        } catch (error: any) {
           console.error('Auth error:', error);
-          return null;
+          throw new Error(error.message || 'Lỗi hệ thống');
         }
       }
     }),
@@ -81,34 +79,34 @@ export const authOptions: NextAuthOptions = {
             })
           });
 
-          if (res.ok) {
-            const result = await res.json();
-            if (result.success && result.data) {
-              const { token, refreshToken, khachThue } = result.data;
-              return {
-                id: khachThue._id || khachThue.id || 'tenant',
-                email: khachThue.email || '',
-                name: khachThue.hoTen || 'Khách thuê',
-                role: 'TENANT',
-                phone: khachThue.soDienThoai || '',
-                avatar: khachThue.anhDaiDien || '',
-                accessToken: token,
-                refreshToken: refreshToken || '',
-                emailVerified: true,
-                accessTokenExpires: Date.now() + 60 * 60 * 1000,
-              };
-            }
+          let result;
+          try {
+            result = await res.json();
+          } catch {
+            throw new Error('Không thể kết nối đến máy chủ');
+          }
+
+          if (res.ok && result.success && result.data) {
+            const { token, refreshToken, khachThue } = result.data;
+            return {
+              id: khachThue._id || khachThue.id || 'tenant',
+              email: khachThue.email || '',
+              name: khachThue.hoTen || 'Khách thuê',
+              role: 'TENANT',
+              phone: khachThue.soDienThoai || '',
+              avatar: khachThue.anhDaiDien || '',
+              accessToken: token,
+              refreshToken: refreshToken || '',
+              emailVerified: true,
+              accessTokenExpires: Date.now() + 60 * 60 * 1000,
+              requirePasswordChange: result.data.requirePasswordChange || false,
+            };
           }
           
-          try {
-            const err = await res.json();
-            throw new Error(err.message || 'Đăng nhập thất bại');
-          } catch {
-            return null;
-          }
-        } catch (error) {
+          throw new Error(result.message || 'Đăng nhập thất bại');
+        } catch (error: any) {
           console.error('Tenant Auth error:', error);
-          return null;
+          throw new Error(error.message || 'Lỗi hệ thống');
         }
       }
     })
@@ -128,6 +126,7 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
         token.emailVerified = user.emailVerified as boolean | undefined;
         token.accessTokenExpires = user.accessTokenExpires;
+        token.requirePasswordChange = user.requirePasswordChange;
       }
 
       // If access token has NOT expired, return as-is
@@ -145,6 +144,7 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string;
         session.user.avatar = token.avatar as string;
         session.user.emailVerified = token.emailVerified as boolean;
+        session.user.requirePasswordChange = token.requirePasswordChange as boolean;
         session.accessToken = token.accessToken;
         // Signal to client if token refresh failed
         session.error = token.error as string | undefined;

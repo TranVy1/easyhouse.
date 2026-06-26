@@ -392,9 +392,22 @@ public class HopDongService {
         if (hd.getLockedAt() != null || hd.getTrangThai() == TrangThaiHopDong.ACTIVE || hd.getTrangThai() == TrangThaiHopDong.TERMINATED) {
             throw new RuntimeException("Hợp đồng đã xác nhận hoặc đã phát sinh thực tế, hãy kết thúc hợp đồng thay vì xóa");
         }
-        if (!hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id).isEmpty()) {
-            throw new RuntimeException("Hợp đồng đã có hóa đơn, không thể xóa");
+        
+        List<com.example.quanlyphongtro.entity.HoaDon> hoaDons = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id);
+        boolean hasPaidInvoice = hoaDons.stream().anyMatch(h -> 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.PAID || 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.PARTIAL || 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.OVERPAID
+        );
+        if (hasPaidInvoice) {
+            throw new RuntimeException("Hợp đồng đã có hóa đơn được thanh toán (một phần hoặc toàn bộ), không thể xóa");
         }
+        
+        for (com.example.quanlyphongtro.entity.HoaDon hoaDon : hoaDons) {
+            hoaDon.setXoaLuc(java.time.ZonedDateTime.now());
+            hoaDonRepository.save(hoaDon);
+        }
+
         UUID phongId = hd.getPhong() != null ? hd.getPhong().getId() : null;
         hd.setXoaLuc(java.time.ZonedDateTime.now());
         hopDongRepository.save(hd);
@@ -411,9 +424,22 @@ public class HopDongService {
         if (hd.getLockedAt() != null || hd.getTrangThai() == TrangThaiHopDong.ACTIVE || hd.getTrangThai() == TrangThaiHopDong.TERMINATED) {
             throw new RuntimeException("Hợp đồng đã hoạt động, hãy dùng chức năng kết thúc hợp đồng");
         }
-        if (!hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id).isEmpty()) {
-            throw new RuntimeException("Hợp đồng đã có hóa đơn, không thể hủy");
+        
+        List<com.example.quanlyphongtro.entity.HoaDon> hoaDons = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(id);
+        boolean hasPaidInvoice = hoaDons.stream().anyMatch(h -> 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.PAID || 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.PARTIAL || 
+            h.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHoaDon.OVERPAID
+        );
+        if (hasPaidInvoice) {
+            throw new RuntimeException("Hợp đồng đã có hóa đơn được thanh toán (một phần hoặc toàn bộ), không thể hủy");
         }
+        
+        for (com.example.quanlyphongtro.entity.HoaDon hoaDon : hoaDons) {
+            hoaDon.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHoaDon.CANCELLED);
+            hoaDonRepository.save(hoaDon);
+        }
+
         hd.setTrangThai(TrangThaiHopDong.CANCELLED);
         HopDong saved = hopDongRepository.save(hd);
         if (saved.getPhong() != null) {

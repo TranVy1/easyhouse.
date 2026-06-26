@@ -14,9 +14,11 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,7 @@ public class KhachThueService {
     private final NguoiDungRepository nguoiDungRepository;
     private final MediaService mediaService;
     private final PermissionService permissionService;
+    private final PasswordEncoder passwordEncoder;
 
     public PaginatedResponse<KhachThueResponse> getAllKhachThue(String trangThai, String search, int page, int limit) {
         UUID userId = permissionService.requireCurrentUserId();
@@ -124,6 +127,30 @@ public class KhachThueService {
             NguoiDung nd = nguoiDungRepository.findById(req.getNguoiDungId())
                     .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung"));
             kt.setNguoiDung(nd);
+        } else if (req.getSoDienThoai() != null && !req.getSoDienThoai().isBlank()) {
+            NguoiDung nd = nguoiDungRepository.findBySoDienThoai(req.getSoDienThoai()).orElse(null);
+            if (nd == null) {
+                String ndEmail = req.getEmail();
+                if (ndEmail == null || ndEmail.isBlank()) {
+                    ndEmail = "tenant_" + req.getSoDienThoai() + "@easyhouse.local";
+                }
+                nd = NguoiDung.builder()
+                        .id(UUID.randomUUID())
+                        .hoTen(req.getHoTen())
+                        .soDienThoai(req.getSoDienThoai())
+                        .email(ndEmail)
+                        .matKhau(passwordEncoder.encode("123456"))
+                        .trangThai(com.example.quanlyphongtro.entity.TrangThaiNguoiDung.ACTIVE)
+                        .soLanDangNhapSai(0)
+                        .soCccd(firstNonBlank(req.getSoCccd(), req.getCccd()))
+                        .ngaySinh(req.getNgaySinh())
+                        .gioiTinh(req.getGioiTinh())
+                        .diaChi(req.getDiaChi())
+                        .queQuan(req.getQueQuan())
+                        .build();
+                nd = nguoiDungRepository.save(nd);
+            }
+            kt.setNguoiDung(nd);
         }
 
         KhachThue saved = khachThueRepository.save(kt);
@@ -153,6 +180,29 @@ public class KhachThueService {
         if (req.getNguoiDungId() != null) {
             kt.setNguoiDung(nguoiDungRepository.findById(req.getNguoiDungId())
                     .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung")));
+        } else if (kt.getNguoiDung() == null && req.getSoDienThoai() != null && !req.getSoDienThoai().isEmpty()) {
+            Optional<NguoiDung> ndOpt = nguoiDungRepository.findBySoDienThoai(req.getSoDienThoai());
+            NguoiDung nd;
+            if (ndOpt.isPresent()) {
+                nd = ndOpt.get();
+            } else {
+                nd = NguoiDung.builder()
+                        .hoTen(kt.getHoTen())
+                        .soDienThoai(kt.getSoDienThoai())
+                        .email(kt.getEmail())
+                        .soCccd(kt.getSoCccd())
+                        .ngaySinh(kt.getNgaySinh())
+                        .gioiTinh(kt.getGioiTinh())
+                        .diaChi(kt.getDiaChi())
+                        .queQuan(kt.getQueQuan())
+                        .build();
+                nd.setId(UUID.randomUUID());
+                nd.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiNguoiDung.ACTIVE);
+                nd.setSoLanDangNhapSai(0);
+                nd.setMatKhau(passwordEncoder.encode("123456"));
+                nd = nguoiDungRepository.save(nd);
+            }
+            kt.setNguoiDung(nd);
         }
 
         KhachThue saved = khachThueRepository.save(kt);

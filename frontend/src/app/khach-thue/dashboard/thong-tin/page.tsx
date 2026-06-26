@@ -176,6 +176,13 @@ export default function TenantProfilePage() {
       }
       toast.success('Đổi mật khẩu thành công');
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          requirePasswordChange: false
+        }
+      });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Đổi mật khẩu thất bại');
     } finally {

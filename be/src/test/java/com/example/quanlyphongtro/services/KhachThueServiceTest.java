@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class KhachThueServiceTest {
@@ -32,6 +33,7 @@ class KhachThueServiceTest {
     @Mock private NguoiDungRepository nguoiDungRepository;
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
+    @Mock private PasswordEncoder passwordEncoder;
 
     private KhachThueService service;
 
@@ -42,7 +44,8 @@ class KhachThueServiceTest {
                 hopDongRepository,
                 nguoiDungRepository,
                 mediaService,
-                permissionService
+                permissionService,
+                passwordEncoder
         );
     }
 
@@ -56,6 +59,7 @@ class KhachThueServiceTest {
 
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(nguoiDungRepository.findById(userId)).thenReturn(Optional.of(owner));
+        when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
         when(khachThueRepository.save(any(KhachThue.class))).thenAnswer(invocation -> {
             KhachThue khachThue = invocation.getArgument(0);
             khachThue.setId(UUID.randomUUID());
