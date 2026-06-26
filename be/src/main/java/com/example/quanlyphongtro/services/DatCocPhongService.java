@@ -23,6 +23,8 @@ public class DatCocPhongService {
     private final NguoiDungRepository nguoiDungRepository;
     private final HopDongService hopDongService;
     private final PermissionService permissionService;
+    private final HoaDonRepository hoaDonRepository;
+    private final ThanhToanRepository thanhToanRepository;
 
     public List<DatCocPhongResponse> getAll(UUID nhaTroId) {
         UUID userId = permissionService.requireCurrentUserId();
@@ -149,6 +151,40 @@ public class DatCocPhongService {
         com.example.quanlyphongtro.entity.HopDong hd = new com.example.quanlyphongtro.entity.HopDong();
         hd.setId(hdRes.getId());
         dc.setHopDong(hd);
+
+        // Apply already paid deposit to the newly created deposit invoice
+        List<HoaDon> hoaDons = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hdRes.getId());
+        for (HoaDon hoaDon : hoaDons) {
+            if ("Thu tiền cọc hợp đồng".equals(hoaDon.getGhiChu())) {
+                java.math.BigDecimal paymentAmount = dc.getSoTienCoc();
+                if (paymentAmount != null && paymentAmount.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                    if (paymentAmount.compareTo(hoaDon.getTongTien()) > 0) {
+                        paymentAmount = hoaDon.getTongTien();
+                    }
+                    
+                    if (paymentAmount.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                        ThanhToan tt = ThanhToan.builder()
+                                .hoaDon(hoaDon)
+                                .nguoiGhiNhan(nguoiDungRepository.findById(userId).orElseThrow())
+                                .soTien(paymentAmount)
+                                .phuongThucThanhToan(PhuongThucThanhToan.OTHER)
+                                .ngayThanhToan(ZonedDateTime.now())
+                                .ghiChu("Chuyển từ tiền cọc đặt phòng (Cọc ID: " + id + ")")
+                                .trangThai(TrangThaiThanhToan.SUCCESS)
+                                .build();
+                        thanhToanRepository.save(tt);
+                        
+                        hoaDon.setDaTra(hoaDon.getDaTra().add(paymentAmount));
+                        if (hoaDon.getDaTra().compareTo(hoaDon.getTongTien()) >= 0) {
+                            hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
+                        } else {
+                            hoaDon.setTrangThai(TrangThaiHoaDon.PARTIAL);
+                        }
+                        hoaDonRepository.save(hoaDon);
+                    }
+                }
+            }
+        }
 
         return mapToResponse(datCocPhongRepository.save(dc));
     }

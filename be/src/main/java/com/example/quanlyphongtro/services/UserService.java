@@ -188,7 +188,7 @@ public class UserService {
         } catch (Exception e) {
             // ignore
         }
-        return "ADMIN"; // fallback
+        return "TENANT"; // fallback
     }
 
     @Transactional

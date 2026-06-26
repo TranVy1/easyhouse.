@@ -162,7 +162,7 @@ public class AuthService {
         String role = resolveRole(user);
         
         // Prevent tenants from logging into landlord portal
-        if ("USER".equals(role)) {
+        if ("TENANT".equals(role)) {
             throw new RuntimeException("Tài khoản khách thuê không được phép đăng nhập vào trang quản lý. Vui lòng đăng nhập tại cổng Khách thuê.");
         }
         
@@ -415,7 +415,7 @@ public class AuthService {
         try {
             tempRole = VaiTroHeThong.valueOf(vaiTroStr.toUpperCase());
         } catch (Exception e) {
-            tempRole = VaiTroHeThong.ADMIN; // default fallback
+            tempRole = VaiTroHeThong.TENANT; // default fallback
         }
         // Map LANDLORD and STAFF to ADMIN
         if (tempRole == VaiTroHeThong.LANDLORD || tempRole == VaiTroHeThong.STAFF) {
@@ -453,7 +453,7 @@ public class AuthService {
         } catch (Exception e) {
             log.warn("Could not resolve role for user {}: {}", user.getId(), e.getMessage());
         }
-        return "ADMIN"; // default fallback
+        return "TENANT"; // default fallback
     }
 
     private KhachThueDashboardResponse.TenantContract toTenantContract(HopDong hopDong) {

@@ -136,7 +136,7 @@ export default function DatCocPage() {
                     )}
                     {d.trangThai === 'CONFIRMED' && (
                       <Button size="sm" variant="outline" asChild>
-                        <Link href={`/dashboard/hop-dong/them-moi?datCocId=${d.id}&phongId=${d.phong.id}&khachThueId=${d.khachThue.id}&tienCoc=${d.soTienCoc}`}>Tạo hợp đồng</Link>
+                        <Link href={`/dashboard/hop-dong/them-moi?datCocId=${d.id}&phongId=${d.phong.id || d.phong._id}&khachThueId=${d.khachThue.id || d.khachThue._id}&tienCoc=${d.soTienCoc}&nhaTroId=${d.phong.toaNha?.id || d.phong.toaNha?._id || ''}`}>Tạo hợp đồng</Link>
                       </Button>
                     )}
                     {(d.trangThai === 'PENDING' || d.trangThai === 'CONFIRMED') && (

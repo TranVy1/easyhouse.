@@ -7,7 +7,7 @@ import {
   CheckCircle2, Clock, XCircle,
   Home, Zap, Droplets, Mail, Phone, MapPin, ShieldCheck,
   RefreshCw, ChevronDown, Pencil, Lock, Eye, EyeOff,
-  Save, X, CheckCircle, ArrowLeft
+  Save, X, CheckCircle, ArrowLeft, LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -1079,6 +1079,15 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
                 <span className="flex-1 text-left">AI Trợ Lý</span>
                 <span className="rounded-full bg-[#4FA7A0]/10 px-2 py-0.5 text-[9px] font-extrabold text-[#267D76]">Mới</span>
               </button>
+              {['admin', 'ADMIN', 'chuNha', 'LANDLORD', 'nhanVien', 'STAFF'].includes(userProfile?.role || session?.user?.role || '') && (
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-extrabold text-[#526477] transition hover:bg-[#F8F3EC] hover:text-[#243B5A]"
+                >
+                  <LayoutDashboard size={16} className="text-[#4FA7A0]" />
+                  <span className="flex-1 text-left">Về Dashboard</span>
+                </button>
+              )}
               <button
                 onClick={() => signOut({ callbackUrl: '/dang-nhap' })}
                 className="flex w-full items-center gap-3 rounded-2xl border border-[#F2A45B]/20 bg-[#F2A45B]/10 px-4 py-3 text-sm font-extrabold text-[#A13C33] transition hover:bg-[#F2A45B]/20"

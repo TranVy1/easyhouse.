@@ -16,4 +16,5 @@ public interface ChiSoDienNuocRepository extends JpaRepository<ChiSoDienNuoc, UU
     List<ChiSoDienNuoc> findByPhongIdOrderByKyNamDescKyThangDesc(UUID phongId);
     Optional<ChiSoDienNuoc> findByPhongIdAndLoaiAndKyNamAndKyThang(UUID phongId, LoaiChiSo loai, Integer kyNam, Integer kyThang);
     List<ChiSoDienNuoc> findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(UUID phongId, LoaiChiSo loai);
+    List<ChiSoDienNuoc> findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(UUID hopDongId, LoaiChiSo loai);
 }

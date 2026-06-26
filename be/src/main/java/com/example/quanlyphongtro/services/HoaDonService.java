@@ -255,8 +255,8 @@ public class HoaDonService {
         HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
         if (hd != null && hd.getPhong() != null) {
             assertCanReadHopDong(hd, permissionService.requireCurrentUserId());
-            Optional<Integer> latestElectric = latestReading(hd.getPhong().getId(), LoaiChiSo.ELECTRICITY);
-            Optional<Integer> latestWater = latestReading(hd.getPhong().getId(), LoaiChiSo.WATER);
+            Optional<Integer> latestElectric = latestReading(hd.getId(), LoaiChiSo.ELECTRICITY);
+            Optional<Integer> latestWater = latestReading(hd.getId(), LoaiChiSo.WATER);
             result.put("chiSoDienBanDau", latestElectric.orElse(hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0));
             result.put("chiSoNuocBanDau", latestWater.orElse(hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0));
             if (latestElectric.isPresent() || latestWater.isPresent()) {
@@ -658,8 +658,8 @@ public class HoaDonService {
         }
     }
 
-    private Optional<Integer> latestReading(UUID phongId, LoaiChiSo loai) {
-        return chiSoDienNuocRepository.findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(phongId, loai).stream()
+    private Optional<Integer> latestReading(UUID hopDongId, LoaiChiSo loai) {
+        return chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, loai).stream()
                 .filter(item -> item.getTrangThai() != TrangThaiChiSo.CANCELLED)
                 .map(ChiSoDienNuoc::getChiSoMoi)
                 .filter(Objects::nonNull)

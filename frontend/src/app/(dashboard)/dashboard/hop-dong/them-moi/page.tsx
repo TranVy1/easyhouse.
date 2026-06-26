@@ -83,6 +83,11 @@ export default function ThemMoiHopDongPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nhaTroId = searchParams.get('nhaTroId');
+  const datCocId = searchParams.get('datCocId');
+  const phongId = searchParams.get('phongId');
+  const khachThueId = searchParams.get('khachThueId');
+  const tienCocParams = searchParams.get('tienCoc');
+
   const { data: session } = useSession();
   const accessToken = session?.accessToken;
   const [selectedNhaTro, setSelectedNhaTro] = useState<string>(nhaTroId || '');
@@ -128,13 +133,13 @@ export default function ThemMoiHopDongPage() {
 
   const [formData, setFormData] = useState({
     maHopDong: '',
-    phong: '',
-    khachThueId: [] as string[],
-    nguoiDaiDien: '',
+    phong: phongId || '',
+    khachThueId: khachThueId ? [khachThueId] : ([] as string[]),
+    nguoiDaiDien: khachThueId || '',
     ngayBatDau: new Date().toISOString().split('T')[0],
     ngayKetThuc: '',
     giaThue: 0 as number | string,
-    tienCoc: 0 as number | string,
+    tienCoc: (tienCocParams ? Number(tienCocParams) : 0) as number | string,
     chuKyThanhToan: 'thang' as 'thang' | 'quy' | 'nam',
     ngayThanhToan: 5 as number | string,
     ghiChu: '',
@@ -169,6 +174,8 @@ export default function ThemMoiHopDongPage() {
 - Hợp đồng có hiệu lực kể từ ngày ký`,
     chiSoDienBanDau: 0 as number | string,
     chiSoNuocBanDau: 0 as number | string,
+    giaDien: 0 as number | string,
+    giaNuoc: 0 as number | string,
     phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
@@ -234,6 +241,35 @@ export default function ThemMoiHopDongPage() {
       setLoadingAddKhachThue(false);
     }
   };
+
+  useEffect(() => {
+    if (selectedNhaTro && accessToken) {
+      const fetchPrices = async () => {
+        try {
+          const [dienRes, nuocRes] = await Promise.all([
+            fetch(`/api/cau-hinh-gia/ap-dung?nhaTroId=${selectedNhaTro}&loai=ELECTRICITY`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            }),
+            fetch(`/api/cau-hinh-gia/ap-dung?nhaTroId=${selectedNhaTro}&loai=WATER`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
+          ]);
+          
+          const dienData = dienRes.ok ? await dienRes.json() : null;
+          const nuocData = nuocRes.ok ? await nuocRes.json() : null;
+
+          setFormData(prev => ({
+            ...prev,
+            giaDien: dienData?.data?.donGia || prev.giaDien || 0,
+            giaNuoc: nuocData?.data?.donGia || prev.giaNuoc || 0
+          }));
+        } catch (err) {
+          console.error("Error fetching cau hinh gia", err);
+        }
+      };
+      fetchPrices();
+    }
+  }, [selectedNhaTro, accessToken]);
 
   const ensureISODate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -424,25 +460,48 @@ export default function ThemMoiHopDongPage() {
 
     try {
       const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
-      const response = await fetch('/api/hop-dong', {
+      
+      let apiUrl = '/api/hop-dong';
+      if (datCocId) {
+        apiUrl = `/api/dat-coc/${datCocId}/convert`;
+      }
+
+      const hopDongPayload = {
+        ...formData,
+        nguoiDaiDien: formData.nguoiDaiDien,
+        khachThueId: thanhVienIds,
+        khachThueIds: thanhVienIds,
+        ngayBatDau: ensureISODate(formData.ngayBatDau),
+        ngayKetThuc: ensureISODate(formData.ngayKetThuc),
+        giaThueHopDong: Number(formData.giaThue || 0),
+        phiDichVu: [
+          ...formData.phiDichVu
+            .filter((phi: any) => 
+              !phi.ten.toLowerCase().includes('điện') && 
+              !phi.ten.toLowerCase().includes('nước') &&
+              !phi.ten.toLowerCase().includes('electricity') && 
+              !phi.ten.toLowerCase().includes('water')
+            )
+            .map((phi: any) => ({
+              ...phi,
+              gia: Number(phi.gia || 0)
+            })),
+          { ten: 'Điện', gia: Number(formData.giaDien || 0), soLuong: 1, loaiTinhPhi: 'theo_chi_so' },
+          { ten: 'Nước', gia: Number(formData.giaNuoc || 0), soLuong: 1, loaiTinhPhi: 'theo_chi_so' }
+        ],
+      };
+
+      const requestBody = datCocId 
+        ? { hopDongRequest: hopDongPayload }
+        : hopDongPayload;
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          nguoiDaiDien: formData.nguoiDaiDien,
-          khachThueId: thanhVienIds,
-          khachThueIds: thanhVienIds,
-          ngayBatDau: ensureISODate(formData.ngayBatDau),
-          ngayKetThuc: ensureISODate(formData.ngayKetThuc),
-          giaThueHopDong: Number(formData.giaThue || 0),
-          phiDichVu: formData.phiDichVu.map((phi: any) => ({
-             ...phi,
-             gia: Number(phi.gia || 0)
-          })),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await response.json().catch(() => ({}));
@@ -926,6 +985,40 @@ export default function ThemMoiHopDongPage() {
                 />
                 <span className="text-xs text-muted-foreground">
                   Chỉ số đồng hồ nước khi bắt đầu hợp đồng
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="giaDien">Đơn giá điện (VNĐ/kWh)</Label>
+                <Input
+                  id="giaDien"
+                  type="number"
+                  min="0"
+                  value={formData.giaDien}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaDien: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
+                  placeholder="Nhập đơn giá điện"
+                  required
+                />
+                <span className="text-xs text-muted-foreground">
+                  Mức giá cố định áp dụng cho tiền điện
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="giaNuoc">Đơn giá nước (VNĐ/m³)</Label>
+                <Input
+                  id="giaNuoc"
+                  type="number"
+                  min="0"
+                  value={formData.giaNuoc}
+                  onChange={(e) => setFormData(prev => ({ ...prev, giaNuoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
+                  placeholder="Nhập đơn giá nước"
+                  required
+                />
+                <span className="text-xs text-muted-foreground">
+                  Mức giá cố định áp dụng cho tiền nước
                 </span>
               </div>
             </div>

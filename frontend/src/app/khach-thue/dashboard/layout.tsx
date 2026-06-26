@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, FileText, AlertCircle, User, LogOut, Menu, X, Bell, ScrollText } from 'lucide-react';
+import { Home, FileText, AlertCircle, User, LogOut, Menu, X, Bell, ScrollText, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { TenantProvider, useTenantDashboard } from './context';
@@ -23,6 +23,10 @@ function TenantNavigation({
   setIsMobileMenuOpen
 }: TenantNavigationProps) {
   const { data } = useTenantDashboard();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const role = session?.user?.role as string | undefined;
+  const isAdmin = ['admin', 'ADMIN', 'chuNha', 'LANDLORD', 'nhanVien', 'STAFF'].includes(role || '');
 
   const navigation = [
     { name: 'Tổng quan', href: '/khach-thue/dashboard', icon: Home, badge: 0 },
@@ -73,7 +77,17 @@ function TenantNavigation({
             })}
           </nav>
 
-          <div className="mt-auto pt-6 border-t mt-6">
+          <div className="mt-auto pt-6 border-t mt-6 space-y-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                className="w-full justify-start text-[#4FA7A0] hover:text-[#267D76] hover:bg-[#4FA7A0]/10"
+                onClick={() => router.push('/dashboard')}
+              >
+                <LayoutDashboard className="h-5 w-5 mr-3" />
+                Về Dashboard
+              </Button>
+            )}
             <Button
               variant="outline"
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -156,6 +170,15 @@ function TenantNavigation({
                   </Link>
                 );
               })}
+              {isAdmin && (
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); router.push('/dashboard'); }}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-[#4FA7A0]/10 text-[#4FA7A0]"
+                >
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span className="font-medium">Về Dashboard</span>
+                </button>
+              )}
               <button
                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600"

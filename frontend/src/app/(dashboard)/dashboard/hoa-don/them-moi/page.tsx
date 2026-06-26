@@ -148,12 +148,18 @@ export default function ThemMoiHoaDonPage() {
         const data = await response.json();
         if (data.success) {
           console.log('Latest electricity reading:', data.data);
-          setFormData(prev => ({
-            ...prev,
-            chiSoDienBanDau: data.data.chiSoDienBanDau || 0,
-            chiSoNuocBanDau: data.data.chiSoNuocBanDau || 0,
-            soDuDauKy: data.data.soDuDauKy || 0,
-          }));
+          setFormData(prev => {
+            const isFirst = data.data.isFirstInvoice;
+            // Nếu là hóa đơn đầu tiên, giữ lại chỉ số ban đầu đã set từ hợp đồng
+            const chiSoDien = isFirst && prev.chiSoDienBanDau > 0 ? prev.chiSoDienBanDau : (data.data.chiSoDienBanDau || 0);
+            const chiSoNuoc = isFirst && prev.chiSoNuocBanDau > 0 ? prev.chiSoNuocBanDau : (data.data.chiSoNuocBanDau || 0);
+            return {
+              ...prev,
+              chiSoDienBanDau: chiSoDien,
+              chiSoNuocBanDau: chiSoNuoc,
+              soDuDauKy: data.data.soDuDauKy || 0,
+            };
+          });
           setReadingSource(data.data);
         }
       }
@@ -189,8 +195,8 @@ export default function ThemMoiHoaDonPage() {
           khachThue: khachThueId,
           tienPhong: selectedHopDong.giaThue,
           phiDichVu: selectedHopDong.phiDichVu || [],
-          chiSoDienBanDau: 0,
-          chiSoNuocBanDau: 0,
+          chiSoDienBanDau: selectedHopDong.chiSoDienBanDau || 0,
+          chiSoNuocBanDau: selectedHopDong.chiSoNuocBanDau || 0,
         }));
         
         fetchLatestElectricityReading(formData.hopDong, formData.thang, formData.nam);
@@ -212,8 +218,9 @@ export default function ThemMoiHoaDonPage() {
     const dienService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('điện') || p.ten.toLowerCase().includes('electricity'));
     const nuocService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('nước') || p.ten.toLowerCase().includes('water'));
     
-    const giaDien = dienService ? dienService.gia : 0;
-    const giaNuoc = nuocService ? nuocService.gia : 0;
+    // Ưu tiên đơn giá gốc từ hợp đồng, nếu không có mới tìm trong mảng phiDichVu
+    const giaDien = selectedHopDong?.giaDien || (dienService ? dienService.gia : 0);
+    const giaNuoc = selectedHopDong?.giaNuoc || (nuocService ? nuocService.gia : 0);
     
     // Lọc bỏ Điện và Nước khỏi tổng phí dịch vụ để không bị tính đúp
     const filteredPhiDichVu = formData.phiDichVu.filter(phi => 

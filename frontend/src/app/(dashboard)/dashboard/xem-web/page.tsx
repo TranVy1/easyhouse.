@@ -21,17 +21,17 @@ export default function XemWebPage() {
 
   const handleLoadUrl = () => {
     if (!url) return;
-    
+
     let formattedUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
       formattedUrl = 'https://' + url;
     }
-    
+
     setIsLoading(true);
     setLoadError(false);
     setIframeLoaded(false);
     setCurrentUrl(formattedUrl);
-    
+
     // Set timeout to detect loading issues
     setTimeout(() => {
       if (!iframeLoaded) {
@@ -122,7 +122,7 @@ export default function XemWebPage() {
               onKeyPress={handleKeyPress}
               className="flex-1"
             />
-            <Button 
+            <Button
               onClick={handleLoadUrl}
               disabled={!url || isLoading}
             >
@@ -194,7 +194,7 @@ export default function XemWebPage() {
             <p>
               Trang web <strong className="break-all">{currentUrl}</strong> đã chặn việc hiển thị trong iframe.
             </p>
-            
+
             <div className="bg-red-50 border border-red-200 rounded p-3 text-sm space-y-2">
               <p className="font-semibold text-red-900">🔒 Lý do bảo mật:</p>
               <ul className="list-disc list-inside space-y-1 text-red-800">
@@ -206,7 +206,7 @@ export default function XemWebPage() {
             <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
               <p className="font-semibold text-yellow-900 mb-1">🚫 Các trang web thường bị chặn:</p>
               <p className="text-yellow-800">
-                Google, YouTube, Facebook, Instagram, Twitter, Banking apps, AppSheet, 
+                Google, YouTube, Facebook, Instagram, Twitter, Banking apps, AppSheet,
                 Gmail, LinkedIn, và hầu hết các trang đăng nhập/thanh toán.
               </p>
             </div>
@@ -214,22 +214,22 @@ export default function XemWebPage() {
             <div className="bg-green-50 border border-green-200 rounded p-3 text-sm">
               <p className="font-semibold text-green-900 mb-1">✅ Các trang có thể dùng:</p>
               <p className="text-green-800">
-                Wikipedia, các trang tin tức (VNExpress, Dân Trí), blog cá nhân, 
+                Wikipedia, các trang tin tức (VNExpress, Dân Trí), blog cá nhân,
                 tài liệu công khai, và các trang cho phép nhúng.
               </p>
             </div>
-            
+
             <div className="flex gap-2 mt-4">
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 size="sm"
                 onClick={() => window.open(currentUrl, '_blank')}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Mở trong tab mới
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleReset}
               >
@@ -310,16 +310,16 @@ export default function XemWebPage() {
               <h4 className="text-sm font-semibold text-[#243B5A]">📌 Hướng dẫn sử dụng</h4>
               <div className="text-sm text-[#243B5A] space-y-2">
                 <p>
-                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều trang web sử dụng <code className="bg-[#4FA7A0]/15 px-1 rounded">X-Frame-Options</code> 
-                  hoặc <code className="bg-[#4FA7A0]/15 px-1 rounded">Content-Security-Policy</code> để ngăn chặn việc nhúng vào iframe, 
+                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều trang web sử dụng <code className="bg-[#4FA7A0]/15 px-1 rounded">X-Frame-Options</code>
+                  hoặc <code className="bg-[#4FA7A0]/15 px-1 rounded">Content-Security-Policy</code> để ngăn chặn việc nhúng vào iframe,
                   bảo vệ người dùng khỏi các cuộc tấn công clickjacking.
                 </p>
                 <p>
-                  <strong>Giải pháp:</strong> Nếu trang web bị chặn, sử dụng nút <strong>&quot;Mở trong tab mới&quot;</strong> để 
+                  <strong>Giải pháp:</strong> Nếu trang web bị chặn, sử dụng nút <strong>&quot;Mở trong tab mới&quot;</strong> để
                   xem trang web trong cửa sổ riêng biệt.
                 </p>
                 <p>
-                  <strong>Mẹo:</strong> Các trang tin tức, Wikipedia, tài liệu công khai thường cho phép nhúng iframe. 
+                  <strong>Mẹo:</strong> Các trang tin tức, Wikipedia, tài liệu công khai thường cho phép nhúng iframe.
                   Các trang mạng xã hội, banking, email thường bị chặn.
                 </p>
               </div>
