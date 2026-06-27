@@ -6,6 +6,7 @@ import {
   Cell,
   Tooltip,
   Legend,
+  Label,
   ResponsiveContainer
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,7 @@ interface DebtAgingData {
   totalOutstanding: number;
 }
 
-const COLORS = ['#94a3b8', '#f59e0b', '#f97316', '#ef4444', '#7f1d1d'];
+const COLORS = ['#8CCBC5', '#F2A45B', '#E8956A', '#C75345', '#7f1d1d'];
 
 export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
   if (!data || data.totalOutstanding === 0) {
@@ -44,8 +45,8 @@ export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border rounded shadow-md text-sm">
-          <p className="font-bold mb-1">{payload[0].name}</p>
+        <div className="bg-white/95 backdrop-blur-sm p-4 border border-[#E8DED2] rounded-xl shadow-lg text-sm">
+          <p className="font-bold mb-1 text-[#243B5A]">{payload[0].name}</p>
           <p className="text-[#243B5A]">
             {formatCurrency(payload[0].value)}
           </p>
@@ -59,31 +60,49 @@ export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
   };
 
   return (
-    <Card className="col-span-3">
-      <CardHeader>
-        <CardTitle>Phân bổ tuổi nợ</CardTitle>
+    <Card className="col-span-3 border-border/60 shadow-sm overflow-hidden rounded-2xl bg-white">
+      <CardHeader className="pb-4 border-b bg-gradient-to-r from-[#243B5A]/[0.02] to-transparent">
+        <CardTitle className="text-lg text-[#243B5A]">Phân bổ tuổi nợ</CardTitle>
         <CardDescription>
-          Tổng nợ: <strong className="text-red-600">{formatCurrency(data.totalOutstanding)}</strong>
+          Tổng nợ: <strong className="text-[#C75345] text-base">{formatCurrency(data.totalOutstanding)}</strong>
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-[300px]">
+      <CardContent className="h-[350px] p-6 pt-8">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={2}
+              innerRadius={75}
+              outerRadius={110}
+              paddingAngle={3}
               dataKey="value"
+              stroke="none"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="drop-shadow-sm hover:opacity-90 transition-opacity" />
               ))}
+              <Label
+                position="center"
+                content={({ viewBox }) => {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                    return (
+                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                        <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 10} className="fill-[#243B5A] text-lg font-black tracking-tighter">
+                          {formatCurrency(data.totalOutstanding)}
+                        </tspan>
+                        <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 12} className="fill-[#6B7A8C] text-[10px] uppercase font-bold tracking-wider">
+                          Tổng nợ
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+            <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '13px', fontWeight: 500, paddingTop: '10px' }} />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

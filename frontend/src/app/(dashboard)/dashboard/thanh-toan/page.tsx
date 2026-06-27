@@ -19,7 +19,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -379,34 +380,34 @@ export default function ThanhToanPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardPageHeader
-        eyebrow="Doanh thu"
+      <DashboardHero
+        icon={Banknote}
         title="Thanh toán"
         description="Ghi nhận tiền thực thu, đối chiếu hóa đơn và theo dõi trạng thái giao dịch."
         actions={
           <>
-            <Button variant="outline" onClick={() => void fetchPayments(true)} disabled={refreshing}>
+            <HeroActionButton variant="secondary" onClick={() => void fetchPayments(true)} disabled={refreshing}>
               <RefreshCw className={refreshing ? "animate-spin" : ""} />
               Làm mới
-            </Button>
-            <Button onClick={openCreate}>
+            </HeroActionButton>
+            <HeroActionButton variant="default" onClick={openCreate}>
               <Plus />
-              Ghi nhận thanh toán
-            </Button>
+              Ghi nhận
+            </HeroActionButton>
           </>
         }
-      />
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard title="Khớp lọc" value={String(total)} icon={<ReceiptText className="h-5 w-5" />} tone="default" />
+          <DashboardKpiCard title="Đã thu trên trang" value={currency(metrics.successMoney)} icon={<Banknote className="h-5 w-5" />} tone="emerald" />
+          <DashboardKpiCard title="Chờ xác nhận" value={String(metrics.pendingCount)} icon={<CalendarDays className="h-5 w-5" />} tone="orange" />
+          <DashboardKpiCard title="Đã hủy/hoàn" value={String(metrics.cancelledCount)} icon={<FileCheck2 className="h-5 w-5" />} tone="blue" />
+        </div>
+      </DashboardHero>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Giao dịch khớp lọc" value={String(total)} hint="Tất cả trang kết quả" icon={ReceiptText} />
-        <MetricCard label="Đã thu trên trang" value={currency(metrics.successMoney)} hint={`${metrics.successCount} giao dịch thành công`} icon={Banknote} tone="success" />
-        <MetricCard label="Chờ xác nhận trên trang" value={String(metrics.pendingCount)} hint="Chưa cộng vào tiền đã thu" icon={CalendarDays} tone="warning" />
-        <MetricCard label="Đã hủy / hoàn trên trang" value={String(metrics.cancelledCount)} hint="Giữ lại để đối soát" icon={FileCheck2} />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Bộ lọc giao dịch</CardTitle>
+      <DashboardCard>
+        <CardHeader className="pb-3 border-b border-gray-100">
+          <CardTitle className="text-sm font-medium text-gray-700">Bộ lọc giao dịch</CardTitle>
           <CardDescription>Tìm kiếm và lọc được thực hiện trên server trước khi phân trang.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
@@ -468,14 +469,12 @@ export default function ThanhToanPage() {
           />
           <Button variant="ghost" className="xl:col-start-6" onClick={resetFilters}>Xóa lọc</Button>
         </CardContent>
-      </Card>
+      </DashboardCard>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle>Danh sách thanh toán</CardTitle>
-            <CardDescription>{total} giao dịch phù hợp bộ lọc hiện tại</CardDescription>
-          </div>
+      <DashboardCard className="overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách thanh toán</CardTitle>
+          <CardDescription>{total} giao dịch phù hợp bộ lọc hiện tại</CardDescription>
         </CardHeader>
         <CardContent>
           {data.length === 0 ? (
@@ -594,7 +593,7 @@ export default function ThanhToanPage() {
             </>
           )}
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       <Dialog open={formOpen} onOpenChange={(open) => {
         setFormOpen(open)

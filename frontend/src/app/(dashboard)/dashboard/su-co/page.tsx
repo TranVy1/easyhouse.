@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -317,111 +318,87 @@ export default function SuCoPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý sự cố</h1>
-          <p className="text-xs md:text-sm text-gray-600">Theo dõi và xử lý các sự cố từ khách thuê</p>
+      <DashboardHero
+        icon={AlertTriangle}
+        title="Quản lý sự cố"
+        description="Theo dõi và xử lý các sự cố từ khách thuê"
+        actions={
+          <>
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="default" onClick={() => setEditingSuCo(null)}>
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Báo cáo sự cố</span>
+                  <span className="sm:hidden">Báo cáo</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingSuCo ? 'Chỉnh sửa sự cố' : 'Báo cáo sự cố mới'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingSuCo ? 'Cập nhật thông tin sự cố' : 'Nhập thông tin sự cố mới'}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <SuCoForm 
+                  suCo={editingSuCo}
+                  phongList={phongList}
+                  hopDongList={hopDongList}
+                  getKhachThueName={getKhachThueName}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    clearCache();
+                    setIsDialogOpen(false);
+                    fetchData(true);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Tổng sự cố" 
+            value={String(totalElements)} 
+            icon={<AlertTriangle className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Mới" 
+            value={String(suCoList.filter(s => s.trangThai === 'PENDING').length)} 
+            icon={<AlertTriangle className="h-5 w-5" />} 
+            tone="red" 
+          />
+          <DashboardKpiCard 
+            title="Đang xử lý" 
+            value={String(suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length)} 
+            icon={<Clock className="h-5 w-5" />} 
+            tone="orange" 
+          />
+          <DashboardKpiCard 
+            title="Đã xong" 
+            value={String(suCoList.filter(s => s.trangThai === 'RESOLVED').length)} 
+            icon={<CheckCircle className="h-5 w-5" />} 
+            tone="emerald" 
+          />
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingSuCo(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Báo cáo sự cố</span>
-                <span className="sm:hidden">Báo cáo</span>
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingSuCo ? 'Chỉnh sửa sự cố' : 'Báo cáo sự cố mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingSuCo ? 'Cập nhật thông tin sự cố' : 'Nhập thông tin sự cố mới'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <SuCoForm 
-              suCo={editingSuCo}
-              phongList={phongList}
-              hopDongList={hopDongList}
-              getKhachThueName={getKhachThueName}
-              onClose={() => setIsDialogOpen(false)}
-              onSuccess={() => {
-                clearCache();
-                setIsDialogOpen(false);
-                fetchData(true);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng sự cố</p>
-              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
-            </div>
-            <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Mới</p>
-              <p className="text-base md:text-2xl font-bold text-red-600">
-                {suCoList.filter(s => s.trangThai === 'PENDING').length}
-              </p>
-            </div>
-            <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang xử lý</p>
-              <p className="text-base md:text-2xl font-bold text-orange-600">
-                {suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length}
-              </p>
-            </div>
-            <Clock className="h-3 w-3 md:h-4 md:w-4 text-orange-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đã xong</p>
-              <p className="text-base md:text-2xl font-bold text-green-600">
-                {suCoList.filter(s => s.trangThai === 'RESOLVED').length}
-              </p>
-            </div>
-            <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-          </div>
-        </Card>
-      </div>
+      </DashboardHero>
 
       {/* Desktop Table */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle>Danh sách sự cố</CardTitle>
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách sự cố</CardTitle>
           <CardDescription>
             {filteredSuCo.length} sự cố được tìm thấy
           </CardDescription>
@@ -448,7 +425,7 @@ export default function SuCoPage() {
             onPaginationChange={setPagination}
           />
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Cards */}
       <div className="md:hidden">

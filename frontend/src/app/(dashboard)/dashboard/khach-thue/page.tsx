@@ -7,6 +7,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -177,117 +178,95 @@ export default function KhachThuePage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý khách thuê</h1>
-          <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả khách thuê trong hệ thống</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingKhachThue(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Thêm khách thuê</span>
-                <span className="sm:hidden">Thêm</span>
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingKhachThue ? 'Chỉnh sửa khách thuê' : 'Thêm khách thuê mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingKhachThue ? 'Cập nhật thông tin khách thuê' : 'Nhập thông tin khách thuê mới'}
-              </DialogDescription>
-            </DialogHeader>
+      {/* Hero Section */}
+      <DashboardHero
+        icon={Users}
+        title="Quản lý khách thuê"
+        description="Danh sách tất cả khách thuê trong hệ thống, theo dõi hợp đồng và công nợ."
+        actions={
+          <>
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
             
-            <KhachThueForm 
-              khachThue={editingKhachThue}
-              onClose={() => setIsDialogOpen(false)}
-              onSuccess={(newKhachThue) => {
-                  clearCache();
-                setIsDialogOpen(false);
-                if (newKhachThue) {
-                  // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
-                  fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                } else {
-                  // Fallback: refresh data nếu không có dữ liệu trả về
-                  fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                }
-                toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
-              }}
-              isSubmitting={isFormSubmitting}
-              setIsSubmitting={setIsFormSubmitting}
-            />
-            </DialogContent>
-          </Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="default" onClick={() => setEditingKhachThue(null)}>
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Thêm khách thuê</span>
+                  <span className="sm:hidden">Thêm</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingKhachThue ? 'Chỉnh sửa khách thuê' : 'Thêm khách thuê mới'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingKhachThue ? 'Cập nhật thông tin khách thuê' : 'Nhập thông tin khách thuê mới'}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <KhachThueForm 
+                  khachThue={editingKhachThue}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={(newKhachThue) => {
+                      clearCache();
+                    setIsDialogOpen(false);
+                    if (newKhachThue) {
+                      // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
+                      fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                    } else {
+                      // Fallback: refresh data nếu không có dữ liệu trả về
+                      fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                    }
+                    toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
+                  }}
+                  isSubmitting={isFormSubmitting}
+                  setIsSubmitting={setIsFormSubmitting}
+                />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Tổng khách thuê" 
+            value={totalElements} 
+            icon={<Users className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Đang thuê" 
+            value={khachThueList.filter(k => k.trangThai === 'dangThue' || k.trangThai === 'ACTIVE').length} 
+            icon={<Users className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+          <DashboardKpiCard 
+            title="Đã trả phòng" 
+            value={khachThueList.filter(k => k.trangThai === 'daTraPhong').length} 
+            icon={<Users className="h-5 w-5" />} 
+            tone="blue" 
+          />
+          <DashboardKpiCard 
+            title="Chưa thuê" 
+            value={khachThueList.filter(k => k.trangThai === 'chuaThue').length} 
+            icon={<Users className="h-5 w-5" />} 
+            tone="orange" 
+          />
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng khách thuê</p>
-              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang thuê</p>
-              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
-                {khachThueList.filter(k => k.trangThai === 'dangThue' || k.trangThai === 'ACTIVE').length}
-              </p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đã trả phòng</p>
-              <p className="text-base md:text-2xl font-bold text-gray-600">
-                {khachThueList.filter(k => k.trangThai === 'daTraPhong').length}
-              </p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-gray-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Chưa thuê</p>
-              <p className="text-base md:text-2xl font-bold text-orange-600">
-                {khachThueList.filter(k => k.trangThai === 'chuaThue').length}
-              </p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-orange-600" />
-          </div>
-        </Card>
-      </div>
+      </DashboardHero>
 
       {/* Desktop Table */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle>Danh sách khách thuê</CardTitle>
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách khách thuê</CardTitle>
           <CardDescription>
             {filteredKhachThue.length} khách thuê được tìm thấy
           </CardDescription>
@@ -308,7 +287,7 @@ export default function KhachThuePage() {
             onPaginationChange={setPagination}
           />
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Cards */}
       <div className="md:hidden">

@@ -46,6 +46,7 @@ import {
   ChevronsLeft,
   ChevronsRight
 } from 'lucide-react';
+import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
 import { toast } from 'sonner';
 import { ToaNha, CauHinhGia, LoaiMucHoaDon, LoaiTinhPhi } from '@/types';
 import { unwrapPageData } from '@/lib/api-response';
@@ -234,60 +235,56 @@ export default function CauHinhGiaPage() {
   return (
     <div className="space-y-4 md:space-y-6 pb-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Coins className="h-6 w-6 text-yellow-500" />
-            Cấu hình giá dịch vụ
-          </h1>
-          <p className="text-xs md:text-sm text-gray-600">
-            Quản lý đơn giá phòng trọ, điện, nước và các dịch vụ đi kèm
-          </p>
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={loadingConfigs}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loadingConfigs ? 'animate-spin' : ''}`} />
-            Tải lại
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingConfig(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm cấu hình
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md w-[95vw] rounded-xl">
-              <DialogHeader>
-                <DialogTitle>{editingConfig ? 'Chỉnh sửa cấu hình giá' : 'Thêm cấu hình giá mới'}</DialogTitle>
-                <DialogDescription>
-                  Thiết lập đơn giá áp dụng cho tòa nhà. Giá cũ đã dùng trong hóa đơn sẽ không bị ảnh hưởng.
-                </DialogDescription>
-              </DialogHeader>
-              <CauHinhGiaForm
-                config={editingConfig}
-                toaNhaId={selectedToaNhaId}
-                toaNhaList={toaNhaList}
-                onClose={() => setIsDialogOpen(false)}
-                onSuccess={() => {
-                  setIsDialogOpen(false);
-                  if (selectedToaNhaId) {
-                    fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
-                  }
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      <DashboardHero
+        icon={Coins}
+        title="Cấu hình giá dịch vụ"
+        description="Quản lý đơn giá phòng trọ, điện, nước và các dịch vụ đi kèm"
+        actions={
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={loadingConfigs}
+              className="flex-1 sm:flex-none"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loadingConfigs ? 'animate-spin' : ''}`} />
+              Tải lại
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" onClick={() => setEditingConfig(null)} className="flex-1 sm:flex-none">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm cấu hình
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md w-[95vw] rounded-xl">
+                <DialogHeader>
+                  <DialogTitle>{editingConfig ? 'Chỉnh sửa cấu hình giá' : 'Thêm cấu hình giá mới'}</DialogTitle>
+                  <DialogDescription>
+                    Thiết lập đơn giá áp dụng cho tòa nhà. Giá cũ đã dùng trong hóa đơn sẽ không bị ảnh hưởng.
+                  </DialogDescription>
+                </DialogHeader>
+                <CauHinhGiaForm
+                  config={editingConfig}
+                  toaNhaId={selectedToaNhaId}
+                  toaNhaList={toaNhaList}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    setIsDialogOpen(false);
+                    if (selectedToaNhaId) {
+                      fetchConfigs(selectedToaNhaId, pagination.pageIndex, pagination.pageSize, selectedCategoryFilter, selectedStatusFilter);
+                    }
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* Building Selector Dropdown */}
-      <Card className="border-none shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50/50">
+      <DashboardCard className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50/50">
         <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
           <div className="flex items-center gap-2 text-[#243B5A] font-semibold min-w-[120px]">
             <Building2 className="h-5 w-5 text-indigo-600" />
@@ -306,12 +303,12 @@ export default function CauHinhGiaPage() {
             </SelectContent>
           </Select>
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6">
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-3 border-b border-[#E8DED2] flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
+          <CardHeader className="p-5 md:p-6 border-b border-[#E8DED2] flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-[#F2E8DC]/70">
             <div>
               <CardTitle className="text-base md:text-lg">Danh sách cấu hình đơn giá</CardTitle>
               <CardDescription>Các mức giá dịch vụ đang được áp dụng cho tòa nhà này</CardDescription>
@@ -513,7 +510,7 @@ export default function CauHinhGiaPage() {
             </div>
             
           </CardContent>
-        </Card>
+        </DashboardCard>
       </div>
     </div>
   );

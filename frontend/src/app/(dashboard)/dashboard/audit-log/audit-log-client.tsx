@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, History, Eye, User, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, History, Eye, User, FileText, ChevronLeft, ChevronRight, ActivitySquare } from "lucide-react";
+import { DashboardHero, DashboardCard } from "@/components/dashboard/shared-ui";
 import { toast } from "sonner";
 import { AuditLog, ApiResponse } from "@/types";
 import { useSession } from "next-auth/react";
@@ -117,42 +118,43 @@ export function AuditLogClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Nhật ký hệ thống</h1>
-          <p className="text-xs md:text-sm text-gray-600">Theo dõi các thay đổi và thao tác trong hệ thống.</p>
+      <DashboardHero
+        icon={ActivitySquare}
+        title="Nhật ký hệ thống"
+        description="Theo dõi các thay đổi và thao tác trong hệ thống."
+      />
+
+      <DashboardCard className="p-4 md:p-6 mb-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <form onSubmit={handleSearch} className="flex w-full max-w-sm items-center space-x-2">
+            <Input 
+              type="text" 
+              placeholder="Lọc theo bảng tác động (VD: hop_dong, hoa_don)" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button type="submit" size="icon">
+              <Search className="h-4 w-4" />
+            </Button>
+          </form>
+          {bangTacDong && (
+            <Button variant="ghost" onClick={() => { setSearchTerm(""); setBangTacDong(""); }}>
+              Xóa lọc
+            </Button>
+          )}
         </div>
-      </div>
+      </DashboardCard>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-4 rounded-md border">
-        <form onSubmit={handleSearch} className="flex w-full max-w-sm items-center space-x-2">
-          <Input 
-            type="text" 
-            placeholder="Lọc theo bảng tác động (VD: hop_dong, hoa_don)" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button type="submit" size="icon">
-            <Search className="h-4 w-4" />
-          </Button>
-        </form>
-        {bangTacDong && (
-          <Button variant="ghost" onClick={() => { setSearchTerm(""); setBangTacDong(""); }}>
-            Xóa lọc
-          </Button>
-        )}
-      </div>
-
-      <div className="border rounded-md bg-white overflow-x-auto">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8] overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>Thời gian</TableHead>
-              <TableHead>Người dùng</TableHead>
-              <TableHead>Hành động</TableHead>
-              <TableHead>Bảng</TableHead>
-              <TableHead>IP Address</TableHead>
-              <TableHead className="text-right">Chi tiết</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Thời gian</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Người dùng</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Hành động</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Bảng</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">IP Address</TableHead>
+              <TableHead className="text-right font-semibold text-[#243B5A]">Chi tiết</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -162,11 +164,11 @@ export function AuditLogClient() {
               </TableRow>
             ) : logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">Không tìm thấy bản ghi nào</TableCell>
+                <TableCell colSpan={6} className="text-center h-24 text-gray-500">Không tìm thấy bản ghi nào</TableCell>
               </TableRow>
             ) : (
               logs.map((log) => (
-                <TableRow key={log.id || log._id}>
+                <TableRow key={log.id || log._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
                   <TableCell className="whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <History className="h-4 w-4 text-gray-400" />
@@ -209,7 +211,7 @@ export function AuditLogClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       {!isLoading && totalPages > 1 && (
         <div className="flex items-center justify-between">

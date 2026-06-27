@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Plus, Pencil, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DashboardHero, DashboardCard } from "@/components/dashboard/shared-ui";
 import {
   Table,
   TableBody,
@@ -326,23 +327,22 @@ export function LichHenClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Lịch hẹn xem phòng</h1>
-          <p className="text-xs md:text-sm text-gray-600">Quản lý lịch hẹn từ khách vãng lai và portal.</p>
-        </div>
-      </div>
+      <DashboardHero
+        icon={CalendarIcon}
+        title="Lịch hẹn xem phòng"
+        description="Quản lý lịch hẹn từ khách vãng lai và portal."
+      />
 
-      <div className="border rounded-md bg-white">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>Khách hàng</TableHead>
-              <TableHead>Phòng</TableHead>
-              <TableHead>Thời gian</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ghi chú</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Khách hàng</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Phòng</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Thời gian</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Trạng thái</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Ghi chú</TableHead>
+              <TableHead className="text-right font-semibold text-[#243B5A]">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -352,11 +352,11 @@ export function LichHenClient() {
               </TableRow>
             ) : lichHenList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">Không có lịch hẹn nào</TableCell>
+                <TableCell colSpan={6} className="text-center h-24 text-gray-500">Không có lịch hẹn nào</TableCell>
               </TableRow>
             ) : (
               lichHenList.map((lh) => (
-                <TableRow key={lh._id}>
+                <TableRow key={lh._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
                   <TableCell>
                     <div className="font-medium text-gray-900">{lh.hoTen}</div>
                     <div className="text-xs text-gray-500">{lh.soDienThoai}</div>
@@ -402,7 +402,7 @@ export function LichHenClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       <div className="flex items-center justify-between px-2">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">

@@ -50,7 +50,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Menu</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-[#6B7A8C]">Menu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           if (state === "collapsed" && !isMobile) {
@@ -64,7 +64,7 @@ export function NavMain({
                 >
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                      className="data-[state=open]:bg-[#F8F3EC] data-[state=open]:text-[#243B5A] transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800 dark:data-[state=open]:bg-slate-800"
                     >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -94,7 +94,7 @@ export function NavMain({
                         >
                           <Link 
                             href={subItem.url}
-                            className={isActive ? "bg-sidebar-accent" : ""}
+                            className={isActive ? "bg-gradient-to-r from-[#4FA7A0]/10 to-transparent text-[#243B5A] font-bold shadow-[inset_3px_0_0_0_#4FA7A0] rounded-sm" : "transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800"}
                           >
                             {subItem.title}
                           </Link>
@@ -119,7 +119,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className={item.items?.some((subItem) => pathname.startsWith(subItem.url)) ? "text-primary" : ""}
+                    className={`transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800 ${item.items?.some((subItem) => pathname.startsWith(subItem.url)) ? "text-[#243B5A] font-bold" : ""}`}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -132,7 +132,11 @@ export function NavMain({
                       const isActive = pathname === subItem.url
                       return (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={isActive}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={isActive}
+                            className={isActive ? "border-l-[2px] border-l-[#4FA7A0] bg-gradient-to-r from-[#4FA7A0]/10 to-transparent text-[#243B5A] font-bold transition-colors duration-200" : "transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800"}
+                          >
                             <Link href={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>

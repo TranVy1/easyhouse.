@@ -365,7 +365,7 @@ function DraggableRow({ row }: { row: Row<User> }) {
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 hover:bg-[#F8F3EC]/50 transition-colors"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -521,12 +521,12 @@ export function UserDataTable(props: UserDataTableProps) {
           id={sortableId}
         >
           <Table>
-            <TableHeader className="bg-muted sticky top-0 z-10">
+            <TableHeader className="bg-[#F8F3EC] sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
+                      <TableHead key={header.id} colSpan={header.colSpan} className="font-semibold text-[#243B5A]">
                         {header.isPlaceholder
                           ? null
                           : flexRender(

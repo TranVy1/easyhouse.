@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Globe, ExternalLink, RefreshCw, Home, AlertCircle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
 
 export default function XemWebPage() {
   const [url, setUrl] = useState('/xem-phong');
@@ -95,24 +96,24 @@ export default function XemWebPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Xem Web</h1>
-        <p className="text-gray-600">Nhập link để xem website ngay trên trang quản lý</p>
-      </div>
+      <DashboardHero
+        icon={Globe}
+        title="Xem Web"
+        description="Nhập link để xem website ngay trên trang quản lý."
+      />
 
       {/* URL Input Card */}
-      <Card>
-        <CardHeader>
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
+            <Globe className="h-5 w-5 text-[#243B5A]" />
             Nhập địa chỉ website
           </CardTitle>
           <CardDescription>
             Nhập URL của trang web bạn muốn xem (VD: google.com, facebook.com)
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5 md:p-6">
           <div className="flex gap-2">
             <Input
               type="text"
@@ -183,7 +184,7 @@ export default function XemWebPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Error Alert - CSP/X-Frame-Options Violation */}
       {currentUrl && loadError && (
@@ -254,7 +255,7 @@ export default function XemWebPage() {
 
       {/* Iframe Display */}
       {currentUrl && !loadError && (
-        <Card>
+        <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
           <CardContent className="p-0">
             <div className="relative w-full" style={{ height: 'calc(100vh - 500px)', minHeight: '600px' }}>
               {isLoading && (
@@ -277,12 +278,12 @@ export default function XemWebPage() {
               />
             </div>
           </CardContent>
-        </Card>
+        </DashboardCard>
       )}
 
       {/* Empty State */}
       {!currentUrl && (
-        <Card>
+        <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
               <Globe className="h-16 w-16 mx-auto text-gray-300" />
@@ -294,12 +295,12 @@ export default function XemWebPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </DashboardCard>
       )}
 
       {/* Info Card */}
-      <Card className="border-[#4FA7A0]/30 bg-[#4FA7A0]/10">
-        <CardContent className="pt-6">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#4FA7A0]/30 bg-[#4FA7A0]/10">
+        <CardContent className="p-5 md:p-6">
           <div className="flex items-start gap-3">
             <div className="text-[#243B5A]">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -326,7 +327,7 @@ export default function XemWebPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </DashboardCard>
     </div>
   );
 }

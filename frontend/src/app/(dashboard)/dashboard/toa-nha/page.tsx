@@ -9,7 +9,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-
+import { DashboardKpiCard, DashboardCard, HeroActionButton, FilterBadge } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -56,7 +56,10 @@ import {
   RefreshCw,
   Copy,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,41 +68,34 @@ import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { toast } from 'sonner';
 import { ToaNhaDataTable } from './table';
 
-function KpiCard({
-  title,
-  value,
-  icon,
-  tone,
-}: {
-  title: string;
-  value: number | string;
-  icon: ReactNode;
-  tone?: 'emerald' | 'blue';
-}) {
-  return (
-    <Card className="py-0">
-      <CardContent className="flex items-center justify-between p-4">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{title}</p>
-          <p className={cn(
-            'mt-1 text-2xl font-semibold tracking-normal',
-            tone === 'emerald' && 'text-[#267D76]',
-            tone === 'blue' && 'text-[#243B5A]'
-          )}>
-            {value}
-          </p>
-        </div>
-        <div className={cn(
-          'rounded-md border bg-muted p-2 text-muted-foreground',
-          tone === 'emerald' && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#267D76]',
-          tone === 'blue' && 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A]'
-        )}>
-          {icon}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+const calculateOccupancyRate = (rented: number, total: number) => {
+  return total > 0 ? Math.round((rented / total) * 100) : 0;
+};
+
+const getOccupancyColor = (percentage: number) => {
+  if (percentage <= 30) return 'text-red-600';
+  if (percentage <= 70) return 'text-orange-500';
+  return 'text-[#4FA7A0]';
+};
+
+const getOccupancyBgColor = (percentage: number) => {
+  if (percentage <= 30) return 'bg-red-500';
+  if (percentage <= 70) return 'bg-orange-500';
+  return 'bg-[#4FA7A0]';
+};
+
+const getLowOccupancyBuildings = (buildings: ToaNha[]) => {
+  return [...buildings]
+    .filter(b => b.tongSoPhong && b.tongSoPhong > 0)
+    .sort((a, b) => {
+      const rateA = calculateOccupancyRate(a.phongDangThue || 0, a.tongSoPhong || 0);
+      const rateB = calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0);
+      return rateA - rateB;
+    })
+    .slice(0, 3);
+};
+
+
 
 export default function ToaNhaPage() {
   const router = useRouter();
@@ -109,6 +105,7 @@ export default function ToaNhaPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'AVAILABLE' | 'LOW' | 'RENTED' | 'ATTENTION'>('ALL');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingToaNha, setEditingToaNha] = useState<ToaNha | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -180,11 +177,26 @@ export default function ToaNhaPage() {
     toast.success('Đã tải dữ liệu mới nhất');
   };
 
-  const filteredToaNha = toaNhaList;
+  const filteredToaNha = toaNhaList.filter(b => {
+    if (activeFilter === 'AVAILABLE') return (b.phongTrong || 0) > 0;
+    if (activeFilter === 'LOW') return calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0) > 10 && calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0) <= 40;
+    if (activeFilter === 'RENTED') return (b.phongDangThue || 0) > 0;
+    if (activeFilter === 'ATTENTION') return calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0) <= 10;
+    return true;
+  });
+
   const tongPhong = toaNhaList.reduce((sum, toaNha) => sum + (toaNha.tongSoPhong || 0), 0);
   const phongTrong = toaNhaList.reduce((sum, toaNha) => sum + (toaNha.phongTrong || 0), 0);
   const phongDangThue = toaNhaList.reduce((sum, toaNha) => sum + (toaNha.phongDangThue || 0), 0);
-  const tyLeLapDay = tongPhong > 0 ? Math.round((phongDangThue / tongPhong) * 100) : 0;
+  const tyLeLapDay = calculateOccupancyRate(phongDangThue, tongPhong);
+  
+  const lowOccupancyBuildings = getLowOccupancyBuildings(toaNhaList);
+  const areaDistribution = toaNhaList.reduce((acc, curr) => {
+    const quan = curr.diaChi?.quan || 'Khác';
+    acc[quan] = (acc[quan] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const sortedAreas = Object.entries(areaDistribution).sort((a, b) => b[1] - a[1]);
 
   const handleEdit = (toaNha: ToaNha) => {
     setEditingToaNha(toaNha);
@@ -296,151 +308,195 @@ export default function ToaNhaPage() {
 
   return (
     <div className="space-y-5 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
-        <div className="min-w-0">
-          <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-normal text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            Vận hành tài sản
+      <section className="toa-nha-hero">
+        <div className="toa-nha-hero__content">
+          <div className="toa-nha-hero__eyebrow">
+            <Building2 className="h-4 w-4" aria-hidden="true" />
+            <span>Tòa nhà</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-normal text-foreground md:text-3xl">Tòa nhà</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi tình trạng phòng, tỷ lệ lấp đầy và thao tác nhanh cho từng tòa nhà.
+
+          <h1>Tòa nhà</h1>
+
+          <p>
+            Theo dõi tình trạng phòng, tỷ lệ lấp đầy và hiệu suất khai thác từng tòa nhà.
           </p>
+
+          {tongPhong > 0 && (
+            <div className="toa-nha-hero__insight">
+              <span className="toa-nha-hero__insight-icon">
+                <Building2 className="h-4 w-4 text-white/90" />
+              </span>
+              <span className="toa-nha-hero__insight-text">
+                Hiện có <strong className="whitespace-nowrap">{phongTrong} phòng trống</strong>, cần ưu tiên tối ưu khai thác các tòa có tỷ lệ lấp đầy thấp.
+              </span>
+            </div>
+          )}
+
+          <div className="toa-nha-hero__chips">
+            <span className="toa-nha-hero__chip">{totalElements} tòa nhà</span>
+            <span className="toa-nha-hero__chip">{tongPhong} phòng</span>
+            <span className="toa-nha-hero__chip">Lấp đầy {tyLeLapDay}%</span>
+          </div>
         </div>
-        <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-            aria-label="Tải lại danh sách tòa nhà"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-                <FileUp className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Import</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
-              <DialogHeader>
-                <DialogTitle>Import tòa nhà và phòng</DialogTitle>
-                <DialogDescription>
-                  Dán dữ liệu từ Excel, kiểm tra lỗi theo dòng rồi mới xác nhận ghi vào hệ thống.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3">
-                <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-                  Thứ tự cột: <b>ten_toa_nha</b>, <b>dia_chi</b>, <b>tang</b>, <b>ma_phong</b>, <b>dien_tich</b>, <b>gia_thue</b>, <b>tien_coc</b>, <b>so_nguoi_toi_da</b>.
-                </div>
-                <Textarea
-                  value={importText}
-                  onChange={(e) => setImportText(e.target.value)}
-                  rows={8}
-                  placeholder={'Tòa A\t123 Nguyễn Trãi\t1\t101\t20\t2500000\t2500000\t2'}
-                  className="font-mono text-xs"
-                />
-                {importPreview && (
-                  <div className="rounded-lg border p-3 text-sm">
-                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                      <div className="rounded-md bg-muted/40 p-2">Tổng dòng: <b>{importPreview.tongDong}</b></div>
-                      <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#267D76]">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
-                      <div className="rounded-md bg-red-50 p-2 text-red-700">Lỗi: <b>{importPreview.dongLoi}</b></div>
-                      <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#243B5A]">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
-                    </div>
-                    {importPreview.rows?.some(row => !row.hopLe) && (
-                      <div className="mt-3 max-h-40 overflow-auto rounded border">
-                        {importPreview.rows.filter(row => !row.hopLe).map(row => (
-                          <div key={row.dong} className="border-b p-2 text-xs last:border-b-0">
-                            Dòng {row.dong}: {row.loi}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" disabled={importing} onClick={() => runImport('preview')}>
-                  Kiểm tra
-                </Button>
-                <Button type="button" disabled={importing || !importPreview || importPreview.dongLoi > 0} onClick={() => runImport('confirm')}>
-                  Xác nhận import
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingToaNha(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Thêm tòa nhà</span>
-                <span className="sm:hidden">Thêm</span>
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base md:text-lg">
-                {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
-              </DialogTitle>
-              <DialogDescription className="text-xs md:text-sm">
-                {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà mới'}
-              </DialogDescription>
-            </DialogHeader>
+
+        <div className="toa-nha-hero__actions">
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="toa-nha-hero__button toa-nha-hero__button-secondary"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
             
-            <ToaNhaForm 
-              key={editingToaNha?._id || 'new'}
-              toaNha={editingToaNha}
-              onClose={() => setIsDialogOpen(false)}
-              onSuccess={() => {
-                clearCache();
-                setIsDialogOpen(false);
-                fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
-                toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="secondary" className="toa-nha-hero__button toa-nha-hero__button-secondary">
+                  <FileUp className="h-4 w-4 mr-2" />
+                  <span>Import</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
+                <DialogHeader>
+                  <DialogTitle>Import tòa nhà và phòng</DialogTitle>
+                  <DialogDescription>
+                    Dán dữ liệu từ Excel, kiểm tra lỗi theo dòng rồi mới xác nhận ghi vào hệ thống.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+                    Thứ tự cột: <b>ten_toa_nha</b>, <b>dia_chi</b>, <b>tang</b>, <b>ma_phong</b>, <b>dien_tich</b>, <b>gia_thue</b>, <b>tien_coc</b>, <b>so_nguoi_toi_da</b>.
+                  </div>
+                  <Textarea
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    rows={8}
+                    placeholder={'Tòa A\t123 Nguyễn Trãi\t1\t101\t20\t2500000\t2500000\t2'}
+                    className="font-mono text-xs"
+                  />
+                  {importPreview && (
+                    <div className="rounded-lg border p-3 text-sm">
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        <div className="rounded-md bg-muted/40 p-2">Tổng dòng: <b>{importPreview.tongDong}</b></div>
+                        <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#267D76]">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
+                        <div className="rounded-md bg-red-50 p-2 text-red-700">Lỗi: <b>{importPreview.dongLoi}</b></div>
+                        <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#243B5A]">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
+                      </div>
+                      {importPreview.rows?.some(row => !row.hopLe) && (
+                        <div className="mt-3 max-h-40 overflow-auto rounded border">
+                          {importPreview.rows.filter(row => !row.hopLe).map(row => (
+                            <div key={row.dong} className="border-b p-2 text-xs last:border-b-0">
+                              Dòng {row.dong}: {row.loi}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" disabled={importing} onClick={() => runImport('preview')}>
+                    Kiểm tra
+                  </Button>
+                  <Button type="button" disabled={importing || !importPreview || importPreview.dongLoi > 0} onClick={() => runImport('confirm')}>
+                    Xác nhận import
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="default" onClick={() => setEditingToaNha(null)} className="toa-nha-hero__button toa-nha-hero__button-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span>Thêm tòa nhà</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-base md:text-lg">
+                    {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs md:text-sm">
+                    {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà mới'}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <ToaNhaForm 
+                  key={editingToaNha?._id || 'new'}
+                  toaNha={editingToaNha}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    clearCache();
+                    setIsDialogOpen(false);
+                    fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
+                    toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
         </div>
-      </div>
-
+      </section>
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <KpiCard title="Tòa nhà" value={totalElements} icon={<Building2 className="h-4 w-4" />} />
-        <KpiCard title="Tổng phòng" value={tongPhong} icon={<Home className="h-4 w-4" />} />
-        <KpiCard title="Phòng trống" value={phongTrong} tone="emerald" icon={<DoorOpen className="h-4 w-4" />} />
-        <KpiCard title="Đang thuê" value={phongDangThue} tone="blue" icon={<Home className="h-4 w-4" />} />
-        <KpiCard title="Lấp đầy" value={`${tyLeLapDay}%`} icon={<Percent className="h-4 w-4" />} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <DashboardKpiCard title="Tòa nhà" value={totalElements} icon={<Building2 className="h-5 w-5" />} tone="default" />
+        <DashboardKpiCard title="Tổng phòng" value={tongPhong} icon={<Home className="h-5 w-5" />} tone="default" />
+        <DashboardKpiCard title="Phòng trống" value={phongTrong} tone="emerald" icon={<DoorOpen className="h-5 w-5" />} trend={{ value: `${tongPhong > 0 ? Math.round((phongTrong / tongPhong) * 100) : 0}%`, isUp: true }} />
+        <DashboardKpiCard title="Đang thuê" value={phongDangThue} tone="blue" icon={<Home className="h-5 w-5" />} />
+        <DashboardKpiCard title="Lấp đầy" value={`${tyLeLapDay}%`} tone="orange" icon={<Percent className="h-5 w-5" />} trend={tyLeLapDay < 50 ? { value: 'Cần chú ý', isUp: false } : undefined} />
       </div>
 
-      {/* Desktop Table View */}
-      <Card className="hidden md:block overflow-hidden">
-        <CardHeader className="border-b">
-          <CardTitle className="text-base">Danh sách tòa nhà</CardTitle>
-          <CardDescription>
-            {filteredToaNha.length} tòa nhà phù hợp bộ lọc hiện tại
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 md:p-5">
-          <ToaNhaDataTable
-            data={filteredToaNha}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            pageCount={totalPages}
-            totalElements={totalElements}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        </CardContent>
-      </Card>
+      {/* Filter Chips */}
+      <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {[
+          { id: 'ALL', label: 'Tất cả' },
+          { id: 'AVAILABLE', label: 'Còn phòng trống' },
+          { id: 'LOW', label: 'Lấp đầy thấp' },
+          { id: 'RENTED', label: 'Đang khai thác' },
+          { id: 'ATTENTION', label: 'Cần chú ý' }
+        ].map(filter => (
+          <FilterBadge 
+            key={filter.id}
+            active={activeFilter === filter.id}
+            onClick={() => {
+              setActiveFilter(filter.id as any);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}
+          >
+            {filter.label}
+          </FilterBadge>
+        ))}
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div className="xl:col-span-3 space-y-6">
+          {/* Desktop Table View */}
+          <DashboardCard className="hidden md:block overflow-hidden">
+            <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+              <CardTitle className="text-lg text-[#243B5A]">Danh sách tòa nhà</CardTitle>
+              <CardDescription>
+                {filteredToaNha.length} tòa nhà phù hợp bộ lọc hiện tại
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="p-4 md:p-5">
+                <ToaNhaDataTable
+                  data={filteredToaNha}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  pageCount={totalPages}
+                  totalElements={totalElements}
+                  pagination={pagination}
+                  onPaginationChange={setPagination}
+                />
+              </div>
+            </CardContent>
+          </DashboardCard>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
@@ -580,6 +636,82 @@ export default function ToaNhaPage() {
             })}
           </div>
         )}
+      </div>
+      </div>
+
+      {/* Right Column Panels */}
+      <div className="space-y-6">
+        {/* Panel Tòa nhà cần chú ý */}
+        <Card className="rounded-xl shadow-sm border-border/50">
+          <CardHeader className="border-b bg-[#F8F3EC] pb-4">
+            <CardTitle className="text-base text-[#243B5A] flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-[#F2A45B]" />
+              Cần chú ý
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Tòa nhà có lấp đầy thấp nhất
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4">
+            {lowOccupancyBuildings.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-4">
+                Không có dữ liệu
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {lowOccupancyBuildings.map((toaNha) => {
+                  const rate = calculateOccupancyRate(toaNha.phongDangThue || 0, toaNha.tongSoPhong || 0);
+                  const suggestion = rate === 0 
+                    ? "Chưa có phòng thuê. Nên đẩy mạnh hoạt động quảng bá." 
+                    : "Tỷ lệ lấp đầy thấp. Cần kiểm tra giá thuê hoặc trạng thái phòng.";
+                  
+                  return (
+                    <div key={toaNha._id} className="group relative rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleView(toaNha)}>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-semibold text-sm text-[#243B5A] truncate pr-2">{toaNha.tenToaNha}</span>
+                        <Badge variant="outline" className={cn("text-[10px] font-bold", getOccupancyColor(rate))}>{rate}%</Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground mb-2">
+                        {toaNha.phongDangThue || 0} / {toaNha.tongSoPhong || 0} phòng đang thuê
+                      </div>
+                      <div className="text-xs text-[#243B5A] bg-white border rounded p-2 italic shadow-sm group-hover:bg-[#F8F3EC] transition-colors">
+                        "{suggestion}"
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Panel Phân bố khu vực */}
+        <Card className="rounded-xl shadow-sm border-border/50">
+          <CardHeader className="border-b bg-[#F8F3EC] pb-4">
+            <CardTitle className="text-base text-[#243B5A] flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-[#4FA7A0]" />
+              Khu vực
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            {sortedAreas.map(([quan, count]) => {
+              const maxCount = sortedAreas[0][1];
+              const percentage = Math.round((count / maxCount) * 100);
+              return (
+                <div key={quan} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-medium text-[#243B5A] truncate pr-2">{quan}</span>
+                    <span className="text-muted-foreground">{count}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-[#4FA7A0]/70" style={{ width: `${percentage}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
       </div>
     </div>
   );

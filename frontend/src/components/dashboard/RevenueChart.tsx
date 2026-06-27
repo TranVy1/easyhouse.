@@ -36,8 +36,8 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border rounded shadow-md text-sm">
-          <p className="font-bold mb-2">{label}</p>
+        <div className="bg-white/95 backdrop-blur-sm p-4 border border-[#E8DED2] rounded-xl shadow-lg text-sm">
+          <p className="font-bold mb-2 text-[#243B5A]">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={`item-${index}`} className="flex items-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
@@ -52,35 +52,39 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   };
 
   return (
-    <Card className="col-span-4">
-      <CardHeader>
-        <CardTitle>Doanh thu 12 tháng gần nhất</CardTitle>
+    <Card className="col-span-4 border-border/60 shadow-sm overflow-hidden rounded-2xl bg-white">
+      <CardHeader className="pb-4 border-b bg-gradient-to-r from-[#243B5A]/[0.02] to-transparent">
+        <CardTitle className="text-lg text-[#243B5A]">Doanh thu 12 tháng gần nhất</CardTitle>
         <CardDescription>
           Theo dõi số tiền phải thu, đã thu và còn nợ
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-[350px]">
+      <CardContent className="h-[350px] p-6 pt-8">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DED2" />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }} dy={10} />
             <YAxis 
               tickFormatter={(value) => `${(value / 1000000).toFixed(0)}Tr`}
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 12, fill: '#64748b' }}
+              tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }}
               dx={-10}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            <Bar dataKey="expectedRevenue" name="Phải thu" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={20} />
-            <Bar dataKey="collectedRevenue" name="Đã thu" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-            <Bar dataKey="outstanding" name="Còn nợ" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F8F3EC', opacity: 0.5 }} />
+            <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 500 }} iconType="circle" iconSize={8} />
+            <Bar dataKey="expectedRevenue" name="Phải thu" fill="#243B5A" radius={[4, 4, 0, 0]} barSize={16} />
+            <Bar dataKey="collectedRevenue" name="Đã thu" fill="#4FA7A0" radius={[4, 4, 0, 0]} barSize={16} />
+            <Bar dataKey="outstanding" name="Còn nợ" fill="#F2A45B" radius={[4, 4, 0, 0]} barSize={16} />
           </BarChart>
         </ResponsiveContainer>
+        <div className="mt-4 rounded-xl bg-[#F8F3EC]/50 border border-[#E8DED2] p-3 text-center">
+          <p className="text-[11px] uppercase font-bold tracking-wider text-[#6B7A8C]">Insight Doanh Thu</p>
+          <p className="text-sm font-medium text-[#243B5A] mt-0.5">Biến động phải thu, đã thu và công nợ theo từng tháng.</p>
+        </div>
       </CardContent>
     </Card>
   );

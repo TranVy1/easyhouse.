@@ -18,7 +18,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -328,37 +329,60 @@ export default function HoaDonPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardPageHeader
-        eyebrow="Doanh thu"
+      <DashboardHero
+        icon={ReceiptText}
         title="Hóa đơn"
         description="Lập hóa đơn theo kỳ, theo dõi dư nợ và chuyển nhanh sang ghi nhận thanh toán."
         actions={
           <>
-            <Button variant="outline" onClick={() => void fetchInvoices(true)} disabled={refreshing}>
-              <RefreshCw className={refreshing ? "animate-spin" : ""} />
-              Làm mới
-            </Button>
-            <Button variant="outline" onClick={() => setIsGenerateOpen(true)}>
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Sinh hóa đơn tháng
-            </Button>
-            <Button asChild>
-              <Link href="/dashboard/hoa-don/them-moi"><Plus />Lập hóa đơn</Link>
-            </Button>
+            <HeroActionButton variant="secondary" onClick={() => void fetchInvoices(true)} disabled={refreshing}>
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Làm mới</span>
+            </HeroActionButton>
+            <HeroActionButton variant="secondary" onClick={() => setIsGenerateOpen(true)} className="bg-[#4FA7A0]/20 hover:bg-[#4FA7A0]/40 border-[#4FA7A0]/50 text-white">
+              <CalendarDays className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sinh hóa đơn tháng</span>
+            </HeroActionButton>
+            <HeroActionButton asChild variant="default">
+              <Link href="/dashboard/hoa-don/them-moi">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Lập hóa đơn</span>
+              </Link>
+            </HeroActionButton>
           </>
         }
-      />
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Hóa đơn khớp lọc" 
+            value={String(total)} 
+            icon={<ReceiptText className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Còn phải thu" 
+            value={currency(metrics.outstanding)} 
+            icon={<CircleDollarSign className="h-5 w-5" />} 
+            tone="orange" 
+          />
+          <DashboardKpiCard 
+            title="Đã thu" 
+            value={currency(metrics.collected)} 
+            icon={<CalendarDays className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+          <DashboardKpiCard 
+            title="Quá hạn" 
+            value={String(metrics.overdue)} 
+            icon={<AlertCircle className="h-5 w-5" />} 
+            tone="red" 
+          />
+        </div>
+      </DashboardHero>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Hóa đơn khớp lọc" value={String(total)} hint="Tất cả trang kết quả" icon={ReceiptText} />
-        <MetricCard label="Còn phải thu trên trang" value={currency(metrics.outstanding)} hint="KPI phạm vi trang hiện tại" icon={CircleDollarSign} tone="warning" />
-        <MetricCard label="Đã thu trên trang" value={currency(metrics.collected)} hint="KPI phạm vi trang hiện tại" icon={CalendarDays} tone="success" />
-        <MetricCard label="Quá hạn trên trang" value={String(metrics.overdue)} hint="Cần ưu tiên thu nợ" icon={AlertCircle} tone="danger" />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Bộ lọc hóa đơn</CardTitle>
+      <DashboardCard className="overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Bộ lọc hóa đơn</CardTitle>
           <CardDescription>Tìm kiếm mã hóa đơn, khách thuê, phòng hoặc ghi chú trên toàn bộ dữ liệu.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -399,11 +423,11 @@ export default function HoaDonPage() {
           </Select>
           <Button variant="ghost" className="xl:col-start-5" onClick={resetFilters}>Xóa lọc</Button>
         </CardContent>
-      </Card>
+      </DashboardCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách hóa đơn</CardTitle>
+      <DashboardCard className="overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách hóa đơn</CardTitle>
           <CardDescription>{total} hóa đơn trong kết quả lọc</CardDescription>
         </CardHeader>
         <CardContent>
@@ -516,7 +540,7 @@ export default function HoaDonPage() {
             </>
           )}
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       <Dialog open={Boolean(cancelTarget)} onOpenChange={(open) => {
         if (!open) setCancelTarget(null)

@@ -8,6 +8,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton, FilterBadge } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,10 @@ import {
   Image as ImageIcon,
   RefreshCw,
   ExternalLink,
-  Building2
+  Building2,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import {
   Carousel,
@@ -90,6 +94,25 @@ export default function PhongPage() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  // Building Pagination state
+  const [buildingPage, setBuildingPage] = useState(1);
+  const [buildingsPerPage, setBuildingsPerPage] = useState(10);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setBuildingsPerPage(4);
+      } else if (window.innerWidth < 1024) {
+        setBuildingsPerPage(6);
+      } else {
+        setBuildingsPerPage(10);
+      }
+    };
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     document.title = 'Quản lý Phòng';
@@ -269,72 +292,103 @@ export default function PhongPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Quản lý phòng</h1>
-          <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả phòng trong hệ thống</p>
-        </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Đang tải...' : 'Tải mới'}
-          </Button>
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+      {/* Hero Section */}
+      <DashboardHero
+        icon={Home}
+        title="Quản lý phòng"
+        description="Theo dõi, quản lý và vận hành hệ thống phòng một cách hiệu quả và trực quan."
+        actions={
+          <>
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingPhong(null)} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm phòng
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
-              <DialogHeader>
-                <DialogTitle className="text-base md:text-lg">
-                  {editingPhong ? 'Chỉnh sửa phòng' : 'Thêm phòng mới'}
-                </DialogTitle>
-                <DialogDescription className="text-xs md:text-sm">
-                  {editingPhong ? 'Cập nhật thông tin phòng' : 'Nhập thông tin phòng mới'}
-                </DialogDescription>
-              </DialogHeader>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="default">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Thêm phòng</span>
+                  <span className="sm:hidden">Thêm</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] max-h-[calc(100dvh-32px)] flex flex-col p-0 gap-0 w-[95vw] md:w-full rounded-2xl overflow-hidden border-0 shadow-2xl">
+                <div className="shrink-0 px-6 pt-6 pb-4">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl md:text-2xl font-bold text-[#243B5A]">
+                      {editingPhong ? 'Chỉnh sửa phòng' : 'Thêm phòng mới'}
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-gray-500 mt-1">
+                      {editingPhong ? 'Cập nhật thông tin chi tiết của phòng.' : 'Nhập thông tin chi tiết cho phòng mới của bạn.'}
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
 
-              <PhongForm
-                key={editingPhong?._id || 'new'}
-                phong={editingPhong}
-                toaNhaList={toaNhaList}
-                onClose={() => setIsDialogOpen(false)}
-                onSuccess={() => {
-                  clearCache();
-                  setIsDialogOpen(false);
-                  fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                  toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+                <PhongForm
+                  key={editingPhong?._id || 'new'}
+                  phong={editingPhong}
+                  toaNhaList={toaNhaList}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    clearCache();
+                    setIsDialogOpen(false);
+                    fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                    toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
 
-          <FolderImageUploader
-            toaNhaList={toaNhaList}
-            accessToken={accessToken as string | undefined}
-            onComplete={() => {
-              clearCache();
-              fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-            }}
+            <FolderImageUploader
+              toaNhaList={toaNhaList}
+              accessToken={accessToken as string | undefined}
+              onComplete={() => {
+                clearCache();
+                fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+              }}
+              trigger={
+                <HeroActionButton variant="secondary" className="bg-[#4FA7A0]/20 hover:bg-[#4FA7A0]/40 border-[#4FA7A0]/50 text-white">
+                  <ImageIcon className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Upload ảnh</span>
+                </HeroActionButton>
+              }
+            />
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard title="Tổng số phòng" value={totalElements} icon={<Building2 className="h-5 w-5" />} tone="default" />
+          <DashboardKpiCard 
+            title="Phòng trống" 
+            value={phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length} 
+            icon={<Home className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+          <DashboardKpiCard 
+            title="Đang thuê" 
+            value={phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length} 
+            icon={<Users className="h-5 w-5" />} 
+            tone="orange" 
+          />
+          <DashboardKpiCard 
+            title="Bảo trì" 
+            value={phongList.filter(p => p.trangThai === 'baoTri' || p.trangThai === 'MAINTENANCE').length} 
+            icon={<AlertCircle className="h-5 w-5" />} 
+            tone="red" 
           />
         </div>
-      </div>
+      </DashboardHero>
 
       {/* Bộ lọc Tòa nhà dưới dạng thẻ */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-sm md:text-base font-semibold text-gray-900 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-indigo-600 animate-pulse" />
+        <div className="flex justify-between items-center px-1">
+          <h2 className="text-sm md:text-base font-bold text-[#243B5A] flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-[#4FA7A0]" />
             Chọn tòa nhà
           </h2>
           {selectedToaNha && selectedToaNha !== 'all' && (
@@ -342,7 +396,7 @@ export default function PhongPage() {
               variant="ghost" 
               size="sm" 
               onClick={() => setSelectedToaNha('all')} 
-              className="text-xs text-indigo-600 hover:text-indigo-700 h-auto p-0"
+              className="text-xs text-[#4FA7A0] hover:text-[#243B5A] h-auto p-0 transition-colors"
             >
               Xem tất cả
             </Button>
@@ -350,164 +404,206 @@ export default function PhongPage() {
         </div>
         
         {/* Container hiển thị các thẻ tòa nhà */}
-        <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 overflow-x-auto pb-3 pt-1 scrollbar-thin snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0">
-          {/* Thẻ Tất cả tòa nhà */}
-          <div 
-            onClick={() => setSelectedToaNha('all')}
-            className={`flex-shrink-0 w-[220px] md:w-auto snap-start cursor-pointer rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between ${
-              (!selectedToaNha || selectedToaNha === 'all')
-                ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20'
-                : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-          >
-            <div>
-              <div className="flex items-start justify-between">
-                <div className={`p-2.5 rounded-lg ${
-                  (!selectedToaNha || selectedToaNha === 'all') ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'
-                }`}>
-                  <Building2 className="h-5 w-5" />
-                </div>
-                {(!selectedToaNha || selectedToaNha === 'all') && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold">
-                    ✓
-                  </span>
-                )}
-              </div>
-              <div className="mt-4">
-                <h3 className="font-semibold text-gray-900 text-sm md:text-base">Tất cả tòa nhà</h3>
-                <p className="text-xs text-gray-500 mt-1">Hệ thống EasyHouse</p>
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-dashed border-gray-100 flex items-center justify-between text-xs text-gray-600">
-              <span>Tổng số phòng:</span>
-              <span className="font-semibold text-gray-900">
-                {toaNhaList.reduce((acc, curr) => acc + (curr.tongSoPhong || 0), 0)}
-              </span>
-            </div>
-          </div>
+        <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 pt-2 scrollbar-thin snap-x scroll-smooth -mx-4 px-4 md:mx-0 md:px-0 min-h-[160px]">
+          {(() => {
+            const combinedBuildings = [
+              { _id: 'all', isAllCard: true } as unknown as ToaNha & { isAllCard?: boolean },
+              ...(toaNhaList as (ToaNha & { isAllCard?: boolean })[])
+            ];
+            
+            const totalBuildingPages = Math.ceil(combinedBuildings.length / buildingsPerPage);
+            const currentPage = Math.min(buildingPage, totalBuildingPages || 1);
+            const startIndex = (currentPage - 1) * buildingsPerPage;
+            const endIndex = startIndex + buildingsPerPage;
+            const paginatedBuildings = combinedBuildings.slice(startIndex, endIndex);
 
-          {/* Danh sách từng tòa nhà */}
-          {toaNhaList.map((toaNha) => {
-            const isActive = selectedToaNha === toaNha._id;
-            const address = toaNha.diaChiDayDu || 
-              (toaNha.diaChi 
-                ? `${toaNha.diaChi.soNha || ''} ${toaNha.diaChi.duong || ''}, ${toaNha.diaChi.quan || ''}`.trim().replace(/^,|,$/g, '')
-                : '');
-            const hasImage = toaNha.anhToaNha && toaNha.anhToaNha.length > 0;
-            const firstImage = hasImage ? toaNha.anhToaNha[0] : null;
-
-            return (
-              <div
-                key={toaNha._id}
-                onClick={() => setSelectedToaNha(toaNha._id!)}
-                className={`flex-shrink-0 w-[220px] md:w-auto snap-start cursor-pointer rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between ${
-                  isActive
-                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                }`}
-              >
-                {/* Building Cover Image */}
-                <div className="relative h-24 w-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center overflow-hidden border-b border-gray-100">
-                  {firstImage ? (
-                    <Image
-                      src={firstImage}
-                      alt={toaNha.tenToaNha}
-                      fill
-                      sizes="220px"
-                      className="object-cover transition-transform duration-500 hover:scale-110"
-                    />
-                  ) : (
-                    <Building2 className="h-8 w-8 text-indigo-500/60" />
-                  )}
-                  {isActive && (
-                    <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold shadow-sm z-10">
-                      ✓
+            return paginatedBuildings.map((item, index) => {
+              if (item.isAllCard) {
+                return (
+                  <div 
+                    key="all"
+                    onClick={() => setSelectedToaNha('all')}
+                    className={`flex-shrink-0 w-[240px] md:w-auto snap-start cursor-pointer rounded-[16px] border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between group animate-in fade-in slide-in-from-bottom-2 ${
+                      (!selectedToaNha || selectedToaNha === 'all')
+                        ? 'border-[#4FA7A0] bg-gradient-to-br from-white to-[#4FA7A0]/5 shadow-md ring-1 ring-[#4FA7A0]/20'
+                        : 'border-gray-200/60 bg-white hover:border-[#4FA7A0]/50'
+                    }`}
+                    style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <div className={`p-3 rounded-xl transition-colors duration-300 ${
+                          (!selectedToaNha || selectedToaNha === 'all') ? 'bg-[#4FA7A0] text-white shadow-sm' : 'bg-[#F8F3EC] text-[#243B5A] group-hover:bg-[#4FA7A0]/10 group-hover:text-[#4FA7A0]'
+                        }`}>
+                          <Building2 className="h-6 w-6" />
+                        </div>
+                        {(!selectedToaNha || selectedToaNha === 'all') && (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#243B5A] text-white text-[10px] font-bold shadow-sm animate-in zoom-in">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-5">
+                        <h3 className="font-semibold text-[#243B5A] text-base md:text-lg">Tất cả tòa nhà</h3>
+                        <p className="text-xs text-gray-500 mt-1">Hệ thống EasyHouse</p>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Building Content */}
-                <div className="p-3 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-1">
-                      {toaNha.tenToaNha}
-                    </h3>
-                    <p className="text-[10px] md:text-xs text-gray-500 mt-1 line-clamp-1 flex items-center gap-1" title={address}>
-                      {address || 'Chưa cập nhật địa chỉ'}
-                    </p>
-                  </div>
-
-                  {/* Building Stats */}
-                  <div className="mt-3 pt-2.5 border-t border-dashed border-gray-100 grid grid-cols-2 gap-1 text-[10px] md:text-xs text-gray-600">
-                    <div className="flex flex-col">
-                      <span className="text-gray-400">Trống:</span>
-                      <span className="font-semibold text-green-600">{toaNha.phongTrong ?? 0} phòng</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                      <span className="text-gray-400">Đang thuê:</span>
-                      <span className="font-semibold text-[#243B5A]">{toaNha.phongDangThue ?? 0} phòng</span>
+                    <div className="mt-5 pt-4 border-t border-dashed border-gray-200 flex flex-col gap-2">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>Tổng số phòng:</span>
+                        <span className="font-bold text-[#243B5A]">
+                          {toaNhaList.reduce((acc, curr) => acc + (curr.tongSoPhong || 0), 0)}
+                        </span>
+                      </div>
+                      {/* Progress bar for 'All' */}
+                      {(() => {
+                         const total = toaNhaList.reduce((acc, curr) => acc + (curr.tongSoPhong || 0), 0);
+                         const rented = toaNhaList.reduce((acc, curr) => acc + (curr.phongDangThue || 0), 0);
+                         const percent = total > 0 ? Math.round((rented / total) * 100) : 0;
+                         return (
+                           <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1 overflow-hidden">
+                             <div className="bg-[#4FA7A0] h-1.5 rounded-full transition-all duration-1000" style={{ width: `${percent}%` }}></div>
+                           </div>
+                         );
+                      })()}
                     </div>
                   </div>
+                );
+              }
+
+              const toaNha = item as ToaNha;
+              const isActive = selectedToaNha === toaNha._id;
+              const address = toaNha.diaChiDayDu || 
+                (toaNha.diaChi 
+                  ? `${toaNha.diaChi.soNha || ''} ${toaNha.diaChi.duong || ''}, ${toaNha.diaChi.quan || ''}`.trim().replace(/^,|,$/g, '')
+                  : '');
+              const hasImage = toaNha.anhToaNha && toaNha.anhToaNha.length > 0;
+              const firstImage = hasImage ? toaNha.anhToaNha[0] : null;
+              const percent = (toaNha.tongSoPhong && toaNha.tongSoPhong > 0) ? Math.round(((toaNha.phongDangThue || 0) / toaNha.tongSoPhong) * 100) : 0;
+
+              return (
+                <div
+                  key={toaNha._id}
+                  onClick={() => setSelectedToaNha(toaNha._id!)}
+                  className={`flex-shrink-0 w-[240px] md:w-auto snap-start cursor-pointer rounded-[16px] border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between group animate-in fade-in slide-in-from-bottom-2 ${
+                    isActive
+                      ? 'border-[#4FA7A0] bg-gradient-to-br from-white to-[#4FA7A0]/5 shadow-md ring-1 ring-[#4FA7A0]/20'
+                      : 'border-gray-200/60 bg-white hover:border-[#4FA7A0]/50'
+                  }`}
+                  style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
+                >
+                  {/* Building Cover Image */}
+                  <div className="relative h-28 w-full bg-gradient-to-br from-[#243B5A]/10 to-[#4FA7A0]/10 flex items-center justify-center overflow-hidden border-b border-gray-100/50">
+                    {firstImage ? (
+                      <Image
+                        src={firstImage}
+                        alt={toaNha.tenToaNha}
+                        fill
+                        sizes="240px"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <Building2 className="h-10 w-10 text-[#243B5A]/30 group-hover:text-[#4FA7A0]/50 transition-colors" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-50"></div>
+                    {isActive && (
+                      <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#243B5A] text-white text-[10px] font-bold shadow-md animate-in zoom-in z-10 border-2 border-white">
+                        ✓
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Building Content */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[#243B5A] text-base line-clamp-1 group-hover:text-[#4FA7A0] transition-colors">
+                        {toaNha.tenToaNha}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-snug" title={address}>
+                        {address || 'Chưa cập nhật địa chỉ'}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-dashed border-gray-200 flex flex-col gap-2">
+                       <div className="flex justify-between items-end text-xs">
+                         <span className="text-gray-500 font-medium">Lấp đầy <span className="text-[#4FA7A0] font-bold">{percent}%</span></span>
+                         <span className="text-gray-500">{toaNha.phongDangThue || 0}/{toaNha.tongSoPhong || 0}</span>
+                       </div>
+                       <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                         <div className="bg-[#4FA7A0] h-1.5 rounded-full transition-all duration-1000" style={{ width: `${percent}%` }}></div>
+                       </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
+
+        {/* Phân trang tòa nhà */}
+        {(() => {
+          const totalBuildingPages = Math.ceil((toaNhaList.length + 1) / buildingsPerPage);
+          if (totalBuildingPages <= 1) return null;
+          
+          const currentPage = Math.min(buildingPage, totalBuildingPages);
+          const startIndex = (currentPage - 1) * buildingsPerPage;
+          const endIndex = Math.min(startIndex + buildingsPerPage, toaNhaList.length + 1);
+
+          return (
+            <div className="flex items-center justify-between px-1 mt-1 animate-in fade-in">
+              <div className="text-xs md:text-sm text-gray-500 font-medium">
+                Hiển thị {startIndex + 1}-{endIndex} của {toaNhaList.length + 1} tòa nhà
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full border-gray-200 text-[#243B5A] hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+                  onClick={() => setBuildingPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1 px-2">
+                  {Array.from({ length: totalBuildingPages }).map((_, i) => {
+                    const page = i + 1;
+                    const isActive = page === currentPage;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setBuildingPage(page)}
+                        className={`h-7 w-7 rounded-full text-xs font-semibold transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#4FA7A0]/50 focus:outline-none ${
+                          isActive 
+                            ? 'bg-[#4FA7A0] text-white shadow-sm transform scale-105' 
+                            : 'text-gray-500 hover:bg-gray-100 hover:text-[#243B5A]'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full border-gray-200 text-[#243B5A] hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+                  onClick={() => setBuildingPage(p => Math.min(totalBuildingPages, p + 1))}
+                  disabled={currentPage === totalBuildingPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-        <Card className="p-2 md:p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng số phòng</p>
-              <p className="text-lg md:text-xl font-bold">{totalElements}</p>
-            </div>
-            <Home className="h-4 w-4 md:h-5 md:w-5 text-[#4FA7A0]" />
-          </div>
-        </Card>
 
-        <Card className="p-2 md:p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Phòng trống</p>
-              <p className="text-lg md:text-xl font-bold text-green-600">
-                {phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length}
-              </p>
-            </div>
-            <Users className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đang thuê</p>
-              <p className="text-lg md:text-xl font-bold text-[#243B5A]">
-                {phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length}
-              </p>
-            </div>
-            <Users className="h-4 w-4 md:h-5 md:w-5 text-[#4FA7A0]" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Bảo trì</p>
-              <p className="text-lg md:text-xl font-bold text-red-600">
-                {phongList.filter(p => p.trangThai === 'baoTri').length}
-              </p>
-            </div>
-            <Users className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
-          </div>
-        </Card>
-      </div>
 
       {/* Desktop Table View */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle>Danh sách phòng</CardTitle>
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách phòng</CardTitle>
           <CardDescription>
             {filteredPhong.length} phòng được tìm thấy
           </CardDescription>
@@ -530,7 +626,7 @@ export default function PhongPage() {
             onPaginationChange={setPagination}
           />
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
@@ -578,15 +674,15 @@ export default function PhongPage() {
               const getTrangThaiColor = (trangThai: string) => {
                 switch (trangThai) {
                   case 'trong':
-                  case 'AVAILABLE': return 'bg-green-100 text-green-800';
+                  case 'AVAILABLE': return 'bg-[#4FA7A0]/15 text-[#4FA7A0] border border-[#4FA7A0]/20';
                   case 'daDat':
-                  case 'RESERVED': return 'bg-yellow-100 text-yellow-800';
+                  case 'RESERVED': return 'bg-[#F2A45B]/15 text-[#F2A45B] border border-[#F2A45B]/20';
                   case 'dangThue':
-                  case 'RENTED': return 'bg-[#4FA7A0]/15 text-[#243B5A]';
+                  case 'RENTED': return 'bg-[#243B5A]/10 text-[#243B5A] border border-[#243B5A]/20';
                   case 'baoTri':
                   case 'MAINTENANCE':
-                  case 'INACTIVE': return 'bg-red-100 text-red-800';
-                  default: return 'bg-gray-100 text-gray-800';
+                  case 'INACTIVE': return 'bg-red-50 text-red-600 border border-red-200';
+                  default: return 'bg-gray-100 text-gray-800 border border-gray-200';
                 }
               };
 
@@ -606,8 +702,8 @@ export default function PhongPage() {
               };
 
               return (
-                <Card key={phong._id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-3">
+                <Card key={phong._id} className="hover:shadow-md transition-shadow border-gray-200/60 rounded-[16px]">
+                  <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <h3 className="font-semibold text-base">{phong.maPhong}</h3>
@@ -620,8 +716,8 @@ export default function PhongPage() {
 
                     <div className="space-y-1.5 mb-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Giá thuê:</span>
-                        <span className="font-semibold text-green-600">
+                        <span className="text-gray-500">Giá thuê:</span>
+                        <span className="font-semibold text-[#243B5A]">
                           {new Intl.NumberFormat('vi-VN', {
                             style: 'currency',
                             currency: 'VND'
