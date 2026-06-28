@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -354,111 +355,87 @@ export default function ThongBaoPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý thông báo</h1>
-          <p className="text-xs md:text-sm text-gray-600">Gửi và quản lý thông báo đến khách thuê</p>
+      <DashboardHero
+        icon={Bell}
+        title="Quản lý thông báo"
+        description="Gửi và quản lý thông báo đến khách thuê"
+        actions={
+          <>
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <HeroActionButton variant="default" onClick={() => setEditingThongBao(null)}>
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Tạo thông báo</span>
+                  <span className="sm:hidden">Tạo</span>
+                </HeroActionButton>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingThongBao ? 'Chỉnh sửa thông báo' : 'Tạo thông báo mới'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingThongBao ? 'Cập nhật thông tin thông báo' : 'Nhập thông tin thông báo mới'}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <ThongBaoForm
+                  thongBao={editingThongBao}
+                  toaNhaList={toaNhaList}
+                  phongList={phongList}
+                  khachThueList={khachThueList}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    clearCache();
+                    setIsDialogOpen(false);
+                    fetchData(true, false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Tổng thông báo" 
+            value={String(totalElements)} 
+            icon={<Bell className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Chung" 
+            value={String(thongBaoList.filter(t => t.loai === 'chung').length)} 
+            icon={<Bell className="h-5 w-5" />} 
+            tone="blue" 
+          />
+          <DashboardKpiCard 
+            title="Hóa đơn" 
+            value={String(thongBaoList.filter(t => t.loai === 'hoaDon').length)} 
+            icon={<Bell className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+          <DashboardKpiCard 
+            title="Sự cố" 
+            value={String(thongBaoList.filter(t => t.loai === 'suCo').length)} 
+            icon={<Bell className="h-5 w-5" />} 
+            tone="red" 
+          />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={() => setEditingThongBao(null)} className="flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Tạo thông báo</span>
-                <span className="sm:hidden">Tạo</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingThongBao ? 'Chỉnh sửa thông báo' : 'Tạo thông báo mới'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingThongBao ? 'Cập nhật thông tin thông báo' : 'Nhập thông tin thông báo mới'}
-                </DialogDescription>
-              </DialogHeader>
-
-              <ThongBaoForm
-                thongBao={editingThongBao}
-                toaNhaList={toaNhaList}
-                phongList={phongList}
-                khachThueList={khachThueList}
-                onClose={() => setIsDialogOpen(false)}
-                onSuccess={() => {
-                  clearCache();
-                  setIsDialogOpen(false);
-                  fetchData(true, false);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng thông báo</p>
-              <p className="text-base md:text-2xl font-bold">{totalElements}</p>
-            </div>
-            <Bell className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Chung</p>
-              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
-                {thongBaoList.filter(t => t.loai === 'chung').length}
-              </p>
-            </div>
-            <Bell className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Hóa đơn</p>
-              <p className="text-base md:text-2xl font-bold text-green-600">
-                {thongBaoList.filter(t => t.loai === 'hoaDon').length}
-              </p>
-            </div>
-            <Bell className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Sự cố</p>
-              <p className="text-base md:text-2xl font-bold text-red-600">
-                {thongBaoList.filter(t => t.loai === 'suCo').length}
-              </p>
-            </div>
-            <Bell className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
-          </div>
-        </Card>
-      </div>
+      </DashboardHero>
 
       {/* Desktop Table */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle>Danh sách thông báo</CardTitle>
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách thông báo</CardTitle>
           <CardDescription>
             {filteredThongBao.length} thông báo được tìm thấy
           </CardDescription>
@@ -662,7 +639,7 @@ export default function ThongBaoPage() {
           </div>
           
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Cards */}
       <div className="md:hidden">

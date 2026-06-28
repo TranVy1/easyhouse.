@@ -5,7 +5,8 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, Users } from 'lucide-react';
+import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
 import { toast } from 'sonner';
 
 export default function AdminYeuCauOGhepPage() {
@@ -94,21 +95,25 @@ export default function AdminYeuCauOGhepPage() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Yêu cầu ở ghép</h2>
-        <Button onClick={() => fetchRequests()} disabled={loading} variant="outline" size="sm">
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Làm mới
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <DashboardHero
+        icon={Users}
+        title="Yêu cầu ở ghép"
+        description="Duyệt các yêu cầu người mới xin vào ở chung phòng"
+        actions={
+          <Button onClick={() => fetchRequests()} disabled={loading} variant="outline">
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách yêu cầu xin ở ghép</CardTitle>
-          <CardDescription>Duyệt các yêu cầu người mới xin vào ở chung phòng (đã được người trong phòng đồng ý)</CardDescription>
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">
+          <CardTitle className="text-lg">Danh sách yêu cầu xin ở ghép</CardTitle>
+          <CardDescription>Danh sách đã được người trong phòng đồng ý, chờ chủ trọ duyệt</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5 md:p-6">
           {loading ? (
             <div className="flex justify-center p-8"><RefreshCw className="animate-spin text-slate-400" /></div>
           ) : requests.length === 0 ? (
@@ -147,7 +152,7 @@ export default function AdminYeuCauOGhepPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </DashboardCard>
     </div>
   );
 }

@@ -56,6 +56,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -220,8 +221,11 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
             <span className="text-muted-foreground">{rented}/{total} phòng</span>
             <span className="font-medium">{percentage}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-[#4FA7A0]" style={{ width: `${percentage}%` }} />
+          <div className="h-2 overflow-hidden rounded-full bg-[#4FA7A0]/10">
+            <div className={cn(
+              "h-full rounded-full transition-all duration-500",
+              percentage <= 30 ? "bg-red-500" : percentage <= 70 ? "bg-orange-500" : "bg-[#4FA7A0]"
+            )} style={{ width: `${percentage}%` }} />
           </div>
         </div>
       )
@@ -308,7 +312,7 @@ function DraggableRow({ row, onDoubleClick }: { row: Row<ToaNha>, onDoubleClick?
       data-dragging={isDragging}
       ref={setNodeRef}
       onDoubleClick={onDoubleClick}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-muted/50"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-[#F8F3EC]/50 transition-colors py-1"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -484,9 +488,9 @@ export function ToaNhaDataTable(props: ToaNhaDataTableProps) {
           id={sortableId}
         >
           <Table>
-            <TableHeader className="bg-muted sticky top-0 z-10">
+            <TableHeader className="bg-[#F8F3EC] sticky top-0 z-10 shadow-sm">
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="border-b-border/50 hover:bg-[#F8F3EC]">
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead key={header.id} colSpan={header.colSpan}>

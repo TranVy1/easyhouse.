@@ -24,6 +24,10 @@ import {
   Wifi,
   Wind,
   X,
+  BadgeCheck,
+  Headphones,
+  Layers3,
+  MapPinned,
 } from "lucide-react";
 
 type RoomId = string | number;
@@ -211,6 +215,29 @@ const isAvailable = (status?: string) => {
   return !status || ["available", "trong", "vacant"].includes(normalized);
 };
 
+const TRUST_ITEMS = [
+  {
+    icon: <BadgeCheck size={22} />,
+    title: "Thông tin minh bạch",
+    description: "Giá, diện tích và trạng thái phòng được hiển thị rõ ràng từ dữ liệu hệ thống.",
+  },
+  {
+    icon: <Layers3 size={22} />,
+    title: "Dễ so sánh phòng",
+    description: "Card phòng được chuẩn hóa để bạn quét nhanh giá, tiện ích và vị trí.",
+  },
+  {
+    icon: <MapPinned size={22} />,
+    title: "Dữ liệu cập nhật",
+    description: "Danh sách phòng lấy trực tiếp từ EasyHouse, không tự bịa dữ liệu động.",
+  },
+  {
+    icon: <Headphones size={22} />,
+    title: "Hỗ trợ nhanh",
+    description: "Luồng tìm kiếm, lưu phòng và xem chi tiết luôn sẵn sàng khi bạn cần.",
+  },
+];
+
 function RoomImage({
   src,
   alt,
@@ -225,11 +252,16 @@ function RoomImage({
   return (
     <div className={`relative overflow-hidden bg-[#EDE5D9] ${className}`}>
       {src ? (
-        <img src={src} alt={alt} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+        <img src={src} alt={alt} className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#F8F3EC] via-white to-[#DCEFEB]">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
-            <Building2 size={30} />
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
+              <Building2 size={30} />
+            </div>
+            <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#6B7A8C] ring-1 ring-[#E8DED1]">
+              Chưa có ảnh
+            </span>
           </div>
         </div>
       )}
@@ -269,7 +301,7 @@ function RoomCardView({
   return (
     <article
       onClick={onSelect}
-      className={`group cursor-pointer overflow-hidden rounded-2xl bg-white text-left shadow-[0_8px_28px_rgba(36,59,90,0.08)] ring-1 ring-[#E8DED1] transition hover:-translate-y-1 hover:shadow-[0_16px_38px_rgba(36,59,90,0.13)] ${
+      className={`group cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left shadow-[0_12px_30px_rgba(36,59,90,0.08)] ring-1 ring-[#243B5A]/[0.08] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         featured ? "min-w-[310px] snap-start md:min-w-[390px]" : ""
       }`}
     >
@@ -280,7 +312,8 @@ function RoomCardView({
         </div>
         <button
           onClick={onSave}
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#243B5A] shadow-sm transition hover:text-[#F2A45B]"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#243B5A] shadow-sm ring-1 ring-white/70 transition duration-200 ease-out hover:-translate-y-0.5 hover:text-[#F2A45B] hover:shadow-md"
+          aria-label="Lưu phòng"
           title="Lưu phòng"
         >
           <Heart size={18} className={saved ? "fill-[#F2A45B] text-[#F2A45B]" : ""} />
@@ -321,6 +354,12 @@ function RoomCardView({
               {amenity}
             </span>
           ))}
+        </div>
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#E8DED1]/70 pt-4">
+          <span className="text-xs font-bold text-[#6B7A8C]">Chi tiết phòng và tiện ích</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#243B5A] px-3 py-2 text-xs font-black text-white transition duration-200 ease-out group-hover:bg-[#4FA7A0]">
+            Xem chi tiết <ArrowRight size={14} />
+          </span>
         </div>
       </div>
     </article>
@@ -376,7 +415,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         try {
           return text ? JSON.parse(text) : {};
-        } catch (e) {
+        } catch {
           throw new Error("Invalid JSON in phong response: " + text.slice(0, 50));
         }
       })
@@ -624,6 +663,55 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
           </div>
         </section>
 
+        <section className="mt-8 rounded-[24px] border border-[#243B5A]/[0.08] bg-white/85 p-3 shadow-[0_12px_30px_rgba(36,59,90,0.08)] backdrop-blur">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3 px-2">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76]">
+                <SlidersHorizontal size={19} />
+              </span>
+              <div>
+                <p className="text-sm font-black text-[#243B5A]">Lọc nhanh phòng phù hợp</p>
+                <p className="text-xs font-semibold text-[#6B7A8C]">{filteredRooms.length} phòng phù hợp với tìm kiếm của bạn</p>
+              </div>
+            </div>
+
+            <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 lg:pb-0">
+              {PRICE_RANGES.map((price) => (
+                <button
+                  key={price.id}
+                  onClick={() => setFilterPrice(price.id)}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-black transition duration-200 ease-out hover:-translate-y-0.5 ${
+                    filterPrice === price.id
+                      ? "border-[#4FA7A0] bg-[#4FA7A0] text-white shadow-sm"
+                      : "border-[#E8DED1] bg-[#FFFCF8] text-[#243B5A] hover:border-[#4FA7A0] hover:text-[#267D76]"
+                  }`}
+                >
+                  {price.shortLabel}
+                </button>
+              ))}
+              {AREA_RANGES.slice(1).map((area) => (
+                <button
+                  key={area.id}
+                  onClick={() => setFilterArea(area.id)}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-black transition duration-200 ease-out hover:-translate-y-0.5 ${
+                    filterArea === area.id
+                      ? "border-[#243B5A] bg-[#243B5A] text-white shadow-sm"
+                      : "border-[#E8DED1] bg-[#FFFCF8] text-[#243B5A] hover:border-[#243B5A]/30"
+                  }`}
+                >
+                  {area.shortLabel}
+                </button>
+              ))}
+              <button
+                onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
+                className="shrink-0 rounded-full bg-[#F2A45B] px-5 py-2 text-xs font-black text-white shadow-[0_10px_22px_rgba(242,164,91,0.22)] transition duration-200 ease-out hover:-translate-y-0.5"
+              >
+                Áp dụng lọc
+              </button>
+            </div>
+          </div>
+        </section>
+
         {featuredRooms.length > 0 && (
           <section id="featured-rooms" className="mt-12">
             <div className="mb-5 flex items-end justify-between gap-3">
@@ -743,9 +831,36 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             </>
           )}
         </section>
+
+        <section className="mt-12 rounded-[24px] border border-[#243B5A]/[0.08] bg-[#FFFCF8] p-5 shadow-[0_12px_30px_rgba(36,59,90,0.08)] md:p-7">
+          <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-[#4FA7A0]">Cam kết EasyHouse</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-[#243B5A]">Vì sao nên chọn EasyHouse?</h2>
+            </div>
+            <p className="max-w-xl text-sm font-semibold leading-6 text-[#6B7A8C]">
+              Trải nghiệm tìm phòng được thiết kế để dễ quét thông tin, dễ so sánh và luôn dựa trên dữ liệu thật của hệ thống.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {TRUST_ITEMS.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[20px] border border-[#E8DED1] bg-white p-5 shadow-sm transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.10)]"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76]">
+                  {item.icon}
+                </div>
+                <h3 className="mt-4 text-base font-black text-[#243B5A]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#6B7A8C]">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
 
-      <footer className="mt-8 bg-[#243B5A] px-4 py-9 text-white md:px-8">
+      <footer className="mt-8 bg-[#243B5A] px-4 py-10 text-white md:px-8">
         <div className="mx-auto grid w-full max-w-screen-2xl gap-7 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <div>
             <div className="flex items-center gap-3">

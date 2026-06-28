@@ -72,7 +72,7 @@ export function StatusBadge({ status, label, size = 'xs' }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center ${textSize} font-bold px-2.5 py-1 rounded-full border whitespace-nowrap ${config.cls}`}
+      className={`inline-flex items-center ${textSize} font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap transition-all duration-200 shadow-sm hover:shadow-md ${config.cls}`}
     >
       {label || config.label}
     </span>

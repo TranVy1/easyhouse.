@@ -173,21 +173,21 @@ export default function XemPhongPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 relative">
+      <div className="min-h-screen bg-[#F8F3EC] relative">
         {/* Polka dot background */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, rgba(79, 167, 160, 0.35) 1px, transparent 1px)',
             backgroundSize: '20px 20px'
           }}></div>
         </div>
         
         <div className="relative container mx-auto px-4 py-8">
           <div className="space-y-6">
-            <div className="h-8 bg-gradient-to-r from-indigo-200 to-cyan-200 rounded-xl w-48 animate-pulse"></div>
+            <div className="h-8 bg-gradient-to-r from-[#E6F3F1] to-[#F8E0C4] rounded-xl w-48 animate-pulse"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-lg animate-pulse border border-indigo-100"></div>
+                <div key={i} className="h-96 rounded-[22px] border border-[#E8DED1] bg-[#FFFCF8] shadow-[0_12px_30px_rgba(36,59,90,0.08)] animate-pulse"></div>
               ))}
             </div>
           </div>
@@ -199,11 +199,11 @@ export default function XemPhongPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 relative">
+    <div className="min-h-screen bg-[#F8F3EC] relative">
       {/* Polka dot background */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle, #6366f1 2px, transparent 2px)',
+          backgroundImage: 'radial-gradient(circle, rgba(79, 167, 160, 0.26) 2px, transparent 2px)',
           backgroundSize: '30px 30px'
         }}></div>
       </div>
@@ -213,7 +213,7 @@ export default function XemPhongPage() {
         <div className="mb-4 md:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-cyan-700 bg-clip-text text-transparent">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-black text-[#243B5A]">
                 Danh sách phòng cho thuê
               </h1>
               <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
@@ -229,22 +229,22 @@ export default function XemPhongPage() {
           {/* Search and Filters */}
           <div className="relative">
             {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-cyan-500/5 rounded-3xl blur-xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/10 via-white/30 to-[#F2A45B]/10 rounded-3xl blur-xl"></div>
             
-            <Card className="relative border-0 shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden">
+            <Card className="relative overflow-hidden rounded-[24px] border border-[#243B5A]/[0.08] bg-[#FFFCF8]/95 shadow-[0_18px_40px_rgba(36,59,90,0.10)] backdrop-blur-md">
               {/* Gradient border effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 rounded-3xl p-[1px]">
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#4FA7A0]/20 via-white/20 to-[#F2A45B]/20 p-[1px]">
                 <div className="w-full h-full bg-white/95 backdrop-blur-md rounded-3xl"></div>
               </div>
               
               <div className="relative p-6 md:p-8">
                 {/* Header with icon */}
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 bg-[#243B5A] rounded-xl flex items-center justify-center shadow-lg">
                     <Search className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-indigo-700 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                    <h2 className="text-lg md:text-xl font-black text-[#243B5A]">
                       Tìm kiếm phòng
                     </h2>
                     <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
@@ -257,14 +257,14 @@ export default function XemPhongPage() {
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-[#243B5A] mb-2">Tìm kiếm</label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#F2A45B]/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6B7A8C] group-focus-within:text-indigo-500 transition-colors duration-300" />
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6B7A8C] group-focus-within:text-[#4FA7A0] transition-colors duration-300" />
                         <Input
                           placeholder="Nhập mã phòng, mô tả..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
+                          className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/20 focus:border-[#4FA7A0]/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
                         />
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export default function XemPhongPage() {
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-[#243B5A] mb-2">Tòa nhà</label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#243B5A]/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative">
                         <Select value={selectedToaNha} onValueChange={setSelectedToaNha}>
                           <SelectTrigger className="h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/25 focus:border-[#4FA7A0]/30 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
@@ -376,11 +376,11 @@ export default function XemPhongPage() {
         {/* Room Grid */}
         {!error && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredPhong.map((phong) => (
-            <Card key={phong._id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/90 backdrop-blur-sm hover:scale-[1.02] hover:bg-white/95">
+            <Card key={phong._id} className="group cursor-pointer overflow-hidden rounded-[22px] border border-[#243B5A]/[0.08] bg-[#FFFCF8] shadow-[0_12px_30px_rgba(36,59,90,0.08)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)]">
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
                 {(phong.anhDaiDien || (phong.anhPhong && phong.anhPhong.length > 0)) ? (
                   <>
-                    <div className="relative h-full w-full group-hover:scale-110 transition-transform duration-700">
+                    <div className="relative h-full w-full transition-transform duration-300 ease-out group-hover:scale-[1.03]">
                       <Image
                         src={phong.anhDaiDien || phong.anhPhong?.[0]}
                         alt={`Phòng ${phong.ten || phong.maPhong}`}
@@ -399,7 +399,12 @@ export default function XemPhongPage() {
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Home className="h-12 w-12 md:h-16 md:w-16 text-gray-400" />
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
+                        <Home className="h-8 w-8" />
+                      </div>
+                      <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#6B7A8C] ring-1 ring-[#E8DED1]">Chưa có ảnh</span>
+                    </div>
                   </div>
                 )}
                 <div className="absolute top-2 left-2">
@@ -409,8 +414,8 @@ export default function XemPhongPage() {
               
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base md:text-lg">
-                  <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">Phòng {phong.ten || phong.maPhong}</span>
-                  <span className="text-base md:text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                  <span className="text-[#243B5A]">Phòng {phong.ten || phong.maPhong}</span>
+                  <span className="text-base md:text-lg font-black text-[#F2A45B]">
                     {formatCurrency(phong.giaHienTai || phong.giaThue)}
                   </span>
                 </CardTitle>
@@ -455,7 +460,7 @@ export default function XemPhongPage() {
                 <Link href={`/phong/${phong._id || phong.id}`} className="w-full block">
                   <Button 
                     size="sm"
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 group" 
+                    className="w-full rounded-2xl bg-[#243B5A] text-white border-0 shadow-lg shadow-[#243B5A]/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#4FA7A0] hover:shadow-xl group"
                   >
                     <Eye className="h-3.5 w-3.5 md:h-4 md:w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
                     Xem chi tiết
@@ -469,10 +474,10 @@ export default function XemPhongPage() {
         {!error && filteredPhong.length === 0 && (
           <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
             <CardContent className="flex flex-col items-center justify-center py-12 p-4 md:p-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-                <Home className="h-10 w-10 md:h-12 md:w-12 text-indigo-500" />
+              <div className="w-20 h-20 md:w-24 md:h-24 bg-[#4FA7A0]/10 rounded-full flex items-center justify-center mb-6">
+                <Home className="h-10 w-10 md:h-12 md:w-12 text-[#267D76]" />
               </div>
-              <h3 className="text-base md:text-lg font-medium bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent mb-2">
+              <h3 className="text-base md:text-lg font-black text-[#243B5A] mb-2">
                 Không tìm thấy phòng nào
               </h3>
               <p className="text-xs md:text-sm text-[#6B7A8C] text-center">

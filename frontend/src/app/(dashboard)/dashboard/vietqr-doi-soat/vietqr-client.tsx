@@ -20,7 +20,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, QrCode } from "lucide-react";
+import { DashboardHero, DashboardCard } from "@/components/dashboard/shared-ui";
 import { toast } from "sonner";
 import { BankTransaction, ApiResponse, HoaDon, PaginatedResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
@@ -166,44 +167,44 @@ export function VietQRClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Đối soát VietQR</h1>
-          <p className="text-xs md:text-sm text-gray-600">Quản lý giao dịch chuyển khoản và đối soát hóa đơn.</p>
-        </div>
-      </div>
+      <DashboardHero
+        icon={QrCode}
+        title="Đối soát VietQR"
+        description="Quản lý giao dịch chuyển khoản và đối soát hóa đơn."
+        actions={
+          <div className="flex gap-2">
+            <Button 
+              variant={daDoiSoatFilter === null ? "default" : "outline"} 
+              onClick={() => setDaDoiSoatFilter(null)}
+            >
+              Tất cả
+            </Button>
+            <Button 
+              variant={daDoiSoatFilter === false ? "default" : "outline"} 
+              onClick={() => setDaDoiSoatFilter(false)}
+            >
+              Chưa đối soát
+            </Button>
+            <Button 
+              variant={daDoiSoatFilter === true ? "default" : "outline"} 
+              onClick={() => setDaDoiSoatFilter(true)}
+            >
+              Đã đối soát
+            </Button>
+          </div>
+        }
+      />
 
-      <div className="flex gap-2">
-        <Button 
-          variant={daDoiSoatFilter === null ? "default" : "outline"} 
-          onClick={() => setDaDoiSoatFilter(null)}
-        >
-          Tất cả
-        </Button>
-        <Button 
-          variant={daDoiSoatFilter === false ? "default" : "outline"} 
-          onClick={() => setDaDoiSoatFilter(false)}
-        >
-          Chưa đối soát
-        </Button>
-        <Button 
-          variant={daDoiSoatFilter === true ? "default" : "outline"} 
-          onClick={() => setDaDoiSoatFilter(true)}
-        >
-          Đã đối soát
-        </Button>
-      </div>
-
-      <div className="border rounded-md bg-white overflow-x-auto">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8] overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>Thời gian</TableHead>
-              <TableHead>Mã GD</TableHead>
-              <TableHead>Nội dung CK</TableHead>
-              <TableHead>Số tiền</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Thời gian</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Mã GD</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Nội dung CK</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Số tiền</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Trạng thái</TableHead>
+              <TableHead className="text-right font-semibold text-[#243B5A]">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -213,11 +214,11 @@ export function VietQRClient() {
               </TableRow>
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">Không tìm thấy giao dịch nào</TableCell>
+                <TableCell colSpan={6} className="text-center h-24 text-gray-500">Không tìm thấy giao dịch nào</TableCell>
               </TableRow>
             ) : (
               transactions.map((tx) => (
-                <TableRow key={tx.id || tx._id}>
+                <TableRow key={tx.id || tx._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
                   <TableCell className="whitespace-nowrap">
                     {tx.thoiGianGiaoDich ? format(new Date(tx.thoiGianGiaoDich), "dd/MM/yyyy HH:mm") : "-"}
                   </TableCell>
@@ -249,7 +250,7 @@ export function VietQRClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       {!isLoading && totalPages > 1 && (
         <div className="flex items-center justify-between">

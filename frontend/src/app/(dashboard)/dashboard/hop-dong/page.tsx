@@ -8,6 +8,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -468,30 +469,56 @@ export default function HopDongPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý hợp đồng</h1>
-          <p className="text-xs md:text-sm text-gray-600">Danh sách tất cả hợp đồng trong hệ thống</p>
+      {/* Hero Section */}
+      <DashboardHero
+        icon={FileText}
+        title="Quản lý hợp đồng"
+        description="Quản lý vòng đời hợp đồng, gia hạn, thanh lý và các điều khoản thuê phòng."
+        actions={
+          <>
+            <HeroActionButton
+              variant="secondary"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+            </HeroActionButton>
+            <HeroActionButton variant="default" onClick={() => router.push('/dashboard/hop-dong/them-moi')}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Thêm hợp đồng</span>
+              <span className="sm:hidden">Thêm</span>
+            </HeroActionButton>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Tổng hợp đồng" 
+            value={totalElements} 
+            icon={<FileText className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Hoạt động" 
+            value={hopDongList.filter(h => isActiveStatus(h.trangThai)).length} 
+            icon={<FileText className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+          <DashboardKpiCard 
+            title="Sắp hết hạn" 
+            value={hopDongList.filter(h => isExpiringSoon(h.ngayKetThuc)).length} 
+            icon={<Calendar className="h-5 w-5" />} 
+            tone="orange" 
+          />
+          <DashboardKpiCard 
+            title="Đã hết hạn" 
+            value={hopDongList.filter(h => isExpired(h.ngayKetThuc)).length} 
+            icon={<Calendar className="h-5 w-5" />} 
+            tone="red" 
+          />
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Button size="sm" onClick={() => router.push('/dashboard/hop-dong/them-moi')} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Thêm hợp đồng</span>
-            <span className="sm:hidden">Thêm</span>
-          </Button>
-        </div>
-      </div>
+      </DashboardHero>
 
       <Dialog open={!!extendTarget} onOpenChange={(open) => !open && setExtendTarget(null)}>
         <DialogContent>
@@ -740,59 +767,12 @@ export default function HopDongPage() {
         </div>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng hợp đồng</p>
-              <p className="text-xl md:text-2xl font-bold">{totalElements}</p>
-            </div>
-            <FileText className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
 
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Hoạt động</p>
-              <p className="text-base md:text-2xl font-bold text-green-600">
-                {hopDongList.filter(h => isActiveStatus(h.trangThai)).length}
-              </p>
-            </div>
-            <FileText className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Sắp hết hạn</p>
-              <p className="text-base md:text-2xl font-bold text-orange-600">
-                {hopDongList.filter(h => isExpiringSoon(h.ngayKetThuc)).length}
-              </p>
-            </div>
-            <Calendar className="h-3 w-3 md:h-4 md:w-4 text-orange-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Đã hết hạn</p>
-              <p className="text-base md:text-2xl font-bold text-red-600">
-                {hopDongList.filter(h => isExpired(h.ngayKetThuc)).length}
-              </p>
-            </div>
-            <Calendar className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
-          </div>
-        </Card>
-      </div>
 
       {/* Desktop Table */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle>Danh sách hợp đồng</CardTitle>
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách hợp đồng</CardTitle>
           <CardDescription>
             {filteredHopDong.length} hợp đồng được tìm thấy
           </CardDescription>
@@ -823,7 +803,7 @@ export default function HopDongPage() {
             onPaginationChange={setPagination}
           />
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Cards */}
       <div className="md:hidden">

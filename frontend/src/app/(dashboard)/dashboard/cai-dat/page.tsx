@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -177,19 +178,15 @@ export default function CaiDatPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[#243B5A]">Cài đặt hệ thống</h1>
-          <p className="text-xs md:text-sm text-[#6B7A8C]">Tùy chỉnh font chữ, màu sắc và mật độ hiển thị</p>
-        </div>
-        <div className="p-2 bg-slate-100 rounded-full">
-          <Settings className="h-6 w-6 text-[#6B7A8C] animate-spin-slow" />
-        </div>
-      </div>
+      <DashboardHero
+        icon={Settings}
+        title="Cài đặt hệ thống"
+        description="Tùy chỉnh font chữ, màu sắc và mật độ hiển thị"
+      />
 
       <div className="grid grid-cols-1 gap-6">
         {/* Font Settings */}
-        <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+        <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
           <CardHeader className="bg-[#F8F3EC]/70 border-b border-[#E8DED2] p-6">
             <CardTitle className="flex items-center gap-3 text-lg font-bold text-[#243B5A]">
               <div className="p-2 bg-[#4FA7A0]/15 rounded-lg text-[#243B5A]">
@@ -311,10 +308,10 @@ export default function CaiDatPage() {
               Lưu thay đổi kiểu chữ
             </Button>
           </CardContent>
-        </Card>
+        </DashboardCard>
 
         {/* UI Settings */}
-        <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+        <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
           <CardHeader className="bg-[#F8F3EC]/70 border-b border-[#E8DED2] p-6">
             <CardTitle className="flex items-center gap-3 text-lg font-bold text-[#243B5A]">
               <div className="p-2 bg-[#F2A45B]/15 rounded-lg text-[#9A5A1B]">
@@ -370,7 +367,7 @@ export default function CaiDatPage() {
               Lưu cài đặt giao diện
             </Button>
           </CardContent>
-        </Card>
+        </DashboardCard>
       </div>
     </div>
   );

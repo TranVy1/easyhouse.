@@ -103,24 +103,24 @@ const getStatusBadge = (status: string) => {
     case 'trong':
     case 'AVAILABLE':
       return (
-        <Badge variant="default" className="gap-1 bg-green-600">
-          <CircleCheck className="h-3 w-3" />
+        <Badge variant="outline" className="gap-1.5 border-transparent bg-[#4FA7A0]/15 text-[#4FA7A0] hover:bg-[#4FA7A0]/25 transition-colors rounded-full px-2.5 py-0.5 shadow-sm">
+          <CircleCheck className="h-3.5 w-3.5" />
           Trống
         </Badge>
       )
     case 'dangThue':
     case 'RENTED':
       return (
-        <Badge variant="secondary" className="gap-1">
-          <Home className="h-3 w-3" />
+        <Badge variant="outline" className="gap-1.5 border-transparent bg-[#243B5A]/10 text-[#243B5A] hover:bg-[#243B5A]/20 transition-colors rounded-full px-2.5 py-0.5 shadow-sm">
+          <Home className="h-3.5 w-3.5" />
           Đang thuê
         </Badge>
       )
     case 'daDat':
     case 'RESERVED':
       return (
-        <Badge variant="outline" className="gap-1 border-orange-600 text-orange-600">
-          <AlertCircle className="h-3 w-3" />
+        <Badge variant="outline" className="gap-1.5 border-transparent bg-[#F2A45B]/15 text-[#F2A45B] hover:bg-[#F2A45B]/25 transition-colors rounded-full px-2.5 py-0.5 shadow-sm">
+          <AlertCircle className="h-3.5 w-3.5" />
           Đã đặt
         </Badge>
       )
@@ -128,13 +128,13 @@ const getStatusBadge = (status: string) => {
     case 'MAINTENANCE':
     case 'INACTIVE':
       return (
-        <Badge variant="destructive" className="gap-1">
-          <Ban className="h-3 w-3" />
+        <Badge variant="outline" className="gap-1.5 border-transparent bg-red-50 text-red-600 hover:bg-red-100 transition-colors rounded-full px-2.5 py-0.5 shadow-sm">
+          <Ban className="h-3.5 w-3.5" />
           Bảo trì
         </Badge>
       )
     default:
-      return <Badge variant="outline">{status}</Badge>
+      return <Badge variant="outline" className="rounded-full shadow-sm">{status}</Badge>
   }
 }
 
@@ -437,7 +437,7 @@ function DraggableRow({ row }: { row: Row<Phong> }) {
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 hover:bg-[#F8F3EC]/60 transition-colors cursor-default"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -639,7 +639,7 @@ export function PhongDataTable(props: PhongDataTableProps) {
           id={sortableId}
         >
           <Table>
-            <TableHeader className="bg-muted sticky top-0 z-10">
+            <TableHeader className="bg-[#F8F3EC]/80 text-[#243B5A] sticky top-0 z-10 backdrop-blur-sm border-b border-[#243B5A]/10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {

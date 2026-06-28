@@ -17,7 +17,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
+import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -316,34 +317,54 @@ export default function ChiSoDienNuocPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      <DashboardPageHeader
-        eyebrow="Thu tiền"
+      <DashboardHero
+        icon={Droplets}
         title="Chỉ số điện nước"
         description="Ghi và chốt số đo trước khi lập hóa đơn; bản ghi đã lên hóa đơn được khóa chỉnh sửa."
         actions={
           <>
-            <Button variant="outline" onClick={() => fetchReadings(true)} disabled={refreshing}>
-              <RefreshCw className={refreshing ? "animate-spin" : ""} />
-              {refreshing ? "Đang tải" : "Làm mới"}
-            </Button>
-            <Button onClick={openCreate}>
-              <Plus />
-              Ghi chỉ số
-            </Button>
+            <HeroActionButton variant="secondary" onClick={() => fetchReadings(true)} disabled={refreshing}>
+              <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">{refreshing ? "Đang tải" : "Làm mới"}</span>
+            </HeroActionButton>
+            <HeroActionButton variant="default" onClick={openCreate}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Ghi chỉ số</span>
+            </HeroActionButton>
           </>
         }
-      />
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard 
+            title="Bản ghi phù hợp" 
+            value={totalElements} 
+            icon={<CalendarDays className="h-5 w-5" />} 
+            tone="default" 
+          />
+          <DashboardKpiCard 
+            title="Điện trên trang" 
+            value={`${pageTotals.electricity} kWh`} 
+            icon={<Bolt className="h-5 w-5" />} 
+            tone="orange" 
+          />
+          <DashboardKpiCard 
+            title="Nước trên trang" 
+            value={`${pageTotals.water} m3`} 
+            icon={<Droplets className="h-5 w-5" />} 
+            tone="blue" 
+          />
+          <DashboardKpiCard 
+            title="Đã chốt / lập HĐ" 
+            value={pageTotals.confirmed} 
+            icon={<FileCheck2 className="h-5 w-5" />} 
+            tone="emerald" 
+          />
+        </div>
+      </DashboardHero>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Bản ghi phù hợp" value={totalElements} hint="Theo bộ lọc hiện tại" icon={CalendarDays} />
-        <MetricCard label="Điện trên trang" value={`${pageTotals.electricity} kWh`} hint="Tiêu thụ trang đang xem" icon={Bolt} tone="warning" />
-        <MetricCard label="Nước trên trang" value={`${pageTotals.water} m3`} hint="Tiêu thụ trang đang xem" icon={Droplets} tone="default" />
-        <MetricCard label="Đã chốt / lập HĐ" value={pageTotals.confirmed} hint="Bản ghi trên trang" icon={FileCheck2} tone="success" />
-      </div>
-
-      <Card className="gap-0 py-0">
-        <CardHeader className="border-b p-5 md:p-6">
-          <CardTitle className="text-lg">Danh sách chỉ số</CardTitle>
+      <DashboardCard className="overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách chỉ số</CardTitle>
           <CardDescription className="mt-1">Lọc theo kỳ, phòng, loại và trạng thái trên toàn bộ dữ liệu được phép truy cập.</CardDescription>
           <div className="grid gap-2 pt-4 sm:grid-cols-2 lg:grid-cols-5">
             <Select value={filters.phongId} onValueChange={(value) => updateFilter("phongId", value)}>
@@ -473,7 +494,7 @@ export default function ChiSoDienNuocPage() {
                       <div><p className="text-xs text-muted-foreground">Mới</p><p className="mt-1 font-medium">{item.chiSoMoi || 0}</p></div>
                       <div><p className="text-xs text-muted-foreground">Dùng</p><p className="mt-1 font-semibold text-primary">{item.tieuThu || 0}</p></div>
                     </div>
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex w-full flex-wrap items-center gap-2 sm:gap-3">
                       <Button variant="outline" className="flex-1" onClick={() => openEdit(item)} disabled={item.trangThai === "BILLED" || item.trangThai === "CANCELLED"}>
                         Chỉnh sửa
                       </Button>
@@ -511,7 +532,7 @@ export default function ChiSoDienNuocPage() {
             </div>
           ) : null}
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">

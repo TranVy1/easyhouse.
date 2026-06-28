@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DichVu, ApiResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { DashboardCard } from "@/components/dashboard/shared-ui";
 import { useSession } from "next-auth/react";
 
 export function DichVuClient() {
@@ -149,34 +150,34 @@ export function DichVuClient() {
         </Button>
       </div>
 
-      <div className="border rounded-md">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>Tên dịch vụ</TableHead>
-              <TableHead>Loại tính phí</TableHead>
-              <TableHead>Đơn vị</TableHead>
-              <TableHead className="text-right">Đơn giá mặc định</TableHead>
-              <TableHead className="text-center">Bắt buộc</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Tên dịch vụ</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Loại tính phí</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Đơn vị</TableHead>
+              <TableHead className="text-right font-semibold text-[#243B5A]">Đơn giá mặc định</TableHead>
+              <TableHead className="text-center font-semibold text-[#243B5A]">Bắt buộc</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">Đang tải...</TableCell>
+                <TableCell colSpan={6} className="text-center h-24 text-gray-500">Đang tải...</TableCell>
               </TableRow>
             ) : dichVuList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">Không có dữ liệu</TableCell>
+                <TableCell colSpan={6} className="text-center h-24 text-gray-500">Không có dữ liệu</TableCell>
               </TableRow>
             ) : (
               dichVuList.map((dv) => (
-                <TableRow key={dv._id}>
-                  <TableCell className="font-medium">{dv.tenDichVu}</TableCell>
-                  <TableCell>{dv.loaiTinhPhi}</TableCell>
-                  <TableCell>{dv.donVi}</TableCell>
-                  <TableCell className="text-right">
+                <TableRow key={dv._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
+                  <TableCell className="font-medium text-[#243B5A]">{dv.tenDichVu}</TableCell>
+                  <TableCell className="text-gray-600">{dv.loaiTinhPhi}</TableCell>
+                  <TableCell className="text-gray-600">{dv.donVi}</TableCell>
+                  <TableCell className="text-right font-medium text-[#267D76]">
                     {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(dv.donGiaMacDinh || 0)}
                   </TableCell>
                   <TableCell className="text-center">
@@ -184,11 +185,11 @@ export function DichVuClient() {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2 justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(dv)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(dv)} className="h-8 w-8 text-[#267D76] hover:text-[#1a5c56] hover:bg-[#267D76]/10">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => { setSelectedDichVu(dv); setIsDeleteDialogOpen(true); }}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                      <Button variant="ghost" size="icon" onClick={() => { setSelectedDichVu(dv); setIsDeleteDialogOpen(true); }} className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -197,7 +198,7 @@ export function DichVuClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>

@@ -15,7 +15,8 @@ import {
   Search,
 } from "lucide-react"
 
-import { DashboardPageHeader, EmptyState, ErrorState, MetricCard } from "@/components/dashboard/dashboard-ui"
+import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
+import { DashboardHero, DashboardKpiCard, DashboardCard } from "@/components/dashboard/shared-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -190,57 +191,59 @@ export default function CongNoPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      <DashboardPageHeader
-        eyebrow="Thu tiền"
+      <DashboardHero
+        icon={CircleDollarSign}
         title="Công nợ"
         description="Theo dõi các khoản chưa thanh toán theo phòng và mở trực tiếp hóa đơn cần xử lý."
         actions={
           <>
             <Button variant="outline" onClick={() => fetchData(true)} disabled={refreshing}>
-              <RefreshCw className={refreshing ? "animate-spin" : ""} />
+              <RefreshCw className={refreshing ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
               {refreshing ? "Đang tải" : "Làm mới"}
             </Button>
             <Button asChild>
               <Link href="/dashboard/hoa-don">
-                <ReceiptText />
+                <ReceiptText className="mr-2 h-4 w-4" />
                 Xem hóa đơn
               </Link>
             </Button>
           </>
         }
-      />
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard
+            title="Phòng đang có nợ"
+            value={String(totalElements)}
+            hint="Tổng kết quả từ hệ thống"
+            icon={<House className="h-5 w-5" />}
+            tone="default"
+          />
+          <DashboardKpiCard
+            title="Tổng nợ trên trang"
+            value={formatCurrency(pageTotals.debt)}
+            hint="Cần API aggregate để hiển thị toàn bộ"
+            icon={<CircleDollarSign className="h-5 w-5" />}
+            tone={pageTotals.debt > 0 ? "orange" : "emerald"}
+          />
+          <DashboardKpiCard
+            title="Quá hạn trên trang"
+            value={formatCurrency(pageTotals.overdue)}
+            hint="Khoản cần ưu tiên liên hệ"
+            icon={<AlertTriangle className="h-5 w-5" />}
+            tone={pageTotals.overdue > 0 ? "red" : "emerald"}
+          />
+          <DashboardKpiCard
+            title="Hóa đơn trên trang"
+            value={String(pageTotals.invoices)}
+            hint="Hóa đơn chưa tất toán"
+            icon={<FileText className="h-5 w-5" />}
+            tone="default"
+          />
+        </div>
+      </DashboardHero>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Phòng đang có nợ"
-          value={totalElements}
-          hint="Tổng kết quả từ hệ thống"
-          icon={House}
-        />
-        <MetricCard
-          label="Tổng nợ trên trang"
-          value={formatCurrency(pageTotals.debt)}
-          hint="Cần API aggregate để hiển thị toàn bộ"
-          icon={CircleDollarSign}
-          tone={pageTotals.debt > 0 ? "warning" : "success"}
-        />
-        <MetricCard
-          label="Quá hạn trên trang"
-          value={formatCurrency(pageTotals.overdue)}
-          hint="Khoản cần ưu tiên liên hệ"
-          icon={AlertTriangle}
-          tone={pageTotals.overdue > 0 ? "danger" : "success"}
-        />
-        <MetricCard
-          label="Hóa đơn trên trang"
-          value={pageTotals.invoices}
-          hint="Hóa đơn chưa tất toán"
-          icon={FileText}
-        />
-      </div>
-
-      <Card className="gap-0 py-0">
-        <CardHeader className="border-b p-5 md:p-6">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <CardTitle className="text-lg">Danh sách cần thu</CardTitle>
@@ -286,19 +289,19 @@ export default function CongNoPage() {
             <>
               <div className="hidden overflow-hidden rounded-xl border md:block">
                 <Table>
-                  <TableHeader className="bg-muted/60">
+                  <TableHeader className="bg-[#F8F3EC]">
                     <TableRow>
-                      <TableHead>Tòa nhà / Phòng</TableHead>
-                      <TableHead>Khách thuê</TableHead>
-                      <TableHead>Hóa đơn nợ</TableHead>
-                      <TableHead className="text-right">Tổng nợ</TableHead>
-                      <TableHead className="text-right">Quá hạn</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Tòa nhà / Phòng</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Khách thuê</TableHead>
+                      <TableHead className="font-semibold text-[#243B5A]">Hóa đơn nợ</TableHead>
+                      <TableHead className="text-right font-semibold text-[#243B5A]">Tổng nợ</TableHead>
+                      <TableHead className="text-right font-semibold text-[#243B5A]">Quá hạn</TableHead>
+                      <TableHead className="text-right font-semibold text-[#243B5A]">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.map((item) => (
-                      <TableRow key={item.phongId}>
+                      <TableRow key={item.phongId} className="hover:bg-[#F8F3EC]/50 transition-colors">
                         <TableCell>
                           <p className="font-medium">{item.maPhong}</p>
                           <p className="text-xs text-muted-foreground">{item.tenToaNha || "Chưa xác định tòa nhà"}</p>
@@ -422,7 +425,7 @@ export default function CongNoPage() {
             </div>
           ) : null}
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       <Dialog open={Boolean(selectedDebt)} onOpenChange={(open) => !open && setSelectedDebt(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">

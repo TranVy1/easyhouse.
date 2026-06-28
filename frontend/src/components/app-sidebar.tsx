@@ -125,16 +125,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border" {...props}>
-      <SidebarHeader className="border-b border-sidebar-border p-3">
+      <SidebarHeader className="border-b border-sidebar-border p-3 pb-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Building2 className="size-5" />
+                <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#243B5A] to-[#4FA7A0] shadow-sm">
+                  <Building2 className="size-5 text-white" />
                 </div>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-base font-semibold">EasyHouse</span>
+                  <span className="truncate text-lg font-bold tracking-tight text-[#243B5A]">EasyHouse</span>
                   <span className="truncate text-xs text-muted-foreground">Quản lý nhà trọ</span>
                 </div>
               </Link>
@@ -147,7 +147,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/dashboard"} tooltip="Tổng quan">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/dashboard"}
+                  tooltip="Tổng quan"
+                  className={pathname === "/dashboard" ? "border-l-[3px] border-l-[#4FA7A0] bg-gradient-to-r from-[#4FA7A0]/10 to-transparent text-[#243B5A] font-bold transition-colors duration-200" : "transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800"}
+                >
                   <Link href="/dashboard">
                     <LayoutDashboard />
                     <span>Tổng quan</span>
@@ -159,7 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
         <NavMain items={sections} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-3">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
         <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />

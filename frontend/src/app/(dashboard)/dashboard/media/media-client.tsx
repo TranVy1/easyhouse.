@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { DashboardHero, DashboardCard } from "@/components/dashboard/shared-ui";
 import { toast } from "sonner";
 import { FileMedia, ApiResponse } from "@/types";
 import { useSession } from "next-auth/react";
@@ -165,25 +166,26 @@ export function MediaClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Quản lý File & Media</h1>
-          <p className="text-xs md:text-sm text-gray-600">Quản lý hình ảnh, hợp đồng, tài liệu trong hệ thống.</p>
-        </div>
-        <Button onClick={() => setIsUploadOpen(true)}>
-          <Upload className="mr-2 h-4 w-4" /> Tải lên
-        </Button>
-      </div>
+      <DashboardHero
+        icon={File}
+        title="Quản lý File & Media"
+        description="Quản lý hình ảnh, hợp đồng, tài liệu trong hệ thống."
+        actions={
+          <Button onClick={() => setIsUploadOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" /> Tải lên
+          </Button>
+        }
+      />
 
-      <div className="border rounded-md bg-white overflow-x-auto">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8] overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>File</TableHead>
-              <TableHead>Đối tượng</TableHead>
-              <TableHead>Kích thước</TableHead>
-              <TableHead>Ngày tải lên</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">File</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Đối tượng</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Kích thước</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Ngày tải lên</TableHead>
+              <TableHead className="text-right font-semibold text-[#243B5A]">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,11 +195,11 @@ export function MediaClient() {
               </TableRow>
             ) : mediaList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-gray-500">Chưa có file nào</TableCell>
+                <TableCell colSpan={5} className="text-center h-24 text-gray-500">Chưa có file nào</TableCell>
               </TableRow>
             ) : (
               paginatedMediaList.map((media) => (
-                <TableRow key={media._id || media.id}>
+                <TableRow key={media._id || media.id} className="hover:bg-[#F8F3EC]/50 transition-colors">
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       {getFileIcon(media.loaiFile || "")}
@@ -240,7 +242,7 @@ export function MediaClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       <div className="flex items-center justify-between px-2">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">

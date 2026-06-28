@@ -179,11 +179,11 @@ export default function ToaNhaDetailPage() {
             Sơ đồ vận hành phòng, hợp đồng hiện tại và trạng thái cần xử lý.
           </p>
         </div>
-                <div className="flex gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3 mt-2 md:mt-0">
           <Button variant="outline" onClick={fetchSoDo}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Tải mới
-        </Button>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Tải mới
+          </Button>
           <Button onClick={() => setIsAddRoomOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Thêm phòng

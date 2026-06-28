@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DashboardHero, DashboardKpiCard, DashboardCard } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -319,29 +320,54 @@ export default function AccountManagementPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý tài khoản</h1>
-          <p className="text-xs md:text-sm text-gray-600">Quản lý người dùng và phân quyền hệ thống</p>
+      <DashboardHero
+        icon={Users}
+        title="Quản lý tài khoản"
+        description="Quản lý người dùng và phân quyền hệ thống"
+        actions={
+          <>
+            <Button 
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={isRefreshing ? 'animate-spin mr-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+              {isRefreshing ? 'Đang tải...' : 'Làm mới'}
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo tài khoản
+            </Button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+          <DashboardKpiCard
+            title="Tổng người dùng"
+            value={String(users.length)}
+            icon={<Users className="h-5 w-5" />}
+            tone="default"
+          />
+          <DashboardKpiCard
+            title="Quản trị viên"
+            value={String(users.filter(u => getUserRole(u) === 'admin').length)}
+            icon={<Shield className="h-5 w-5" />}
+            tone="red"
+          />
+          <DashboardKpiCard
+            title="Chủ nhà"
+            value={String(users.filter(u => getUserRole(u) === 'chuNha').length)}
+            icon={<Users className="h-5 w-5" />}
+            tone="emerald"
+          />
+          <DashboardKpiCard
+            title="Nhân viên"
+            value={String(users.filter(u => getUserRole(u) === 'nhanVien').length)}
+            icon={<Users className="h-5 w-5" />}
+            tone="orange"
+          />
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-          </Button>
-          <Button size="sm" onClick={() => setIsCreateDialogOpen(true)} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Tạo tài khoản</span>
-            <span className="sm:hidden">Tạo</span>
-          </Button>
-        </div>
-      </div>
+      </DashboardHero>
 
       {/* Create User Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -421,60 +447,12 @@ export default function AccountManagementPage() {
 
      
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-4 lg:gap-6">
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Tổng người dùng</p>
-              <p className="text-base md:text-2xl font-bold">{users.length}</p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-          </div>
-        </Card>
 
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Quản trị viên</p>
-              <p className="text-base md:text-2xl font-bold text-red-600">
-                {users.filter(u => getUserRole(u) === 'admin').length}
-              </p>
-            </div>
-            <Shield className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Chủ nhà</p>
-              <p className="text-base md:text-2xl font-bold text-[#243B5A]">
-                {users.filter(u => getUserRole(u) === 'chuNha').length}
-              </p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-[#243B5A]" />
-          </div>
-        </Card>
-
-        <Card className="p-2 md:p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] md:text-xs font-medium text-gray-600">Nhân viên</p>
-              <p className="text-base md:text-2xl font-bold text-green-600">
-                {users.filter(u => getUserRole(u) === 'nhanVien').length}
-              </p>
-            </div>
-            <Users className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-          </div>
-        </Card>
-      </div>
 
       {/* Desktop Table */}
-      <Card className="hidden md:block">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+      <DashboardCard className="hidden md:block overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">
+          <CardTitle className="text-lg">
             Danh sách người dùng
           </CardTitle>
           <CardDescription>
@@ -491,7 +469,7 @@ export default function AccountManagementPage() {
             onSearchChange={setSearchTerm}
           />
         </CardContent>
-      </Card>
+      </DashboardCard>
 
       {/* Mobile Cards */}
       <div className="md:hidden">

@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
 import { unwrapPageData } from "@/lib/api-response";
+import { DashboardCard } from "@/components/dashboard/shared-ui";
 import { useSession } from "next-auth/react";
 
 interface TienIch {
@@ -144,36 +145,36 @@ export function TienIchClient() {
         </Button>
       </div>
 
-      <div className="border rounded-md">
+      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#F8F3EC]">
             <TableRow>
-              <TableHead>Tên tiện ích</TableHead>
-              <TableHead>Biểu tượng (Icon)</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Tên tiện ích</TableHead>
+              <TableHead className="font-semibold text-[#243B5A]">Biểu tượng (Icon)</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center">Đang tải...</TableCell>
+                <TableCell colSpan={3} className="text-center h-24 text-gray-500">Đang tải...</TableCell>
               </TableRow>
             ) : tienIchList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center">Không có dữ liệu</TableCell>
+                <TableCell colSpan={3} className="text-center h-24 text-gray-500">Không có dữ liệu</TableCell>
               </TableRow>
             ) : (
               tienIchList.map((ti) => (
-                <TableRow key={ti._id}>
-                  <TableCell className="font-medium">{ti.ten}</TableCell>
-                  <TableCell>{ti.bieuTuong}</TableCell>
+                <TableRow key={ti._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
+                  <TableCell className="font-medium text-[#243B5A]">{ti.ten}</TableCell>
+                  <TableCell className="text-gray-600">{ti.bieuTuong}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2 justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(ti)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(ti)} className="h-8 w-8 text-[#267D76] hover:text-[#1a5c56] hover:bg-[#267D76]/10">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => { setSelectedTienIch(ti); setIsDeleteDialogOpen(true); }}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                      <Button variant="ghost" size="icon" onClick={() => { setSelectedTienIch(ti); setIsDeleteDialogOpen(true); }} className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -182,7 +183,7 @@ export function TienIchClient() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </DashboardCard>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
