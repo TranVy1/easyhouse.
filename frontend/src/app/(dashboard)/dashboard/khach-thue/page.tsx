@@ -7,7 +7,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
+import { DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ import { KhachThueDataTable } from './table';
 import { CCCDUpload } from '@/components/ui/cccd-upload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import styles from './page.module.css';
 
 export default function KhachThuePage() {
   const accessToken = useSession()?.data?.accessToken;
@@ -126,6 +127,42 @@ export default function KhachThuePage() {
   }, [searchTerm]);
 
   const filteredKhachThue = khachThueList;
+  const totalKhachThue = totalElements;
+  const dangThueCount = khachThueList.filter(k => k.trangThai === 'dangThue' || k.trangThai === 'ACTIVE').length;
+  const daTraPhongCount = khachThueList.filter(k => k.trangThai === 'daTraPhong').length;
+  const chuaThueCount = khachThueList.filter(k => k.trangThai === 'chuaThue').length;
+  const heroStats = [
+    {
+      title: 'Tổng khách thuê',
+      value: totalKhachThue,
+      description: 'Toàn bộ hồ sơ khách thuê',
+      tone: 'navy',
+    },
+    {
+      title: 'Đang thuê',
+      value: dangThueCount,
+      description: 'Đang ở và còn hiệu lực',
+      tone: 'teal',
+    },
+    {
+      title: 'Đã trả phòng',
+      value: daTraPhongCount,
+      description: 'Đã kết thúc hợp đồng',
+      tone: 'blue',
+    },
+    {
+      title: 'Chưa thuê',
+      value: chuaThueCount,
+      description: 'Hồ sơ chưa phát sinh',
+      tone: 'orange',
+    },
+  ];
+  const statToneClass: Record<string, string> = {
+    teal: styles.statCardTeal,
+    blue: styles.statCardBlue,
+    orange: styles.statCardOrange,
+    navy: '',
+  };
 
   const handleEdit = (khachThue: KhachThue) => {
     setEditingKhachThue(khachThue);
@@ -179,89 +216,100 @@ export default function KhachThuePage() {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Hero Section */}
-      <DashboardHero
-        icon={Users}
-        title="Quản lý khách thuê"
-        description="Danh sách tất cả khách thuê trong hệ thống, theo dõi hợp đồng và công nợ."
-        actions={
-          <>
-            <HeroActionButton
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-            </HeroActionButton>
-            
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <HeroActionButton variant="default" onClick={() => setEditingKhachThue(null)}>
-                  <Plus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Thêm khách thuê</span>
-                  <span className="sm:hidden">Thêm</span>
-                </HeroActionButton>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingKhachThue ? 'Chỉnh sửa khách thuê' : 'Thêm khách thuê mới'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingKhachThue ? 'Cập nhật thông tin khách thuê' : 'Nhập thông tin khách thuê mới'}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <KhachThueForm 
-                  khachThue={editingKhachThue}
-                  onClose={() => setIsDialogOpen(false)}
-                  onSuccess={(newKhachThue) => {
-                      clearCache();
-                    setIsDialogOpen(false);
-                    if (newKhachThue) {
-                      // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
-                      fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                    } else {
-                      // Fallback: refresh data nếu không có dữ liệu trả về
-                      fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                    }
-                    toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
-                  }}
-                  isSubmitting={isFormSubmitting}
-                  setIsSubmitting={setIsFormSubmitting}
-                />
-              </DialogContent>
-            </Dialog>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard 
-            title="Tổng khách thuê" 
-            value={totalElements} 
-            icon={<Users className="h-5 w-5" />} 
-            tone="default" 
-          />
-          <DashboardKpiCard 
-            title="Đang thuê" 
-            value={khachThueList.filter(k => k.trangThai === 'dangThue' || k.trangThai === 'ACTIVE').length} 
-            icon={<Users className="h-5 w-5" />} 
-            tone="emerald" 
-          />
-          <DashboardKpiCard 
-            title="Đã trả phòng" 
-            value={khachThueList.filter(k => k.trangThai === 'daTraPhong').length} 
-            icon={<Users className="h-5 w-5" />} 
-            tone="blue" 
-          />
-          <DashboardKpiCard 
-            title="Chưa thuê" 
-            value={khachThueList.filter(k => k.trangThai === 'chuaThue').length} 
-            icon={<Users className="h-5 w-5" />} 
-            tone="orange" 
-          />
+      <section className={`khach-thue-hero ${styles.hero}`}>
+        <div className={styles.content}>
+          <div className={styles.eyebrow}>
+            <Users className="h-4 w-4" aria-hidden="true" />
+            QUẢN LÝ KHÁCH THUÊ
+          </div>
+
+          <div className={styles.titleRow}>
+            <h1>Quản lý khách thuê</h1>
+            <span className={styles.statusBadge}>Hồ sơ ổn định</span>
+          </div>
+
+          <p>
+            Quản lý hồ sơ khách thuê, trạng thái cư trú, hợp đồng và công nợ trong một nơi.
+          </p>
+
+          {totalKhachThue > 0 && (
+            <div className={styles.insight}>
+              Hiện có <strong>{dangThueCount} khách đang thuê</strong> trong <strong>{totalKhachThue} hồ sơ</strong>, hệ thống đang vận hành ổn định.
+            </div>
+          )}
+
+          <div className={styles.stats}>
+            {heroStats.map((stat) => (
+              <div
+                key={stat.title}
+                className={`${styles.statCard} ${statToneClass[stat.tone]}`}
+              >
+                <div className={styles.statTop}>
+                  <span>{stat.title}</span>
+                  <Users className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <strong>{stat.value}</strong>
+                <p>{stat.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className={`khach-thue-hero__actions ${styles.actions}`}>
+          <HeroActionButton
+            variant="secondary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={`khach-thue-hero__button ${styles.button} ${styles.buttonSecondary}`}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+          </HeroActionButton>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <HeroActionButton
+                variant="default"
+                onClick={() => setEditingKhachThue(null)}
+                className={`khach-thue-hero__button ${styles.button} ${styles.buttonPrimary}`}
+              >
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Thêm khách thuê</span>
+                <span className="sm:hidden">Thêm</span>
+              </HeroActionButton>
+            </DialogTrigger>
+            <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingKhachThue ? 'Chỉnh sửa khách thuê' : 'Thêm khách thuê mới'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingKhachThue ? 'Cập nhật thông tin khách thuê' : 'Nhập thông tin khách thuê mới'}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <KhachThueForm 
+                khachThue={editingKhachThue}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={(newKhachThue) => {
+                    clearCache();
+                  setIsDialogOpen(false);
+                  if (newKhachThue) {
+                    // Fallback: refresh data nếu không có dữ liệu trả về hoặc có
+                    fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                  } else {
+                    // Fallback: refresh data nếu không có dữ liệu trả về
+                    fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                  }
+                  toast.success(editingKhachThue ? 'Cập nhật khách thuê thành công!' : 'Thêm khách thuê thành công!');
+                }}
+                isSubmitting={isFormSubmitting}
+                setIsSubmitting={setIsFormSubmitting}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
 
       {/* Desktop Table */}
       <DashboardCard className="hidden md:block overflow-hidden">

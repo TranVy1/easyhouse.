@@ -18,11 +18,11 @@ import {
 import { toast } from "sonner"
 
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
+import { DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -214,6 +214,15 @@ export default function ChiSoDienNuocPage() {
     [data],
   )
 
+  const hasDraftReadings = useMemo(
+    () => data.some((item) => item.trangThai === "DRAFT"),
+    [data],
+  )
+
+  const periodLabel = filters.kyThang !== "all" && filters.kyNam !== "all"
+    ? `Tháng ${filters.kyThang}/${filters.kyNam}`
+    : ""
+
   const updateFilter = (key: keyof typeof filters, value: string) => {
     setPagination((current) => ({ ...current, pageIndex: 0 }))
     setFilters((current) => ({ ...current, [key]: value }))
@@ -317,50 +326,95 @@ export default function ChiSoDienNuocPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      <DashboardHero
-        icon={Droplets}
-        title="Chỉ số điện nước"
-        description="Ghi và chốt số đo trước khi lập hóa đơn; bản ghi đã lên hóa đơn được khóa chỉnh sửa."
-        actions={
-          <>
-            <HeroActionButton variant="secondary" onClick={() => fetchReadings(true)} disabled={refreshing}>
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">{refreshing ? "Đang tải" : "Làm mới"}</span>
-            </HeroActionButton>
-            <HeroActionButton variant="default" onClick={openCreate}>
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Ghi chỉ số</span>
-            </HeroActionButton>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard 
-            title="Bản ghi phù hợp" 
-            value={totalElements} 
-            icon={<CalendarDays className="h-5 w-5" />} 
-            tone="default" 
-          />
-          <DashboardKpiCard 
-            title="Điện trên trang" 
-            value={`${pageTotals.electricity} kWh`} 
-            icon={<Bolt className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="Nước trên trang" 
-            value={`${pageTotals.water} m3`} 
-            icon={<Droplets className="h-5 w-5" />} 
-            tone="blue" 
-          />
-          <DashboardKpiCard 
-            title="Đã chốt / lập HĐ" 
-            value={pageTotals.confirmed} 
-            icon={<FileCheck2 className="h-5 w-5" />} 
-            tone="emerald" 
-          />
+      <section className="chi-so-dien-nuoc-hero">
+        <div className="chi-so-dien-nuoc-hero__content">
+          <div className="chi-so-dien-nuoc-hero__eyebrow">
+            <Droplets className="h-4 w-4" aria-hidden="true" />
+            {"CH\u1EC8 S\u1ED0 \u0110I\u1EC6N N\u01AF\u1EDAC"}
+          </div>
+
+          <div className="chi-so-dien-nuoc-hero__title-row">
+            <h1>{"Ch\u1EC9 s\u1ED1 \u0111i\u1EC7n n\u01B0\u1EDBc"}</h1>
+            <span className={`chi-so-dien-nuoc-hero__status-badge ${hasDraftReadings ? "is-warning" : ""}`}>
+              {hasDraftReadings ? "C\u1EA7n ghi b\u1ED5 sung" : "S\u1EB5n s\u00E0ng ch\u1ED1t ch\u1EC9 s\u1ED1"}
+            </span>
+          </div>
+
+          <p>{"Ghi v\u00E0 ch\u1ED1t s\u1ED1 \u0111o tr\u01B0\u1EDBc khi l\u1EADp h\u00F3a \u0111\u01A1n; b\u1EA3n ghi \u0111\u00E3 l\u00EAn h\u00F3a \u0111\u01A1n \u0111\u01B0\u1EE3c kh\u00F3a ch\u1EC9nh s\u1EEDa."}</p>
+
+          {data.length > 0 ? (
+            <div className="chi-so-dien-nuoc-hero__insight">
+              {"Hi\u1EC7n c\u00F3 "}<strong>{totalElements}{" b\u1EA3n ghi"}</strong>{" ph\u00F9 h\u1EE3p, "}<strong>{pageTotals.electricity}{" kWh"}</strong>{" \u0111i\u1EC7n v\u00E0 "}
+              <strong>{pageTotals.water}{" m\u00B3"}</strong>{" n\u01B0\u1EDBc c\u1EA7n theo d\u00F5i trong k\u1EF3 n\u00E0y."}
+            </div>
+          ) : (
+            <div className="chi-so-dien-nuoc-hero__insight">{"Ch\u01B0a c\u00F3 b\u1EA3n ghi ph\u00F9 h\u1EE3p v\u1EDBi b\u1ED9 l\u1ECDc hi\u1EC7n t\u1EA1i."}</div>
+          )}
+
+          <div className="chi-so-dien-nuoc-hero__chips">
+            {periodLabel ? <span className="chi-so-dien-nuoc-hero__chip">{"K\u1EF3: "}{periodLabel}</span> : null}
+            <span className="chi-so-dien-nuoc-hero__chip">{totalElements}{" b\u1EA3n ghi"}</span>
+            <span className="chi-so-dien-nuoc-hero__chip">{"\u0110\u00E3 ch\u1ED1t "}{pageTotals.confirmed}/{data.length}</span>
+            <span className="chi-so-dien-nuoc-hero__chip">{pageTotals.electricity}{" kWh"}</span>
+            <span className="chi-so-dien-nuoc-hero__chip">{pageTotals.water}{" m\u00B3"}</span>
+          </div>
+
+          <div className="chi-so-dien-nuoc-hero__stats">
+            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--neutral">
+              <div className="chi-so-dien-nuoc-hero__stat-top">
+                <span>{"B\u1EA3n ghi ph\u00F9 h\u1EE3p"}</span>
+                <CalendarDays className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{totalElements}</strong>
+              <small>{"S\u1EB5n s\u00E0ng ki\u1EC3m tra trong k\u1EF3"}</small>
+            </article>
+            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--electric">
+              <div className="chi-so-dien-nuoc-hero__stat-top">
+                <span>{"\u0110i\u1EC7n tr\u00EAn trang"}</span>
+                <Bolt className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{pageTotals.electricity}{" kWh"}</strong>
+              <small>{"T\u1ED5ng \u0111i\u1EC7n \u0111\u00E3 ghi nh\u1EADn"}</small>
+            </article>
+            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--water">
+              <div className="chi-so-dien-nuoc-hero__stat-top">
+                <span>{"N\u01B0\u1EDBc tr\u00EAn trang"}</span>
+                <Droplets className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{pageTotals.water}{" m\u00B3"}</strong>
+              <small>{"T\u1ED5ng n\u01B0\u1EDBc \u0111\u00E3 ghi nh\u1EADn"}</small>
+            </article>
+            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--success">
+              <div className="chi-so-dien-nuoc-hero__stat-top">
+                <span>{"\u0110\u00E3 ch\u1ED1t / l\u1EADp H\u0110"}</span>
+                <FileCheck2 className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{pageTotals.confirmed}</strong>
+              <small>{"\u0110\u00E3 kh\u00F3a ch\u1EC9nh s\u1EEDa"}</small>
+            </article>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="chi-so-dien-nuoc-hero__actions">
+          <HeroActionButton
+            variant="secondary"
+            className="chi-so-dien-nuoc-hero__button chi-so-dien-nuoc-hero__button-secondary"
+            onClick={() => fetchReadings(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">{refreshing ? "\u0110ang t\u1EA3i" : "L\u00E0m m\u1EDBi"}</span>
+          </HeroActionButton>
+          <HeroActionButton
+            variant="default"
+            className="chi-so-dien-nuoc-hero__button chi-so-dien-nuoc-hero__button-primary"
+            onClick={openCreate}
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{"Ghi ch\u1EC9 s\u1ED1"}</span>
+          </HeroActionButton>
+        </div>
+      </section>
 
       <DashboardCard className="overflow-hidden">
         <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6 pb-4">

@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui";
+import { DashboardCard } from "@/components/dashboard/shared-ui";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -186,6 +186,25 @@ export default function SuCoPage() {
     
     return matchesSearch;
   });
+  const pendingIssues = suCoList.filter(s => s.trangThai === 'PENDING').length;
+  const inProgressIssues = suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length;
+  const resolvedIssues = suCoList.filter(s => s.trangThai === 'RESOLVED').length;
+  const urgentIssues = suCoList.filter(s => s.mucDoUuTien === 'khan_cap').length;
+  const highPriorityIssues = suCoList.filter(s => s.mucDoUuTien === 'cao').length;
+  const totalIssueCount = totalElements || suCoList.length;
+  const issueStatusBadgeText = urgentIssues > 0
+    ? 'Có sự cố cần xử lý gấp'
+    : pendingIssues > 0
+      ? 'Cần tiếp nhận sự cố'
+      : 'Sự cố ổn định';
+  const issueStatusBadgeClass = urgentIssues > 0
+    ? 'is-danger'
+    : pendingIssues > 0
+      ? ''
+      : 'is-stable';
+  const pendingToneClass = urgentIssues > 0 ? 'is-red' : pendingIssues > 0 ? 'is-orange' : 'is-teal';
+  const inProgressToneClass = inProgressIssues > 0 ? 'is-orange' : 'is-neutral';
+  const resolvedToneClass = resolvedIssues > 0 ? 'is-teal' : 'is-neutral';
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -318,82 +337,133 @@ export default function SuCoPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <DashboardHero
-        icon={AlertTriangle}
-        title="Quản lý sự cố"
-        description="Theo dõi và xử lý các sự cố từ khách thuê"
-        actions={
-          <>
-            <HeroActionButton
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-            </HeroActionButton>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <HeroActionButton variant="default" onClick={() => setEditingSuCo(null)}>
-                  <Plus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Báo cáo sự cố</span>
-                  <span className="sm:hidden">Báo cáo</span>
-                </HeroActionButton>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingSuCo ? 'Chỉnh sửa sự cố' : 'Báo cáo sự cố mới'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingSuCo ? 'Cập nhật thông tin sự cố' : 'Nhập thông tin sự cố mới'}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <SuCoForm 
-                  suCo={editingSuCo}
-                  phongList={phongList}
-                  hopDongList={hopDongList}
-                  getKhachThueName={getKhachThueName}
-                  onClose={() => setIsDialogOpen(false)}
-                  onSuccess={() => {
-                    clearCache();
-                    setIsDialogOpen(false);
-                    fetchData(true);
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard 
-            title="Tổng sự cố" 
-            value={String(totalElements)} 
-            icon={<AlertTriangle className="h-5 w-5" />} 
-            tone="default" 
-          />
-          <DashboardKpiCard 
-            title="Mới" 
-            value={String(suCoList.filter(s => s.trangThai === 'PENDING').length)} 
-            icon={<AlertTriangle className="h-5 w-5" />} 
-            tone="red" 
-          />
-          <DashboardKpiCard 
-            title="Đang xử lý" 
-            value={String(suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length)} 
-            icon={<Clock className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="Đã xong" 
-            value={String(suCoList.filter(s => s.trangThai === 'RESOLVED').length)} 
-            icon={<CheckCircle className="h-5 w-5" />} 
-            tone="emerald" 
-          />
+      <section className="su-co-hero">
+        <div className="su-co-hero__content">
+          <div className="su-co-hero__eyebrow">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            <span>QUẢN LÝ SỰ CỐ</span>
+          </div>
+
+          <div className="su-co-hero__title-row">
+            <h1>Quản lý sự cố</h1>
+            <span className={`su-co-hero__status-badge ${issueStatusBadgeClass}`}>
+              {issueStatusBadgeText}
+            </span>
+          </div>
+
+          <p>Theo dõi, tiếp nhận và xử lý các sự cố phát sinh từ khách thuê trong một nơi.</p>
+
+          {totalIssueCount > 0 && (
+            <div className="su-co-hero__insight">
+              <span>
+                Hiện có <strong>{pendingIssues} sự cố mới</strong> cần tiếp nhận trên tổng <strong>{totalIssueCount} sự cố</strong> được ghi nhận.
+              </span>
+            </div>
+          )}
+
+          <div className="su-co-hero__chips" aria-label="Tóm tắt trạng thái sự cố">
+            <span className="su-co-hero__chip">{totalIssueCount} sự cố</span>
+            <span className="su-co-hero__chip">{pendingIssues} mới</span>
+            <span className="su-co-hero__chip">{inProgressIssues} đang xử lý</span>
+            <span className="su-co-hero__chip">{resolvedIssues} đã xong</span>
+            {highPriorityIssues > 0 && <span className="su-co-hero__chip">{highPriorityIssues} ưu tiên cao</span>}
+          </div>
+
+          <div className="su-co-hero__workflow" aria-label="Quy trình xử lý sự cố">
+            <span>Tiếp nhận</span>
+            <span aria-hidden="true">→</span>
+            <span>Phân công</span>
+            <span aria-hidden="true">→</span>
+            <span>Xử lý</span>
+            <span aria-hidden="true">→</span>
+            <span>Hoàn tất</span>
+          </div>
+
+          <div className="su-co-hero__stats">
+            <div className="su-co-hero__stat-card is-navy">
+              <div className="su-co-hero__stat-top">
+                <span>Tổng sự cố</span>
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{totalIssueCount}</strong>
+              <small>Toàn bộ sự cố được ghi nhận</small>
+            </div>
+            <div className={`su-co-hero__stat-card ${pendingToneClass}`}>
+              <div className="su-co-hero__stat-top">
+                <span>Mới</span>
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{pendingIssues}</strong>
+              <small>Chưa được tiếp nhận xử lý</small>
+            </div>
+            <div className={`su-co-hero__stat-card ${inProgressToneClass}`}>
+              <div className="su-co-hero__stat-top">
+                <span>Đang xử lý</span>
+                <Clock className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{inProgressIssues}</strong>
+              <small>Đang được phân công xử lý</small>
+            </div>
+            <div className={`su-co-hero__stat-card ${resolvedToneClass}`}>
+              <div className="su-co-hero__stat-top">
+                <span>Đã xong</span>
+                <CheckCircle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{resolvedIssues}</strong>
+              <small>Sự cố đã hoàn tất</small>
+            </div>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="su-co-hero__actions">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="su-co-hero__button su-co-hero__button-secondary"
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                onClick={() => setEditingSuCo(null)}
+                className="su-co-hero__button su-co-hero__button-primary"
+              >
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Báo cáo sự cố</span>
+                <span className="sm:hidden">Báo cáo</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingSuCo ? 'Chỉnh sửa sự cố' : 'Báo cáo sự cố mới'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingSuCo ? 'Cập nhật thông tin sự cố' : 'Nhập thông tin sự cố mới'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <SuCoForm
+                suCo={editingSuCo}
+                phongList={phongList}
+                hopDongList={hopDongList}
+                getKhachThueName={getKhachThueName}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={() => {
+                  clearCache();
+                  setIsDialogOpen(false);
+                  fetchData(true);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
 
       {/* Desktop Table */}
       <DashboardCard className="hidden md:block overflow-hidden">

@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner"
 
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
+import { DashboardCard } from "@/components/dashboard/shared-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -207,8 +207,37 @@ export default function HoaDonPage() {
     const outstanding = data.reduce((sum, invoice) => sum + Number(invoice.conLai || 0), 0)
     const collected = data.reduce((sum, invoice) => sum + Number(invoice.daTra ?? invoice.daThanhToan ?? 0), 0)
     const overdue = data.filter((invoice) => invoice.trangThai === "OVERDUE").length
-    return { outstanding, collected, overdue }
+    const totalDue = outstanding + collected
+    const collectionRate = totalDue > 0 ? Math.min(100, Math.max(0, (collected / totalDue) * 100)) : 0
+    return { outstanding, collected, overdue, totalDue, collectionRate }
   }, [data])
+
+  const heroStatus = useMemo(() => {
+    if (metrics.overdue > 0) {
+      return { label: "Có hóa đơn quá hạn", className: "is-danger" }
+    }
+    if (metrics.outstanding > 0) {
+      return { label: "Còn công nợ cần theo dõi", className: "" }
+    }
+    return { label: "Thanh toán ổn định", className: "is-stable" }
+  }, [metrics.outstanding, metrics.overdue])
+
+  const heroPeriodLabel = useMemo(() => {
+    if (filters.kyThang !== "all" && filters.kyNam !== "all") {
+      return `Kỳ: Tháng ${filters.kyThang}/${filters.kyNam}`
+    }
+    if (filters.kyNam !== "all") {
+      return `Kỳ: Năm ${filters.kyNam}`
+    }
+    const firstInvoice = data[0]
+    const month = firstInvoice?.kyThang || firstInvoice?.thang
+    const year = firstInvoice?.kyNam || firstInvoice?.nam
+    return month && year ? `Kỳ gần nhất: Tháng ${month}/${year}` : null
+  }, [data, filters.kyNam, filters.kyThang])
+
+  const collectionRateLabel = new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 1,
+  }).format(metrics.collectionRate)
 
   const setFilter = (key: keyof typeof filters, value: string) => {
     setFilters((current) => ({ ...current, [key]: value }))
@@ -329,56 +358,127 @@ export default function HoaDonPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHero
-        icon={ReceiptText}
-        title="Hóa đơn"
-        description="Lập hóa đơn theo kỳ, theo dõi dư nợ và chuyển nhanh sang ghi nhận thanh toán."
-        actions={
-          <>
-            <HeroActionButton variant="secondary" onClick={() => void fetchInvoices(true)} disabled={refreshing}>
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Làm mới</span>
-            </HeroActionButton>
-            <HeroActionButton variant="secondary" onClick={() => setIsGenerateOpen(true)} className="bg-[#4FA7A0]/20 hover:bg-[#4FA7A0]/40 border-[#4FA7A0]/50 text-white">
-              <CalendarDays className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sinh hóa đơn tháng</span>
-            </HeroActionButton>
-            <HeroActionButton asChild variant="default">
-              <Link href="/dashboard/hoa-don/them-moi">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Lập hóa đơn</span>
-              </Link>
-            </HeroActionButton>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard 
-            title="Hóa đơn khớp lọc" 
-            value={String(total)} 
-            icon={<ReceiptText className="h-5 w-5" />} 
-            tone="default" 
-          />
-          <DashboardKpiCard 
-            title="Còn phải thu" 
-            value={currency(metrics.outstanding)} 
-            icon={<CircleDollarSign className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="Đã thu" 
-            value={currency(metrics.collected)} 
-            icon={<CalendarDays className="h-5 w-5" />} 
-            tone="emerald" 
-          />
-          <DashboardKpiCard 
-            title="Quá hạn" 
-            value={String(metrics.overdue)} 
-            icon={<AlertCircle className="h-5 w-5" />} 
-            tone="red" 
-          />
+      <section className="hoa-don-hero" aria-labelledby="hoa-don-hero-title">
+        <div className="hoa-don-hero__content">
+          <div className="hoa-don-hero__eyebrow">
+            <ReceiptText className="h-4 w-4" aria-hidden="true" />
+            HÓA ĐƠN
+          </div>
+
+          <div className="hoa-don-hero__title-row">
+            <h1 id="hoa-don-hero-title">Hóa đơn</h1>
+            <span className={`hoa-don-hero__status-badge ${heroStatus.className}`}>
+              {heroStatus.label}
+            </span>
+          </div>
+
+          <p>
+            Quản lý hóa đơn theo kỳ, theo dõi công nợ, số tiền đã thu và trạng thái thanh toán trong một nơi.
+          </p>
+
+          {data.length > 0 && (
+            <div className="hoa-don-hero__insight">
+              <span>
+                Hiện còn <strong>{currency(metrics.outstanding)}</strong> phải thu, đã thu{" "}
+                <strong>{currency(metrics.collected)}</strong> và{" "}
+                {metrics.overdue > 0 ? (
+                  <>
+                    có <strong>{metrics.overdue}</strong> hóa đơn quá hạn.
+                  </>
+                ) : (
+                  "chưa có hóa đơn quá hạn."
+                )}
+              </span>
+            </div>
+          )}
+
+          <div className="hoa-don-hero__chips" aria-label="Tóm tắt hóa đơn theo bộ lọc">
+            {heroPeriodLabel && <span className="hoa-don-hero__chip">{heroPeriodLabel}</span>}
+            <span className="hoa-don-hero__chip">{total} hóa đơn</span>
+            <span className="hoa-don-hero__chip">Đã thu {currency(metrics.collected)}</span>
+            <span className="hoa-don-hero__chip">Còn thu {currency(metrics.outstanding)}</span>
+            <span className="hoa-don-hero__chip">Quá hạn {metrics.overdue}</span>
+          </div>
+
+          {metrics.totalDue > 0 && (
+            <div className="hoa-don-hero__collection-progress">
+              <div className="hoa-don-hero__progress-meta">
+                <span>{collectionRateLabel}% đã thu</span>
+                <span>
+                  Đã thu {currency(metrics.collected)} / Tổng cần thu {currency(metrics.totalDue)}
+                </span>
+              </div>
+              <div className="hoa-don-hero__progress-track" aria-hidden="true">
+                <div
+                  className="hoa-don-hero__progress-fill"
+                  style={{ width: `${metrics.collectionRate}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="hoa-don-hero__stats">
+            <div className="hoa-don-hero__stat-card is-navy">
+              <div className="hoa-don-hero__stat-top">
+                <span>Hóa đơn khớp lọc</span>
+                <ReceiptText className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{total}</strong>
+              <small>Theo điều kiện lọc hiện tại</small>
+            </div>
+            <div className={`hoa-don-hero__stat-card ${metrics.outstanding > 0 ? "is-orange" : "is-teal"}`}>
+              <div className="hoa-don-hero__stat-top">
+                <span>Còn phải thu</span>
+                <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{currency(metrics.outstanding)}</strong>
+              <small>{metrics.outstanding > 0 ? "Cần theo dõi thanh toán" : "Không còn công nợ"}</small>
+            </div>
+            <div className="hoa-don-hero__stat-card is-teal">
+              <div className="hoa-don-hero__stat-top">
+                <span>Đã thu</span>
+                <CalendarDays className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{currency(metrics.collected)}</strong>
+              <small>Đã ghi nhận trong kỳ</small>
+            </div>
+            <div className={`hoa-don-hero__stat-card ${metrics.overdue > 0 ? "is-red" : "is-teal"}`}>
+              <div className="hoa-don-hero__stat-top">
+                <span>Quá hạn</span>
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{metrics.overdue}</strong>
+              <small>{metrics.overdue > 0 ? "Cần xử lý sớm" : "Không có hóa đơn trễ hạn"}</small>
+            </div>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="hoa-don-hero__actions">
+          <Button
+            type="button"
+            className="hoa-don-hero__button hoa-don-hero__button-secondary"
+            onClick={() => void fetchInvoices(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Làm mới</span>
+          </Button>
+          <Button
+            type="button"
+            className="hoa-don-hero__button hoa-don-hero__button-teal"
+            onClick={() => setIsGenerateOpen(true)}
+          >
+            <CalendarDays className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Sinh hóa đơn tháng</span>
+          </Button>
+          <Button asChild className="hoa-don-hero__button hoa-don-hero__button-primary">
+            <Link href="/dashboard/hoa-don/them-moi">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Lập hóa đơn</span>
+            </Link>
+          </Button>
+        </div>
+      </section>
 
       <DashboardCard className="overflow-hidden">
         <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">

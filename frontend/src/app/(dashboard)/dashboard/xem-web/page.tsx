@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Globe, ExternalLink, RefreshCw, Home, AlertCircle, CheckCircle } from 'lucide-react';
+import { Globe, ExternalLink, RefreshCw, Home, AlertCircle, CheckCircle, Link2, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
+import { DashboardCard } from '@/components/dashboard/shared-ui';
+import { cn } from '@/lib/utils';
+import styles from './xem-web-hero.module.css';
 
 export default function XemWebPage() {
   const [url, setUrl] = useState('/xem-phong');
@@ -94,110 +96,160 @@ export default function XemWebPage() {
     { name: 'Đăng nhập hệ thống', url: '/dang-nhap' },
   ];
 
+  const heroStatusLabel = loadError
+    ? 'Không thể hiển thị website'
+    : isLoading
+      ? 'Đang tải website'
+      : iframeLoaded
+        ? 'Website đã sẵn sàng'
+        : 'Sẵn sàng nhập link';
+
+  const heroStatusClass = loadError
+    ? 'is-error'
+    : isLoading
+      ? 'is-loading'
+      : iframeLoaded
+        ? 'is-ready'
+        : '';
+
   return (
     <div className="space-y-6">
-      <DashboardHero
-        icon={Globe}
-        title="Xem Web"
-        description="Nhập link để xem website ngay trên trang quản lý."
-      />
+      <section className={styles['xem-web-hero']}>
+        <div className={styles['xem-web-hero__content']}>
+          <div className={styles['xem-web-hero__eyebrow']}>
+            <Globe className="h-4 w-4" />
+            XEM WEB
+          </div>
 
-      {/* URL Input Card */}
-      <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
-        <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-[#243B5A]" />
-            Nhập địa chỉ website
-          </CardTitle>
-          <CardDescription>
-            Nhập URL của trang web bạn muốn xem (VD: google.com, facebook.com)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 p-5 md:p-6">
-          <div className="flex gap-2">
+          <div className={styles['xem-web-hero__title-row']}>
+            <h1>Xem Web</h1>
+            <span className={cn(styles['xem-web-hero__status-badge'], heroStatusClass && styles[heroStatusClass])}>
+              {isLoading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : loadError ? (
+                <AlertCircle className="h-4 w-4" />
+              ) : (
+                <CheckCircle className="h-4 w-4" />
+              )}
+              {heroStatusLabel}
+            </span>
+          </div>
+
+          <p>
+            Dán URL website để xem nhanh, kiểm tra giao diện và mở trang ngay trong khu quản lý.
+          </p>
+
+          <div className={styles['xem-web-hero__url-box']}>
             <Input
               type="text"
-              placeholder="Nhập URL (VD: google.com hoặc https://google.com)"
+              placeholder="Nhập URL website..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1"
+              className={styles['xem-web-hero__input']}
             />
             <Button
               onClick={handleLoadUrl}
               disabled={!url || isLoading}
+              className={styles['xem-web-hero__button-primary']}
             >
               <Globe className="h-4 w-4 mr-2" />
-              Tải trang
+              Xem ngay
             </Button>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Truy cập nhanh:</p>
-            <div className="flex flex-wrap gap-2">
-              {quickLinks.map((link) => (
-                <Button
-                  key={link.name}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setUrl(link.url);
-                    setCurrentUrl(link.url);
-                  }}
-                >
-                  {link.name}
-                </Button>
-              ))}
-            </div>
+          <div className={styles['xem-web-hero__chips']} aria-label="Trạng thái và truy cập nhanh">
+            <span className={cn(
+              styles['xem-web-hero__chip'],
+              loadError ? styles['is-error'] : iframeLoaded ? styles['is-ready'] : ''
+            )}>
+              {loadError ? <AlertCircle className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+              {loadError ? 'Không hỗ trợ iframe' : iframeLoaded ? 'Link hợp lệ' : 'Sẵn sàng kiểm tra link'}
+            </span>
+            <button
+              type="button"
+              className={styles['xem-web-hero__chip']}
+              onClick={() => currentUrl && window.open(currentUrl, '_blank')}
+              disabled={!currentUrl}
+            >
+              <ExternalLink className="h-4 w-4" />
+              Hỗ trợ mở tab mới
+            </button>
+            <span className={styles['xem-web-hero__chip']}>
+              <ShieldCheck className="h-4 w-4" />
+              Kiểm tra hiển thị an toàn
+            </span>
           </div>
 
-          {/* Control Buttons */}
           {currentUrl && (
-            <div className="flex items-center gap-2 pt-2 border-t">
-              <Badge variant="secondary" className="flex items-center gap-1">
+            <div className={styles['xem-web-hero__controls']}>
+              <Badge className={styles['xem-web-hero__current-url']}>
                 <Globe className="h-3 w-3" />
                 {currentUrl}
               </Badge>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isLoading}
+                className={styles['xem-web-hero__button-secondary']}
+                aria-label="Làm mới website"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleReset}
+                className={styles['xem-web-hero__button-secondary']}
+                aria-label="Quay về trang mặc định"
               >
                 <Home className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => window.open(currentUrl, '_blank')}
+                className={styles['xem-web-hero__button-secondary']}
+                aria-label="Mở website trong tab mới"
               >
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           )}
-        </CardContent>
-      </DashboardCard>
+
+          <div className={styles['xem-web-hero__quick-links']}>
+            {quickLinks.map((link) => (
+              <Button
+                key={link.name}
+                type="button"
+                variant="outline"
+                size="sm"
+                className={styles['xem-web-hero__quick-link']}
+                onClick={() => {
+                  setUrl(link.url);
+                  setCurrentUrl(link.url);
+                }}
+              >
+                {link.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Error Alert - CSP/X-Frame-Options Violation */}
       {currentUrl && loadError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>❌ Không thể tải trang web trong iframe</AlertTitle>
+          <AlertTitle>Không thể tải trang web trong iframe</AlertTitle>
           <AlertDescription className="space-y-3">
             <p>
-              Trang web <strong className="break-all">{currentUrl}</strong> đã chặn việc hiển thị trong iframe.
+              Website <strong className="break-all">{currentUrl}</strong> không hỗ trợ hiển thị trực tiếp trong dashboard.
             </p>
 
             <div className="bg-red-50 border border-red-200 rounded p-3 text-sm space-y-2">
-              <p className="font-semibold text-red-900">🔒 Lý do bảo mật:</p>
+              <p className="font-semibold text-red-900">Lý do bảo mật:</p>
               <ul className="list-disc list-inside space-y-1 text-red-800">
                 <li><strong>X-Frame-Options</strong>: Ngăn chặn clickjacking</li>
                 <li><strong>Content Security Policy (CSP)</strong>: Giới hạn nguồn nhúng</li>
@@ -205,18 +257,17 @@ export default function XemWebPage() {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
-              <p className="font-semibold text-yellow-900 mb-1">🚫 Các trang web thường bị chặn:</p>
+              <p className="font-semibold text-yellow-900 mb-1">Các trang web thường bị chặn:</p>
               <p className="text-yellow-800">
-                Google, YouTube, Facebook, Instagram, Twitter, Banking apps, AppSheet,
-                Gmail, LinkedIn, và hầu hết các trang đăng nhập/thanh toán.
+                Google, YouTube, Facebook, Instagram, Twitter, banking apps, AppSheet,
+                Gmail, LinkedIn và hầu hết các trang đăng nhập hoặc thanh toán.
               </p>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded p-3 text-sm">
-              <p className="font-semibold text-green-900 mb-1">✅ Các trang có thể dùng:</p>
+              <p className="font-semibold text-green-900 mb-1">Các trang có thể dùng:</p>
               <p className="text-green-800">
-                Wikipedia, các trang tin tức (VNExpress, Dân Trí), blog cá nhân,
-                tài liệu công khai, và các trang cho phép nhúng.
+                Wikipedia, các trang tin tức, blog cá nhân, tài liệu công khai và các trang cho phép nhúng.
               </p>
             </div>
 
@@ -248,7 +299,7 @@ export default function XemWebPage() {
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertTitle className="text-green-900">Đã tải thành công</AlertTitle>
           <AlertDescription className="text-green-800">
-            Trang web đang hiển thị bên dưới. Bạn có thể tương tác trực tiếp với trang web.
+            Website đang hiển thị bên dưới. Bạn có thể tương tác trực tiếp với trang web.
           </AlertDescription>
         </Alert>
       )}
@@ -263,7 +314,7 @@ export default function XemWebPage() {
                   <div className="text-center">
                     <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-gray-400" />
                     <p className="text-sm text-gray-600">Đang tải trang...</p>
-                    <p className="text-xs text-gray-500 mt-2">Nếu không tải được sau 10 giây, trang web có thể chặn iframe</p>
+                    <p className="text-xs text-gray-500 mt-2">Nếu không tải được sau 10 giây, website có thể chặn iframe</p>
                   </div>
                 </div>
               )}
@@ -288,9 +339,9 @@ export default function XemWebPage() {
             <div className="text-center space-y-4">
               <Globe className="h-16 w-16 mx-auto text-gray-300" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Chưa có trang web nào được tải</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Chưa có website nào được tải</h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  Nhập địa chỉ website ở trên hoặc chọn một liên kết nhanh để bắt đầu
+                  Nhập địa chỉ website ở trên hoặc chọn một liên kết nhanh để bắt đầu.
                 </p>
               </div>
             </div>
@@ -308,20 +359,20 @@ export default function XemWebPage() {
               </svg>
             </div>
             <div className="flex-1 space-y-2">
-              <h4 className="text-sm font-semibold text-[#243B5A]">📌 Hướng dẫn sử dụng</h4>
+              <h4 className="text-sm font-semibold text-[#243B5A]">Hướng dẫn sử dụng</h4>
               <div className="text-sm text-[#243B5A] space-y-2">
                 <p>
-                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều trang web sử dụng <code className="bg-[#4FA7A0]/15 px-1 rounded">X-Frame-Options</code>
+                  <strong>Cơ chế bảo mật iframe:</strong> Nhiều website sử dụng <code className="bg-[#4FA7A0]/15 px-1 rounded">X-Frame-Options</code>
                   hoặc <code className="bg-[#4FA7A0]/15 px-1 rounded">Content-Security-Policy</code> để ngăn chặn việc nhúng vào iframe,
                   bảo vệ người dùng khỏi các cuộc tấn công clickjacking.
                 </p>
                 <p>
-                  <strong>Giải pháp:</strong> Nếu trang web bị chặn, sử dụng nút <strong>&quot;Mở trong tab mới&quot;</strong> để
+                  <strong>Giải pháp:</strong> Nếu website bị chặn, sử dụng nút <strong>&quot;Mở trong tab mới&quot;</strong> để
                   xem trang web trong cửa sổ riêng biệt.
                 </p>
                 <p>
-                  <strong>Mẹo:</strong> Các trang tin tức, Wikipedia, tài liệu công khai thường cho phép nhúng iframe.
-                  Các trang mạng xã hội, banking, email thường bị chặn.
+                  <strong>Mẹo:</strong> Các trang tin tức, Wikipedia và tài liệu công khai thường cho phép nhúng iframe.
+                  Các trang mạng xã hội, banking và email thường bị chặn.
                 </p>
               </div>
             </div>
@@ -331,4 +382,3 @@ export default function XemWebPage() {
     </div>
   );
 }
-

@@ -20,11 +20,11 @@ import {
 import { toast } from "sonner"
 
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
+import { DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,8 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { unwrapPageData } from "@/lib/api-response"
+import { cn } from "@/lib/utils"
+import styles from "./thanh-toan-hero.module.css"
 import type {
   ApiResponse,
   HoaDon,
@@ -276,6 +278,25 @@ export default function ThanhToanPage() {
     }
   }, [data])
 
+  const heroStatus = useMemo(() => {
+    if (metrics.cancelledCount > 0) {
+      return { label: "Có giao dịch cần kiểm tra", tone: "danger" as const }
+    }
+    if (metrics.pendingCount > 0) {
+      return { label: "Cần xác nhận giao dịch", tone: "warning" as const }
+    }
+    return { label: "Đối soát ổn định", tone: "success" as const }
+  }, [metrics.cancelledCount, metrics.pendingCount])
+
+  const filterPeriodLabel = useMemo(() => {
+    if (filters.tuNgay && filters.denNgay) {
+      return `Kỳ: ${new Date(filters.tuNgay).toLocaleDateString("vi-VN")} - ${new Date(filters.denNgay).toLocaleDateString("vi-VN")}`
+    }
+    if (filters.tuNgay) return `Từ ${new Date(filters.tuNgay).toLocaleDateString("vi-VN")}`
+    if (filters.denNgay) return `Đến ${new Date(filters.denNgay).toLocaleDateString("vi-VN")}`
+    return "Bộ lọc hiện tại"
+  }, [filters.denNgay, filters.tuNgay])
+
   const resetFilters = () => {
     setSearchInput("")
     setSearch("")
@@ -380,30 +401,121 @@ export default function ThanhToanPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHero
-        icon={Banknote}
-        title="Thanh toán"
-        description="Ghi nhận tiền thực thu, đối chiếu hóa đơn và theo dõi trạng thái giao dịch."
-        actions={
-          <>
-            <HeroActionButton variant="secondary" onClick={() => void fetchPayments(true)} disabled={refreshing}>
-              <RefreshCw className={refreshing ? "animate-spin" : ""} />
-              Làm mới
-            </HeroActionButton>
-            <HeroActionButton variant="default" onClick={openCreate}>
-              <Plus />
-              Ghi nhận
-            </HeroActionButton>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard title="Khớp lọc" value={String(total)} icon={<ReceiptText className="h-5 w-5" />} tone="default" />
-          <DashboardKpiCard title="Đã thu trên trang" value={currency(metrics.successMoney)} icon={<Banknote className="h-5 w-5" />} tone="emerald" />
-          <DashboardKpiCard title="Chờ xác nhận" value={String(metrics.pendingCount)} icon={<CalendarDays className="h-5 w-5" />} tone="orange" />
-          <DashboardKpiCard title="Đã hủy/hoàn" value={String(metrics.cancelledCount)} icon={<FileCheck2 className="h-5 w-5" />} tone="blue" />
+      <section className={cn("thanh-toan-hero", styles.hero)}>
+        <div className={cn("thanh-toan-hero__content", styles.content)}>
+          <div className={cn("thanh-toan-hero__eyebrow", styles.eyebrow)}>
+            <Banknote className="h-4 w-4" aria-hidden="true" />
+            THANH TOÁN
+          </div>
+
+          <div className={cn("thanh-toan-hero__title-row", styles.titleRow)}>
+            <h1>Thanh toán</h1>
+            <span
+              className={cn(
+                "thanh-toan-hero__status-badge",
+                styles.statusBadge,
+                heroStatus.tone === "warning" && "is-warning",
+                heroStatus.tone === "warning" && styles.statusWarning,
+                heroStatus.tone === "danger" && "is-danger",
+                heroStatus.tone === "danger" && styles.statusDanger,
+              )}
+            >
+              {heroStatus.label}
+            </span>
+          </div>
+
+          <p>Ghi nhận tiền thực thu, đối soát hóa đơn và theo dõi trạng thái giao dịch trong một nơi.</p>
+
+          <div className={cn("thanh-toan-hero__insight", styles.insight)}>
+            <span>
+              Hiện đã ghi nhận <strong>{currency(metrics.successMoney)}</strong>, có{" "}
+              <strong>{metrics.pendingCount}</strong> giao dịch chờ xác nhận và{" "}
+              <strong>{metrics.cancelledCount}</strong> giao dịch đã hủy/hoàn.
+            </span>
+          </div>
+
+          <div className={cn("thanh-toan-hero__chips", styles.chips)} aria-label="Tóm tắt bộ lọc thanh toán">
+            <span className={cn("thanh-toan-hero__chip", styles.chip)}>{filterPeriodLabel}</span>
+            <span className={cn("thanh-toan-hero__chip", styles.chip)}>{total} giao dịch</span>
+            <span className={cn("thanh-toan-hero__chip", styles.chip)}>Đã thu {currency(metrics.successMoney)}</span>
+            <span className={cn("thanh-toan-hero__chip", styles.chip)}>Chờ xác nhận {metrics.pendingCount}</span>
+            <span className={cn("thanh-toan-hero__chip", styles.chip)}>Hủy/hoàn {metrics.cancelledCount}</span>
+          </div>
+
+          <div className={cn("thanh-toan-hero__stats", styles.stats)}>
+            {[
+              {
+                title: "Khớp lọc",
+                value: String(total),
+                hint: "Theo điều kiện lọc hiện tại",
+                icon: <ReceiptText className="h-5 w-5" />,
+                tone: "neutral",
+              },
+              {
+                title: "Đã thu trên trang",
+                value: currency(metrics.successMoney),
+                hint: "Tổng tiền đã ghi nhận",
+                icon: <Banknote className="h-5 w-5" />,
+                tone: metrics.successMoney > 0 ? "success" : "neutral",
+              },
+              {
+                title: "Chờ xác nhận",
+                value: String(metrics.pendingCount),
+                hint: metrics.pendingCount > 0 ? "Có giao dịch cần duyệt" : "Không có giao dịch cần duyệt",
+                icon: <CalendarDays className="h-5 w-5" />,
+                tone: metrics.pendingCount > 0 ? "warning" : "success",
+              },
+              {
+                title: "Đã hủy/hoàn",
+                value: String(metrics.cancelledCount),
+                hint: metrics.cancelledCount > 0 ? "Có giao dịch cần kiểm tra" : "Không có giao dịch hoàn/hủy",
+                icon: <FileCheck2 className="h-5 w-5" />,
+                tone: metrics.cancelledCount > 0 ? "danger" : "neutral",
+              },
+            ].map((item, index) => (
+              <div
+                key={item.title}
+                className={cn(
+                  "thanh-toan-hero__stat-card",
+                  `is-${item.tone}`,
+                  styles.statCard,
+                  item.tone === "success" && styles.toneSuccess,
+                  item.tone === "warning" && styles.toneWarning,
+                  item.tone === "danger" && styles.toneDanger,
+                )}
+                style={{ animationDelay: `${index * 70}ms` }}
+              >
+                <div className={cn("thanh-toan-hero__stat-top", styles.statTop)}>
+                  <span>{item.title}</span>
+                  <span className={cn("thanh-toan-hero__stat-icon", styles.statIcon)}>{item.icon}</span>
+                </div>
+                <strong>{item.value}</strong>
+                <small>{item.hint}</small>
+              </div>
+            ))}
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className={cn("thanh-toan-hero__actions", styles.actions)}>
+          <HeroActionButton
+            className={cn("thanh-toan-hero__button thanh-toan-hero__button-secondary", styles.button, styles.buttonSecondary)}
+            variant="secondary"
+            onClick={() => void fetchPayments(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw className={refreshing ? "animate-spin" : ""} />
+            Làm mới
+          </HeroActionButton>
+          <HeroActionButton
+            className={cn("thanh-toan-hero__button thanh-toan-hero__button-primary", styles.button, styles.buttonPrimary)}
+            variant="default"
+            onClick={openCreate}
+          >
+            <Plus />
+            Ghi nhận thanh toán
+          </HeroActionButton>
+        </div>
+      </section>
 
       <DashboardCard>
         <CardHeader className="pb-3 border-b border-gray-100">

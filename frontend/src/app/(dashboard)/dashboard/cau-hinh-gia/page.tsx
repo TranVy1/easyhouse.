@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -41,12 +41,21 @@ import {
   Info,
   RefreshCw,
   DollarSign,
+  BadgeCheck,
+  Zap,
+  Droplets,
+  Wifi,
+  Car,
+  Home,
+  Clock3,
+  AlertTriangle,
+  ReceiptText,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight
 } from 'lucide-react';
-import { DashboardHero, DashboardCard } from '@/components/dashboard/shared-ui';
+import { DashboardCard } from '@/components/dashboard/shared-ui';
 import { toast } from 'sonner';
 import { ToaNha, CauHinhGia, LoaiMucHoaDon, LoaiTinhPhi } from '@/types';
 import { unwrapPageData } from '@/lib/api-response';
@@ -223,6 +232,23 @@ export default function CauHinhGiaPage() {
     return matchesSearch;
   });
 
+  const todayString = new Date().toISOString().slice(0, 10);
+  const activeConfigs = cauHinhGiaList.filter((config) => config.dangApDung);
+  const pendingConfigs = cauHinhGiaList.filter((config) => String(config.hieuLucTu) > todayString);
+  const corePriceTypes: LoaiMucHoaDon[] = ['ROOM', 'ELECTRICITY', 'WATER', 'INTERNET', 'PARKING', 'SERVICE'];
+  const configuredTypes = new Set(activeConfigs.map((config) => config.loai));
+  const missingConfigCount = corePriceTypes.filter((type) => !configuredTypes.has(type)).length;
+  const hasPriceConfigs = totalElements > 0 || cauHinhGiaList.length > 0;
+  const heroStatusLabel = hasPriceConfigs && missingConfigCount === 0 ? 'Giá đang ổn định' : 'Cần cấu hình giá';
+  const priceChips = [
+    { label: 'Giá phòng', icon: Home },
+    { label: 'Điện', icon: Zap },
+    { label: 'Nước', icon: Droplets },
+    { label: 'Internet', icon: Wifi },
+    { label: 'Gửi xe', icon: Car },
+    { label: 'Dịch vụ khác', icon: Coins },
+  ];
+
   if (loadingToaNhas) {
     return (
       <div className="space-y-6">
@@ -235,25 +261,67 @@ export default function CauHinhGiaPage() {
   return (
     <div className="space-y-4 md:space-y-6 pb-10">
       {/* Header */}
-      <DashboardHero
-        icon={Coins}
-        title="Cấu hình giá dịch vụ"
-        description="Quản lý đơn giá phòng trọ, điện, nước và các dịch vụ đi kèm"
-        actions={
-          <div className="flex gap-2 w-full sm:w-auto">
+      <section className="cau-hinh-gia-hero">
+        <div className="cau-hinh-gia-hero__content">
+          <div className="cau-hinh-gia-hero__eyebrow">
+            <Coins className="h-4 w-4" aria-hidden="true" />
+            <span>CẤU HÌNH GIÁ DỊCH VỤ</span>
+          </div>
+
+          <div className="cau-hinh-gia-hero__title-row">
+            <h1>Cấu hình giá dịch vụ</h1>
+            <span className={`cau-hinh-gia-hero__status-badge ${missingConfigCount > 0 ? 'is-warning' : ''}`}>
+              {missingConfigCount > 0 ? (
+                <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+              )}
+              {heroStatusLabel}
+            </span>
+          </div>
+
+          <p>
+            Quản lý đơn giá phòng trọ, điện, nước, internet, gửi xe và các dịch vụ đi kèm trong một nơi.
+          </p>
+
+          <div className="cau-hinh-gia-hero__insight">
+            {hasPriceConfigs ? (
+              <span>
+                Hiện có <strong>{activeConfigs.length} cấu hình giá</strong> đang áp dụng,{' '}
+                <strong>{pendingConfigs.length} cấu hình</strong> chờ hiệu lực trong kỳ tới.
+              </span>
+            ) : (
+              <span>Theo dõi đơn giá phòng, điện, nước và dịch vụ để lập hóa đơn chính xác cho từng kỳ.</span>
+            )}
+          </div>
+
+          <div className="cau-hinh-gia-hero__chips" aria-label="Nhóm giá dịch vụ">
+            {priceChips.map(({ label, icon: Icon }) => (
+              <span className="cau-hinh-gia-hero__chip" key={label}>
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <div className="cau-hinh-gia-hero__actions">
             <Button
               variant="outline"
               size="sm"
               onClick={handleRefresh}
               disabled={loadingConfigs}
-              className="flex-1 sm:flex-none"
+              className="cau-hinh-gia-hero__button cau-hinh-gia-hero__button-secondary"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loadingConfigs ? 'animate-spin' : ''}`} />
               Tải lại
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" onClick={() => setEditingConfig(null)} className="flex-1 sm:flex-none">
+                <Button
+                  size="sm"
+                  onClick={() => setEditingConfig(null)}
+                  className="cau-hinh-gia-hero__button cau-hinh-gia-hero__button-primary"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm cấu hình
                 </Button>
@@ -280,8 +348,45 @@ export default function CauHinhGiaPage() {
               </DialogContent>
             </Dialog>
           </div>
-        }
-      />
+
+          {hasPriceConfigs && (
+            <div className="cau-hinh-gia-hero__stats">
+              <div className="cau-hinh-gia-hero__stat-card">
+                <div className="cau-hinh-gia-hero__stat-top">
+                  <span>Tổng cấu hình</span>
+                  <ReceiptText className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <strong>{totalElements}</strong>
+                <p>Đơn giá trong tòa nhà đang chọn</p>
+              </div>
+              <div className="cau-hinh-gia-hero__stat-card cau-hinh-gia-hero__stat-card--teal">
+                <div className="cau-hinh-gia-hero__stat-top">
+                  <span>Đang áp dụng</span>
+                  <BadgeCheck className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <strong>{activeConfigs.length}</strong>
+                <p>Sẵn sàng dùng khi lập hóa đơn</p>
+              </div>
+              <div className="cau-hinh-gia-hero__stat-card cau-hinh-gia-hero__stat-card--orange">
+                <div className="cau-hinh-gia-hero__stat-top">
+                  <span>Chờ hiệu lực</span>
+                  <Clock3 className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <strong>{pendingConfigs.length}</strong>
+                <p>Có ngày bắt đầu sau hôm nay</p>
+              </div>
+              <div className="cau-hinh-gia-hero__stat-card cau-hinh-gia-hero__stat-card--red">
+                <div className="cau-hinh-gia-hero__stat-top">
+                  <span>Chưa cấu hình</span>
+                  <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <strong>{missingConfigCount}</strong>
+                <p>Nhóm giá cốt lõi còn thiếu</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Building Selector Dropdown */}
       <DashboardCard className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50/50">
