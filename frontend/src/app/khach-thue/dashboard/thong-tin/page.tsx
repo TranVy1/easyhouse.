@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 
 export default function TenantProfilePage() {
   const router = useRouter();
-  const session = useSession()?.data;
+  const { data: session, update } = useSession();
   const accessToken = session?.accessToken;
   const { refreshData } = useTenantDashboard();
   
