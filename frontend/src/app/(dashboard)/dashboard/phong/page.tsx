@@ -8,7 +8,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton, FilterBadge } from '@/components/dashboard/shared-ui';
+import { DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -224,6 +224,9 @@ export default function PhongPage() {
   }, [selectedToaNha, selectedTrangThai]);
 
   const filteredPhong = phongList;
+  const availableRoomCount = phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length;
+  const rentedRoomCount = phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length;
+  const maintenanceRoomCount = phongList.filter(p => p.trangThai === 'baoTri' || p.trangThai === 'MAINTENANCE').length;
 
   const handleEdit = (phong: Phong) => {
     setEditingPhong(phong);
@@ -294,95 +297,136 @@ export default function PhongPage() {
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
       {/* Hero Section */}
-      <DashboardHero
-        icon={Home}
-        title="Quản lý phòng"
-        description="Theo dõi, quản lý và vận hành hệ thống phòng một cách hiệu quả và trực quan."
-        actions={
-          <>
-            <HeroActionButton
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-            </HeroActionButton>
+      <section className="phong-hero">
+        <div className="phong-hero__content">
+          <div className="phong-hero__eyebrow">
+            <Home className="h-4 w-4" aria-hidden="true" />
+            <span>QUẢN LÝ PHÒNG</span>
+          </div>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <HeroActionButton variant="default">
-                  <Plus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Thêm phòng</span>
-                  <span className="sm:hidden">Thêm</span>
-                </HeroActionButton>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px] max-h-[calc(100dvh-32px)] flex flex-col p-0 gap-0 w-[95vw] md:w-full rounded-2xl overflow-hidden border-0 shadow-2xl">
-                <div className="shrink-0 px-6 pt-6 pb-4">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl md:text-2xl font-bold text-[#243B5A]">
-                      {editingPhong ? 'Chỉnh sửa phòng' : 'Thêm phòng mới'}
-                    </DialogTitle>
-                    <DialogDescription className="text-sm text-gray-500 mt-1">
-                      {editingPhong ? 'Cập nhật thông tin chi tiết của phòng.' : 'Nhập thông tin chi tiết cho phòng mới của bạn.'}
-                    </DialogDescription>
-                  </DialogHeader>
+          <h1>Quản lý phòng</h1>
+
+          <p>
+            Theo dõi trạng thái phòng, phòng trống, phòng đang thuê và các phòng cần xử lý trong thời gian thực.
+          </p>
+
+          {phongList.length > 0 && (
+            <div className="phong-hero__insight">
+              <span>
+                Hiện có <strong>{availableRoomCount} phòng trống</strong>, <strong>{rentedRoomCount} phòng đang thuê</strong>. Hãy tối ưu lấp đầy để tăng doanh thu.
+              </span>
+            </div>
+          )}
+
+          <div className="phong-hero__stats">
+            <div className="phong-hero__stat-card">
+              <div className="phong-hero__stat-top">
+                <div>
+                  <span>Tổng số phòng</span>
+                  <strong>{totalElements}</strong>
                 </div>
+                <Building2 className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p>Toàn bộ phòng trong hệ thống</p>
+            </div>
 
-                <PhongForm
-                  key={editingPhong?._id || 'new'}
-                  phong={editingPhong}
-                  toaNhaList={toaNhaList}
-                  onClose={() => setIsDialogOpen(false)}
-                  onSuccess={() => {
-                    clearCache();
-                    setIsDialogOpen(false);
-                    fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-                    toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <div className="phong-hero__stat-card phong-hero__stat-card--teal">
+              <div className="phong-hero__stat-top">
+                <div>
+                  <span>Phòng trống</span>
+                  <strong>{availableRoomCount}</strong>
+                </div>
+                <Home className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p>Sẵn sàng cho thuê</p>
+            </div>
 
-            <FolderImageUploader
-              toaNhaList={toaNhaList}
-              accessToken={accessToken as string | undefined}
-              onComplete={() => {
-                clearCache();
-                fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-              }}
-              trigger={
-                <HeroActionButton variant="secondary" className="bg-[#4FA7A0]/20 hover:bg-[#4FA7A0]/40 border-[#4FA7A0]/50 text-white">
-                  <ImageIcon className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Upload ảnh</span>
-                </HeroActionButton>
-              }
-            />
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard title="Tổng số phòng" value={totalElements} icon={<Building2 className="h-5 w-5" />} tone="default" />
-          <DashboardKpiCard 
-            title="Phòng trống" 
-            value={phongList.filter(p => p.trangThai === 'trong' || p.trangThai === 'AVAILABLE').length} 
-            icon={<Home className="h-5 w-5" />} 
-            tone="emerald" 
-          />
-          <DashboardKpiCard 
-            title="Đang thuê" 
-            value={phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED').length} 
-            icon={<Users className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="Bảo trì" 
-            value={phongList.filter(p => p.trangThai === 'baoTri' || p.trangThai === 'MAINTENANCE').length} 
-            icon={<AlertCircle className="h-5 w-5" />} 
-            tone="red" 
-          />
+            <div className="phong-hero__stat-card phong-hero__stat-card--orange">
+              <div className="phong-hero__stat-top">
+                <div>
+                  <span>Đang thuê</span>
+                  <strong>{rentedRoomCount}</strong>
+                </div>
+                <Users className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p>Đang có khách sử dụng</p>
+            </div>
+
+            <div className="phong-hero__stat-card phong-hero__stat-card--red">
+              <div className="phong-hero__stat-top">
+                <div>
+                  <span>Bảo trì</span>
+                  <strong>{maintenanceRoomCount}</strong>
+                </div>
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p>{maintenanceRoomCount > 0 ? 'Phòng cần xử lý' : 'Không có phòng cần xử lý'}</p>
+            </div>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="phong-hero__actions">
+          <HeroActionButton
+            variant="secondary"
+            className="phong-hero__button phong-hero__button-secondary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+          </HeroActionButton>
+
+          <FolderImageUploader
+            toaNhaList={toaNhaList}
+            accessToken={accessToken as string | undefined}
+            onComplete={() => {
+              clearCache();
+              fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+            }}
+            trigger={
+              <HeroActionButton variant="secondary" className="phong-hero__button phong-hero__button-secondary">
+                <ImageIcon className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Upload ảnh</span>
+              </HeroActionButton>
+            }
+          />
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <HeroActionButton variant="default" className="phong-hero__button phong-hero__button-primary">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Thêm phòng</span>
+                <span className="sm:hidden">Thêm</span>
+              </HeroActionButton>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px] max-h-[calc(100dvh-32px)] flex flex-col p-0 gap-0 w-[95vw] md:w-full rounded-2xl overflow-hidden border-0 shadow-2xl">
+              <div className="shrink-0 px-6 pt-6 pb-4">
+                <DialogHeader>
+                  <DialogTitle className="text-xl md:text-2xl font-bold text-[#243B5A]">
+                    {editingPhong ? 'Chỉnh sửa phòng' : 'Thêm phòng mới'}
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500 mt-1">
+                    {editingPhong ? 'Cập nhật thông tin chi tiết của phòng.' : 'Nhập thông tin chi tiết cho phòng mới của bạn.'}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              <PhongForm
+                key={editingPhong?._id || 'new'}
+                phong={editingPhong}
+                toaNhaList={toaNhaList}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={() => {
+                  clearCache();
+                  setIsDialogOpen(false);
+                  fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+                  toast.success(editingPhong ? 'Cập nhật phòng thành công!' : 'Thêm phòng thành công!');
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
 
       {/* Bộ lọc Tòa nhà dưới dạng thẻ */}
       <div className="space-y-3">

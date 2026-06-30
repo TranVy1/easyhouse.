@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton, ActionGroup } from "@/components/dashboard/shared-ui";
+import Link from "next/link";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardCard, HeroActionButton } from "@/components/dashboard/shared-ui";
 import { toast } from "sonner";
 import { BaoCaoTongQuan, ApiResponse } from "@/types";
-import { DollarSign, Percent, AlertCircle, FileText, BarChart3, Download, ArrowRight, ArrowUpRight, Wrench, Wallet } from "lucide-react";
+import { DollarSign, Percent, AlertCircle, FileText, Download, ArrowRight, Wrench, Wallet } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,56 +62,108 @@ export function BaoCaoClient() {
     return <div className="p-8 text-center text-red-500">Không có dữ liệu báo cáo</div>;
   }
 
+  const hasOperationalAttention =
+    baoCao.tienChuaThu > 0 ||
+    baoCao.suCoCanXuLy > 0 ||
+    baoCao.hopDongSapHetHan > 0 ||
+    baoCao.tyLeLapDay < 80;
+  const hasCriticalAttention = baoCao.suCoCanXuLy >= 10 || baoCao.tyLeLapDay < 50;
+  const heroStatus = hasCriticalAttention
+    ? { label: "Có chỉ số cần xử lý", className: "is-danger" }
+    : hasOperationalAttention
+      ? { label: "Cần chú ý vận hành", className: "" }
+      : { label: "Vận hành ổn định", className: "is-stable" };
+  const debtTone = baoCao.tienChuaThu > 0 ? "is-orange" : "is-teal";
+  const occupancyTone = baoCao.tyLeLapDay < 80 ? "is-orange" : "is-teal";
+  const incidentTone = baoCao.suCoCanXuLy > 0 ? "is-orange" : "is-teal";
+  const expiringContractTone = baoCao.hopDongSapHetHan > 0 ? "is-orange" : "is-teal";
+
   return (
     <div className="space-y-6">
-      <DashboardHero
-        icon={BarChart3}
-        title="Báo cáo & Thống kê"
-        description="Tổng quan tình hình kinh doanh, doanh thu và vận hành."
-        actions={
-          <ActionGroup>
-            <HeroActionButton variant="secondary" className="gap-2 font-medium border-[#8CCBC5]/40 hover:bg-[#8CCBC5]/20 text-white hover:text-white" onClick={() => toast.success("Đang tải báo cáo...")}>
-              <Download className="h-4 w-4" /> Xuất báo cáo
-            </HeroActionButton>
-          </ActionGroup>
-        }
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 relative z-10">
-          <DashboardKpiCard 
-            title="Doanh thu tháng này" 
-            value={formatCurrency(baoCao.doanhThu)} 
-            icon={<DollarSign className="h-5 w-5" />} 
-            tone="default" 
-            hint={`Đã thu: ${formatCurrency(baoCao.tienDaThu)}`}
-          />
-          <DashboardKpiCard 
-            title="Công nợ" 
-            value={formatCurrency(baoCao.tienChuaThu)} 
-            icon={<AlertCircle className="h-5 w-5" />} 
-            tone="red" 
-            hint="Tiền chưa thu"
-          />
-          <DashboardKpiCard 
-            title="Tỷ lệ lấp đầy" 
-            value={`${baoCao.tyLeLapDay.toFixed(1)}%`} 
-            icon={<Percent className="h-5 w-5" />} 
-            tone="emerald" 
-          />
-          <DashboardKpiCard 
-            title="Sự cố cần xử lý" 
-            value={String(baoCao.suCoCanXuLy)} 
-            icon={<AlertCircle className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="HĐ sắp hết hạn" 
-            value={String(baoCao.hopDongSapHetHan)} 
-            icon={<FileText className="h-5 w-5" />} 
-            tone="blue" 
-            hint="Trong 30 ngày tới"
-          />
+      <section className="bao-cao-hero" aria-labelledby="bao-cao-hero-title">
+        <div className="bao-cao-hero__content">
+          <div className="bao-cao-hero__eyebrow">
+            <FileText className="h-4 w-4" aria-hidden="true" />
+            BÁO CÁO & THỐNG KÊ
+          </div>
+
+          <div className="bao-cao-hero__title-row">
+            <h1 id="bao-cao-hero-title">Báo cáo & Thống kê</h1>
+            <span className={`bao-cao-hero__status-badge ${heroStatus.className}`}>
+              {heroStatus.label}
+            </span>
+          </div>
+
+          <p>
+            Theo dõi doanh thu, công nợ, tỷ lệ lấp đầy và các chỉ số vận hành quan trọng trong một nơi.
+          </p>
+
+          <div className="bao-cao-hero__insight">
+            Doanh thu tháng này đạt <strong>{formatCurrency(baoCao.doanhThu)}</strong>, còn{" "}
+            <strong>{formatCurrency(baoCao.tienChuaThu)}</strong> công nợ và có{" "}
+            <strong>{baoCao.suCoCanXuLy}</strong> sự cố cần xử lý.
+          </div>
+
+          <div className="bao-cao-hero__chips" aria-label="Tóm tắt báo cáo hiện tại">
+            <span className="bao-cao-hero__chip">Đã thu {formatCurrency(baoCao.tienDaThu)}</span>
+            <span className="bao-cao-hero__chip">Tỷ lệ đã thu {tyLeThu.toFixed(1)}%</span>
+            <span className="bao-cao-hero__chip">{baoCao.bieuDoDoanhThu.length} tháng dữ liệu</span>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="bao-cao-hero__actions">
+          <HeroActionButton variant="secondary" className="bao-cao-hero__button bao-cao-hero__button-primary gap-2" onClick={() => toast.success("Đang tải báo cáo...")}>
+            <Download className="h-4 w-4" /> Xuất báo cáo
+          </HeroActionButton>
+        </div>
+
+        <div className="bao-cao-hero__stats">
+          <article className="bao-cao-hero__stat-card is-navy">
+            <div className="bao-cao-hero__stat-top">
+              <span>Doanh thu tháng này</span>
+              <DollarSign className="h-5 w-5" />
+            </div>
+            <strong>{formatCurrency(baoCao.doanhThu)}</strong>
+            <small>Đã thu trong kỳ: {formatCurrency(baoCao.tienDaThu)}</small>
+          </article>
+
+          <article className={`bao-cao-hero__stat-card ${debtTone}`}>
+            <div className="bao-cao-hero__stat-top">
+              <span>Công nợ</span>
+              <Wallet className="h-5 w-5" />
+            </div>
+            <strong>{formatCurrency(baoCao.tienChuaThu)}</strong>
+            <small>Tiền chưa thu</small>
+          </article>
+
+          <article className={`bao-cao-hero__stat-card ${occupancyTone}`}>
+            <div className="bao-cao-hero__stat-top">
+              <span>Tỷ lệ lấp đầy</span>
+              <Percent className="h-5 w-5" />
+            </div>
+            <strong>{baoCao.tyLeLapDay.toFixed(1)}%</strong>
+            <small>Hiệu suất khai thác phòng</small>
+          </article>
+
+          <article className={`bao-cao-hero__stat-card ${incidentTone}`}>
+            <div className="bao-cao-hero__stat-top">
+              <span>Sự cố cần xử lý</span>
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <strong>{baoCao.suCoCanXuLy}</strong>
+            <small>Cần ưu tiên vận hành</small>
+          </article>
+
+          <article className={`bao-cao-hero__stat-card ${expiringContractTone}`}>
+            <div className="bao-cao-hero__stat-top">
+              <span>HĐ sắp hết hạn</span>
+              <FileText className="h-5 w-5" />
+            </div>
+            <strong>{baoCao.hopDongSapHetHan}</strong>
+            <small>Trong 30 ngày tới</small>
+          </article>
+        </div>
+      </section>
 
       <div className="grid gap-4 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-500">
         <DashboardCard className="col-span-1 md:col-span-2 overflow-hidden border-0 shadow-[0_12px_28px_rgba(15,23,42,0.08)] ring-1 ring-[#E5E0D8]">
@@ -181,9 +234,9 @@ export function BaoCaoClient() {
               Tổng tiền chưa thu từ các hóa đơn quá hạn hoặc chưa thanh toán.
             </p>
             <Button variant="outline" className="mt-5 w-full justify-between border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" asChild>
-              <a href="/dashboard/cong-no">
+              <Link href="/dashboard/cong-no">
                 Kiểm tra hóa đơn <ArrowRight className="h-4 w-4 ml-2" />
-              </a>
+              </Link>
             </Button>
           </CardContent>
         </DashboardCard>
@@ -204,9 +257,9 @@ export function BaoCaoClient() {
               Các hợp đồng sẽ hết hạn trong vòng 30 ngày tới cần được gia hạn.
             </p>
             <Button variant="outline" className="mt-5 w-full justify-between border-[#E8DED2] text-[#243B5A] hover:bg-[#F8F3EC]" asChild>
-              <a href="/dashboard/hop-dong">
+              <Link href="/dashboard/hop-dong">
                 Xem danh sách <ArrowRight className="h-4 w-4 ml-2" />
-              </a>
+              </Link>
             </Button>
           </CardContent>
         </DashboardCard>
@@ -227,9 +280,9 @@ export function BaoCaoClient() {
               Yêu cầu sửa chữa hoặc khiếu nại từ khách thuê đang chờ xử lý.
             </p>
             <Button variant="outline" className="mt-5 w-full justify-between border-[#E8DED2] text-[#243B5A] hover:bg-[#F8F3EC]" asChild>
-              <a href="/dashboard/su-co">
+              <Link href="/dashboard/su-co">
                 Xử lý ngay <ArrowRight className="h-4 w-4 ml-2" />
-              </a>
+              </Link>
             </Button>
           </CardContent>
         </DashboardCard>

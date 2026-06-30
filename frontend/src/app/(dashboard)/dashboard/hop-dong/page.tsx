@@ -8,7 +8,7 @@ import { useCache } from '@/hooks/use-cache';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { DashboardHero, DashboardKpiCard, DashboardCard, HeroActionButton } from '@/components/dashboard/shared-ui';
+import { DashboardCard } from '@/components/dashboard/shared-ui';
 import {
   Dialog,
   DialogContent,
@@ -467,58 +467,106 @@ export default function HopDongPage() {
     );
   }
 
+  const activeContracts = hopDongList.filter(h => isActiveStatus(h.trangThai)).length;
+  const expiringContracts = hopDongList.filter(h => isExpiringSoon(h.ngayKetThuc)).length;
+  const expiredContracts = hopDongList.filter(h => isExpired(h.ngayKetThuc)).length;
+  const expiringTone = expiringContracts > 0 ? 'warning' : 'neutral';
+  const expiredTone = expiredContracts > 0 ? 'danger' : 'success';
+  const heroStatusLabel = expiringContracts > 0 || expiredContracts > 0 ? 'Cần kiểm tra gia hạn' : 'Hợp đồng ổn định';
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Hero Section */}
-      <DashboardHero
-        icon={FileText}
-        title="Quản lý hợp đồng"
-        description="Quản lý vòng đời hợp đồng, gia hạn, thanh lý và các điều khoản thuê phòng."
-        actions={
-          <>
-            <HeroActionButton
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-            </HeroActionButton>
-            <HeroActionButton variant="default" onClick={() => router.push('/dashboard/hop-dong/them-moi')}>
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Thêm hợp đồng</span>
-              <span className="sm:hidden">Thêm</span>
-            </HeroActionButton>
-          </>
-        }
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard 
-            title="Tổng hợp đồng" 
-            value={totalElements} 
-            icon={<FileText className="h-5 w-5" />} 
-            tone="default" 
-          />
-          <DashboardKpiCard 
-            title="Hoạt động" 
-            value={hopDongList.filter(h => isActiveStatus(h.trangThai)).length} 
-            icon={<FileText className="h-5 w-5" />} 
-            tone="emerald" 
-          />
-          <DashboardKpiCard 
-            title="Sắp hết hạn" 
-            value={hopDongList.filter(h => isExpiringSoon(h.ngayKetThuc)).length} 
-            icon={<Calendar className="h-5 w-5" />} 
-            tone="orange" 
-          />
-          <DashboardKpiCard 
-            title="Đã hết hạn" 
-            value={hopDongList.filter(h => isExpired(h.ngayKetThuc)).length} 
-            icon={<Calendar className="h-5 w-5" />} 
-            tone="red" 
-          />
+      <section className="hop-dong-hero">
+        <div className="hop-dong-hero__content">
+          <div className="hop-dong-hero__eyebrow">
+            <FileText className="h-4 w-4" aria-hidden="true" />
+            <span>QUẢN LÝ HỢP ĐỒNG</span>
+          </div>
+
+          <div className="hop-dong-hero__title-row">
+            <h1>Quản lý hợp đồng</h1>
+            <span className="hop-dong-hero__status-badge">{heroStatusLabel}</span>
+          </div>
+
+          <p>
+            Theo dõi hợp đồng thuê phòng, thời hạn, gia hạn, thanh lý và trạng thái hiệu lực trong một nơi.
+          </p>
+
+          <div className="hop-dong-hero__insight">
+            Hiện có <strong>{activeContracts} hợp đồng đang hiệu lực</strong> trên tổng{' '}
+            <strong>{totalElements} hợp đồng</strong>,{' '}
+            {expiringContracts > 0 ? (
+              <>
+                có <strong>{expiringContracts} hợp đồng sắp hết hạn</strong>.
+              </>
+            ) : (
+              <>
+                chưa có hợp đồng nào <strong>sắp hết hạn</strong>.
+              </>
+            )}
+          </div>
+
+          <div className="hop-dong-hero__stats">
+            <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--default">
+              <div className="hop-dong-hero__stat-top">
+                <span>Tổng hợp đồng</span>
+                <FileText className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{totalElements}</strong>
+              <small>Toàn bộ hợp đồng đã tạo</small>
+            </div>
+
+            <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--success">
+              <div className="hop-dong-hero__stat-top">
+                <span>Hoạt động</span>
+                <FileText className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{activeContracts}</strong>
+              <small>Đang còn hiệu lực thuê</small>
+            </div>
+
+            <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiringTone}`}>
+              <div className="hop-dong-hero__stat-top">
+                <span>Sắp hết hạn</span>
+                <Calendar className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{expiringContracts}</strong>
+              <small>Cần gia hạn trong 30 ngày</small>
+            </div>
+
+            <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiredTone}`}>
+              <div className="hop-dong-hero__stat-top">
+                <span>Đã hết hạn</span>
+                <Calendar className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{expiredContracts}</strong>
+              <small>{expiredContracts > 0 ? 'Cần xử lý hợp đồng quá hạn' : 'Không có hợp đồng quá hạn'}</small>
+            </div>
+          </div>
         </div>
-      </DashboardHero>
+
+        <div className="hop-dong-hero__actions">
+          <Button
+            variant="secondary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="hop-dong-hero__button hop-dong-hero__button-secondary"
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+          </Button>
+          <Button
+            variant="default"
+            onClick={() => router.push('/dashboard/hop-dong/them-moi')}
+            className="hop-dong-hero__button hop-dong-hero__button-primary"
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Thêm hợp đồng</span>
+            <span className="sm:hidden">Thêm</span>
+          </Button>
+        </div>
+      </section>
 
       <Dialog open={!!extendTarget} onOpenChange={(open) => !open && setExtendTarget(null)}>
         <DialogContent>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import {
   AlertTriangle,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
@@ -16,10 +17,11 @@ import {
 } from "lucide-react"
 
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
-import { DashboardHero, DashboardKpiCard, DashboardCard } from "@/components/dashboard/shared-ui"
+import { DashboardCard } from "@/components/dashboard/shared-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -183,6 +185,26 @@ export default function CongNoPage() {
     [data],
   )
 
+  const billingPeriod = useMemo(() => {
+    const period = data
+      .flatMap((item) => item.danhSachHoaDonNo)
+      .find((hoaDon) => hoaDon.thang && hoaDon.nam)
+
+    return period ? `Tháng ${period.thang}/${period.nam}` : null
+  }, [data])
+
+  const statusBadge = useMemo(() => {
+    if (pageTotals.overdue > 0) {
+      return { label: "Có khoản quá hạn", className: "is-danger" }
+    }
+
+    if (pageTotals.debt > 0 || totalElements > 0) {
+      return { label: "Còn nợ cần theo dõi", className: "" }
+    }
+
+    return { label: "Công nợ ổn định", className: "is-stable" }
+  }, [pageTotals.debt, pageTotals.overdue, totalElements])
+
   if (loading) return <CongNoSkeleton />
 
   if (error) {
@@ -191,56 +213,117 @@ export default function CongNoPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      <DashboardHero
-        icon={CircleDollarSign}
-        title="Công nợ"
-        description="Theo dõi các khoản chưa thanh toán theo phòng và mở trực tiếp hóa đơn cần xử lý."
-        actions={
-          <>
-            <Button variant="outline" onClick={() => fetchData(true)} disabled={refreshing}>
+      <section className="cong-no-hero">
+        <div className="cong-no-hero__content">
+          <div className="cong-no-hero__eyebrow">
+            <CircleDollarSign className="h-4 w-4" aria-hidden="true" />
+            <span>CÔNG NỢ</span>
+          </div>
+
+          <div className="cong-no-hero__title-row">
+            <h1>Công nợ</h1>
+            <span className={cn("cong-no-hero__status-badge", statusBadge.className)}>
+              {statusBadge.label}
+            </span>
+          </div>
+
+          <p>
+            Theo dõi khoản phải thu, hóa đơn chưa tất toán và các công nợ cần xử lý theo từng phòng.
+          </p>
+
+          {data.length > 0 ? (
+            <div className="cong-no-hero__insight">
+              <span>
+                Theo dữ liệu đang hiển thị: <strong>{totalElements} phòng đang có nợ</strong>, tổng công nợ{" "}
+                <strong>{formatCurrency(pageTotals.debt)}</strong> và{" "}
+                {pageTotals.overdue > 0 ? (
+                  <>
+                    quá hạn <strong>{formatCurrency(pageTotals.overdue)}</strong>.
+                  </>
+                ) : (
+                  <strong>chưa có khoản nào quá hạn</strong>
+                )}
+              </span>
+            </div>
+          ) : null}
+
+          <div className="cong-no-hero__chips">
+            <span className="cong-no-hero__chip">
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              {billingPeriod ? `Kỳ: ${billingPeriod}` : "Theo bộ lọc hiện tại"}
+            </span>
+            <span className="cong-no-hero__chip">
+              <House className="h-4 w-4" aria-hidden="true" />
+              {totalElements} phòng có nợ
+            </span>
+            <span className="cong-no-hero__chip">
+              <CircleDollarSign className="h-4 w-4" aria-hidden="true" />
+              {formatCurrency(pageTotals.debt)} cần thu
+            </span>
+            <span className="cong-no-hero__chip">
+              <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+              {formatCurrency(pageTotals.overdue)} quá hạn
+            </span>
+            <span className="cong-no-hero__chip">
+              <FileText className="h-4 w-4" aria-hidden="true" />
+              {pageTotals.invoices} hóa đơn chưa tất toán
+            </span>
+          </div>
+
+          <div className="cong-no-hero__actions">
+            <Button
+              variant="outline"
+              onClick={() => fetchData(true)}
+              disabled={refreshing}
+              className="cong-no-hero__button cong-no-hero__button-secondary"
+            >
               <RefreshCw className={refreshing ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
               {refreshing ? "Đang tải" : "Làm mới"}
             </Button>
-            <Button asChild>
+            <Button asChild className="cong-no-hero__button cong-no-hero__button-primary">
               <Link href="/dashboard/hoa-don">
                 <ReceiptText className="mr-2 h-4 w-4" />
-                Xem hóa đơn
+                Xem hóa đơn cần thu
               </Link>
             </Button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
-          <DashboardKpiCard
-            title="Phòng đang có nợ"
-            value={String(totalElements)}
-            hint="Tổng kết quả từ hệ thống"
-            icon={<House className="h-5 w-5" />}
-            tone="default"
-          />
-          <DashboardKpiCard
-            title="Tổng nợ trên trang"
-            value={formatCurrency(pageTotals.debt)}
-            hint="Cần API aggregate để hiển thị toàn bộ"
-            icon={<CircleDollarSign className="h-5 w-5" />}
-            tone={pageTotals.debt > 0 ? "orange" : "emerald"}
-          />
-          <DashboardKpiCard
-            title="Quá hạn trên trang"
-            value={formatCurrency(pageTotals.overdue)}
-            hint="Khoản cần ưu tiên liên hệ"
-            icon={<AlertTriangle className="h-5 w-5" />}
-            tone={pageTotals.overdue > 0 ? "red" : "emerald"}
-          />
-          <DashboardKpiCard
-            title="Hóa đơn trên trang"
-            value={String(pageTotals.invoices)}
-            hint="Hóa đơn chưa tất toán"
-            icon={<FileText className="h-5 w-5" />}
-            tone="default"
-          />
+          </div>
+
+          <div className="cong-no-hero__stats">
+            <article className="cong-no-hero__stat-card is-navy">
+              <div className="cong-no-hero__stat-top">
+                <span>Phòng đang có nợ</span>
+                <House className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{totalElements}</strong>
+              <small>Có khoản cần theo dõi</small>
+            </article>
+            <article className={cn("cong-no-hero__stat-card", pageTotals.debt > 0 ? "is-orange" : "is-teal")}>
+              <div className="cong-no-hero__stat-top">
+                <span>Tổng nợ trên trang</span>
+                <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{formatCurrency(pageTotals.debt)}</strong>
+              <small>Theo dữ liệu đang hiển thị</small>
+            </article>
+            <article className={cn("cong-no-hero__stat-card", pageTotals.overdue > 0 ? "is-red" : "is-teal")}>
+              <div className="cong-no-hero__stat-top">
+                <span>Quá hạn trên trang</span>
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{formatCurrency(pageTotals.overdue)}</strong>
+              <small>{pageTotals.overdue > 0 ? "Khoản cần ưu tiên liên hệ" : "Không có khoản quá hạn"}</small>
+            </article>
+            <article className="cong-no-hero__stat-card is-navy">
+              <div className="cong-no-hero__stat-top">
+                <span>Hóa đơn trên trang</span>
+                <FileText className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{pageTotals.invoices}</strong>
+              <small>Hóa đơn chưa tất toán</small>
+            </article>
+          </div>
         </div>
-      </DashboardHero>
+      </section>
 
       <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
         <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6">

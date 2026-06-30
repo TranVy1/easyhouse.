@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Plus, Pencil, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Pencil, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DashboardHero, DashboardCard } from "@/components/dashboard/shared-ui";
+import { DashboardCard } from "@/components/dashboard/shared-ui";
 import {
   Table,
   TableBody,
@@ -325,13 +325,96 @@ export function LichHenClient() {
     return phong ? phong.maPhong : "N/A";
   };
 
+  const heroMetrics = useMemo(() => {
+    const todayKey = format(new Date(), "yyyy-MM-dd");
+    const now = new Date();
+    const todayAppointments = lichHenList.filter((item) => format(new Date(item.ngayHen), "yyyy-MM-dd") === todayKey);
+    const pendingCount = lichHenList.filter((item) => item.trangThai === "PENDING").length;
+    const confirmedCount = lichHenList.filter((item) => item.trangThai === "CONFIRMED").length;
+    const cancelledCount = lichHenList.filter((item) => item.trangThai === "CANCELLED" || item.trangThai === "NO_SHOW").length;
+    const upcomingTodayCount = todayAppointments.filter((item) => {
+      const appointmentDate = new Date(item.ngayHen);
+      return appointmentDate >= now && ["PENDING", "CONFIRMED"].includes(item.trangThai);
+    }).length;
+
+    return {
+      todayCount: todayAppointments.length,
+      pendingCount,
+      confirmedCount,
+      cancelledCount,
+      upcomingTodayCount,
+    };
+  }, [lichHenList]);
+
+  const hasPendingAppointments = heroMetrics.pendingCount > 0;
+
   return (
     <div className="space-y-4">
-      <DashboardHero
-        icon={CalendarIcon}
-        title="Lịch hẹn xem phòng"
-        description="Quản lý lịch hẹn từ khách vãng lai và portal."
-      />
+      <section className="lich-hen-hero">
+        <div className="lich-hen-hero__content">
+          <div className="lich-hen-hero__eyebrow">
+            <CalendarIcon className="h-4 w-4" aria-hidden="true" />
+            <span>LỊCH HẸN XEM PHÒNG</span>
+          </div>
+
+          <div className="lich-hen-hero__title-row">
+            <h1>Lịch hẹn xem phòng</h1>
+            <span className={`lich-hen-hero__status-badge${hasPendingAppointments ? "" : " is-stable"}`}>
+              {hasPendingAppointments ? "Có lịch cần xác nhận" : "Lịch hẹn ổn định"}
+            </span>
+          </div>
+
+          <p>Theo dõi, xác nhận và quản lý lịch hẹn xem phòng từ khách vãng lai và portal.</p>
+
+          <div className="lich-hen-hero__insight">
+            {heroMetrics.todayCount > 0 ? (
+              <>
+                Hôm nay có <strong>{heroMetrics.todayCount} lịch xem phòng</strong>, trong đó <strong>{heroMetrics.pendingCount} lịch chờ xác nhận</strong>.
+              </>
+            ) : (
+              "Không có lịch hẹn cần xử lý. Hệ thống lịch xem phòng đang ổn định."
+            )}
+          </div>
+
+          <div className="lich-hen-hero__chips" aria-label="Tổng quan nhanh lịch hẹn">
+            <span className="lich-hen-hero__chip">
+              <CalendarIcon className="h-4 w-4" aria-hidden="true" />
+              Hôm nay {heroMetrics.todayCount}
+            </span>
+            <span className="lich-hen-hero__chip">
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              Chờ xác nhận {heroMetrics.pendingCount}
+            </span>
+            <span className="lich-hen-hero__chip">
+              <Clock className="h-4 w-4" aria-hidden="true" />
+              Sắp diễn ra {heroMetrics.upcomingTodayCount}
+            </span>
+            <span className="lich-hen-hero__chip">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              Đã xác nhận {heroMetrics.confirmedCount}
+            </span>
+          </div>
+
+          <div className="lich-hen-hero__stats">
+            <div className="lich-hen-hero__stat-card is-navy">
+              <span>Tổng lịch hẹn</span>
+              <strong>{totalElements}</strong>
+            </div>
+            <div className="lich-hen-hero__stat-card is-orange">
+              <span>Chờ xác nhận</span>
+              <strong>{heroMetrics.pendingCount}</strong>
+            </div>
+            <div className="lich-hen-hero__stat-card is-teal">
+              <span>Đã xác nhận</span>
+              <strong>{heroMetrics.confirmedCount}</strong>
+            </div>
+            <div className="lich-hen-hero__stat-card is-red">
+              <span>Đã hủy / vắng</span>
+              <strong>{heroMetrics.cancelledCount}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <DashboardCard className="overflow-hidden border-0 shadow-sm ring-1 ring-[#E5E0D8]">
         <Table>
