@@ -102,7 +102,7 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
           </div>
         </header>
         <main className="flex-1 overflow-y-auto bg-[#F8F3EC] dark:bg-background">
-          <div className="mx-auto w-full max-w-[1440px] p-4 md:p-6 lg:p-8">
+          <div className="w-full p-4 md:p-5 lg:p-6">
             {children}
           </div>
         </main>

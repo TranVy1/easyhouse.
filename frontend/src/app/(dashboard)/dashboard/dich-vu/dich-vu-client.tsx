@@ -37,7 +37,7 @@ export function DichVuClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDichVu, setSelectedDichVu] = useState<DichVu | null>(null);
-  
+
   const [formData, setFormData] = useState({
     tenDichVu: "",
     loaiTinhPhi: "FIXED",
@@ -128,7 +128,7 @@ export function DichVuClient() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data: ApiResponse<void> = await res.json();
-      
+
       if (data.success) {
         toast.success(data.message);
         setIsDeleteDialogOpen(false);
@@ -211,60 +211,60 @@ export function DichVuClient() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="tenDichVu" className="text-right">Tên dịch vụ</Label>
-              <Input 
-                id="tenDichVu" 
-                className="col-span-3" 
+              <Input
+                id="tenDichVu"
+                className="col-span-3"
                 value={formData.tenDichVu}
-                onChange={(e) => setFormData({...formData, tenDichVu: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, tenDichVu: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="loaiTinhPhi" className="text-right">Loại tính phí</Label>
               <div className="col-span-3">
-                <Select 
-                  value={formData.loaiTinhPhi} 
-                  onValueChange={(value) => setFormData({...formData, loaiTinhPhi: value})}
+                <Select
+                  value={formData.loaiTinhPhi}
+                  onValueChange={(value) => setFormData({ ...formData, loaiTinhPhi: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn loại tính phí" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="FIXED">Cố định (FIXED)</SelectItem>
-                    <SelectItem value="PER_PERSON">Theo người (PER_PERSON)</SelectItem>
-                    <SelectItem value="PER_ROOM">Theo phòng (PER_ROOM)</SelectItem>
-                    <SelectItem value="PER_UNIT">Theo chỉ số (PER_UNIT)</SelectItem>
-                    <SelectItem value="PERCENT">Phần trăm (PERCENT)</SelectItem>
+                    <SelectItem value="FIXED">Cố định </SelectItem>
+                    <SelectItem value="PER_PERSON">Theo người</SelectItem>
+                    <SelectItem value="PER_ROOM">Theo phòng </SelectItem>
+                    <SelectItem value="PER_UNIT">Theo chỉ số</SelectItem>
+                    {/* <SelectItem value="PERCENT">Phần trăm (PERCENT)</SelectItem> */}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="donVi" className="text-right">Đơn vị tính</Label>
-              <Input 
-                id="donVi" 
-                className="col-span-3" 
+              <Input
+                id="donVi"
+                className="col-span-3"
                 placeholder="VD: kWh, m3, người, tháng"
                 value={formData.donVi}
-                onChange={(e) => setFormData({...formData, donVi: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, donVi: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="donGiaMacDinh" className="text-right">Đơn giá</Label>
-              <Input 
-                id="donGiaMacDinh" 
+              <Input
+                id="donGiaMacDinh"
                 type="number"
-                className="col-span-3" 
+                className="col-span-3"
                 value={formData.donGiaMacDinh}
-                onChange={(e) => setFormData({...formData, donGiaMacDinh: Number(e.target.value)})}
+                onChange={(e) => setFormData({ ...formData, donGiaMacDinh: Number(e.target.value) })}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="batBuoc" className="text-right">Bắt buộc</Label>
               <div className="col-span-3 flex items-center space-x-2">
-                <Checkbox 
-                  id="batBuoc" 
+                <Checkbox
+                  id="batBuoc"
                   checked={formData.batBuoc}
-                  onCheckedChange={(checked) => setFormData({...formData, batBuoc: checked === true})}
+                  onCheckedChange={(checked) => setFormData({ ...formData, batBuoc: checked === true })}
                 />
                 <label htmlFor="batBuoc" className="text-sm font-medium leading-none">
                   Dịch vụ bắt buộc khi lập hợp đồng
@@ -284,7 +284,7 @@ export function DichVuClient() {
           <DialogHeader>
             <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xóa dịch vụ <strong>{selectedDichVu?.tenDichVu}</strong>? 
+              Bạn có chắc chắn muốn xóa dịch vụ <strong>{selectedDichVu?.tenDichVu}</strong>?
               Hành động này không thể hoàn tác và có thể ảnh hưởng đến các hợp đồng đang sử dụng dịch vụ này.
             </DialogDescription>
           </DialogHeader>
