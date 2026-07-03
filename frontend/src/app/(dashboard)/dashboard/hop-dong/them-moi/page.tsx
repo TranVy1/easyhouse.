@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getSession, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,15 @@ import {
   Loader2,
   Check,
   ChevronsUpDown,
-  Plus
+  Plus,
+  Home,
+  CalendarDays,
+  WalletCards,
+  Gauge,
+  FileText,
+  StickyNote,
+  Info,
+  type LucideIcon
 } from 'lucide-react';
 import {
   Dialog,
@@ -32,7 +40,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Phong, KhachThue, ToaNha } from '@/types';
 import { generateAndDownloadHopDong } from '@/lib/export-hop-dong';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -79,6 +86,42 @@ type PhiDichVuForm = {
   loaiTinhPhi?: string;
 };
 
+const fieldClass = "space-y-1.5";
+const labelClass = "text-[13px] font-semibold text-[#243B5A]";
+const helperTextClass = "mt-1.5 block text-xs leading-5 text-[#6B7A90]";
+const controlClass = "h-12 w-full rounded-[14px] border border-[rgba(36,59,90,0.12)] bg-white px-4 text-[15px] font-medium text-[#243B5A] shadow-[0_1px_2px_rgba(36,59,90,0.04)] placeholder:text-[#93A1B3] focus-visible:border-[#4FA7A0] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/15 focus-visible:ring-offset-0";
+const comboControlClass = "min-h-12 w-full justify-between rounded-[14px] border border-[rgba(36,59,90,0.12)] bg-white px-4 text-left text-[15px] font-semibold text-[#243B5A] shadow-[0_1px_2px_rgba(36,59,90,0.04)] hover:bg-[#FFFCF7] hover:shadow-[0_8px_18px_rgba(36,59,90,0.08)] focus-visible:border-[#4FA7A0] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/15 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60";
+const selectTriggerClass = "h-12 w-full rounded-[14px] border border-[rgba(36,59,90,0.12)] bg-white px-4 text-[15px] font-semibold text-[#243B5A] shadow-[0_1px_2px_rgba(36,59,90,0.04)] focus:border-[#4FA7A0] focus:ring-4 focus:ring-[#4FA7A0]/15 focus:ring-offset-0";
+const quickButtonClass = "h-9 rounded-full border border-[rgba(36,59,90,0.12)] bg-white px-4 text-xs font-semibold text-[#243B5A] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#4FA7A0]/35 hover:bg-[#4FA7A0]/10 hover:text-[#2F7F79]";
+const textareaClass = "w-full rounded-[14px] border border-[rgba(36,59,90,0.12)] bg-white px-4 py-3 text-[15px] font-medium leading-6 text-[#243B5A] shadow-[0_1px_2px_rgba(36,59,90,0.04)] placeholder:text-[#93A1B3] focus-visible:border-[#4FA7A0] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/15 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#4FA7A0]/30 [&::-webkit-scrollbar-track]:bg-transparent";
+
+function FormSection({
+  title,
+  description,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[18px] border border-[rgba(36,59,90,0.08)] bg-white/55 p-4 shadow-[0_10px_26px_rgba(36,59,90,0.04)] md:p-5">
+      <div className="mb-4 flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#4FA7A0]/12 text-[#2F7F79]">
+          <Icon className="h-4.5 w-4.5" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-bold text-[#243B5A] md:text-[17px]">{title}</h2>
+          {description && <p className="mt-1 text-xs leading-5 text-[#6B7A90] md:text-[13px]">{description}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function ThemMoiHopDongPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -103,21 +146,24 @@ export default function ThemMoiHopDongPage() {
       },
     });
     const json = await res.json();
-    return unwrapPageData<any>(json.data);
+    return unwrapPageData<unknown>(json.data);
   };
 
-  const { data: nhaTroListData } = useSWR(accessToken ? '/api/toa-nha?page=1&limit=100' : null, fetcher);
-  const { data: globalDichVuListData } = useSWR(accessToken ? '/api/dich-vu?page=1&limit=100' : null, fetcher);
+  const { data: nhaTroListData } = useSWR<unknown[]>(accessToken ? '/api/toa-nha?page=1&limit=100' : null, fetcher);
+  const { data: globalDichVuListData } = useSWR<unknown[]>(accessToken ? '/api/dich-vu?page=1&limit=100' : null, fetcher);
   
   const nhaTroList = (nhaTroListData || []).map(normalizeToaNha);
-  const globalDichVuList = (globalDichVuListData || []).map((dv: any) => ({
-    dichVuId: String(dv._id ?? dv.id ?? ''),
-    ten: dv.tenDichVu ?? dv.ten ?? '',
-    loaiTinhPhi: dv.loaiTinhPhi,
-    donVi: dv.donVi,
-    donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
-    batBuoc: dv.batBuoc,
-  }));
+  const globalDichVuList = (globalDichVuListData || []).map((item) => {
+    const dv = item as ApiDichVu;
+    return {
+      dichVuId: String(dv._id ?? dv.id ?? ''),
+      ten: dv.tenDichVu ?? dv.ten ?? '',
+      loaiTinhPhi: dv.loaiTinhPhi,
+      donVi: dv.donVi,
+      donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
+      batBuoc: dv.batBuoc,
+    };
+  });
 
   const { data: phongListData } = useSWR(
     selectedNhaTro ? `/api/phong?page=1&limit=100&nhaTroId=${selectedNhaTro}&simple=true` : null,
@@ -211,7 +257,7 @@ export default function ThemMoiHopDongPage() {
         
         // Cập nhật SWR cache ngay lập tức để danh sách hiển thị
         if (result.data) {
-          mutateKhachThue((prev: any) => {
+          mutateKhachThue((prev: unknown[] | undefined) => {
             const newList = prev ? [result.data, ...prev] : [result.data];
             return newList;
           }, false);
@@ -284,9 +330,6 @@ export default function ThemMoiHopDongPage() {
     const parsed = new Date(dateStr);
     return Number.isNaN(parsed.getTime()) ? dateStr : parsed.toISOString().split('T')[0];
   };
-
-  const isUuid = (value?: string) =>
-    Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
 
   const validateContractForm = () => {
     const startDate = ensureISODate(formData.ngayBatDau);
@@ -476,13 +519,13 @@ export default function ThemMoiHopDongPage() {
         giaThueHopDong: Number(formData.giaThue || 0),
         phiDichVu: [
           ...formData.phiDichVu
-            .filter((phi: any) => 
+            .filter((phi: PhiDichVuForm) =>
               !phi.ten.toLowerCase().includes('điện') && 
               !phi.ten.toLowerCase().includes('nước') &&
               !phi.ten.toLowerCase().includes('electricity') && 
               !phi.ten.toLowerCase().includes('water')
             )
-            .map((phi: any) => ({
+            .map((phi: PhiDichVuForm) => ({
               ...phi,
               gia: Number(phi.gia || 0)
             })),
@@ -558,43 +601,47 @@ export default function ThemMoiHopDongPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-1 pb-10 text-[#243B5A] md:px-3 lg:px-4">
       {/* Header */}
-      <div className="flex items-center gap-3 md:gap-4">
+      <div className="flex items-center gap-4 pt-1 md:gap-5">
         <Button
           variant="outline"
-          size="sm"
           onClick={() => router.push('/dashboard/hop-dong')}
+          className="h-11 w-11 rounded-[14px] border-[rgba(36,59,90,0.12)] bg-[#FFFCF7] p-0 text-[#243B5A] shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_10px_22px_rgba(36,59,90,0.08)]"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">Xem trước hợp đồng</h1>
-          <p className="text-xs md:text-sm text-gray-600">Nhập thông tin hợp đồng mới</p>
+          <h1 className="text-2xl font-bold tracking-normal text-[#243B5A] md:text-3xl">Thêm hợp đồng mới</h1>
+          <p className="mt-1 text-sm font-medium text-[#6B7A90]">Nhập thông tin để tạo và xem trước hợp đồng.</p>
         </div>
       </div>
 
       {/* Form */}
-      <Card>
-        <CardHeader className="p-4 md:p-6">
-          <CardTitle className="text-lg md:text-xl">Thông tin hợp đồng</CardTitle>
-          <CardDescription className="text-xs md:text-sm">
+      <Card className="overflow-hidden rounded-[24px] border border-[rgba(36,59,90,0.08)] bg-[#FFFCF7] shadow-[0_20px_55px_rgba(36,59,90,0.10)]">
+        <CardHeader className="border-b border-[rgba(36,59,90,0.08)] px-5 py-5 md:px-8 md:py-7">
+          <CardTitle className="text-xl font-bold text-[#243B5A] md:text-2xl">Thông tin hợp đồng</CardTitle>
+          <CardDescription className="mt-1 text-sm font-medium text-[#6B7A90]">
             Điền đầy đủ thông tin để tạo hợp đồng mới
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 md:p-6">
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs md:text-sm">Nhà trọ *</Label>
+        <CardContent className="px-5 py-5 md:px-8 md:py-8">
+          <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+            <FormSection
+              title="Thông tin thuê phòng"
+              description="Chọn nhà trọ, phòng và người đại diện đứng tên hợp đồng."
+              icon={Home}
+            >
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className={fieldClass}>
+                <Label className={labelClass}>Nhà trọ <span className="text-[#F2A45B]">*</span></Label>
                 <Popover open={openNhaTro} onOpenChange={setOpenNhaTro}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={openNhaTro}
-                      className="w-full justify-between text-sm"
-                      size="sm"
+                      className={comboControlClass}
                     >
                       {selectedNhaTro
                         ? nhaTroList.find((nt) => nt._id === selectedNhaTro)?.tenToaNha
@@ -633,16 +680,15 @@ export default function ThemMoiHopDongPage() {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs md:text-sm">Phòng *</Label>
+              <div className={fieldClass}>
+                <Label className={labelClass}>Phòng <span className="text-[#F2A45B]">*</span></Label>
                 <Popover open={openPhong} onOpenChange={setOpenPhong}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={openPhong}
-                      className="w-full justify-between text-sm"
-                      size="sm"
+                      className={comboControlClass}
                       disabled={!selectedNhaTro}
                     >
                       {formData.phong
@@ -682,16 +728,15 @@ export default function ThemMoiHopDongPage() {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs md:text-sm">Người đại diện</Label>
+              <div className={fieldClass}>
+                <Label className={labelClass}>Người đại diện</Label>
                 <Popover open={openNguoiDaiDien} onOpenChange={setOpenNguoiDaiDien}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={openNguoiDaiDien}
-                      className="w-full justify-between text-sm"
-                      size="sm"
+                      className={comboControlClass}
                     >
                       {formData.nguoiDaiDien
                         ? khachThueList.find((k) => k._id === formData.nguoiDaiDien)?.hoTen
@@ -750,19 +795,19 @@ export default function ThemMoiHopDongPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="rounded-md border border-[#4FA7A0]/30 bg-[#4FA7A0]/10 px-3 py-2 text-xs text-[#243B5A]">
+            <div className="mt-5 space-y-2">
+              <div className="flex items-start gap-2.5 rounded-[12px] border border-[#4FA7A0]/25 bg-[#4FA7A0]/10 px-3 py-2.5 text-xs font-medium leading-5 text-[#256D68]">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
                 Chọn người đại diện đứng tên hợp đồng trước. Danh sách bên dưới chỉ dùng để thêm bạn cùng phòng, không thay thế người đại diện.
               </div>
-              <Label className="text-xs md:text-sm">Bạn cùng phòng / thành viên ở cùng</Label>
+              <Label className={labelClass}>Bạn cùng phòng / thành viên ở cùng</Label>
               <Popover open={openKhachThue} onOpenChange={setOpenKhachThue}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={openKhachThue}
-                    className="w-full justify-between min-h-10 h-auto text-sm"
-                    size="sm"
+                    className={cn(comboControlClass, "h-auto py-2.5")}
                   >
                     <div className="flex flex-wrap gap-1 text-xs md:text-sm">
                       {formData.khachThueId.length === 0 ? (
@@ -817,28 +862,35 @@ export default function ThemMoiHopDongPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="ngayBatDau" className="text-xs md:text-sm">Ngày bắt đầu</Label>
+            </FormSection>
+
+            <FormSection
+              title="Thời hạn hợp đồng"
+              description="Thiết lập ngày bắt đầu, ngày kết thúc hoặc chọn nhanh thời hạn phổ biến."
+              icon={CalendarDays}
+            >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={fieldClass}>
+                <Label htmlFor="ngayBatDau" className={labelClass}>Ngày bắt đầu</Label>
                 <Input
                   id="ngayBatDau"
                   type="date"
                   value={formData.ngayBatDau}
                   onChange={(e) => setFormData(prev => ({ ...prev, ngayBatDau: e.target.value }))}
                   required
-                  className="text-sm"
+                  className={controlClass}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ngayKetThuc" className="text-xs md:text-sm">Ngày kết thúc</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="ngayKetThuc" className={labelClass}>Ngày kết thúc</Label>
                 <Input
                   id="ngayKetThuc"
                   type="date"
                   value={formData.ngayKetThuc}
                   onChange={(e) => setFormData(prev => ({ ...prev, ngayKetThuc: e.target.value }))}
                   required
-                  className="text-sm"
+                  className={controlClass}
                 />
                 <div className="flex flex-wrap gap-2 mt-2">
                   <Button
@@ -846,7 +898,7 @@ export default function ThemMoiHopDongPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setQuickDuration(3)}
-                    className="text-xs"
+                    className={quickButtonClass}
                   >
                     3 tháng
                   </Button>
@@ -855,7 +907,7 @@ export default function ThemMoiHopDongPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setQuickDuration(6)}
-                    className="text-xs"
+                    className={quickButtonClass}
                   >
                     6 tháng
                   </Button>
@@ -864,7 +916,7 @@ export default function ThemMoiHopDongPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setQuickDuration(12)}
-                    className="text-xs"
+                    className={quickButtonClass}
                   >
                     1 năm
                   </Button>
@@ -872,9 +924,16 @@ export default function ThemMoiHopDongPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="giaThue" className="text-xs md:text-sm">Giá thuê (VNĐ/tháng)</Label>
+            </FormSection>
+
+            <FormSection
+              title="Tài chính & thanh toán"
+              description="Nhập giá thuê, tiền cọc, ngày thu tiền và trạng thái khởi tạo."
+              icon={WalletCards}
+            >
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className={fieldClass}>
+                <Label htmlFor="giaThue" className={labelClass}>Giá thuê (VNĐ/tháng)</Label>
                 <Input
                   id="giaThue"
                   type="number"
@@ -882,15 +941,15 @@ export default function ThemMoiHopDongPage() {
                   value={formData.giaThue}
                   onChange={(e) => setFormData(prev => ({ ...prev, giaThue: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
-                  className="text-sm"
+                  className={controlClass}
                 />
-                <span className="text-[10px] md:text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   {formatCurrency(Number(formData.giaThue))}
                 </span>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tienCoc" className="text-xs md:text-sm">Tiền cọc (VNĐ)</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="tienCoc" className={labelClass}>Tiền cọc (VNĐ)</Label>
                 <Input
                   id="tienCoc"
                   type="number"
@@ -898,15 +957,15 @@ export default function ThemMoiHopDongPage() {
                   value={formData.tienCoc}
                   onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   required
-                  className="text-sm"
+                  className={controlClass}
                 />
-                <span className="text-[10px] md:text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   {formatCurrency(Number(formData.tienCoc))}
                 </span>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ngayThanhToan" className="text-xs md:text-sm">Ngày thanh toán</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="ngayThanhToan" className={labelClass}>Ngày thanh toán</Label>
                 <Input
                   id="ngayThanhToan"
                   type="number"
@@ -915,16 +974,16 @@ export default function ThemMoiHopDongPage() {
                   value={formData.ngayThanhToan}
                   onChange={(e) => setFormData(prev => ({ ...prev, ngayThanhToan: e.target.value === '' ? '' : parseInt(e.target.value) || 1 }))}
                   required
-                  className="text-sm"
+                  className={controlClass}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              <div className="space-y-2">
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={fieldClass}>
                 <Label htmlFor="chuKyThanhToan">Chu kỳ thanh toán</Label>
                 <Select value={formData.chuKyThanhToan} onValueChange={(value) => setFormData(prev => ({ ...prev, chuKyThanhToan: value as 'thang' | 'quy' | 'nam' }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue placeholder="Chọn chu kỳ" />
                   </SelectTrigger>
                   <SelectContent>
@@ -937,10 +996,10 @@ export default function ThemMoiHopDongPage() {
 
 
 
-              <div className="space-y-2">
+              <div className={fieldClass}>
                 <Label htmlFor="trangThai">Trạng thái</Label>
                 <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy' }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
@@ -955,8 +1014,15 @@ export default function ThemMoiHopDongPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            </FormSection>
+
+            <FormSection
+              title="Chỉ số điện nước ban đầu"
+              description="Ghi nhận chỉ số và đơn giá áp dụng khi hợp đồng bắt đầu."
+              icon={Gauge}
+            >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={fieldClass}>
                 <Label htmlFor="chiSoDienBanDau">Chỉ số điện ban đầu (kWh)</Label>
                 <Input
                   id="chiSoDienBanDau"
@@ -966,13 +1032,14 @@ export default function ThemMoiHopDongPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, chiSoDienBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số điện ban đầu"
                   required
+                  className={controlClass}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   Chỉ số đồng hồ điện khi bắt đầu hợp đồng
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className={fieldClass}>
                 <Label htmlFor="chiSoNuocBanDau">Chỉ số nước ban đầu (m³)</Label>
                 <Input
                   id="chiSoNuocBanDau"
@@ -982,15 +1049,16 @@ export default function ThemMoiHopDongPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, chiSoNuocBanDau: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập chỉ số nước ban đầu"
                   required
+                  className={controlClass}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   Chỉ số đồng hồ nước khi bắt đầu hợp đồng
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="space-y-2">
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={fieldClass}>
                 <Label htmlFor="giaDien">Đơn giá điện (VNĐ/kWh)</Label>
                 <Input
                   id="giaDien"
@@ -1000,13 +1068,14 @@ export default function ThemMoiHopDongPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, giaDien: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập đơn giá điện"
                   required
+                  className={controlClass}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   Mức giá cố định áp dụng cho tiền điện
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className={fieldClass}>
                 <Label htmlFor="giaNuoc">Đơn giá nước (VNĐ/m³)</Label>
                 <Input
                   id="giaNuoc"
@@ -1016,39 +1085,53 @@ export default function ThemMoiHopDongPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, giaNuoc: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
                   placeholder="Nhập đơn giá nước"
                   required
+                  className={controlClass}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className={helperTextClass}>
                   Mức giá cố định áp dụng cho tiền nước
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2">
+            </FormSection>
+
+            <FormSection
+              title="Điều khoản hợp đồng"
+              description="Rà soát nội dung điều khoản trước khi xem trước và lưu hợp đồng."
+              icon={FileText}
+            >
+            <div className={fieldClass}>
               <Label htmlFor="dieuKhoan">Điều khoản</Label>
               <Textarea
                 id="dieuKhoan"
                 value={formData.dieuKhoan}
                 onChange={(e) => setFormData(prev => ({ ...prev, dieuKhoan: e.target.value }))}
-                rows={8}
+                rows={9}
                 required
-                className="resize-none"
+                className={cn(textareaClass, "min-h-[220px] resize-none")}
               />
             </div>
+            </FormSection>
 
-            <div className="space-y-2">
+            <FormSection
+              title="Ghi chú & dịch vụ áp dụng"
+              description="Bổ sung ghi chú bàn giao, tiện ích phòng và các dịch vụ tính phí trong hợp đồng."
+              icon={StickyNote}
+            >
+            <div className={fieldClass}>
               <Label htmlFor="ghiChu">Ghi chú bàn giao / nội bộ</Label>
               <Textarea
                 id="ghiChu"
                 value={formData.ghiChu}
                 onChange={(e) => setFormData(prev => ({ ...prev, ghiChu: e.target.value }))}
                 placeholder="Khách không sử dụng Tủ lạnh, đã dọn ra ngoài..."
-                rows={3}
-                className="resize-none"
+                rows={4}
+                className={cn(textareaClass, "min-h-[112px] resize-none")}
               />
             </div>
 
             {formData.phong && (
-              <div className="space-y-2 pb-4">
+              <div className="mt-5 space-y-2 rounded-[14px] border border-[rgba(36,59,90,0.08)] bg-[#FFFCF7] p-4">
                 <Label>Tiện ích có sẵn của phòng</Label>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
@@ -1063,7 +1146,7 @@ export default function ThemMoiHopDongPage() {
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="mt-5 space-y-3 rounded-[16px] border border-[rgba(36,59,90,0.08)] bg-white/75 p-4 shadow-[0_8px_20px_rgba(36,59,90,0.04)]">
               <Label>Dịch vụ áp dụng cho hợp đồng</Label>
               {!formData.phong ? (
                 <p className="text-sm text-muted-foreground">Chọn phòng trước để tải danh sách dịch vụ đang áp dụng cho tòa nhà/phòng.</p>
@@ -1071,9 +1154,9 @@ export default function ThemMoiHopDongPage() {
                 <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
               ) : (
                 <div className="space-y-4">
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="overflow-hidden rounded-[14px] border border-[rgba(36,59,90,0.10)] bg-white">
                     {/* Header Desktop */}
-                    <div className="hidden md:grid grid-cols-[1fr_100px_120px_120px] gap-4 bg-muted/50 p-3 px-4 text-sm font-medium text-muted-foreground border-b">
+                    <div className="hidden grid-cols-[1fr_100px_120px_120px] gap-4 border-b border-[rgba(36,59,90,0.08)] bg-[#F8F3EC]/70 px-4 py-3 text-sm font-semibold text-[#6B7A90] md:grid">
                       <div>Tên dịch vụ</div>
                       <div>Đơn giá</div>
                       <div>Số lượng</div>
@@ -1084,7 +1167,7 @@ export default function ThemMoiHopDongPage() {
                       {dichVuOptions.map((option) => {
                         const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
                         return (
-                          <div key={option.dichVuId} className={cn("grid grid-cols-1 md:grid-cols-[1fr_160px_120px_120px] items-center gap-3 md:gap-4 p-4 transition-colors", selected ? "bg-primary/5" : "bg-card hover:bg-muted/30")}>
+                          <div key={option.dichVuId} className={cn("grid grid-cols-1 items-center gap-3 p-4 transition-colors md:grid-cols-[1fr_160px_120px_120px] md:gap-4", selected ? "bg-[#4FA7A0]/8" : "bg-white hover:bg-[#FFFCF7]")}>
                             <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-3 text-left">
                               <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors", selected ? "bg-primary border-primary text-primary-foreground" : "border-input")}>
                                 {selected && <Check className="h-3.5 w-3.5" />}
@@ -1101,7 +1184,7 @@ export default function ThemMoiHopDongPage() {
                                 <Input
                                   type="number"
                                   min="0"
-                                  className={cn("pr-7 h-9 bg-background", !selected && "opacity-50")}
+                                  className={cn(controlClass, "h-10 pr-7 text-sm", !selected && "opacity-50")}
                                   value={selected?.gia ?? option.donGiaMacDinh}
                                   disabled={!selected}
                                   onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)}
@@ -1116,7 +1199,7 @@ export default function ThemMoiHopDongPage() {
                                 type="number"
                                 min="0"
                                 step="0.1"
-                                className={cn("h-9 bg-background", !selected && "opacity-50")}
+                                className={cn(controlClass, "h-10 text-sm", !selected && "opacity-50")}
                                 value={selected?.soLuong ?? 1}
                                 disabled={!selected}
                                 onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)}
@@ -1135,11 +1218,11 @@ export default function ThemMoiHopDongPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 border-t pt-4">
-                    <Label className="text-xs md:text-sm mb-2 block">Thêm dịch vụ khác</Label>
+                  <div className="mt-4 border-t border-[rgba(36,59,90,0.08)] pt-4">
+                    <Label className={cn(labelClass, "mb-2 block")}>Thêm dịch vụ khác</Label>
                     <Popover open={openAddDichVu} onOpenChange={setOpenAddDichVu}>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className="w-full justify-between text-sm">
+                        <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className={comboControlClass}>
                           Chọn thêm dịch vụ từ danh sách...
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -1173,22 +1256,22 @@ export default function ThemMoiHopDongPage() {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 pt-4 border-t">
+            </FormSection>
+
+            <div className="flex flex-col justify-end gap-3 border-t border-[rgba(36,59,90,0.10)] pt-5 sm:flex-row">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={() => router.push('/dashboard/hop-dong')}
                 disabled={submitting}
-                className="w-full sm:w-auto sm:min-w-[80px]"
+                className="h-12 w-full rounded-[14px] border border-[rgba(36,59,90,0.14)] bg-white px-7 text-sm font-semibold text-[#243B5A] shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#FFFCF7] hover:shadow-[0_10px_22px_rgba(36,59,90,0.08)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                size="sm"
                 disabled={submitting}
-                className="w-full sm:w-auto sm:min-w-[120px]"
+                className="h-12 w-full rounded-[14px] bg-[#243B5A] px-8 text-sm font-bold text-white shadow-[0_12px_28px_rgba(36,59,90,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#1D304A] hover:shadow-[0_16px_34px_rgba(36,59,90,0.24)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 {submitting ? (
                   <>

@@ -671,20 +671,24 @@ export default function HoaDonPage() {
           void fetchToaNhas()
         }
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-6">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-[#243B5A]" />
-              Sinh hóa đơn hàng tháng tự động
-            </DialogTitle>
-            <DialogDescription>
-              Sinh hàng loạt hóa đơn cho tất cả hợp đồng đang hiệu lực. Xem trước chi phí dự kiến trước khi xác nhận.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="w-[calc(100vw-16px)] min-w-0 max-w-none md:w-[calc(100vw-48px)] lg:w-[50vw] lg:min-w-[760px] lg:max-w-[980px] max-h-[calc(100vh-40px)] overflow-hidden rounded-[22px] border border-[#243B5A]/10 bg-[#FFFCF7] p-0 shadow-2xl shadow-[#243B5A]/18 [&_[data-slot=dialog-close]]:right-5 [&_[data-slot=dialog-close]]:top-5 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:hover:bg-[#4FA7A0]/10">
+          <div className="flex max-h-[calc(100vh-40px)] min-h-0 flex-col overflow-hidden">
+            <div className="shrink-0 border-b border-[#243B5A]/10 bg-[#FFFCF7] px-6 py-5 sm:px-8 sm:py-6">
+              <DialogHeader className="pr-10">
+                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-[#243B5A]" />
+                  Sinh hóa đơn hàng tháng tự động
+                </DialogTitle>
+                <DialogDescription>
+                  Sinh hàng loạt hóa đơn cho tất cả hợp đồng đang hiệu lực. Xem trước chi phí dự kiến trước khi xác nhận.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8 sm:py-6">
           {/* Form Filter */}
           {!genResult && (
-            <div className="grid gap-4 sm:grid-cols-3 bg-muted/40 p-4 rounded-xl border mb-2">
+            <div className="grid gap-4 sm:grid-cols-3 bg-[#F8F3EC]/70 p-4 rounded-xl border border-[#243B5A]/10 mb-2">
               <div className="space-y-1.5">
                 <Label htmlFor="nhaTro">Tòa nhà</Label>
                 <Select value={genForm.nhaTroId} onValueChange={(value) => setGenForm(prev => ({ ...prev, nhaTroId: value }))}>
@@ -766,7 +770,7 @@ export default function HoaDonPage() {
 
           {/* Results Summary after generation */}
           {genResult && (
-            <div className="space-y-4 py-4 flex-1 overflow-hidden flex flex-col">
+            <div className="space-y-4 py-1">
               <div className="grid gap-4 grid-cols-3 text-center">
                 <div className="p-3 bg-[#4FA7A0]/10 dark:bg-[#4FA7A0]/20 border border-[#4FA7A0]/20 dark:border-[#4FA7A0]/30 rounded-xl">
                   <p className="text-sm font-medium text-[#267D76] dark:text-[#8CCBC5]">Thành công</p>
@@ -783,7 +787,7 @@ export default function HoaDonPage() {
               </div>
 
               <div className="text-sm font-semibold text-muted-foreground mt-2">Chi tiết nhật ký chạy:</div>
-              <ScrollArea className="flex-1 border rounded-xl p-2 bg-muted/20">
+              <ScrollArea className="h-[min(360px,45vh)] border rounded-xl p-2 bg-muted/20">
                 <div className="space-y-1.5 text-sm font-mono">
                   {genResult.logs && genResult.logs.length > 0 ? (
                     genResult.logs.map((log: any, idx: number) => (
@@ -810,13 +814,13 @@ export default function HoaDonPage() {
 
           {/* Preview candidate list */}
           {!genResult && previewData && (
-            <div className="flex-1 overflow-hidden flex flex-col space-y-3 mt-2 min-h-[300px]">
-              <div className="flex justify-between items-center text-sm font-semibold border-b pb-2">
+            <div className="min-h-0 overflow-hidden flex flex-col space-y-3 mt-2">
+              <div className="flex flex-col gap-1 text-sm font-semibold border-b pb-2 sm:flex-row sm:items-center sm:justify-between">
                 <span>Danh sách ứng viên ({previewData.candidates?.length || 0} hợp đồng)</span>
                 <span className="text-[#243B5A]">Tổng tiền dự kiến: {currency(previewData.tongEstimatedAmount)}</span>
               </div>
-              <ScrollArea className="flex-1 border rounded-xl bg-background">
-                <Table>
+              <div className="max-h-[min(420px,42vh)] overflow-auto rounded-xl border border-[#243B5A]/10 bg-background">
+                <Table className="min-w-[720px] lg:min-w-full">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-24">Phòng</TableHead>
@@ -831,7 +835,7 @@ export default function HoaDonPage() {
                       previewData.candidates.map((cand: any, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell className="font-bold">{cand.maPhong}</TableCell>
-                          <TableCell className="truncate max-w-[150px]">{cand.tenKhachThue}</TableCell>
+                          <TableCell className="max-w-[220px] truncate">{cand.tenKhachThue}</TableCell>
                           <TableCell>
                             <Badge 
                               variant={cand.status === "READY" ? "default" : cand.status === "EXISTS" ? "secondary" : "destructive"}
@@ -855,10 +859,10 @@ export default function HoaDonPage() {
                     )}
                   </TableBody>
                 </Table>
-              </ScrollArea>
+              </div>
 
               {/* Stats card */}
-              <div className="flex justify-between items-center text-sm p-3 bg-[#F8F3EC] dark:bg-[#243B5A] border rounded-xl">
+              <div className="flex flex-col gap-1 text-sm p-3 bg-[#F8F3EC] dark:bg-[#243B5A] border rounded-xl sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   Hợp đồng ready: <span className="font-bold text-[#267D76] dark:text-[#8CCBC5]">{previewData.tongReady}</span> / {previewData.tongHopDong}
                 </div>
@@ -875,7 +879,10 @@ export default function HoaDonPage() {
             </div>
           )}
 
-          <DialogFooter className="mt-4 flex-row gap-2 justify-end">
+            </div>
+
+            <div className="shrink-0 border-t border-[#243B5A]/10 bg-[#FFFCF7]/95 px-6 py-4 sm:px-8 sm:py-5">
+              <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             {genResult ? (
               <Button 
                 onClick={() => {
@@ -908,7 +915,9 @@ export default function HoaDonPage() {
                 )}
               </>
             )}
-          </DialogFooter>
+              </DialogFooter>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

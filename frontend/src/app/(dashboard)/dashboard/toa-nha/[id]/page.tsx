@@ -36,7 +36,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,26 +44,30 @@ import type { SoDoPhong, SoDoToaNha, TrangThaiPhongHienThi } from '@/types';
 import { cn } from '@/lib/utils';
 import { PhongForm } from '@/components/ui/phong-form';
 
-const statusConfig: Record<TrangThaiPhongHienThi, { label: string; className: string; badge: string }> = {
+const statusConfig: Record<TrangThaiPhongHienThi, { label: string; card: string; badge: string; dot: string }> = {
   VACANT: {
     label: 'Phòng trống',
-    className: 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A] hover:bg-[#4FA7A0]/15',
-    badge: 'bg-[#4FA7A0]/15 text-[#267D76] border-[#4FA7A0]/30',
+    card: 'border-[#4FA7A0]/35 bg-[#EAF7F4] text-[#243B5A] hover:border-[#4FA7A0]/70 hover:bg-[#DFF2EF]',
+    badge: 'border-[#4FA7A0]/35 bg-[#EAF7F4] text-[#267D76]',
+    dot: 'bg-[#4FA7A0]',
   },
   RENTED: {
     label: 'Đang thuê',
-    className: 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A] hover:bg-[#4FA7A0]/15',
-    badge: 'bg-[#4FA7A0]/15 text-[#243B5A] border-[#4FA7A0]/30',
+    card: 'border-[#243B5A]/25 bg-[#EAF0F8] text-[#243B5A] hover:border-[#243B5A]/55 hover:bg-[#DFE9F5]',
+    badge: 'border-[#243B5A]/25 bg-[#EAF0F8] text-[#243B5A]',
+    dot: 'bg-[#243B5A]',
   },
   CONTRACT_EXPIRING: {
     label: 'Sắp hết hạn',
-    className: 'border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100',
-    badge: 'bg-amber-100 text-amber-800 border-amber-200',
+    card: 'border-[#F2A45B]/45 bg-[#FFF6E8] text-[#7A4A12] hover:border-[#F2A45B]/80 hover:bg-[#FFF0D8]',
+    badge: 'border-[#F2A45B]/45 bg-[#FFF6E8] text-[#A15D16]',
+    dot: 'bg-[#F2A45B]',
   },
   MAINTENANCE: {
     label: 'Bảo trì',
-    className: 'border-[#E8DED2] bg-slate-100 text-[#243B5A] hover:bg-slate-200',
-    badge: 'bg-slate-100 text-[#243B5A] border-[#E8DED2]',
+    card: 'border-[#F2A45B]/35 bg-[#FFF3E6] text-[#7A3E0D] hover:border-[#F2A45B]/70 hover:bg-[#FFEBD6]',
+    badge: 'border-[#F2A45B]/35 bg-[#FFF3E6] text-[#B45F14]',
+    dot: 'bg-[#F2A45B]',
   },
 };
 
@@ -165,7 +169,7 @@ export default function ToaNhaDetailPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
+      <div className="flex flex-col gap-4 rounded-xl border border-[#E8DED2] bg-[#FFFCF7] p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
         <div className="space-y-1">
           <Button variant="ghost" className="h-8 px-0" onClick={() => router.push('/dashboard/toa-nha')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -179,12 +183,19 @@ export default function ToaNhaDetailPage() {
             Sơ đồ vận hành phòng, hợp đồng hiện tại và trạng thái cần xử lý.
           </p>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3 mt-2 md:mt-0">
-          <Button variant="outline" onClick={fetchSoDo}>
+        <div className="mt-2 flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3 md:mt-0">
+          <Button
+            variant="outline"
+            onClick={fetchSoDo}
+            className="h-11 rounded-xl border-[#243B5A]/12 bg-[#FFFCF7] px-5 text-sm font-semibold text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/40 hover:bg-white hover:text-[#243B5A] hover:shadow-md active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/20"
+          >
             <RefreshCw className="mr-2 h-4 w-4" />
             Tải mới
           </Button>
-          <Button onClick={() => setIsAddRoomOpen(true)}>
+          <Button
+            onClick={() => setIsAddRoomOpen(true)}
+            className="h-11 rounded-xl bg-[#243B5A] px-5 text-sm font-semibold text-white shadow-sm shadow-[#243B5A]/20 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-[#1D314D] hover:shadow-md hover:shadow-[#243B5A]/25 active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/25"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Thêm phòng
           </Button>
@@ -192,14 +203,17 @@ export default function ToaNhaDetailPage() {
       </div>
 
       <Dialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
-          <DialogHeader>
-            <DialogTitle className="text-base md:text-lg">Thêm phòng mới</DialogTitle>
+        <DialogContent className="flex max-h-[calc(100vh-40px)] w-[calc(100vw-24px)] max-w-[calc(100vw-24px)] grid-rows-none flex-col gap-0 overflow-hidden rounded-[22px] border border-[#243B5A]/8 bg-[#FFFCF7] p-0 shadow-2xl shadow-[#243B5A]/18 sm:max-w-[calc(100vw-32px)] lg:w-[50vw] lg:min-w-[720px] lg:max-w-[920px] [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:flex [&_[data-slot=dialog-close]]:h-8 [&_[data-slot=dialog-close]]:w-8 [&_[data-slot=dialog-close]]:items-center [&_[data-slot=dialog-close]]:justify-center [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:opacity-80 [&_[data-slot=dialog-close]]:transition-all [&_[data-slot=dialog-close]]:duration-200 [&_[data-slot=dialog-close]]:hover:bg-[#4FA7A0]/10 [&_[data-slot=dialog-close]]:hover:text-[#243B5A] [&_[data-slot=dialog-close]]:focus:ring-[3px] [&_[data-slot=dialog-close]]:focus:ring-[#4FA7A0]/20">
+          <DialogHeader className="shrink-0 border-b border-[#243B5A]/10 bg-[#FFFCF7]/95 px-5 py-3.5 text-left backdrop-blur lg:px-7">
+            <DialogTitle className="pr-9 text-xl font-bold leading-tight text-[#243B5A]">Thêm phòng mới</DialogTitle>
+            <DialogDescription className="mt-1 text-sm leading-5 text-[#6B7A8C]">
+              Nhập thông tin phòng và cấu hình trạng thái ban đầu.
+            </DialogDescription>
           </DialogHeader>
           {data && (
             <PhongForm
               phong={null}
-              toaNhaList={[{ _id: params.id, tenToaNha: data.tenToaNha } as any]}
+              toaNhaList={[{ _id: params.id, tenToaNha: data.tenToaNha }]}
               onClose={() => setIsAddRoomOpen(false)}
               onSuccess={() => {
                 setIsAddRoomOpen(false);
@@ -261,42 +275,69 @@ export default function ToaNhaDetailPage() {
         </TabsContent>
 
         <TabsContent value="map" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-lg border bg-card p-3 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-xl border border-[#E8DED2] bg-[#FFFCF7] p-3 shadow-sm">
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              {(['VACANT', 'RENTED', 'CONTRACT_EXPIRING', 'MAINTENANCE'] as TrangThaiPhongHienThi[]).map((status) => (
+                <div key={status} className="flex items-center gap-2 text-xs font-medium text-[#64748B]">
+                  <span className={cn('h-2.5 w-2.5 rounded-full ring-2 ring-white', statusConfig[status].dot)} />
+                  <span>{statusConfig[status].label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={roomSearch}
                 onChange={(event) => setRoomSearch(event.target.value)}
                 placeholder="Tìm phòng, khách thuê, mã hợp đồng..."
-                className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                className="h-11 w-full rounded-xl border border-[#E2D8CC] bg-white pl-9 pr-3 text-sm font-medium text-[#243B5A] outline-none transition-all placeholder:text-slate-400 focus:border-[#4FA7A0] focus:ring-4 focus:ring-[#4FA7A0]/15"
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0">
-              <Button type="button" variant={statusFilter === 'ALL' ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter('ALL')}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setStatusFilter('ALL')}
+                className={cn(
+                  'h-10 shrink-0 rounded-xl border-[#E2D8CC] px-4 font-semibold transition-all hover:-translate-y-[1px] hover:shadow-sm',
+                  statusFilter === 'ALL'
+                    ? 'border-[#243B5A] bg-[#243B5A] text-white hover:bg-[#1D314D] hover:text-white'
+                    : 'bg-white text-[#243B5A] hover:border-[#4FA7A0]/50 hover:bg-[#F8F3EC]'
+                )}
+              >
                 Tất cả
               </Button>
               {(['VACANT', 'RENTED', 'CONTRACT_EXPIRING', 'MAINTENANCE'] as TrangThaiPhongHienThi[]).map((status) => (
                 <Button
                   key={status}
                   type="button"
-                  variant={statusFilter === status ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
                   onClick={() => setStatusFilter(status)}
+                  className={cn(
+                    'h-10 shrink-0 rounded-xl border-[#E2D8CC] px-4 font-semibold transition-all hover:-translate-y-[1px] hover:shadow-sm',
+                    statusFilter === status
+                      ? 'border-[#4FA7A0] bg-[#4FA7A0] text-white hover:bg-[#438F89] hover:text-white'
+                      : 'bg-white text-[#243B5A] hover:border-[#4FA7A0]/50 hover:bg-[#F8F3EC]'
+                  )}
                 >
                   {statusConfig[status].label}
                 </Button>
               ))}
             </div>
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {visibleFloors.map((floor) => (
-              <section key={floor.soTang} className="rounded-lg border bg-background p-3">
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">{floor.tenTang || `Tầng ${floor.soTang}`}</h2>
-                  <span className="text-xs text-muted-foreground">{floor.phong.length} phòng</span>
+              <section key={floor.soTang} className="rounded-xl border border-[#E8DED2] bg-[#FFFCF7] p-4 shadow-sm">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-bold text-[#243B5A]">{floor.tenTang || `Tầng ${floor.soTang}`}</h2>
+                  <span className="rounded-full border border-[#E8DED2] bg-white px-3 py-1 text-xs font-semibold text-[#64748B]">{floor.phong.length} phòng</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-10">
+                <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                   {floor.phong.map((room) => {
                     const config = statusConfig[room.trangThaiHienThi] || statusConfig.VACANT;
                     return (
@@ -306,17 +347,27 @@ export default function ToaNhaDetailPage() {
                         onClick={() => setSelectedRoom(room)}
                         aria-label={`Xem chi tiết phòng ${room.maPhong} - ${config.label}`}
                         className={cn(
-                          'min-h-24 rounded-md border p-2 text-left transition focus:outline-none focus:ring-2 focus:ring-primary',
-                          config.className
+                          'min-h-[124px] rounded-xl border p-3 text-left shadow-sm transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#4FA7A0]/20',
+                          config.card
                         )}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-base font-semibold">{room.maPhong}</span>
-                          {room.trangThaiHienThi === 'MAINTENANCE' && <Hammer className="h-4 w-4" />}
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="truncate text-lg font-bold leading-6">{room.maPhong}</span>
+                          {room.trangThaiHienThi === 'MAINTENANCE' ? (
+                            <Hammer className="mt-0.5 h-4 w-4 shrink-0" />
+                          ) : room.trangThaiHienThi === 'RENTED' ? (
+                            <UserRound className="mt-0.5 h-4 w-4 shrink-0" />
+                          ) : null}
                         </div>
-                        <div className="mt-2 text-xs">{config.label}</div>
+                        <div className="mt-3 flex items-center gap-2 text-xs font-semibold">
+                          <span className={cn('h-2 w-2 rounded-full', config.dot)} />
+                          <span>{config.label}</span>
+                        </div>
                         {room.khachThueHienTai && (
-                          <div className="mt-1 truncate text-xs opacity-80">{room.khachThueHienTai}</div>
+                          <div className="mt-3 flex items-center gap-1.5 truncate text-xs font-medium opacity-80">
+                            <UserRound className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{room.khachThueHienTai}</span>
+                          </div>
                         )}
                       </button>
                     );
@@ -531,10 +582,10 @@ export default function ToaNhaDetailPage() {
                               try {
                                 const errData = await res.json();
                                 errorMsg = errData.message || errorMsg;
-                              } catch (e) {}
+                              } catch {}
                               toast.error(errorMsg);
                             }
-                          } catch (error) {
+                          } catch {
                             toast.error('Không thể kết nối đến máy chủ để xóa phòng');
                           }
                         }}>
