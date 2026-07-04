@@ -17,6 +17,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft,
   PenTool,
@@ -147,6 +148,7 @@ export default function TenantContractDetailPage() {
   const [openSignDialog, setOpenSignDialog] = useState(false);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [pdfTimestamp, setPdfTimestamp] = useState<number>(Date.now());
 
   const fetchContractData = useCallback(async () => {
     if (!accessToken || !hopDongId) return;
@@ -156,8 +158,9 @@ export default function TenantContractDetailPage() {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
         setContract(data.data);
+        setPdfTimestamp(Date.now());
       } else {
         toast.error('Không tìm thấy hợp đồng');
         router.push('/khach-thue/dashboard/hop-dong');
@@ -358,7 +361,7 @@ export default function TenantContractDetailPage() {
           {contract.filePdf ? (
             <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
               <iframe 
-                src={contract.filePdf}
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(contract.filePdf + '?t=' + pdfTimestamp)}&embedded=true`}
                 className="w-full h-[600px] border-0"
                 title="Contract PDF Viewer"
               />
@@ -420,15 +423,53 @@ export default function TenantContractDetailPage() {
           <DialogHeader>
             <DialogTitle>Ký hợp đồng thuê phòng (Bên B - Khách thuê)</DialogTitle>
             <CardDescription>
-              Vui lòng vẽ chữ ký tay của bạn vào khung dưới đây. Bằng việc ký tên, bạn xác nhận đồng ý với toàn bộ điều khoản ghi trong văn bản hợp đồng.
+              Vui lòng vẽ chữ ký tay của bạn hoặc tải ảnh chữ ký lên. Bằng việc ký tên, bạn xác nhận đồng ý với toàn bộ điều khoản ghi trong văn bản hợp đồng.
             </CardDescription>
           </DialogHeader>
-          <div className="py-2">
-            <SignatureCanvas 
-              onSave={handleSign} 
-              onCancel={() => setOpenSignDialog(false)} 
-            />
-          </div>
+          <Tabs defaultValue="draw" className="w-full mt-2">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="draw">Vẽ chữ ký</TabsTrigger>
+              <TabsTrigger value="upload">Tải ảnh lên</TabsTrigger>
+            </TabsList>
+            <TabsContent value="draw" className="py-2">
+              <SignatureCanvas 
+                onSave={handleSign} 
+                onCancel={() => setOpenSignDialog(false)} 
+              />
+            </TabsContent>
+            <TabsContent value="upload" className="py-4 space-y-4">
+              <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="rounded-full bg-slate-100 p-3">
+                  <FileDown className="h-6 w-6 text-slate-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Chọn file ảnh chữ ký (PNG, JPG)</p>
+                  <p className="text-xs text-muted-foreground mt-1">Nên dùng ảnh nền trong suốt (PNG) để hiển thị đẹp nhất.</p>
+                </div>
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  className="max-w-[250px]"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const base64 = reader.result as string;
+                        handleSign(base64);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => setOpenSignDialog(false)}>
+                  Hủy
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

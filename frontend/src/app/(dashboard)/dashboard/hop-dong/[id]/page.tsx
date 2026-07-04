@@ -250,6 +250,7 @@ export default function ChinhSuaHopDongPage() {
   const [openPhong, setOpenPhong] = useState(false);
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
+  const [pdfTimestamp, setPdfTimestamp] = useState<number>(Date.now());
   const [openAddDichVu, setOpenAddDichVu] = useState(false);
   const [searchDichVu, setSearchDichVu] = useState("");
   const [openAddKhachThue, setOpenAddKhachThue] = useState(false);
@@ -1233,12 +1234,12 @@ export default function ChinhSuaHopDongPage() {
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nhap" className="text-sm">Nháp</SelectItem>
-                    <SelectItem value="choKichHoat" className="text-sm">Chờ kích hoạt</SelectItem>
-                    <SelectItem value="hoatDong" className="text-sm" disabled>Hoạt động sau khi xác nhận</SelectItem>
+                    <SelectItem value="nhap" className="text-sm" disabled={isLocked}>Nháp</SelectItem>
+                    <SelectItem value="choKichHoat" className="text-sm" disabled={isLocked}>Chờ kích hoạt</SelectItem>
+                    <SelectItem value="hoatDong" className="text-sm" disabled={!isLocked}>Hoạt động</SelectItem>
                     <SelectItem value="hetHan" className="text-sm" disabled>Hết hạn tự động</SelectItem>
-                    <SelectItem value="daKetThuc" className="text-sm" disabled>Kết thúc bằng chức năng riêng</SelectItem>
-                    <SelectItem value="daHuy" className="text-sm" disabled>Hủy bằng chức năng riêng</SelectItem>
+                    <SelectItem value="daKetThuc" className="text-sm" disabled={!isLocked}>Kết thúc / Chấm dứt</SelectItem>
+                    <SelectItem value="daHuy" className="text-sm" disabled={!isLocked}>Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1433,7 +1434,7 @@ export default function ChinhSuaHopDongPage() {
               <Button 
                 type="submit"
                 size="sm"
-                disabled={submitting || isLocked}
+                disabled={submitting}
                 className="w-full sm:w-auto sm:min-w-[120px]"
               >
                 {submitting ? (
@@ -1444,7 +1445,7 @@ export default function ChinhSuaHopDongPage() {
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {isLocked ? 'Hợp đồng đã khóa' : 'Cập nhật hợp đồng'}
+                    {isLocked ? 'Cập nhật trạng thái' : 'Cập nhật hợp đồng'}
                   </>
                 )}
               </Button>
@@ -1549,7 +1550,7 @@ export default function ChinhSuaHopDongPage() {
               {hopDong?.filePdf ? (
                 <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
                   <iframe 
-                    src={hopDong.filePdf}
+                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(hopDong.filePdf + '?t=' + pdfTimestamp)}&embedded=true`}
                     className="w-full h-[600px] border-0"
                     title="Contract PDF Viewer"
                   />
@@ -1609,19 +1610,57 @@ export default function ChinhSuaHopDongPage() {
           </CardContent>
         </Card>
 
-        {/* Dialog vẽ chữ ký cho chủ nhà */}
+        {/* Dialog vẽ/tải chữ ký cho chủ nhà */}
         <Dialog open={openSignDialog} onOpenChange={setOpenSignDialog}>
           <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
               <DialogTitle>Ký xác nhận hợp đồng (Bên A - Chủ cho thuê)</DialogTitle>
-              <CardDescription>Vẽ chữ ký tay của bạn vào khung dưới đây. Chữ ký này sẽ được đóng mộc vào file PDF chính thức.</CardDescription>
+              <CardDescription>Bạn có thể vẽ chữ ký trực tiếp hoặc tải lên ảnh chữ ký có sẵn. Chữ ký này sẽ được đóng mộc vào file PDF chính thức.</CardDescription>
             </DialogHeader>
-            <div className="py-2">
-              <SignatureCanvas 
-                onSave={handleSaveSignature} 
-                onCancel={() => setOpenSignDialog(false)} 
-              />
-            </div>
+            <Tabs defaultValue="draw" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="draw">Vẽ chữ ký</TabsTrigger>
+                <TabsTrigger value="upload">Tải ảnh lên</TabsTrigger>
+              </TabsList>
+              <TabsContent value="draw" className="py-2">
+                <SignatureCanvas 
+                  onSave={handleSaveSignature} 
+                  onCancel={() => setOpenSignDialog(false)} 
+                />
+              </TabsContent>
+              <TabsContent value="upload" className="py-4 space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center space-y-4 text-center">
+                  <div className="rounded-full bg-slate-100 p-3">
+                    <FileDown className="h-6 w-6 text-slate-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Chọn file ảnh chữ ký (PNG, JPG)</p>
+                    <p className="text-xs text-muted-foreground mt-1">Nên dùng ảnh nền trong suốt (PNG) để hiển thị đẹp nhất trên hợp đồng.</p>
+                  </div>
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    className="max-w-[250px]"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string;
+                          handleSaveSignature(base64);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex justify-end pt-2">
+                  <Button variant="outline" onClick={() => setOpenSignDialog(false)}>
+                    Hủy
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </TabsContent>

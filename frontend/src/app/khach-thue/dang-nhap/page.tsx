@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Phone, Lock, LogIn, Home } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 function KhachThueDangNhapContent() {
   const router = useRouter();
@@ -109,9 +110,19 @@ function KhachThueDangNhapContent() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-600 mt-4">
-              <p>Mật khẩu mặc định là 123456</p>
-              <p className="text-xs mt-1">Vui lòng đổi mật khẩu sau khi đăng nhập thành công</p>
+            <div className="text-center text-sm text-gray-600 mt-4 space-y-4">
+              <div>
+                <p>Mật khẩu mặc định là 123456</p>
+                <p className="text-xs mt-1">Vui lòng đổi mật khẩu sau khi đăng nhập thành công</p>
+              </div>
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium mb-1">
+                  Bạn là Chủ trọ / Quản lý?
+                </p>
+                <Link href="/dang-nhap" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors hover:underline">
+                  Đăng nhập tại cổng Quản lý &rarr;
+                </Link>
+              </div>
             </div>
           </form>
         </CardContent>

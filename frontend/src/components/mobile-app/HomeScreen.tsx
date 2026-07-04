@@ -369,15 +369,23 @@ function RoomCardView({
 export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const initialViewState = useMemo(() => getInitialHomeViewState(), []);
   const didMountViewState = useRef(false);
   const [userProfile, setUserProfile] = useState<LooseRoom | null>(null);
   const [allRooms, setAllRooms] = useState<RoomCard[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filterPrice, setFilterPrice] = useState(initialViewState.filterPrice);
-  const [filterArea, setFilterArea] = useState(initialViewState.filterArea);
-  const [searchQuery, setSearchQuery] = useState(initialViewState.searchQuery);
-  const [currentPage, setCurrentPage] = useState(initialViewState.currentPage);
+  const [filterPrice, setFilterPrice] = useState("all");
+  const [filterArea, setFilterArea] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Hydration fix: load state from sessionStorage after initial render
+  useEffect(() => {
+    const state = getInitialHomeViewState();
+    setFilterPrice(state.filterPrice);
+    setFilterArea(state.filterArea);
+    setSearchQuery(state.searchQuery);
+    setCurrentPage(state.currentPage);
+  }, []);
   const [savedRooms, setSavedRooms] = useState<Set<RoomId>>(new Set());
 
   const getStorageKey = (uid?: string) => {

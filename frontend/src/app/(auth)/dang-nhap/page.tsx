@@ -299,13 +299,21 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className="text-sm text-[#6B7A8C] dark:text-[#6B7A8C] font-medium">
                 Bạn mới sử dụng hệ thống?{' '}
                 <Link href="/dang-ky" className="font-extrabold text-[#243B5A] hover:text-[#243B5A] transition-colors hover:underline">
                   Đăng ký tài khoản
                 </Link>
               </p>
+              <div className="bg-[#4FA7A0]/10 border border-[#4FA7A0]/20 rounded-xl p-3 flex flex-col items-center justify-center">
+                <p className="text-sm text-[#243B5A] dark:text-[#243B5A] font-medium mb-1">
+                  Bạn là Khách thuê phòng?
+                </p>
+                <Link href="/khach-thue/dang-nhap" className="text-sm font-extrabold text-[#4FA7A0] hover:text-[#3d8580] transition-colors hover:underline">
+                  Đăng nhập tại cổng Khách thuê &rarr;
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>

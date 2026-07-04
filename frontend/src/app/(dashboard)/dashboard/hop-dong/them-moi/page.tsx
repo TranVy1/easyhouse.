@@ -795,72 +795,7 @@ export default function ThemMoiHopDongPage() {
               </div>
             </div>
 
-            <div className="mt-5 space-y-2">
-              <div className="flex items-start gap-2.5 rounded-[12px] border border-[#4FA7A0]/25 bg-[#4FA7A0]/10 px-3 py-2.5 text-xs font-medium leading-5 text-[#256D68]">
-                <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                Chọn người đại diện đứng tên hợp đồng trước. Danh sách bên dưới chỉ dùng để thêm bạn cùng phòng, không thay thế người đại diện.
-              </div>
-              <Label className={labelClass}>Bạn cùng phòng / thành viên ở cùng</Label>
-              <Popover open={openKhachThue} onOpenChange={setOpenKhachThue}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openKhachThue}
-                    className={cn(comboControlClass, "h-auto py-2.5")}
-                  >
-                    <div className="flex flex-wrap gap-1 text-xs md:text-sm">
-                      {formData.khachThueId.length === 0 ? (
-                        <span className="text-muted-foreground">Chọn thêm người ở cùng...</span>
-                      ) : (
-                        formData.khachThueId.map((id) => {
-                          const khachThue = khachThueList.find(k => k._id === id);
-                          return (
-                            <Badge key={id} variant="secondary" className="mr-1">
-                              {khachThue?.hoTen}
-                            </Badge>
-                          );
-                        })
-                      )}
-                    </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[90vw] md:w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Tìm khách thuê để thêm vào phòng..." className="text-sm" />
-                    <CommandEmpty className="text-sm">Không tìm thấy khách thuê.</CommandEmpty>
-                    <CommandGroup className="max-h-64 overflow-auto">
-                      {khachThueList.filter(khachThue => khachThue._id !== formData.nguoiDaiDien).map((khachThue) => (
-                        <CommandItem
-                          key={khachThue._id}
-                          value={`${khachThue.hoTen} ${khachThue.soDienThoai} ${khachThue._id}`}
-                          onSelect={() => toggleKhachThue(khachThue._id!)}
-                        >
-                          <div className="flex items-center space-x-2 w-full">
-                            <div className={cn(
-                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                              formData.khachThueId.includes(khachThue._id!)
-                                ? "bg-primary text-primary-foreground"
-                                : "opacity-50 [&_svg]:invisible"
-                            )}>
-                              <Check className="h-4 w-4" />
-                            </div>
-                            <span>{khachThue.hoTen}</span>
-                            <span className="text-xs text-muted-foreground ml-auto">
-                              {khachThue.soDienThoai}
-                            </span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <p className="text-xs text-muted-foreground">
-                Đã chọn {formData.khachThueId.length} người ở cùng. Tổng người trong hợp đồng: {formData.nguoiDaiDien ? formData.khachThueId.length + 1 : formData.khachThueId.length}.
-              </p>
-            </div>
+
 
             </FormSection>
 

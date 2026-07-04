@@ -55,14 +55,24 @@ public class ContractDocumentService {
             NguoiDung chuTro = hd.getPhong().getNhaTro().getChuTro(); 
             context.setVariable("tenChuTro", chuTro.getHoTen() != null ? chuTro.getHoTen() : "Chủ trọ");
             context.setVariable("sdtChuTro", chuTro.getSoDienThoai() != null ? chuTro.getSoDienThoai() : "");
+            context.setVariable("cccdChuTro", chuTro.getSoCccd() != null ? chuTro.getSoCccd() : "");
+            context.setVariable("emailChuTro", chuTro.getEmail() != null ? chuTro.getEmail() : "");
+            context.setVariable("diaChiChuTro", chuTro.getDiaChi() != null ? chuTro.getDiaChi() : "");
         } else {
             context.setVariable("tenChuTro", "Chưa xác định");
             context.setVariable("sdtChuTro", "Chưa xác định");
+            context.setVariable("cccdChuTro", "");
+            context.setVariable("emailChuTro", "");
+            context.setVariable("diaChiChuTro", "");
         }
 
         context.setVariable("tenKhachThue", hd.getKhachThue().getHoTen());
         context.setVariable("sdtKhachThue", hd.getKhachThue().getSoDienThoai());
         context.setVariable("cccdKhachThue", hd.getKhachThue().getSoCccd());
+        context.setVariable("ngaySinhKhachThue", hd.getKhachThue().getNgaySinh() != null ? hd.getKhachThue().getNgaySinh().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
+        context.setVariable("emailKhachThue", hd.getKhachThue().getEmail() != null ? hd.getKhachThue().getEmail() : "");
+        context.setVariable("gioiTinhKhachThue", hd.getKhachThue().getGioiTinh() != null ? hd.getKhachThue().getGioiTinh() : "");
+        context.setVariable("diaChiKhachThue", hd.getKhachThue().getDiaChi() != null ? hd.getKhachThue().getDiaChi() : "");
 
         context.setVariable("tenPhong", hd.getPhong().getTen());
         context.setVariable("diaChi", hd.getPhong().getNhaTro() != null ? hd.getPhong().getNhaTro().getDiaChi() : "Chưa xác định");
@@ -81,6 +91,21 @@ public class ContractDocumentService {
         String landlordName = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) ? hd.getPhong().getNhaTro().getChuTro().getHoTen() : "Chủ trọ";
         context.setVariable("landlordSignatureText", hd.getLandlordSignedAt() != null ? "Đã ký điện tử bởi " + landlordName : "(Chưa ký)");
         context.setVariable("landlordSignedAt", hd.getLandlordSignedAt() != null ? hd.getLandlordSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
+
+        // Lấy hình ảnh chữ ký nếu có
+        List<ContractSignature> signatures = signatureRepository.findByHopDongIdOrderBySignedAtAsc(hopDongId);
+        String tenantImg = null;
+        String landlordImg = null;
+        for (ContractSignature sig : signatures) {
+            if ("TENANT".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
+                tenantImg = sig.getSignatureImageUrl();
+            }
+            if ("LANDLORD".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
+                landlordImg = sig.getSignatureImageUrl();
+            }
+        }
+        context.setVariable("tenantSignatureImg", tenantImg);
+        context.setVariable("landlordSignatureImg", landlordImg);
 
         String htmlContent = templateEngine.process("contract-template", context);
 
@@ -123,11 +148,28 @@ public class ContractDocumentService {
 
         String role = request.getRole() != null ? request.getRole() : "LANDLORD";
         
+        String secureUrl = "";
+        try {
+            String base64Data = request.getSignatureBase64();
+            if (base64Data != null && base64Data.contains(",")) {
+                base64Data = base64Data.split(",")[1];
+            }
+            if (base64Data != null && !base64Data.isEmpty()) {
+                byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
+                String fileName = "signature_" + hd.getId() + "_" + role + "_" + System.currentTimeMillis();
+                java.util.Map<String, Object> uploadResult = cloudinaryService.uploadImage(imageBytes, fileName);
+                secureUrl = (String) uploadResult.get("secure_url");
+            }
+        } catch (Exception e) {
+            log.error("Failed to upload signature image to Cloudinary", e);
+            throw new RuntimeException("Lỗi khi tải lên chữ ký: " + e.getMessage());
+        }
+
         ContractSignature signature = ContractSignature.builder()
                 .hopDong(hd)
                 .signerId(request.getSignerId())
                 .signerRole(role)
-                .signatureImageUrl(request.getSignatureBase64())
+                .signatureImageUrl(secureUrl)
                 .ipAddress(request.getIpAddress())
                 .userAgent(request.getUserAgent())
                 .build();
