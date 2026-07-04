@@ -22,12 +22,10 @@ public class CloudinaryService {
             log.info("Uploading file to Cloudinary: {}", file.getOriginalFilename());
 
             Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                file.getBytes(),
-                ObjectUtils.asMap(
-                    "folder", "quanlyphongtro/",
-                    "resource_type", "auto"
-                )
-            );
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", "quanlyphongtro/",
+                            "resource_type", "auto"));
             log.info("File uploaded successfully: {}", uploadResult.get("secure_url"));
             return uploadResult;
 
@@ -42,13 +40,11 @@ public class CloudinaryService {
             log.info("Uploading image to Cloudinary: {}", fileName);
 
             Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                imageBytes,
-                ObjectUtils.asMap(
-                    "folder", "quanlyphongtro/images/",
-                    "resource_type", "image",
-                    "public_id", fileName.replaceAll("[^a-zA-Z0-9.-]", "_")
-                )
-            );
+                    imageBytes,
+                    ObjectUtils.asMap(
+                            "folder", "quanlyphongtro/images/",
+                            "resource_type", "image",
+                            "public_id", fileName.replaceAll("[^a-zA-Z0-9.-]", "_")));
 
             log.info("Image uploaded successfully: {}", uploadResult.get("secure_url"));
             return uploadResult;
@@ -63,16 +59,21 @@ public class CloudinaryService {
         try {
             log.info("Uploading PDF to Cloudinary: {}", fileName);
 
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                pdfBytes,
-                ObjectUtils.asMap(
-                    "folder", "quanlyphongtro/contracts/",
-                    "resource_type", "auto", // auto để Cloudinary tự nhận diện file pdf
-                    "public_id", fileName.replaceAll("[^a-zA-Z0-9.-]", "_")
-                )
-            );
+            String publicId = fileName
+                    .replaceAll("[^a-zA-Z0-9.-]", "_")
+                    .replaceAll("\\.pdf$", "");
 
-            log.info("PDF uploaded successfully: {}", uploadResult.get("secure_url"));
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                    pdfBytes,
+                    ObjectUtils.asMap(
+                            "folder", "quanlyphongtro/contracts/",
+                            "resource_type", "raw",
+                            "public_id", publicId,
+                            "overwrite", true));
+
+            String url = uploadResult.get("secure_url").toString();
+            log.info("PDF uploaded successfully: {}", url);
+
             return uploadResult;
 
         } catch (Exception e) {
@@ -81,15 +82,15 @@ public class CloudinaryService {
         }
     }
 
-    public String deleteFile(String publicId) throws IOException {
-
+    public String deleteFile(String publicId, String resourceType) throws IOException {
         try {
-            log.info("Deleting file from Cloudinary: {}", publicId);
+            log.info("Deleting file from Cloudinary: {} (type: {})", publicId, resourceType);
 
             Map<String, Object> deleteResult = cloudinary.uploader().destroy(
-                publicId,
-                ObjectUtils.emptyMap()
-            );
+                    publicId,
+                    ObjectUtils.asMap(
+                            "resource_type", resourceType // image | raw | video
+                    ));
 
             log.info("File deleted successfully: {}", deleteResult);
             return deleteResult.get("result").toString();

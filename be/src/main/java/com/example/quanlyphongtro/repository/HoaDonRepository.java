@@ -108,4 +108,11 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
            "GROUP BY h.kyNam, h.kyThang " +
            "ORDER BY h.kyNam DESC, h.kyThang DESC")
     List<com.example.quanlyphongtro.dto.DoanhThuTheoThang> getDoanhThuThongKeAndNhaTroIdIn(@Param("nam") int nam, @Param("thang") int thang, @Param("nhaTroIds") List<UUID> nhaTroIds);
+
+    /**
+     * Lấy nhaTroId từ HoaDon qua chain: HoaDon → Phong → NhaTro.
+     * Trả về UUID để tránh LAZY load khi dùng trong @Transactional phụ.
+     */
+    @Query("SELECT p.nhaTro.id FROM HoaDon h JOIN h.phong p WHERE h.id = :hoaDonId")
+    Optional<UUID> findNhaTroIdByHoaDonId(@Param("hoaDonId") UUID hoaDonId);
 }

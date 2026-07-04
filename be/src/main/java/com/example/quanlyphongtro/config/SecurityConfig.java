@@ -55,7 +55,7 @@ public class SecurityConfig {
                     "/error"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/lich-hen").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/vnpay/ipn").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/vnpay/ipn", "/api/vnpay/vnpay-return").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

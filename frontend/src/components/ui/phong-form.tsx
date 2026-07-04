@@ -74,7 +74,7 @@ export function PhongForm({
     trangThai: phong ? mapTrangThai(phong.trangThai) : 'trong',
   });
 
-  
+
   // Fetch floors when toaNha changes
   useEffect(() => {
     if (formData.toaNha) {
@@ -87,7 +87,7 @@ export function PhongForm({
             // Sort by soTang
             const sorted = [...result.data].sort((a, b) => a.soTang - b.soTang);
             setTangList(sorted);
-            
+
             // If current tang is not in the list and we have floors, maybe select the first one, 
             // but let's keep it if we are editing to not overwrite
             if (!phong && sorted.length > 0) {
@@ -223,15 +223,15 @@ export function PhongForm({
       <div className="easyhouse-room-modal-scroll flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-5">
         <Tabs defaultValue="thong-tin" className="w-full">
           <TabsList className="mb-1 grid h-10 w-full grid-cols-2 rounded-xl bg-[#F8F3EC] p-1">
-            <TabsTrigger 
-              value="thong-tin" 
+            <TabsTrigger
+              value="thong-tin"
               className="flex h-8 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-[#6B7A8C] transition-all duration-200 hover:bg-white/55 hover:text-[#243B5A] data-[state=active]:bg-white data-[state=active]:text-[#243B5A] data-[state=active]:shadow-sm"
             >
               <Info className="h-4 w-4" />
               Thông tin phòng
             </TabsTrigger>
-            <TabsTrigger 
-              value="anh-phong" 
+            <TabsTrigger
+              value="anh-phong"
               className="flex h-8 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-[#6B7A8C] transition-all duration-200 hover:bg-white/55 hover:text-[#243B5A] data-[state=active]:bg-white data-[state=active]:text-[#243B5A] data-[state=active]:shadow-sm"
             >
               <ImageIcon className="h-4 w-4" />
@@ -243,7 +243,7 @@ export function PhongForm({
             {/* Row 1 */}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:gap-4">
               <div className={fieldClass}>
-                <Label htmlFor="maPhong" className={labelClass}>Mã phòng <span className={requiredClass}>*</span></Label>
+                <Label htmlFor="maPhong" className={labelClass}>Tên phòng <span className={requiredClass}>*</span></Label>
                 <Input
                   id="maPhong"
                   value={formData.maPhong}
@@ -416,22 +416,20 @@ export function PhongForm({
                   return (
                     <label
                       key={option.value}
-                      className={`relative flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 transition-all duration-200 hover:shadow-sm ${
-                        isChecked 
-                          ? 'border-[#4FA7A0] bg-[#4FA7A0]/5 shadow-sm ring-1 ring-[#4FA7A0]/10' 
-                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                      }`}
+                      className={`relative flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 transition-all duration-200 hover:shadow-sm ${isChecked
+                        ? 'border-[#4FA7A0] bg-[#4FA7A0]/5 shadow-sm ring-1 ring-[#4FA7A0]/10'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                        }`}
                     >
                       <span className={`text-sm font-medium transition-colors ${isChecked ? 'text-[#243B5A]' : 'text-gray-600'}`}>
                         {option.label}
                       </span>
-                      <div className={`flex h-5 w-5 items-center justify-center rounded-md border transition-all ${
-                        isChecked 
-                          ? 'border-[#4FA7A0] bg-[#4FA7A0] text-white shadow-sm scale-110' 
-                          : 'border-gray-300 bg-white text-transparent'
-                      }`}>
+                      <div className={`flex h-5 w-5 items-center justify-center rounded-md border transition-all ${isChecked
+                        ? 'border-[#4FA7A0] bg-[#4FA7A0] text-white shadow-sm scale-110'
+                        : 'border-gray-300 bg-white text-transparent'
+                        }`}>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </div>
                       <input
@@ -470,16 +468,16 @@ export function PhongForm({
       </div>
 
       <div className="sticky bottom-0 z-10 flex shrink-0 flex-col-reverse gap-2 border-t border-[#243B5A]/10 bg-[#FFFCF7]/95 px-4 py-3 backdrop-blur sm:flex-row sm:justify-end sm:gap-2.5 sm:px-5 lg:px-7">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onClose} 
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
           className={`${actionButtonClass} w-full border-[#DFE5EC] bg-white text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/35 hover:bg-[#F8F3EC] hover:text-[#243B5A] hover:shadow-md focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/18 sm:w-auto`}
         >
           Hủy
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className={`${actionButtonClass} w-full bg-[#243B5A] font-bold text-white shadow-sm shadow-[#243B5A]/20 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-[#1D314D] hover:shadow-md hover:shadow-[#243B5A]/25 focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/22 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm sm:w-auto`}
         >
           {phong ? 'Lưu thay đổi' : 'Thêm phòng'}

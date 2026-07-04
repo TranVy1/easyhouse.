@@ -228,7 +228,14 @@ export default function ChinhSuaHoaDonPage() {
     setSubmitting(true);
     
     try {
-      const requestData = { ...formData };
+      const requestData = { 
+        ...formData,
+        kyThang: formData.thang,
+        kyNam: formData.nam,
+        hanTra: formData.hanThanhToan,
+        tuNgay: formData.thang && formData.nam ? `${formData.nam}-${String(formData.thang).padStart(2, '0')}-01` : undefined,
+        denNgay: formData.thang && formData.nam ? new Date(formData.nam, formData.thang, 0).toISOString().split('T')[0] : undefined,
+      };
       
       console.log('Submitting form data for update:', requestData);
       

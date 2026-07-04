@@ -41,7 +41,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ApiResponse, AuditLog } from "@/types"
+import type { ApiResponse } from "@/types"
 
 import { RevenueChart } from "@/components/dashboard/RevenueChart"
 import { DebtAgingChart } from "@/components/dashboard/DebtAgingChart"
@@ -68,44 +68,6 @@ function formatCurrency(amount?: number) {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(amount || 0)
-}
-
-function formatDate(value?: string | Date | null) {
-  if (!value) return ""
-  return new Date(value).toLocaleString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    day: "2-digit",
-    month: "2-digit",
-  })
-}
-
-/* ── Activity log helpers ── */
-
-const actionIconMap: Record<string, typeof Activity> = {
-  LOGIN: LogIn,
-  CREATE: Plus,
-  UPDATE: Edit,
-  DELETE: Trash2,
-  VIEW: Eye,
-}
-
-const actionColorMap: Record<string, string> = {
-  LOGIN:  "bg-[#E6F3F1] text-[#4FA7A0]",
-  CREATE: "bg-[#4FA7A0]/10 text-[#267D76]",
-  UPDATE: "bg-[#F2A45B]/10 text-[#D4893A]",
-  DELETE: "bg-[#C75345]/8 text-[#C75345]",
-  VIEW:   "bg-[#243B5A]/8 text-[#243B5A]",
-}
-
-function getActionInfo(action: string) {
-  const upper = action?.toUpperCase() || ""
-  for (const key of Object.keys(actionIconMap)) {
-    if (upper.includes(key)) {
-      return { Icon: actionIconMap[key], color: actionColorMap[key] }
-    }
-  }
-  return { Icon: Activity, color: "bg-[#E6F3F1] text-[#4FA7A0]" }
 }
 
 /* ── Health Score ── */
@@ -139,7 +101,6 @@ export default function DashboardPage() {
   const [revenueData, setRevenueData] = useState<any[]>([])
   const [debtAgingData, setDebtAgingData] = useState<any>(null)
   const [topDebtors, setTopDebtors] = useState<any[]>([])
-  const [recentLogs, setRecentLogs] = useState<AuditLog[]>([])
   
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -181,14 +142,6 @@ export default function DashboardPage() {
       if (rData.success) setRevenueData(rData.data);
       if (dData.success) setDebtAgingData(dData.data);
       if (tdData.success) setTopDebtors(tdData.data);
-
-      if (role === "ADMIN") {
-        const logsResponse = await fetch("/api/audit-log?size=5", { headers })
-        if (logsResponse.ok) {
-          const logsResult = await logsResponse.json()
-          setRecentLogs(logsResult.data?.content || [])
-        }
-      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Không thể kết nối máy chủ.")
     } finally {
@@ -418,73 +371,6 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
-
-      {/* ── HOẠT ĐỘNG GẦN ĐÂY (ADMIN) ── */}
-      {role === "ADMIN" ? (
-        <Card className="gap-0 py-0 border-border/60 shadow-sm overflow-hidden rounded-2xl animate-fade-in-up-d6">
-          <CardHeader className="border-b bg-gradient-to-r from-[#243B5A]/[0.02] to-transparent p-5 md:px-8 md:py-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-[#E6F3F1] p-2">
-                  <Activity className="size-5 text-[#4FA7A0]" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg text-[#243B5A]">Hoạt động gần đây</CardTitle>
-                  <CardDescription className="mt-0.5">Nhật ký hệ thống theo thời gian thực.</CardDescription>
-                </div>
-              </div>
-              <Button asChild variant="ghost" size="sm" className="text-[#4FA7A0] hover:text-[#267D76] hover:bg-[#E6F3F1] rounded-lg">
-                <Link href="/dashboard/audit-log">
-                  Xem tất cả
-                  <ArrowRight className="ml-1.5 size-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {recentLogs.length === 0 ? (
-              <div className="p-8">
-                <EmptyState title="Chưa có hoạt động mới" description="Nhật ký thao tác sẽ xuất hiện tại đây." />
-              </div>
-            ) : (
-              <div className="relative p-5 md:p-8">
-                {/* Timeline line */}
-                <div className="absolute bottom-8 left-[39px] top-8 w-px bg-border/60 md:left-[51px]" />
-                
-                <div className="space-y-6 relative">
-                  {recentLogs.map((log) => {
-                    const { Icon: LogIcon, color } = getActionInfo(log.hanhDong)
-                    return (
-                      <div key={log.id || log._id} className="group relative flex gap-4 md:gap-5 items-start">
-                        {/* Timeline dot/icon */}
-                        <div className={`relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-4 border-white ${color} shadow-sm transition-transform duration-300 group-hover:scale-110`}>
-                          <LogIcon className="size-4" />
-                        </div>
-                        {/* Content */}
-                        <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-b border-border/40 pb-5 group-last:border-0 group-last:pb-0">
-                          <div>
-                            <p className="text-sm font-semibold text-[#243B5A] group-hover:text-[#4FA7A0] transition-colors">
-                              {log.hanhDong}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs font-medium text-[#6B7A8C]">{log.nguoiDungHoTen || "Hệ thống"}</span>
-                              <span className="text-xs text-border">•</span>
-                              <span className="text-[11px] text-[#6B7A8C]/70">{formatDate(log.taoLuc)}</span>
-                            </div>
-                          </div>
-                          <Badge variant="secondary" className="w-fit bg-[#F8F3EC] text-[#243B5A] border border-[#E8DED2] text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5">
-                            {log.bangTacDong || "Hệ thống"}
-                          </Badge>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   )
 }

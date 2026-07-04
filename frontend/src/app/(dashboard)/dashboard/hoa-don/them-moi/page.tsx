@@ -304,6 +304,11 @@ export default function ThemMoiHoaDonPage() {
       // Đảm bảo các trường ID luôn là UUID string, không phải object
       const requestData = {
         ...formData,
+        kyThang: formData.thang,
+        kyNam: formData.nam,
+        hanTra: formData.hanThanhToan,
+        tuNgay: `${formData.nam}-${String(formData.thang).padStart(2, '0')}-01`,
+        denNgay: new Date(formData.nam, formData.thang, 0).toISOString().split('T')[0],
         phiDichVu: filteredPhiDichVu,
         hopDong: extractId(formData.hopDong) || formData.hopDong,
         phong: extractId(formData.phong) || formData.phong,

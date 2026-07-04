@@ -58,11 +58,12 @@ public class FileMediaService {
     }
 
     @Transactional
-    public FileMediaResponse uploadFile(MultipartFile file, String doiTuong, UUID doiTuongId, String loaiFile, UUID nguoiDungId) throws IOException {
+    public FileMediaResponse uploadFile(MultipartFile file, String doiTuong, UUID doiTuongId, String loaiFile,
+            UUID nguoiDungId) throws IOException {
         validateFile(file);
         checkPermission(LoaiDoiTuongMedia.valueOf(doiTuong), doiTuongId);
         Map<String, Object> result = cloudinaryService.uploadFile(file);
-        
+
         FileMedia fileMedia = new FileMedia();
         fileMedia.setDoiTuong(LoaiDoiTuongMedia.valueOf(doiTuong));
         fileMedia.setDoiTuongId(doiTuongId);
@@ -70,7 +71,7 @@ public class FileMediaService {
         fileMedia.setPublicId((String) result.get("public_id"));
         fileMedia.setLoaiFile(loaiFile != null ? loaiFile : file.getContentType());
         fileMedia.setKichThuocBytes(file.getSize());
-        
+
         NguoiDung uploader = nguoiDungRepository.findById(permissionService.requireCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai"));
         fileMedia.setNguoiTaiLen(uploader);
@@ -85,15 +86,17 @@ public class FileMediaService {
         FileMedia fileMedia = fileMediaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy file"));
         checkPermission(fileMedia.getDoiTuong(), fileMedia.getDoiTuongId());
-        
+
         try {
             if (fileMedia.getPublicId() != null) {
-                cloudinaryService.deleteFile(fileMedia.getPublicId());
+                String resourceType = fileMedia.getLoaiFile().startsWith("image/") ? "image" : "raw";
+                cloudinaryService.deleteFile(fileMedia.getPublicId(), resourceType);
             }
         } catch (Exception e) {
-            log.warn("Cloudinary delete failed for public_id: {}, continuing to delete from DB", fileMedia.getPublicId(), e);
+            log.warn("Cloudinary delete failed for public_id: {}, continuing to delete from DB",
+                    fileMedia.getPublicId(), e);
         }
-        
+
         fileMediaRepository.delete(fileMedia);
         logAuditIfRequired(fileMedia, "DELETE");
     }
@@ -115,26 +118,30 @@ public class FileMediaService {
         UUID userId = permissionService.requireCurrentUserId();
         switch (type) {
             case ROOM:
-                if (!permissionService.canWritePhong(userId, doiTuongId)) throw new RuntimeException("Khong co quyen");
+                if (!permissionService.canWritePhong(userId, doiTuongId))
+                    throw new RuntimeException("Khong co quyen");
                 break;
             case METER_READING:
                 com.example.quanlyphongtro.entity.ChiSoDienNuoc reading = chiSoDienNuocRepository.findById(doiTuongId)
                         .orElseThrow(() -> new RuntimeException("Khong tim thay chi so"));
-                if (reading.getPhong() == null || !permissionService.canWritePhong(userId, reading.getPhong().getId())) {
+                if (reading.getPhong() == null
+                        || !permissionService.canWritePhong(userId, reading.getPhong().getId())) {
                     throw new RuntimeException("Khong co quyen");
                 }
                 break;
             case PAYMENT:
                 com.example.quanlyphongtro.entity.ThanhToan payment = thanhToanRepository.findById(doiTuongId)
                         .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
-                if (payment.getHoaDon() == null || !permissionService.canWriteHoaDon(userId, payment.getHoaDon().getId())) {
+                if (payment.getHoaDon() == null
+                        || !permissionService.canWriteHoaDon(userId, payment.getHoaDon().getId())) {
                     throw new RuntimeException("Khong co quyen");
                 }
                 break;
             case INCIDENT:
                 com.example.quanlyphongtro.entity.SuCo incident = suCoRepository.findById(doiTuongId)
                         .orElseThrow(() -> new RuntimeException("Khong tim thay su co"));
-                if (incident.getPhong() == null || !permissionService.canWritePhong(userId, incident.getPhong().getId())) {
+                if (incident.getPhong() == null
+                        || !permissionService.canWritePhong(userId, incident.getPhong().getId())) {
                     throw new RuntimeException("Khong co quyen");
                 }
                 break;
@@ -143,12 +150,13 @@ public class FileMediaService {
                 permissionService.requireAdmin();
         }
     }
-    
+
     private void checkReadPermission(LoaiDoiTuongMedia type, UUID doiTuongId) {
         UUID userId = permissionService.requireCurrentUserId();
         switch (type) {
             case ROOM:
-                if (!permissionService.canReadPhong(userId, doiTuongId)) throw new RuntimeException("Khong co quyen");
+                if (!permissionService.canReadPhong(userId, doiTuongId))
+                    throw new RuntimeException("Khong co quyen");
                 break;
             case METER_READING:
                 com.example.quanlyphongtro.entity.ChiSoDienNuoc reading = chiSoDienNuocRepository.findById(doiTuongId)
@@ -160,14 +168,16 @@ public class FileMediaService {
             case PAYMENT:
                 com.example.quanlyphongtro.entity.ThanhToan payment = thanhToanRepository.findById(doiTuongId)
                         .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
-                if (payment.getHoaDon() == null || !permissionService.canReadHoaDon(userId, payment.getHoaDon().getId())) {
+                if (payment.getHoaDon() == null
+                        || !permissionService.canReadHoaDon(userId, payment.getHoaDon().getId())) {
                     throw new RuntimeException("Khong co quyen");
                 }
                 break;
             case INCIDENT:
                 com.example.quanlyphongtro.entity.SuCo incident = suCoRepository.findById(doiTuongId)
                         .orElseThrow(() -> new RuntimeException("Khong tim thay su co"));
-                if (incident.getPhong() == null || !permissionService.canReadPhong(userId, incident.getPhong().getId())) {
+                if (incident.getPhong() == null
+                        || !permissionService.canReadPhong(userId, incident.getPhong().getId())) {
                     throw new RuntimeException("Khong co quyen");
                 }
                 break;

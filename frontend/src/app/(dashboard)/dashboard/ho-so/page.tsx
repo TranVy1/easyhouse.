@@ -16,6 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import {
   Activity,
@@ -40,6 +50,8 @@ import {
   Shield,
   ShieldCheck,
   User,
+  Check,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -58,19 +70,52 @@ interface UserProfile {
 }
 
 interface Province {
-  code: number;
+  code: string;
   name: string;
 }
 
 interface District {
-  code: number;
+  code: string;
   name: string;
 }
 
 interface Ward {
-  code: number;
+  code: string;
   name: string;
 }
+
+const removeVietnameseTones = (str: string) => {
+  if (!str || typeof str !== 'string') return '';
+  let result = str;
+  result = result.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  result = result.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  result = result.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  result = result.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  result = result.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  result = result.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  result = result.replace(/đ/g, "d");
+  result = result.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  result = result.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  result = result.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  result = result.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|MỠ/g, "O");
+  result = result.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  result = result.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  result = result.replace(/Đ/g, "D");
+  result = result.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, ""); 
+  result = result.replace(/\u02C6|\u0306|\u031B/g, ""); 
+  result = result.replace(/ + /g, " ");
+  return result.trim().toLowerCase();
+};
+
+const customFilter = (value: string, search: string) => {
+  if (!value || typeof value !== 'string') return 0;
+  if (!search || typeof search !== 'string') return 1;
+  if (value.toLowerCase().includes(search.toLowerCase())) return 1;
+  const normalizedValue = removeVietnameseTones(value);
+  const normalizedSearch = removeVietnameseTones(search);
+  if (normalizedValue.includes(normalizedSearch)) return 1;
+  return 0;
+};
 
 const EMPTY_VALUE = 'Chưa cập nhật';
 
@@ -632,15 +677,20 @@ export default function ProfilePage() {
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [selectedWard, setSelectedWard] = useState<string>("");
+  const [openProvince, setOpenProvince] = useState(false);
+  const [openDistrict, setOpenDistrict] = useState(false);
+  const [openWard, setOpenWard] = useState(false);
   const [detailAddress, setDetailAddress] = useState<string>("");
 
   useEffect(() => {
     document.title = 'Hồ sơ cá nhân | EasyHouse';
     const fetchProvinces = async () => {
       try {
-        const res = await fetch("https://provinces.open-api.vn/api/v1/p/");
-        const data = await res.json();
-        setProvinces(data);
+        const res = await fetch("https://esgoo.net/api-tinhthanh/1/0.htm");
+        const json = await res.json();
+        if (json.error === 0) {
+          setProvinces(json.data.map((x: any) => ({ code: x.id, name: x.full_name })));
+        }
       } catch (err) {
         console.error("Error fetching provinces:", err);
       }
@@ -653,13 +703,15 @@ export default function ProfilePage() {
     if (selectedProvince) {
       const province = provinces.find(p => p.name === selectedProvince);
       if (province) {
-        fetch(`https://provinces.open-api.vn/api/v1/p/${province.code}?depth=2`)
+        fetch(`https://esgoo.net/api-tinhthanh/2/${province.code}.htm`)
           .then(res => res.json())
-          .then(data => {
-            setDistricts(data.districts);
-            setWards([]);
-            setSelectedDistrict("");
-            setSelectedWard("");
+          .then(json => {
+            if (json.error === 0) {
+              setDistricts(json.data.map((x: any) => ({ code: x.id, name: x.full_name })));
+              setWards([]);
+              setSelectedDistrict("");
+              setSelectedWard("");
+            }
           });
       }
     }
@@ -670,11 +722,13 @@ export default function ProfilePage() {
     if (selectedDistrict) {
       const district = districts.find(d => d.name === selectedDistrict);
       if (district) {
-        fetch(`https://provinces.open-api.vn/api/v1/d/${district.code}?depth=2`)
+        fetch(`https://esgoo.net/api-tinhthanh/3/${district.code}.htm`)
           .then(res => res.json())
-          .then(data => {
-            setWards(data.wards);
-            setSelectedWard("");
+          .then(json => {
+            if (json.error === 0) {
+              setWards(json.data.map((x: any) => ({ code: x.id, name: x.full_name })));
+              setSelectedWard("");
+            }
           });
       }
     }
@@ -1198,42 +1252,125 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                           <div className="space-y-1.5">
                             <p className="ml-1 text-[10px] font-bold uppercase tracking-wide text-[#6B7C8F]">Tỉnh / Thành phố</p>
-                            <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                              <SelectTrigger className="h-[46px] rounded-2xl border-[#E8DED2] focus:ring-[#4FA7A0]/30 transition-all">
-                                <SelectValue placeholder="Chọn Tỉnh/TP" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {provinces.map(p => (
-                                  <SelectItem key={p.code} value={p.name}>{p.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={openProvince} onOpenChange={setOpenProvince} modal={true}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openProvince}
+                                  className="h-[46px] w-full justify-between rounded-2xl border-[#E8DED2] bg-white text-[#243B5A] font-normal hover:bg-white focus:ring-[#4FA7A0]/30 transition-all"
+                                >
+                                  <span className="truncate">{selectedProvince || "Chọn Tỉnh/TP"}</span>
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-xl border-[#E2D6C8] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                                <Command filter={customFilter}>
+                                  <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="h-10 text-sm" autoFocus />
+                                  <CommandList className="max-h-[260px]">
+                                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                                    <CommandGroup>
+                                      {provinces.map((p) => (
+                                        <CommandItem
+                                          key={p.code}
+                                          value={p.name}
+                                          onSelect={() => {
+                                            setSelectedProvince(p.name);
+                                            setOpenProvince(false);
+                                          }}
+                                          className="text-sm"
+                                        >
+                                          <Check className={cn("mr-2 h-4 w-4 text-[#4FA7A0]", selectedProvince === p.name ? "opacity-100" : "opacity-0")} />
+                                          {p.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                           <div className="space-y-1.5">
                             <p className="ml-1 text-[10px] font-bold uppercase tracking-wide text-[#6B7C8F]">Quận / Huyện</p>
-                            <Select value={selectedDistrict} onValueChange={setSelectedDistrict} disabled={!selectedProvince}>
-                              <SelectTrigger className="h-[46px] rounded-2xl border-[#E8DED2] focus:ring-[#4FA7A0]/30 transition-all">
-                                <SelectValue placeholder="Chọn Quận/Huyện" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {districts.map(d => (
-                                  <SelectItem key={d.code} value={d.name}>{d.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={openDistrict} onOpenChange={setOpenDistrict} modal={true}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openDistrict}
+                                  disabled={!selectedProvince}
+                                  className="h-[46px] w-full justify-between rounded-2xl border-[#E8DED2] bg-white text-[#243B5A] font-normal hover:bg-white focus:ring-[#4FA7A0]/30 transition-all"
+                                >
+                                  <span className="truncate">{selectedDistrict || "Chọn Quận/Huyện"}</span>
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-xl border-[#E2D6C8] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                                <Command filter={customFilter}>
+                                  <CommandInput placeholder="Tìm Quận/Huyện..." className="h-10 text-sm" autoFocus />
+                                  <CommandList className="max-h-[260px]">
+                                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                                    <CommandGroup>
+                                      {districts.map((d) => (
+                                        <CommandItem
+                                          key={d.code}
+                                          value={d.name}
+                                          onSelect={() => {
+                                            setSelectedDistrict(d.name);
+                                            setOpenDistrict(false);
+                                          }}
+                                          className="text-sm"
+                                        >
+                                          <Check className={cn("mr-2 h-4 w-4 text-[#4FA7A0]", selectedDistrict === d.name ? "opacity-100" : "opacity-0")} />
+                                          {d.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                           <div className="space-y-1.5">
                             <p className="ml-1 text-[10px] font-bold uppercase tracking-wide text-[#6B7C8F]">Phường / Xã</p>
-                            <Select value={selectedWard} onValueChange={setSelectedWard} disabled={!selectedDistrict}>
-                              <SelectTrigger className="h-[46px] rounded-2xl border-[#E8DED2] focus:ring-[#4FA7A0]/30 transition-all">
-                                <SelectValue placeholder="Chọn Phường/Xã" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {wards.map(w => (
-                                  <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openWard}
+                                  disabled={!selectedDistrict}
+                                  className="h-[46px] w-full justify-between rounded-2xl border-[#E8DED2] bg-white text-[#243B5A] font-normal hover:bg-white focus:ring-[#4FA7A0]/30 transition-all"
+                                >
+                                  <span className="truncate">{selectedWard || "Chọn Phường/Xã"}</span>
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-xl border-[#E2D6C8] p-0 shadow-xl" align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                                <Command filter={customFilter}>
+                                  <CommandInput placeholder="Tìm Phường/Xã..." className="h-10 text-sm" autoFocus />
+                                  <CommandList className="max-h-[260px]">
+                                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                                    <CommandGroup>
+                                      {wards.map((w) => (
+                                        <CommandItem
+                                          key={w.code}
+                                          value={w.name}
+                                          onSelect={() => {
+                                            setSelectedWard(w.name);
+                                            setOpenWard(false);
+                                          }}
+                                          className="text-sm"
+                                        >
+                                          <Check className={cn("mr-2 h-4 w-4 text-[#4FA7A0]", selectedWard === w.name ? "opacity-100" : "opacity-0")} />
+                                          {w.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                         <Input

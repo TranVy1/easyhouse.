@@ -65,12 +65,13 @@ public class UploadController {
     }
 
     @DeleteMapping("/{publicId}")
-    public ApiResponse<String> deleteFile(@PathVariable String publicId) {
+    public ApiResponse<String> deleteFile(@PathVariable String publicId,
+                                          @RequestParam(value = "resourceType", defaultValue = "image") String resourceType) {
         try {
             permissionService.requireAdmin();
-            log.info("Received delete request for file: {}", publicId);
+            log.info("Received delete request for file: {} (type: {})", publicId, resourceType);
 
-            String result = cloudinaryService.deleteFile(publicId);
+            String result = cloudinaryService.deleteFile(publicId, resourceType);
 
             log.info("File deleted successfully: {}", publicId);
 
@@ -83,12 +84,13 @@ public class UploadController {
     }
 
     @DeleteMapping
-    public ApiResponse<String> deleteFileByQuery(@RequestParam("publicId") String publicId) {
+    public ApiResponse<String> deleteFileByQuery(@RequestParam("publicId") String publicId,
+                                                 @RequestParam(value = "resourceType", defaultValue = "image") String resourceType) {
         try {
             permissionService.requireAdmin();
-            log.info("Received delete request by query for file: {}", publicId);
+            log.info("Received delete request by query for file: {} (type: {})", publicId, resourceType);
 
-            String result = cloudinaryService.deleteFile(publicId);
+            String result = cloudinaryService.deleteFile(publicId, resourceType);
 
             log.info("File deleted successfully by query: {}", publicId);
 

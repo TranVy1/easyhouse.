@@ -77,6 +77,38 @@ const getOccupancyColor = (percentage: number) => {
   if (percentage <= 70) return 'text-orange-500';
   return 'text-[#4FA7A0]';
 };
+const removeVietnameseTones = (str: string) => {
+  if (!str || typeof str !== 'string') return '';
+  let result = str;
+  result = result.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  result = result.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  result = result.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  result = result.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  result = result.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  result = result.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  result = result.replace(/đ/g, "d");
+  result = result.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  result = result.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  result = result.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  result = result.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|MỠ/g, "O");
+  result = result.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  result = result.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  result = result.replace(/Đ/g, "D");
+  result = result.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, ""); 
+  result = result.replace(/\u02C6|\u0306|\u031B/g, ""); 
+  result = result.replace(/ + /g, " ");
+  return result.trim().toLowerCase();
+};
+
+const customFilter = (value: string, search: string) => {
+  if (!value || typeof value !== 'string') return 0;
+  if (!search || typeof search !== 'string') return 1;
+  if (value.toLowerCase().includes(search.toLowerCase())) return 1;
+  const normalizedValue = removeVietnameseTones(value);
+  const normalizedSearch = removeVietnameseTones(search);
+  if (normalizedValue.includes(normalizedSearch)) return 1;
+  return 0;
+};
 
 const getOccupancyBgColor = (percentage: number) => {
   if (percentage <= 30) return 'bg-red-500';
@@ -750,8 +782,8 @@ function ToaNhaForm({
     { soTang: '2', soPhong: '8', dienTichMacDinh: '22', giaThueMacDinh: '2700000', tienCocMacDinh: '2700000', soNguoiToiDa: '2' },
   ]);
 
-  const [provinces, setProvinces] = useState<{code: number, name: string}[]>([]);
-  const [wards, setWards] = useState<{code: number, name: string}[]>([]);
+  const [provinces, setProvinces] = useState<{code: string, name: string}[]>([]);
+  const [wards, setWards] = useState<{code: string, name: string}[]>([]);
   
   const [provinceCode, setProvinceCode] = useState<string>('');
 
@@ -790,24 +822,28 @@ function ToaNhaForm({
   };
 
   useEffect(() => {
-    fetch('https://provinces.open-api.vn/api/v1/p/')
+    fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
       .then(res => res.json())
-      .then(data => {
-        setProvinces(data);
-        if (formData.thanhPho) {
-          const normalizeStr = (s: string) => {
-            const normalized = s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
-            if (normalized === 'hcm') return 'hồ chí minh';
-            return normalized;
-          };
-          const target = normalizeStr(formData.thanhPho);
-          const p = data.find((x: {name: string, code: number}) => {
-             const name = normalizeStr(x.name);
-             return name === target || name.includes(target) || target.includes(name);
-          });
-          if (p) {
-             setProvinceCode(String(p.code));
-             setFormData(prev => ({ ...prev, thanhPho: p.name }));
+      .then(result => {
+        if (result.error === 0) {
+          const mappedProvinces = result.data.map((x: any) => ({ code: x.id, name: x.full_name }));
+          setProvinces(mappedProvinces);
+          const data = mappedProvinces;
+          if (formData.thanhPho) {
+            const normalizeStr = (s: string) => {
+              const normalized = s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+              if (normalized === 'hcm') return 'hồ chí minh';
+              return normalized;
+            };
+            const target = normalizeStr(formData.thanhPho);
+            const p = data.find((x: {name: string, code: string}) => {
+               const name = normalizeStr(x.name);
+               return name === target || name.includes(target) || target.includes(name);
+            });
+            if (p) {
+               setProvinceCode(String(p.code));
+               setFormData(prev => ({ ...prev, thanhPho: p.name }));
+            }
           }
         }
       })
@@ -817,25 +853,32 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (provinceCode) {
-      fetch(`https://provinces.open-api.vn/api/v1/p/${provinceCode}?depth=3`)
+      fetch(`https://esgoo.net/api-tinhthanh/4/${provinceCode}.htm`)
         .then(res => res.json())
-        .then(data => {
-          const nextWards = [
-            ...(Array.isArray(data.wards) ? data.wards : []),
-            ...(Array.isArray(data.districts)
-              ? data.districts.flatMap((district: { wards?: { code: number; name: string }[] }) => district.wards || [])
-              : []),
-          ];
-          setWards(nextWards);
-          if (formData.phuong && nextWards.length) {
-            const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
-            const target = normalizeStr(formData.phuong);
-            const ward = nextWards.find((x: {name: string, code: number}) => {
-              const name = normalizeStr(x.name);
-              return name === target || name.includes(target) || target.includes(name);
-            });
-            if (ward) {
-              setFormData(prev => ({ ...prev, phuong: ward.name }));
+        .then(json => {
+          if (json.error === 0) {
+            const data = json.data[0];
+            const nextWards: {code: string, name: string}[] = [];
+            if (data && Array.isArray(data.data2)) {
+               data.data2.forEach((district: any) => {
+                  if (Array.isArray(district.data3)) {
+                     district.data3.forEach((ward: any) => {
+                        nextWards.push({ code: ward.id, name: ward.full_name });
+                     });
+                  }
+               });
+            }
+            setWards(nextWards);
+            if (formData.phuong && nextWards.length) {
+              const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+              const target = normalizeStr(formData.phuong);
+              const ward = nextWards.find((x: {name: string, code: string}) => {
+                const name = normalizeStr(x.name);
+                return name === target || name.includes(target) || target.includes(name);
+              });
+              if (ward) {
+                setFormData(prev => ({ ...prev, phuong: ward.name }));
+              }
             }
           }
         })
@@ -1025,9 +1068,9 @@ function ToaNhaForm({
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className={popoverClass} align="start">
-                <Command>
-                  <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="h-10 text-sm" />
+              <PopoverContent className={popoverClass} align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                <Command filter={customFilter}>
+                  <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="h-10 text-sm" autoFocus />
                   <CommandList className="max-h-[260px]">
                     <CommandEmpty>Không tìm thấy.</CommandEmpty>
                     <CommandGroup>
@@ -1078,9 +1121,9 @@ function ToaNhaForm({
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className={popoverClass} align="start">
-                <Command>
-                  <CommandInput placeholder="Tìm Phường/Xã..." className="h-10 text-sm" />
+              <PopoverContent className={popoverClass} align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                <Command filter={customFilter}>
+                  <CommandInput placeholder="Tìm Phường/Xã..." className="h-10 text-sm" autoFocus />
                   <CommandList className="max-h-[260px]">
                     <CommandEmpty>Không tìm thấy.</CommandEmpty>
                     <CommandGroup>

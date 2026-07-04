@@ -129,7 +129,7 @@ export default function KhachThueDashboardPage() {
                     <Home className="h-5 w-5 text-[#243B5A]" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Mã phòng</p>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tên phòng</p>
                     <p className="font-bold text-gray-900">{hopDongHienTai.phong?.maPhong}</p>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function KhachThueDashboardPage() {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4 text-gray-700">Thông tin hợp đồng</h3>
               <div className="space-y-4">
@@ -286,7 +286,7 @@ export default function KhachThueDashboardPage() {
                   <p className="font-bold text-gray-900">{lienHe.hoTen}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4 bg-white border rounded-xl p-4 shadow-sm hover:border-[#4FA7A0]/45 transition-colors cursor-pointer" onClick={() => window.location.href = `tel:${lienHe.soDienThoai}`}>
                 <div className="bg-green-100 p-3 rounded-full text-green-600">
                   <Phone className="h-6 w-6" />
@@ -309,7 +309,7 @@ export default function KhachThueDashboardPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="mt-6 flex justify-center">
               <Button asChild className="w-full md:w-auto">
                 <Link href="/khach-thue/dashboard/su-co">
