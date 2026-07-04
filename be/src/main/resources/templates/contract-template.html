@@ -25,15 +25,36 @@
 
 <div class="section-title">BÊN CHO THUÊ (BÊN A)</div>
 <table class="info-table">
-    <tr><td><strong>Họ và tên:</strong> <span th:text="${tenChuTro}">Nguyễn Văn A</span></td></tr>
-    <tr><td><strong>SĐT:</strong> <span th:text="${sdtChuTro}">0987654321</span></td></tr>
+    <tr>
+        <td><strong>Họ và tên:</strong> <span th:text="${tenChuTro}">Nguyễn Văn A</span></td>
+        <td><strong>SĐT:</strong> <span th:text="${sdtChuTro}">0987654321</span></td>
+    </tr>
+    <tr>
+        <td><strong>CCCD:</strong> <span th:text="${cccdChuTro}"></span></td>
+        <td><strong>Email:</strong> <span th:text="${emailChuTro}"></span></td>
+    </tr>
+    <tr>
+        <td colspan="2"><strong>Địa chỉ:</strong> <span th:text="${diaChiChuTro}"></span></td>
+    </tr>
 </table>
 
 <div class="section-title">BÊN THUÊ (BÊN B)</div>
 <table class="info-table">
-    <tr><td><strong>Họ và tên:</strong> <span th:text="${tenKhachThue}">Trần Văn B</span></td></tr>
-    <tr><td><strong>SĐT:</strong> <span th:text="${sdtKhachThue}">0123456789</span></td></tr>
-    <tr><td><strong>CCCD:</strong> <span th:text="${cccdKhachThue}">001234567890</span></td></tr>
+    <tr>
+        <td><strong>Họ và tên:</strong> <span th:text="${tenKhachThue}">Trần Văn B</span></td>
+        <td><strong>SĐT:</strong> <span th:text="${sdtKhachThue}">0123456789</span></td>
+    </tr>
+    <tr>
+        <td><strong>CCCD:</strong> <span th:text="${cccdKhachThue}">001234567890</span></td>
+        <td><strong>Ngày sinh:</strong> <span th:text="${ngaySinhKhachThue}"></span></td>
+    </tr>
+    <tr>
+        <td><strong>Email:</strong> <span th:text="${emailKhachThue}"></span></td>
+        <td><strong>Giới tính:</strong> <span th:text="${gioiTinhKhachThue}"></span></td>
+    </tr>
+    <tr>
+        <td colspan="2"><strong>Địa chỉ thường trú:</strong> <span th:text="${diaChiKhachThue}"></span></td>
+    </tr>
 </table>
 
 <div class="section-title">NỘI DUNG HỢP ĐỒNG</div>
@@ -56,12 +77,18 @@
     <tr>
         <td>
             <strong>ĐẠI DIỆN BÊN B (BÊN THUÊ)</strong>
-            <div class="signature-box" th:text="${tenantSignatureText}">(Chưa ký)</div>
+            <div class="signature-box">
+                <img th:if="${tenantSignatureImg != null}" th:src="${tenantSignatureImg}" style="max-width: 200px; max-height: 100px; display: block; margin: 10px auto;" />
+                <span th:if="${tenantSignatureImg == null}" th:text="${tenantSignatureText}">(Chưa ký)</span>
+            </div>
             <div th:if="${tenantSignedAt != null}">Đã ký lúc: <span th:text="${tenantSignedAt}">...</span></div>
         </td>
         <td>
             <strong>ĐẠI DIỆN BÊN A (BÊN CHO THUÊ)</strong>
-            <div class="signature-box" th:text="${landlordSignatureText}">(Chưa ký)</div>
+            <div class="signature-box">
+                <img th:if="${landlordSignatureImg != null}" th:src="${landlordSignatureImg}" style="max-width: 200px; max-height: 100px; display: block; margin: 10px auto;" />
+                <span th:if="${landlordSignatureImg == null}" th:text="${landlordSignatureText}">(Chưa ký)</span>
+            </div>
             <div th:if="${landlordSignedAt != null}">Đã ký lúc: <span th:text="${landlordSignedAt}">...</span></div>
         </td>
     </tr>

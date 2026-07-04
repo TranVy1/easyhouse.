@@ -199,11 +199,14 @@ export default function KhachThueDashboardPage() {
             <div className="bg-gray-100 p-4 rounded-full text-gray-400">
               <SearchX className="h-10 w-10" />
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="font-bold text-lg text-gray-800">Chưa có hợp đồng nào</h3>
               <p className="text-sm text-gray-500 max-w-sm mt-1">
-                Bạn hiện chưa có hợp đồng thuê phòng nào đang hoạt động. Nếu bạn vừa chuyển vào, vui lòng liên hệ quản lý để được hỗ trợ.
+                Bạn hiện chưa có hợp đồng thuê phòng nào đang hoạt động. Nếu bạn đang tìm phòng, hãy truy cập trang chủ để xem các phòng trống.
               </p>
+              <Button asChild className="mt-4 bg-[#4FA7A0] hover:bg-[#3d8580] text-white">
+                <Link href="/">Tìm phòng ngay</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
