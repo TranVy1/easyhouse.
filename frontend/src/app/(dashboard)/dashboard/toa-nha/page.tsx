@@ -413,13 +413,13 @@ export default function ToaNhaPage() {
                   <span>Thêm tòa nhà</span>
                 </HeroActionButton>
               </DialogTrigger>
-              <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-base md:text-lg">
+              <DialogContent className="flex max-h-[calc(100vh-48px)] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-[#E8DCCB] bg-[#FFFBF5] p-0 shadow-[0_24px_70px_rgba(36,59,90,0.24)] sm:max-w-3xl">
+                <DialogHeader className="border-b border-[#E8DCCB]/80 px-5 py-4 sm:px-6">
+                  <DialogTitle className="text-lg font-bold text-[#243B5A] md:text-xl">
                     {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
                   </DialogTitle>
-                  <DialogDescription className="text-xs md:text-sm">
-                    {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà mới'}
+                  <DialogDescription className="text-sm text-[#5F7087]">
+                    {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà và cấu hình phòng ban đầu'}
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -733,7 +733,6 @@ function ToaNhaForm({
     soNha: toaNha?.diaChi.soNha || '',
     duong: toaNha?.diaChi.duong || '',
     phuong: toaNha?.diaChi.phuong || '',
-    quan: toaNha?.diaChi.quan || '',
     thanhPho: toaNha?.diaChi.thanhPho || '',
     moTa: toaNha?.moTa || '',
     tienNghiChung: toaNha?.tienNghiChung || [],
@@ -752,14 +751,11 @@ function ToaNhaForm({
   ]);
 
   const [provinces, setProvinces] = useState<{code: number, name: string}[]>([]);
-  const [districts, setDistricts] = useState<{code: number, name: string}[]>([]);
   const [wards, setWards] = useState<{code: number, name: string}[]>([]);
   
   const [provinceCode, setProvinceCode] = useState<string>('');
-  const [districtCode, setDistrictCode] = useState<string>('');
 
   const [openProvince, setOpenProvince] = useState(false);
-  const [openDistrict, setOpenDistrict] = useState(false);
   const [openWard, setOpenWard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -821,46 +817,25 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (provinceCode) {
-      fetch(`https://provinces.open-api.vn/api/v1/p/${provinceCode}?depth=2`)
+      fetch(`https://provinces.open-api.vn/api/v1/p/${provinceCode}?depth=3`)
         .then(res => res.json())
         .then(data => {
-          setDistricts(data.districts || []);
-          if (formData.quan && data.districts) {
-            const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
-            const target = normalizeStr(formData.quan);
-            const d = data.districts.find((x: {name: string, code: number}) => {
-               const name = normalizeStr(x.name);
-               return name === target || name.includes(target) || target.includes(name);
-            });
-            if (d) {
-               setDistrictCode(String(d.code));
-               setFormData(prev => ({ ...prev, quan: d.name }));
-            }
-          }
-        })
-        .catch(err => console.error("Error fetching districts:", err));
-    } else {
-      setDistricts([]);
-      setDistrictCode('');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provinceCode]);
-
-  useEffect(() => {
-    if (districtCode) {
-      fetch(`https://provinces.open-api.vn/api/v1/d/${districtCode}?depth=2`)
-        .then(res => res.json())
-        .then(data => {
-          setWards(data.wards || []);
-          if (formData.phuong && data.wards) {
+          const nextWards = [
+            ...(Array.isArray(data.wards) ? data.wards : []),
+            ...(Array.isArray(data.districts)
+              ? data.districts.flatMap((district: { wards?: { code: number; name: string }[] }) => district.wards || [])
+              : []),
+          ];
+          setWards(nextWards);
+          if (formData.phuong && nextWards.length) {
             const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
             const target = normalizeStr(formData.phuong);
-            const w = data.wards.find((x: {name: string, code: number}) => {
-               const name = normalizeStr(x.name);
-               return name === target || name.includes(target) || target.includes(name);
+            const ward = nextWards.find((x: {name: string, code: number}) => {
+              const name = normalizeStr(x.name);
+              return name === target || name.includes(target) || target.includes(name);
             });
-            if (w) {
-               setFormData(prev => ({ ...prev, phuong: w.name }));
+            if (ward) {
+              setFormData(prev => ({ ...prev, phuong: ward.name }));
             }
           }
         })
@@ -869,7 +844,7 @@ function ToaNhaForm({
       setWards([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [districtCode]);
+  }, [provinceCode]);
 
   const handleProvinceChange = (codeStr: string) => {
     const p = provinces.find(x => String(x.code) === codeStr);
@@ -877,19 +852,7 @@ function ToaNhaForm({
     setFormData(prev => ({ 
       ...prev, 
       thanhPho: p?.name || '',
-      quan: '', 
       phuong: ''
-    }));
-    setDistrictCode('');
-  };
-
-  const handleDistrictChange = (codeStr: string) => {
-    const d = districts.find(x => String(x.code) === codeStr);
-    setDistrictCode(codeStr);
-    setFormData(prev => ({ 
-      ...prev, 
-      quan: d?.name || '',
-      phuong: '' 
     }));
   };
 
@@ -940,7 +903,6 @@ function ToaNhaForm({
           soNha: formData.soNha,
           duong: formData.duong,
           phuong: formData.phuong,
-          quan: formData.quan,
           thanhPho: formData.thanhPho,
         },
         moTa: formData.moTa,
@@ -1024,247 +986,209 @@ function ToaNhaForm({
     }));
   };
 
+  const fieldWrap = "space-y-1.5";
+  const labelClass = "text-xs font-semibold uppercase tracking-wide text-[#243B5A]/75";
+  const inputClass = "h-11 rounded-xl border-[#E2D6C8] bg-white/90 px-3 text-sm text-[#243B5A] shadow-sm transition placeholder:text-[#9B8F82] focus-visible:border-[#4FA7A0] focus-visible:ring-2 focus-visible:ring-[#4FA7A0]/18 focus-visible:ring-offset-0";
+  const selectButtonClass = cn(inputClass, "w-full justify-between font-normal hover:bg-white");
+  const popoverClass = "w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-xl border-[#E2D6C8] p-0 shadow-xl";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="tenToaNha" className="text-sm">Tên tòa nhà</Label>
-        <Input
-          id="tenToaNha"
-          value={formData.tenToaNha}
-          onChange={(e) => setFormData(prev => ({ ...prev, tenToaNha: e.target.value }))}
-          required
-          className="text-sm"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="thanhPho" className="text-sm">Tỉnh / Thành phố</Label>
-        <Popover open={openProvince} onOpenChange={setOpenProvince} modal={true}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openProvince}
-              className="w-full justify-between text-sm font-normal bg-white"
-            >
-              {provinceCode
-                ? provinces.find((p) => String(p.code) === provinceCode)?.name
-                : (formData.thanhPho || "Chọn Tỉnh/Thành phố")}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
-            <Command>
-              <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="text-sm" />
-              <CommandList className="max-h-[260px]">
-                <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                <CommandGroup>
-                  {provinces.map((p) => (
-                    <CommandItem
-                      key={p.code}
-                      value={p.name}
-                      onSelect={() => {
-                        handleProvinceChange(String(p.code));
-                        setOpenProvince(false);
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleProvinceChange(String(p.code));
-                        setOpenProvince(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          provinceCode === String(p.code) ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {p.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="quan" className="text-sm">Quận / Huyện</Label>
-          <Popover open={openDistrict} onOpenChange={setOpenDistrict} modal={true}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openDistrict}
-                className="w-full justify-between text-sm font-normal bg-white"
-                disabled={!provinceCode}
-              >
-                {districtCode
-                  ? districts.find((d) => String(d.code) === districtCode)?.name
-                  : (formData.quan || "Chọn Quận/Huyện")}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
-              <Command>
-                <CommandInput placeholder="Tìm Quận/Huyện..." className="text-sm" />
-                <CommandList className="max-h-[260px]">
-                  <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                  <CommandGroup>
-                    {districts.map((d) => (
-                      <CommandItem
-                        key={d.code}
-                        value={d.name}
-                        onSelect={() => {
-                          handleDistrictChange(String(d.code));
-                          setOpenDistrict(false);
-                        }}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDistrictChange(String(d.code));
-                          setOpenDistrict(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            districtCode === String(d.code) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {d.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="phuong" className="text-sm">Phường / Xã</Label>
-          <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openWard}
-                className="w-full justify-between text-sm font-normal bg-white"
-                disabled={!districtCode}
-              >
-                {formData.phuong || "Chọn Phường/Xã"}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 h-[300px]" align="start">
-              <Command>
-                <CommandInput placeholder="Tìm Phường/Xã..." className="text-sm" />
-                <CommandList className="max-h-[260px]">
-                  <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                  <CommandGroup>
-                    {wards.map((w) => (
-                      <CommandItem
-                        key={w.code}
-                        value={w.name}
-                        onSelect={() => {
-                          handleWardChange(w.name);
-                          setOpenWard(false);
-                        }}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleWardChange(w.name);
-                          setOpenWard(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            formData.phuong === w.name ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {w.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="duong" className="text-sm">Tên đường</Label>
+    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+        <div className={fieldWrap}>
+          <Label htmlFor="tenToaNha" className={labelClass}>Tên tòa nhà</Label>
           <Input
-            id="duong"
-            value={formData.duong}
-            onChange={(e) => setFormData(prev => ({ ...prev, duong: e.target.value }))}
-            placeholder="Ví dụ: Nguyễn Trãi"
+            id="tenToaNha"
+            value={formData.tenToaNha}
+            onChange={(e) => setFormData(prev => ({ ...prev, tenToaNha: e.target.value }))}
             required
-            className="text-sm"
+            className={inputClass}
           />
         </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className={fieldWrap}>
+            <Label htmlFor="thanhPho" className={labelClass}>Tỉnh / Thành phố</Label>
+            <Popover open={openProvince} onOpenChange={setOpenProvince} modal={true}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openProvince}
+                  className={selectButtonClass}
+                >
+                  <span className="truncate">
+                    {provinceCode
+                      ? provinces.find((p) => String(p.code) === provinceCode)?.name
+                      : (formData.thanhPho || "Chọn Tỉnh/Thành phố")}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={popoverClass} align="start">
+                <Command>
+                  <CommandInput placeholder="Tìm Tỉnh/Thành phố..." className="h-10 text-sm" />
+                  <CommandList className="max-h-[260px]">
+                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                    <CommandGroup>
+                      {provinces.map((p) => (
+                        <CommandItem
+                          key={p.code}
+                          value={p.name}
+                          onSelect={() => {
+                            handleProvinceChange(String(p.code));
+                            setOpenProvince(false);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleProvinceChange(String(p.code));
+                            setOpenProvince(false);
+                          }}
+                          className="text-sm"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 text-[#4FA7A0]",
+                              provinceCode === String(p.code) ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {p.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className={fieldWrap}>
+            <Label htmlFor="phuong" className={labelClass}>Phường / Xã</Label>
+            <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openWard}
+                  className={selectButtonClass}
+                  disabled={!provinceCode}
+                >
+                  <span className="truncate">{formData.phuong || "Chọn Phường/Xã"}</span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={popoverClass} align="start">
+                <Command>
+                  <CommandInput placeholder="Tìm Phường/Xã..." className="h-10 text-sm" />
+                  <CommandList className="max-h-[260px]">
+                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                    <CommandGroup>
+                      {wards.map((w) => (
+                        <CommandItem
+                          key={w.code}
+                          value={w.name}
+                          onSelect={() => {
+                            handleWardChange(w.name);
+                            setOpenWard(false);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleWardChange(w.name);
+                            setOpenWard(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 text-[#4FA7A0]",
+                              formData.phuong === w.name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {w.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className={fieldWrap}>
+            <Label htmlFor="duong" className={labelClass}>Tên đường</Label>
+            <Input
+              id="duong"
+              value={formData.duong}
+              onChange={(e) => setFormData(prev => ({ ...prev, duong: e.target.value }))}
+              placeholder="Ví dụ: Nguyễn Trãi"
+              required
+              className={inputClass}
+            />
+          </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="soNha" className="text-sm">Số nhà</Label>
-          <Input
-            id="soNha"
-            value={formData.soNha}
-            onChange={(e) => setFormData(prev => ({ ...prev, soNha: e.target.value }))}
-            placeholder="Ví dụ: 19"
-            required
-            className="text-sm"
+          <div className={fieldWrap}>
+            <Label htmlFor="soNha" className={labelClass}>Số nhà</Label>
+            <Input
+              id="soNha"
+              value={formData.soNha}
+              onChange={(e) => setFormData(prev => ({ ...prev, soNha: e.target.value }))}
+              placeholder="Ví dụ: 19"
+              required
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div className={fieldWrap}>
+          <Label htmlFor="moTa" className={labelClass}>Mô tả</Label>
+          <Textarea
+            id="moTa"
+            value={formData.moTa}
+            onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
+            rows={3}
+            className={cn(inputClass, "min-h-20 resize-none py-2 leading-5")}
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="moTa" className="text-sm">Mô tả</Label>
-        <Textarea
-          id="moTa"
-          value={formData.moTa}
-          onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
-          rows={3}
-          className="text-sm"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm">Tiện nghi chung</Label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className={fieldWrap}>
+        <Label className={labelClass}>Tiện nghi chung</Label>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {tienNghiOptions.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+            <Label
+              key={option.value}
+              htmlFor={option.value}
+              className={cn(
+                "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]",
+                formData.tienNghiChung.includes(option.value)
+                  ? "border-[#4FA7A0] bg-[#E9F7F4] text-[#1F5F5B]"
+                  : "border-[#E2D6C8]"
+              )}
+            >
+              <Checkbox
                 id={option.value}
                 checked={formData.tienNghiChung.includes(option.value)}
-                onChange={(e) => handleTienNghiChange(option.value, e.target.checked)}
-                className="rounded border-gray-300"
+                onCheckedChange={(checked) => handleTienNghiChange(option.value, checked === true)}
+                className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
               />
-              <Label htmlFor={option.value} className="text-sm">
-                {option.label}
-              </Label>
-            </div>
+              <span className="truncate">{option.label}</span>
+            </Label>
           ))}
         </div>
       </div>
 
       {!toaNha && (
-        <div className="space-y-3 rounded-lg border p-3">
+        <section className="space-y-4 rounded-2xl border border-[#D8EAE6] bg-[#EEF8F5] p-4 shadow-sm">
           <div>
-            <Label className="text-sm">Tạo phòng nhanh</Label>
+            <Label className="text-sm font-bold text-[#243B5A]">Tạo phòng nhanh</Label>
             <Select
               value={formData.cheDoTaoPhong}
               onValueChange={(value) => setFormData(prev => ({ ...prev, cheDoTaoPhong: value }))}
             >
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Chọn chế độ" />
+              <SelectTrigger className={cn(inputClass, "mt-2 w-full bg-white")}>
+                <SelectValue placeholder="Tạo tầng/phòng cố định" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="NONE">Chỉ tạo tòa nhà</SelectItem>
@@ -1273,38 +1197,38 @@ function ToaNhaForm({
               </SelectContent>
             </Select>
             <p className="mt-1 text-xs text-muted-foreground">
-              Gợi ý: Chọn "Tùy chỉnh từng tầng" nếu tầng 2 có 3 phòng, tầng 3 có 6 phòng,...
+              Gợi ý: Chọn &quot;Tùy chỉnh từng tầng&quot; nếu tầng 2 có 3 phòng, tầng 3 có 6 phòng,...
             </p>
           </div>
 
           {formData.cheDoTaoPhong === 'FIXED' && (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="soTang" className="text-sm">Số tầng</Label>
-                <Input id="soTang" type="number" min={1} value={formData.soTang} onChange={(e) => setFormData(prev => ({ ...prev, soTang: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="soTang" className={labelClass}>Số tầng</Label>
+                <Input id="soTang" type="number" min={1} value={formData.soTang} onChange={(e) => setFormData(prev => ({ ...prev, soTang: e.target.value }))} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="soPhongMoiTang" className="text-sm">Phòng mỗi tầng</Label>
-                <Input id="soPhongMoiTang" type="number" min={1} value={formData.soPhongMoiTang} onChange={(e) => setFormData(prev => ({ ...prev, soPhongMoiTang: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="soPhongMoiTang" className={labelClass}>Phòng mỗi tầng</Label>
+                <Input id="soPhongMoiTang" type="number" min={1} value={formData.soPhongMoiTang} onChange={(e) => setFormData(prev => ({ ...prev, soPhongMoiTang: e.target.value }))} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dienTichMacDinh" className="text-sm">Diện tích mặc định</Label>
-                <Input id="dienTichMacDinh" type="number" min={1} value={formData.dienTichMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, dienTichMacDinh: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="dienTichMacDinh" className={labelClass}>Diện tích mặc định</Label>
+                <Input id="dienTichMacDinh" type="number" min={1} value={formData.dienTichMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, dienTichMacDinh: e.target.value }))} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="soNguoiToiDa" className="text-sm">Số người tối đa</Label>
-                <Input id="soNguoiToiDa" type="number" min={1} value={formData.soNguoiToiDa} onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="soNguoiToiDa" className={labelClass}>Số người tối đa</Label>
+                <Input id="soNguoiToiDa" type="number" min={1} value={formData.soNguoiToiDa} onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: e.target.value }))} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="giaThueMacDinh" className="text-sm">Giá thuê mặc định</Label>
-                <Input id="giaThueMacDinh" type="number" min={0} value={formData.giaThueMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, giaThueMacDinh: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="giaThueMacDinh" className={labelClass}>Giá thuê mặc định</Label>
+                <Input id="giaThueMacDinh" type="number" min={0} value={formData.giaThueMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, giaThueMacDinh: e.target.value }))} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tienCocMacDinh" className="text-sm">Tiền cọc mặc định</Label>
-                <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} />
+              <div className={fieldWrap}>
+                <Label htmlFor="tienCocMacDinh" className={labelClass}>Tiền cọc mặc định</Label>
+                <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} className={inputClass} />
               </div>
 
-              <div className="rounded-md bg-muted p-3 text-sm md:col-span-2">
+              <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087] md:col-span-2">
                 Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, Tên phòng dạng Phòng 101, Phòng 102...
               </div>
             </div>
@@ -1359,6 +1283,7 @@ function ToaNhaForm({
                         min={0}
                         value={floor.soTang}
                         onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soTang: e.target.value } : item))}
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-1">
@@ -1368,6 +1293,7 @@ function ToaNhaForm({
                         min={1}
                         value={floor.soPhong}
                         onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soPhong: e.target.value } : item))}
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-1">
@@ -1377,6 +1303,7 @@ function ToaNhaForm({
                         min={1}
                         value={floor.dienTichMacDinh}
                         onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, dienTichMacDinh: e.target.value } : item))}
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-1 md:col-span-2">
@@ -1386,6 +1313,7 @@ function ToaNhaForm({
                         min={0}
                         value={floor.giaThueMacDinh}
                         onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, giaThueMacDinh: e.target.value } : item))}
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-1">
@@ -1395,6 +1323,7 @@ function ToaNhaForm({
                         min={1}
                         value={floor.soNguoiToiDa}
                         onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soNguoiToiDa: e.target.value } : item))}
+                        className={inputClass}
                       />
                     </div>
                     <div className="flex items-end">
@@ -1413,16 +1342,16 @@ function ToaNhaForm({
                 ))}
               </div>
 
-              <div className="rounded-md bg-muted p-3 text-sm">
+              <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087]">
                 Dự kiến tạo {cauTrucTang.reduce((sum, floor) => sum + Number(floor.soPhong || 0), 0)} phòng theo cấu trúc tùy chỉnh.
               </div>
             </div>
           )}
 
           {formData.cheDoTaoPhong !== 'NONE' && (
-            <div className="space-y-2 rounded-lg border p-3 mt-3">
-              <Label className="text-sm font-semibold text-gray-700">Tiện nghi áp dụng cho tất cả các phòng mới sinh</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50/50 p-4 border border-dashed rounded-lg">
+            <div className="mt-3 space-y-2 rounded-2xl border border-dashed border-[#B9DCD7] bg-white/60 p-3">
+              <Label className="text-sm font-semibold text-[#243B5A]">Tiện nghi áp dụng cho tất cả các phòng mới sinh</Label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                 {[
                   { value: 'dieuhoa', label: 'Điều hòa' },
                   { value: 'nonglanh', label: 'Nóng lạnh' },
@@ -1436,39 +1365,38 @@ function ToaNhaForm({
                   { value: 'maygiat', label: 'Máy giặt' },
                   { value: 'bep', label: 'Bếp' }
                 ].map((option) => (
-                  <div key={option.value} className="flex items-center space-x-2.5 py-1">
-                    <input
-                      type="checkbox"
+                  <Label key={option.value} htmlFor={`phong-tn-${option.value}`} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#E2D6C8] bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]">
+                    <Checkbox
                       id={`phong-tn-${option.value}`}
                       checked={formData.tienNghiMacDinh.includes(option.label)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
+                      onCheckedChange={(checked) => {
                         setFormData(prev => ({
                           ...prev,
-                          tienNghiMacDinh: checked
+                          tienNghiMacDinh: checked === true
                             ? [...prev.tienNghiMacDinh, option.label]
                             : prev.tienNghiMacDinh.filter(t => t !== option.label)
                         }));
                       }}
-                      className="rounded border-gray-300 h-4 w-4 accent-blue-600 cursor-pointer"
+                      className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
                     />
-                    <Label htmlFor={`phong-tn-${option.value}`} className="text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer select-none">
+                    <span className="truncate">
                       {option.label}
-                    </Label>
-                  </div>
+                    </span>
+                  </Label>
                 ))}
               </div>
             </div>
           )}
-        </div>
+        </section>
       )}
+      </div>
 
-      <DialogFooter className="gap-2">
-        <Button type="button" variant="outline" onClick={onClose} className="text-sm">
+      <DialogFooter className="flex-shrink-0 gap-2 border-t border-[#E8DCCB]/80 bg-[#FFFBF5]/95 px-5 py-4 backdrop-blur sm:flex-row sm:justify-end sm:px-6">
+        <Button type="button" variant="outline" onClick={onClose} className="h-11 rounded-xl border-[#D8CDBF] bg-white/70 px-5 text-sm font-semibold text-[#243B5A] transition hover:bg-[#F8F3EC] sm:min-w-28">
           Hủy
         </Button>
-        <Button type="submit" className="text-sm" disabled={isSubmitting}>
-          {isSubmitting ? 'Đang xử lý...' : (toaNha ? 'Cập nhật' : 'Thêm mới')}
+        <Button type="submit" className="h-11 rounded-xl bg-[#243B5A] px-5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#2D496E] hover:shadow-md sm:min-w-36" disabled={isSubmitting}>
+          {isSubmitting ? 'Đang xử lý...' : (toaNha ? 'Cập nhật' : 'Thêm tòa nhà')}
         </Button>
       </DialogFooter>
     </form>

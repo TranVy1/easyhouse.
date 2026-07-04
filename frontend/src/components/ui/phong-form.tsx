@@ -8,12 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DialogFooter } from '@/components/ui/dialog';
 import { Info, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { PhongImageUpload } from '@/components/ui/phong-image-upload';
 import type { Phong, ToaNha } from '@/types';
-import Image from 'next/image';
 
 const mapTrangThai = (tt: string): 'trong' | 'daDat' | 'dangThue' | 'baoTri' => {
   if (!tt) return 'trong';
@@ -26,6 +24,18 @@ const mapTrangThai = (tt: string): 'trong' | 'daDat' | 'dangThue' | 'baoTri' => 
   return 'trong';
 };
 
+const labelClass = 'text-[12px] font-semibold text-[#243B5A]';
+const requiredClass = 'text-[#E76F51]';
+const fieldClass = 'space-y-1';
+const controlClass = 'box-border h-10 min-h-10 w-full rounded-xl border border-[#DFE5EC] bg-white px-3 text-sm font-medium leading-none text-[#243B5A] shadow-sm transition-all duration-200 placeholder:text-[#8FA0B3] hover:border-[#4FA7A0] focus:border-[#4FA7A0] focus:outline-none focus:ring-[3px] focus:ring-[#4FA7A0]/15 focus-visible:border-[#4FA7A0] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#4FA7A0]/15 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60';
+const inputClass = controlClass;
+const selectTriggerClass = `${controlClass} justify-between py-0 data-[placeholder]:text-[#8FA0B3] [&>svg]:ml-3 [&>svg]:size-4 [&>svg]:text-[#6B7A8C] [&>svg]:opacity-70 *:data-[slot=select-value]:flex *:data-[slot=select-value]:h-full *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 *:data-[slot=select-value]:truncate`;
+const previewControlClass = `${controlClass} flex items-center truncate border-[#4FA7A0]/25 bg-[#4FA7A0]/10 text-[#267D76] hover:border-[#4FA7A0]/45`;
+const actionButtonClass = 'h-10 min-h-10 rounded-xl px-4 text-sm font-semibold';
+const selectContentClass = 'rounded-xl border-[#243B5A]/10 bg-[#FFFCF7] shadow-xl shadow-[#243B5A]/12';
+const selectItemClass = 'my-0.5 min-h-8 cursor-pointer rounded-lg text-sm text-[#243B5A] hover:bg-[#F8F3EC] focus:bg-[#F8F3EC] *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2';
+type TangOption = { soTang: number; tenTang: string };
+
 // Form component for adding/editing phong
 export function PhongForm({
   phong,
@@ -34,7 +44,7 @@ export function PhongForm({
   onSuccess
 }: {
   phong: Phong | null;
-  toaNhaList: ToaNha[];
+  toaNhaList: Pick<ToaNha, '_id' | 'tenToaNha'>[];
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -49,7 +59,7 @@ export function PhongForm({
     return '';
   };
 
-  const [tangList, setTangList] = useState<{soTang: number, tenTang: string}[]>([]);
+  const [tangList, setTangList] = useState<TangOption[]>([]);
   const [formData, setFormData] = useState({
     maPhong: phong?.maPhong || '',
     toaNha: phong?.toaNha ? getToaNhaId(phong.toaNha) : '',
@@ -72,10 +82,10 @@ export function PhongForm({
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       })
         .then(res => res.json())
-        .then(result => {
+        .then((result: { success?: boolean; data?: TangOption[] }) => {
           if (result.success && Array.isArray(result.data)) {
             // Sort by soTang
-            const sorted = result.data.sort((a: any, b: any) => a.soTang - b.soTang);
+            const sorted = [...result.data].sort((a, b) => a.soTang - b.soTang);
             setTangList(sorted);
             
             // If current tang is not in the list and we have floors, maybe select the first one, 
@@ -209,50 +219,50 @@ export function PhongForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6 space-y-6 md:space-y-8 animate-in fade-in duration-300">
+    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#FFFCF7]">
+      <div className="easyhouse-room-modal-scroll flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-5">
         <Tabs defaultValue="thong-tin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 p-1.5 bg-[#F8F3EC] rounded-2xl mb-2">
+          <TabsList className="mb-1 grid h-10 w-full grid-cols-2 rounded-xl bg-[#F8F3EC] p-1">
             <TabsTrigger 
               value="thong-tin" 
-              className="flex items-center justify-center gap-2 text-sm font-semibold rounded-xl py-2.5 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-[#4FA7A0] data-[state=active]:shadow-sm text-gray-500 hover:text-[#243B5A]"
+              className="flex h-8 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-[#6B7A8C] transition-all duration-200 hover:bg-white/55 hover:text-[#243B5A] data-[state=active]:bg-white data-[state=active]:text-[#243B5A] data-[state=active]:shadow-sm"
             >
               <Info className="h-4 w-4" />
               Thông tin phòng
             </TabsTrigger>
             <TabsTrigger 
               value="anh-phong" 
-              className="flex items-center justify-center gap-2 text-sm font-semibold rounded-xl py-2.5 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-[#4FA7A0] data-[state=active]:shadow-sm text-gray-500 hover:text-[#243B5A]"
+              className="flex h-8 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-[#6B7A8C] transition-all duration-200 hover:bg-white/55 hover:text-[#243B5A] data-[state=active]:bg-white data-[state=active]:text-[#243B5A] data-[state=active]:shadow-sm"
             >
               <ImageIcon className="h-4 w-4" />
               Ảnh phòng
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="thong-tin" className="space-y-6 md:space-y-8 mt-4 outline-none focus-visible:ring-0">
+          <TabsContent value="thong-tin" className="mt-3 space-y-4 outline-none focus-visible:ring-0">
             {/* Row 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-              <div className="space-y-2.5">
-                <Label htmlFor="maPhong" className="text-sm font-semibold text-[#243B5A]">Mã phòng <span className="text-red-500">*</span></Label>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:gap-4">
+              <div className={fieldClass}>
+                <Label htmlFor="maPhong" className={labelClass}>Mã phòng <span className={requiredClass}>*</span></Label>
                 <Input
                   id="maPhong"
                   value={formData.maPhong}
                   onChange={(e) => setFormData(prev => ({ ...prev, maPhong: e.target.value.toUpperCase() }))}
                   required
                   placeholder="VD: P101"
-                  className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus-visible:border-[#4FA7A0] focus-visible:ring-1 focus-visible:ring-[#4FA7A0] hover:border-gray-300"
+                  className={inputClass}
                 />
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="toaNha" className="text-sm font-semibold text-[#243B5A]">Tòa nhà <span className="text-red-500">*</span></Label>
+              <div className={fieldClass}>
+                <Label htmlFor="toaNha" className={labelClass}>Tòa nhà <span className={requiredClass}>*</span></Label>
                 <Select value={formData.toaNha} onValueChange={(value) => setFormData(prev => ({ ...prev, toaNha: value }))}>
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus:border-[#4FA7A0] focus:ring-1 focus:ring-[#4FA7A0] hover:border-gray-300">
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue placeholder="Chọn tòa nhà" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-lg border-gray-100">
+                  <SelectContent className={selectContentClass}>
                     {toaNhaList.map((toaNha) => (
-                      <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm rounded-lg my-1 cursor-pointer hover:bg-[#F8F3EC] focus:bg-[#F8F3EC]">
+                      <SelectItem key={toaNha._id} value={toaNha._id!} className={selectItemClass}>
                         {toaNha.tenToaNha}
                       </SelectItem>
                     ))}
@@ -260,24 +270,24 @@ export function PhongForm({
                 </Select>
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="trangThai" className="text-sm font-semibold text-[#243B5A]">Trạng thái <span className="text-red-500">*</span></Label>
+              <div className={fieldClass}>
+                <Label htmlFor="trangThai" className={labelClass}>Trạng thái <span className={requiredClass}>*</span></Label>
                 <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'trong' | 'daDat' | 'dangThue' | 'baoTri' }))}>
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus:border-[#4FA7A0] focus:ring-1 focus:ring-[#4FA7A0] hover:border-gray-300">
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-lg border-gray-100">
-                    <SelectItem value="trong" className="text-sm rounded-lg my-1 cursor-pointer">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#4FA7A0]"></div> Trống</div>
+                  <SelectContent className={selectContentClass}>
+                    <SelectItem value="trong" className={selectItemClass}>
+                      <div className="flex items-center gap-2 leading-none"><div className="h-2 w-2 shrink-0 rounded-full bg-[#4FA7A0]"></div> Trống</div>
                     </SelectItem>
-                    <SelectItem value="daDat" className="text-sm rounded-lg my-1 cursor-pointer">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#F2A45B]"></div> Đã đặt</div>
+                    <SelectItem value="daDat" className={selectItemClass}>
+                      <div className="flex items-center gap-2 leading-none"><div className="h-2 w-2 shrink-0 rounded-full bg-[#F2A45B]"></div> Đã đặt</div>
                     </SelectItem>
-                    <SelectItem value="dangThue" className="text-sm rounded-lg my-1 cursor-pointer">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#243B5A]"></div> Đang thuê</div>
+                    <SelectItem value="dangThue" className={selectItemClass}>
+                      <div className="flex items-center gap-2 leading-none"><div className="h-2 w-2 shrink-0 rounded-full bg-[#243B5A]"></div> Đang thuê</div>
                     </SelectItem>
-                    <SelectItem value="baoTri" className="text-sm rounded-lg my-1 cursor-pointer">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500"></div> Bảo trì</div>
+                    <SelectItem value="baoTri" className={selectItemClass}>
+                      <div className="flex items-center gap-2 leading-none"><div className="h-2 w-2 shrink-0 rounded-full bg-[#F2A45B]"></div> Bảo trì</div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -285,27 +295,27 @@ export function PhongForm({
             </div>
 
             {/* Row 2 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-              <div className="space-y-2.5">
-                <Label htmlFor="tang" className="text-sm font-semibold text-[#243B5A]">Tầng</Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+              <div className={fieldClass}>
+                <Label htmlFor="tang" className={labelClass}>Tầng</Label>
                 <Select value={formData.tang.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, tang: parseInt(value) }))}>
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus:border-[#4FA7A0] focus:ring-1 focus:ring-[#4FA7A0] hover:border-gray-300">
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue placeholder="Chọn tầng" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-lg border-gray-100 max-h-[200px]">
+                  <SelectContent className={`${selectContentClass} max-h-[200px]`}>
                     {tangList.length > 0 ? tangList.map((t) => (
-                      <SelectItem key={t.soTang} value={t.soTang.toString()} className="text-sm rounded-lg my-1 cursor-pointer">
+                      <SelectItem key={t.soTang} value={t.soTang.toString()} className={selectItemClass}>
                         {t.tenTang || `Tầng ${t.soTang}`}
                       </SelectItem>
                     )) : (
-                      <SelectItem value={formData.tang.toString()} className="text-sm rounded-lg my-1 cursor-pointer">Tầng {formData.tang}</SelectItem>
+                      <SelectItem value={formData.tang.toString()} className={selectItemClass}>Tầng {formData.tang}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="dienTich" className="text-sm font-semibold text-[#243B5A]">Diện tích (m²)</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="dienTich" className={labelClass}>Diện tích (m²)</Label>
                 <Input
                   id="dienTich"
                   type="number"
@@ -313,12 +323,12 @@ export function PhongForm({
                   value={formData.dienTich}
                   onChange={(e) => setFormData(prev => ({ ...prev, dienTich: parseInt(e.target.value) || 0 }))}
                   required
-                  className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus-visible:border-[#4FA7A0] focus-visible:ring-1 focus-visible:ring-[#4FA7A0] hover:border-gray-300"
+                  className={inputClass}
                 />
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="soNguoiToiDa" className="text-sm font-semibold text-[#243B5A]">Người tối đa</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="soNguoiToiDa" className={labelClass}>Người tối đa</Label>
                 <Input
                   id="soNguoiToiDa"
                   type="number"
@@ -327,13 +337,13 @@ export function PhongForm({
                   value={formData.soNguoiToiDa}
                   onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: parseInt(e.target.value) || 1 }))}
                   required
-                  className="h-11 rounded-xl border-gray-200 bg-white px-4 text-sm font-medium shadow-sm transition-all focus-visible:border-[#4FA7A0] focus-visible:ring-1 focus-visible:ring-[#4FA7A0] hover:border-gray-300"
+                  className={inputClass}
                 />
               </div>
 
-              <div className="space-y-2.5 col-span-2 md:col-span-1">
-                <Label className="text-sm font-semibold text-[#243B5A]">Xem trước</Label>
-                <div className="h-11 bg-[#4FA7A0]/5 border border-[#4FA7A0]/20 rounded-xl flex items-center px-4 text-sm font-medium text-[#4FA7A0] shadow-sm truncate">
+              <div className={fieldClass}>
+                <Label className={labelClass}>Xem trước</Label>
+                <div className={previewControlClass}>
                   <span className="truncate">
                     {formData.maPhong ? `Phòng ${formData.maPhong}` : 'Mã phòng'} - {formData.tang ? `Tầng ${formData.tang}` : 'Tầng'}
                   </span>
@@ -342,9 +352,9 @@ export function PhongForm({
             </div>
 
             {/* Row 3 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 bg-[#F8F3EC]/50 p-5 rounded-2xl border border-gray-100/50">
-              <div className="space-y-2.5">
-                <Label htmlFor="giaThue" className="text-sm font-semibold text-[#243B5A]">Giá thuê (VNĐ)</Label>
+            <div className="grid grid-cols-1 gap-3 rounded-xl border border-[#4FA7A0]/16 bg-[#4FA7A0]/8 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] md:grid-cols-2 lg:gap-4 lg:p-4">
+              <div className={fieldClass}>
+                <Label htmlFor="giaThue" className={labelClass}>Giá thuê (VNĐ)</Label>
                 <div className="relative">
                   <Input
                     id="giaThue"
@@ -353,17 +363,17 @@ export function PhongForm({
                     value={formData.giaThue}
                     onChange={(e) => setFormData(prev => ({ ...prev, giaThue: parseInt(e.target.value) || 0 }))}
                     required
-                    className="h-12 rounded-xl border-gray-200 bg-white pl-4 pr-12 text-base font-semibold shadow-sm transition-all focus-visible:border-[#4FA7A0] focus-visible:ring-1 focus-visible:ring-[#4FA7A0] hover:border-gray-300"
+                    className={`${inputClass} pr-9`}
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">đ</div>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold leading-none text-[#8FA0B3]">đ</div>
                 </div>
-                <div className="text-xs font-medium text-[#4FA7A0] pt-1">
+                <div className="pt-0.5 text-[12px] font-semibold text-[#267D76]">
                   Bằng chữ: {formatCurrency(formData.giaThue)}
                 </div>
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="tienCoc" className="text-sm font-semibold text-[#243B5A]">Tiền cọc (VNĐ)</Label>
+              <div className={fieldClass}>
+                <Label htmlFor="tienCoc" className={labelClass}>Tiền cọc (VNĐ)</Label>
                 <div className="relative">
                   <Input
                     id="tienCoc"
@@ -372,41 +382,41 @@ export function PhongForm({
                     value={formData.tienCoc}
                     onChange={(e) => setFormData(prev => ({ ...prev, tienCoc: parseInt(e.target.value) || 0 }))}
                     required
-                    className="h-12 rounded-xl border-gray-200 bg-white pl-4 pr-12 text-base font-semibold shadow-sm transition-all focus-visible:border-[#F2A45B] focus-visible:ring-1 focus-visible:ring-[#F2A45B] hover:border-gray-300"
+                    className={`${inputClass} pr-9 focus-visible:border-[#F2A45B] focus-visible:ring-[#F2A45B]/20`}
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">đ</div>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold leading-none text-[#8FA0B3]">đ</div>
                 </div>
-                <div className="text-xs font-medium text-[#F2A45B] pt-1">
+                <div className="pt-0.5 text-[12px] font-semibold text-[#F2A45B]">
                   Bằng chữ: {formatCurrency(formData.tienCoc)}
                 </div>
               </div>
             </div>
 
             {/* Row 4 */}
-            <div className="space-y-2.5">
-              <Label htmlFor="moTa" className="text-sm font-semibold text-[#243B5A]">Mô tả bổ sung</Label>
+            <div className={fieldClass}>
+              <Label htmlFor="moTa" className={labelClass}>Mô tả bổ sung</Label>
               <Textarea
                 id="moTa"
                 value={formData.moTa}
                 onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
                 placeholder="Nhập thông tin mô tả chi tiết về phòng..."
-                className="min-h-[100px] rounded-xl border-gray-200 bg-white p-4 text-sm font-medium shadow-sm resize-y transition-all focus-visible:border-[#4FA7A0] focus-visible:ring-1 focus-visible:ring-[#4FA7A0] hover:border-gray-300"
+                className="min-h-[76px] resize-y rounded-xl border-[#243B5A]/12 bg-white p-3 text-sm font-medium text-[#243B5A] shadow-[0_1px_2px_rgba(36,59,90,0.04)] transition-all duration-200 placeholder:text-[#8FA0B2] hover:border-[#243B5A]/20 focus-visible:border-[#4FA7A0] focus-visible:ring-[3px] focus-visible:ring-[#4FA7A0]/15 focus-visible:ring-offset-0"
               />
             </div>
 
             {/* Row 5 */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <Label className="text-sm font-semibold text-[#243B5A] flex items-center justify-between">
                 <span>Tiện nghi có sẵn</span>
-                <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{formData.tienNghi.length} đã chọn</span>
+                <span className="rounded-full bg-[#F8F3EC] px-2 py-0.5 text-xs font-medium text-slate-500">{formData.tienNghi.length} đã chọn</span>
               </Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {tienNghiOptions.map((option) => {
                   const isChecked = formData.tienNghi.includes(option.value);
                   return (
                     <label
                       key={option.value}
-                      className={`relative flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all duration-200 hover:shadow-sm ${
+                      className={`relative flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 transition-all duration-200 hover:shadow-sm ${
                         isChecked 
                           ? 'border-[#4FA7A0] bg-[#4FA7A0]/5 shadow-sm ring-1 ring-[#4FA7A0]/10' 
                           : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
@@ -437,16 +447,16 @@ export function PhongForm({
             </div>
           </TabsContent>
 
-          <TabsContent value="anh-phong" className="space-y-6 mt-4 outline-none focus-visible:ring-0">
-            <div className="bg-white border rounded-2xl p-6 shadow-sm">
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#243B5A] mb-1">Quản lý ảnh phòng</h3>
+          <TabsContent value="anh-phong" className="mt-3 space-y-4 outline-none focus-visible:ring-0">
+            <div className="rounded-xl border border-[#243B5A]/10 bg-white p-3 shadow-sm lg:p-4">
+              <div className="mb-3">
+                <h3 className="mb-1 text-base font-semibold text-[#243B5A]">Quản lý ảnh phòng</h3>
                 <p className="text-sm text-gray-500">
                   Tải lên tối đa 10 ảnh chất lượng cao để khách hàng có thể xem chi tiết phòng. Định dạng hỗ trợ: JPG, PNG.
                 </p>
               </div>
 
-              <div className="bg-gray-50/50 rounded-xl border border-dashed border-gray-200 p-2">
+              <div className="rounded-xl border border-dashed border-[#243B5A]/12 bg-[#F8F3EC]/55 p-2">
                 <PhongImageUpload
                   images={formData.anhPhong}
                   onImagesChange={(images: string[]) => setFormData(prev => ({ ...prev, anhPhong: images }))}
@@ -459,20 +469,20 @@ export function PhongForm({
         </Tabs>
       </div>
 
-      <div className="shrink-0 border-t border-slate-200/70 bg-white/95 px-6 py-5 backdrop-blur flex justify-end gap-3 z-10">
+      <div className="sticky bottom-0 z-10 flex shrink-0 flex-col-reverse gap-2 border-t border-[#243B5A]/10 bg-[#FFFCF7]/95 px-4 py-3 backdrop-blur sm:flex-row sm:justify-end sm:gap-2.5 sm:px-5 lg:px-7">
         <Button 
           type="button" 
           variant="outline" 
           onClick={onClose} 
-          className="h-11 px-6 rounded-xl text-sm font-semibold border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          className={`${actionButtonClass} w-full border-[#DFE5EC] bg-white text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/35 hover:bg-[#F8F3EC] hover:text-[#243B5A] hover:shadow-md focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/18 sm:w-auto`}
         >
-          Hủy bỏ
+          Hủy
         </Button>
         <Button 
           type="submit" 
-          className="h-11 px-8 rounded-xl text-sm font-semibold bg-[#4FA7A0] text-white hover:bg-[#3d857f] shadow-sm hover:shadow transition-all"
+          className={`${actionButtonClass} w-full bg-[#243B5A] font-bold text-white shadow-sm shadow-[#243B5A]/20 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-[#1D314D] hover:shadow-md hover:shadow-[#243B5A]/25 focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/22 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm sm:w-auto`}
         >
-          {phong ? 'Lưu thay đổi' : 'Thêm phòng mới'}
+          {phong ? 'Lưu thay đổi' : 'Thêm phòng'}
         </Button>
       </div>
     </form>

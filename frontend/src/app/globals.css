@@ -4858,3 +4858,30 @@
     transform: none !important;
   }
 }
+
+.easyhouse-room-modal-scroll {
+  scrollbar-gutter: stable;
+}
+
+.easyhouse-room-modal-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.easyhouse-room-modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.easyhouse-room-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(36, 59, 90, 0.16);
+  border: 2px solid #fffcf7;
+  border-radius: 999px;
+}
+
+.easyhouse-room-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(36, 59, 90, 0.24);
+}
+
+.easyhouse-room-modal-scroll {
+  scrollbar-color: rgba(36, 59, 90, 0.2) transparent;
+  scrollbar-width: thin;
+}

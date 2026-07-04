@@ -368,7 +368,7 @@ export default function PhongPage() {
         <div className="phong-hero__actions">
           <HeroActionButton
             variant="secondary"
-            className="phong-hero__button phong-hero__button-secondary"
+            className="phong-hero__button phong-hero__button-secondary h-11 rounded-xl border border-[#243B5A]/12 bg-[#FFFCF7] px-5 text-sm font-semibold text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/40 hover:bg-white hover:text-[#243B5A] hover:shadow-md active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/20"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
@@ -384,7 +384,7 @@ export default function PhongPage() {
               fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
             }}
             trigger={
-              <HeroActionButton variant="secondary" className="phong-hero__button phong-hero__button-secondary">
+              <HeroActionButton variant="secondary" className="phong-hero__button phong-hero__button-secondary h-11 rounded-xl border border-[#243B5A]/12 bg-[#FFFCF7] px-5 text-sm font-semibold text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/40 hover:bg-white hover:text-[#243B5A] hover:shadow-md active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/20">
                 <ImageIcon className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Upload ảnh</span>
               </HeroActionButton>
@@ -393,20 +393,24 @@ export default function PhongPage() {
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <HeroActionButton variant="default" className="phong-hero__button phong-hero__button-primary">
+              <HeroActionButton
+                variant="default"
+                className="phong-hero__button phong-hero__button-primary h-11 rounded-xl bg-[#243B5A] px-5 text-sm font-semibold text-white shadow-sm shadow-[#243B5A]/20 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-[#1D314D] hover:shadow-md hover:shadow-[#243B5A]/25 active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/25"
+                onClick={() => setEditingPhong(null)}
+              >
                 <Plus className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Thêm phòng</span>
                 <span className="sm:hidden">Thêm</span>
               </HeroActionButton>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[calc(100dvh-32px)] flex flex-col p-0 gap-0 w-[95vw] md:w-full rounded-2xl overflow-hidden border-0 shadow-2xl">
-              <div className="shrink-0 px-6 pt-6 pb-4">
-                <DialogHeader>
-                  <DialogTitle className="text-xl md:text-2xl font-bold text-[#243B5A]">
+            <DialogContent className="flex max-h-[calc(100vh-40px)] w-[calc(100vw-24px)] max-w-[calc(100vw-24px)] grid-rows-none flex-col gap-0 overflow-hidden rounded-[22px] border border-[#243B5A]/8 bg-[#FFFCF7] p-0 shadow-2xl shadow-[#243B5A]/18 sm:max-w-[calc(100vw-32px)] lg:w-[50vw] lg:min-w-[720px] lg:max-w-[920px] [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:flex [&_[data-slot=dialog-close]]:h-8 [&_[data-slot=dialog-close]]:w-8 [&_[data-slot=dialog-close]]:items-center [&_[data-slot=dialog-close]]:justify-center [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:opacity-80 [&_[data-slot=dialog-close]]:transition-all [&_[data-slot=dialog-close]]:duration-200 [&_[data-slot=dialog-close]]:hover:bg-[#4FA7A0]/10 [&_[data-slot=dialog-close]]:hover:text-[#243B5A] [&_[data-slot=dialog-close]]:focus:ring-[3px] [&_[data-slot=dialog-close]]:focus:ring-[#4FA7A0]/20">
+              <div className="shrink-0 border-b border-[#243B5A]/10 bg-[#FFFCF7]/95 px-5 py-3.5 backdrop-blur lg:px-7">
+                <DialogHeader className="text-left">
+                  <DialogTitle className="pr-9 text-xl font-bold leading-tight text-[#243B5A]">
                     {editingPhong ? 'Chỉnh sửa phòng' : 'Thêm phòng mới'}
                   </DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500 mt-1">
-                    {editingPhong ? 'Cập nhật thông tin chi tiết của phòng.' : 'Nhập thông tin chi tiết cho phòng mới của bạn.'}
+                  <DialogDescription className="mt-1 text-sm leading-5 text-[#6B7A8C]">
+                    {editingPhong ? 'Cập nhật thông tin chi tiết của phòng.' : 'Nhập thông tin phòng và cấu hình trạng thái ban đầu.'}
                   </DialogDescription>
                 </DialogHeader>
               </div>
