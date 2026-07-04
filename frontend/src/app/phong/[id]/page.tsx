@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { ImageCarousel } from '@/components/ui/image-carousel';
 import { DatLichHenDialog } from '@/components/ui/dat-lich-hen-dialog';
+import { SessionProvider } from 'next-auth/react';
 
 interface PublicPhongDetail {
   _id: string;
@@ -328,12 +329,14 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
       
-      <DatLichHenDialog 
-        isOpen={isBookingOpen} 
-        onClose={() => setIsBookingOpen(false)} 
-        phongId={phong._id} 
-        maPhong={phong.ten} 
-      />
+      <SessionProvider>
+        <DatLichHenDialog 
+          isOpen={isBookingOpen} 
+          onClose={() => setIsBookingOpen(false)} 
+          phongId={phong._id} 
+          maPhong={phong.ten} 
+        />
+      </SessionProvider>
     </div>
   );
 }
