@@ -161,6 +161,10 @@ public class LichHenService {
         
         lichHen.setTrangThai(TrangThaiLichHen.PENDING);
 
+        if (phong.getNhaTro() != null && phong.getNhaTro().getChuTro() != null) {
+            lichHen.setNguoiDung(phong.getNhaTro().getChuTro());
+        }
+
         LichHen saved = lichHenRepository.save(lichHen);
         logAudit(saved, "CREATE", currentUserId);
 

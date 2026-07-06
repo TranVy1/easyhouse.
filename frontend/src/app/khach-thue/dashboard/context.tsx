@@ -30,7 +30,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/auth/khach-thue/me', {
+      const res = await fetch('/api/backend-auth/khach-thue/me', {
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
         },

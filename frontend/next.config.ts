@@ -58,6 +58,10 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/khach-thue`
       },
       {
+        source: '/api/backend-auth/:path*',
+        destination: `${backendUrl}/api/auth/:path*`
+      },
+      {
         source: '/api/khach-thue/:path*',
         destination: `${backendUrl}/api/khach-thue/:path*`
       },

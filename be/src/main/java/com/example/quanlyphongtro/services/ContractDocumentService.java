@@ -4,6 +4,7 @@ import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.ContractSignatureRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
+import com.example.quanlyphongtro.repository.TaiSanPhongRepository;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ public class ContractDocumentService {
     private final PhongRepository phongRepository;
     private final ContractSignatureRepository signatureRepository;
     private final CloudinaryService cloudinaryService;
+    private final TaiSanPhongRepository taiSanPhongRepository;
+    private final TienIchService tienIchService;
     private final TemplateEngine templateEngine;
     private final ThongBaoService thongBaoService;
     private final JdbcTemplate jdbcTemplate;
@@ -87,6 +90,17 @@ public class ContractDocumentService {
 
         context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null ? "Đã ký điện tử bởi " + hd.getKhachThue().getHoTen() : "(Chưa ký)");
         context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
+        
+        context.setVariable("chiSoDienBanDau", hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0);
+        context.setVariable("chiSoNuocBanDau", hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0);
+        
+        // Fetch services (TienIch) to get prices
+        var tienIchs = tienIchService.listByPhong(hd.getPhong().getId());
+        context.setVariable("tienIchList", tienIchs);
+        
+        // Fetch furniture
+        List<TaiSanPhong> taiSanList = taiSanPhongRepository.findByPhongId(hd.getPhong().getId());
+        context.setVariable("taiSanList", taiSanList);
         
         String landlordName = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) ? hd.getPhong().getNhaTro().getChuTro().getHoTen() : "Chủ trọ";
         context.setVariable("landlordSignatureText", hd.getLandlordSignedAt() != null ? "Đã ký điện tử bởi " + landlordName : "(Chưa ký)");

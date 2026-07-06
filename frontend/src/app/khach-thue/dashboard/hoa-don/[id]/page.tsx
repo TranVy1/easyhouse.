@@ -138,6 +138,16 @@ export default function TenantInvoiceDetailPage() {
             <div className="flex items-center text-gray-600">
               <Calendar className="h-4 w-4 mr-2" /> Hạn thanh toán: <strong className="ml-1 text-gray-900">{formatDate(invoice.hanTra || invoice.hanThanhToan)}</strong>
             </div>
+            {invoice.hopDong && typeof invoice.hopDong === 'string' && (
+              <div className="flex items-center mt-1">
+                <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-800" asChild>
+                  <Link href={`/khach-thue/dashboard/hop-dong/${invoice.hopDong}`}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    Xem hợp đồng liên quan
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>

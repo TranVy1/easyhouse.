@@ -33,6 +33,7 @@ class PhongServiceTest {
     @Mock private MediaService mediaService;
     @Mock private TienIchService tienIchService;
     @Mock private PermissionService permissionService;
+    @Mock private com.example.quanlyphongtro.repository.TaiSanPhongRepository taiSanPhongRepository;
 
     private PhongService service;
 
@@ -40,7 +41,7 @@ class PhongServiceTest {
     void setUp() {
         service = new PhongService(
                 phongRepository, nhaTroRepository, hopDongRepository,
-                tangRepository, mediaService, tienIchService, permissionService);
+                tangRepository, mediaService, tienIchService, permissionService, taiSanPhongRepository);
     }
 
     @Test

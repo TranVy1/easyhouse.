@@ -12,6 +12,9 @@ import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.TangRepository;
+import com.example.quanlyphongtro.repository.TaiSanPhongRepository;
+import com.example.quanlyphongtro.entity.TaiSanPhong;
+import com.example.quanlyphongtro.dto.TaiSanPhongDto;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +40,7 @@ public class PhongService {
     private final MediaService mediaService;
     private final TienIchService tienIchService;
     private final PermissionService permissionService;
+    private final TaiSanPhongRepository taiSanPhongRepository;
 
     public PaginatedResponse<PhongResponse> getAllPhong(String nhaTroId, String trangThaiStr, String search, int page, int limit, boolean simple) {
         TrangThaiPhong tt = parseTrangThai(trangThaiStr);
@@ -205,7 +209,21 @@ public class PhongService {
         PhongResponse response = PhongResponse.fromEntity(phong, activeContract);
         response.setAnhPhong(mediaService.listUrls(LoaiDoiTuongMedia.ROOM, phong.getId(), MediaService.ROOM_IMAGE));
         response.setTienNghi(tienIchService.listByPhong(phong.getId()));
+        response.setTaiSanPhong(taiSanPhongRepository.findByPhongId(phong.getId()).stream()
+                .map(this::mapTaiSanToDto).toList());
         return response;
+    }
+
+    private TaiSanPhongDto mapTaiSanToDto(TaiSanPhong entity) {
+        return TaiSanPhongDto.builder()
+                .id(entity.getId())
+                .phongId(entity.getPhong().getId())
+                .tenTaiSan(entity.getTenTaiSan())
+                .soLuong(entity.getSoLuong())
+                .giaTri(entity.getGiaTri())
+                .tinhTrang(entity.getTinhTrang())
+                .ghiChu(entity.getGhiChu())
+                .build();
     }
 
     private void assertCanRead(Phong phong, UUID userId) {

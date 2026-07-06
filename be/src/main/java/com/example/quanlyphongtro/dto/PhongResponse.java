@@ -36,6 +36,7 @@ public class PhongResponse {
     private String moTa;
     private List<String> anhPhong;
     private List<String> tienNghi;
+    private List<TaiSanPhongDto> taiSanPhong;
 
     @JsonProperty("ngayTao")
     private LocalDateTime taoLuc;

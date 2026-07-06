@@ -40,7 +40,26 @@ export function LichHenClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedLichHen, setSelectedLichHen] = useState<LichHen | null>(null);
+  const [selectedToaNhaId, setSelectedToaNhaId] = useState<string>("");
   
+  const toaNhaList = useMemo(() => {
+    const list: any[] = [];
+    const ids = new Set();
+    phongList.forEach(p => {
+      const tn = (p as any).toaNha;
+      if (tn && tn._id && !ids.has(tn._id)) {
+        ids.add(tn._id);
+        list.push(tn);
+      }
+    });
+    return list;
+  }, [phongList]);
+
+  const filteredPhongList = useMemo(() => {
+    if (!selectedToaNhaId) return [];
+    return phongList.filter(p => (p as any).toaNha && (p as any).toaNha._id === selectedToaNhaId);
+  }, [phongList, selectedToaNhaId]);
+
   const [formData, setFormData] = useState({
     phongId: "",
     hoTen: "",
@@ -126,6 +145,12 @@ export function LichHenClient() {
     if (lichHen) {
       setSelectedLichHen(lichHen);
       const date = new Date(lichHen.ngayHen);
+      const matchedPhong = phongList.find(p => p._id === (lichHen.phongId || (lichHen.phong as { _id?: string })?._id));
+      if (matchedPhong && (matchedPhong as any).toaNha) {
+        setSelectedToaNhaId((matchedPhong as any).toaNha._id);
+      } else {
+        setSelectedToaNhaId("");
+      }
       setFormData({
         phongId: lichHen.phongId || (lichHen.phong as { _id?: string })?._id || "",
         hoTen: lichHen.hoTen || "",
@@ -139,6 +164,7 @@ export function LichHenClient() {
       });
     } else {
       setSelectedLichHen(null);
+      setSelectedToaNhaId("");
       setFormData({
         phongId: "",
         hoTen: "",
@@ -445,7 +471,8 @@ export function LichHenClient() {
                     <div className="text-xs text-gray-500">{lh.soDienThoai}</div>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium">{(lh.phong as { maPhong?: string })?.maPhong || getPhongName(lh.phongId)}</span>
+                    <div className="font-medium">{(lh.phong as { maPhong?: string })?.maPhong || getPhongName(lh.phongId)}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{((lh.phong as any)?.toaNha?.tenToaNha) || "N/A"}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-sm">
@@ -567,23 +594,84 @@ export function LichHenClient() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="phongId">Phòng xem <span className="text-red-500">*</span></Label>
-              <Select 
-                value={formData.phongId} 
-                onValueChange={(value) => setFormData({...formData, phongId: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn phòng" />
-                </SelectTrigger>
-                <SelectContent>
-                  {phongList.map((phong) => (
-                    <SelectItem key={phong._id} value={phong._id!}>
-                      {phong.maPhong} - {(phong.toaNha as { tenToaNha?: string })?.tenToaNha || "N/A"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="col-span-2 space-y-4 rounded-md border p-4 bg-muted/20">
+              <h4 className="text-sm font-semibold text-foreground">Thông tin khách hàng</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="hoTen">Họ và tên <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="hoTen" 
+                    value={formData.hoTen} 
+                    onChange={(e) => setFormData({...formData, hoTen: e.target.value})} 
+                    placeholder="Nguyễn Văn A" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="soDienThoai">Số điện thoại <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="soDienThoai" 
+                    value={formData.soDienThoai} 
+                    onChange={(e) => setFormData({...formData, soDienThoai: e.target.value})} 
+                    placeholder="0987654321" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    value={formData.email} 
+                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                    placeholder="nguyenvana@example.com" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="col-span-2 space-y-4 rounded-md border p-4 bg-muted/20">
+              <h4 className="text-sm font-semibold text-foreground">Thông tin phòng xem</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tòa nhà</Label>
+                  <Select 
+                    value={selectedToaNhaId} 
+                    onValueChange={(value) => {
+                      setSelectedToaNhaId(value);
+                      setFormData({...formData, phongId: ""}); // Reset phòng khi đổi tòa nhà
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn tòa nhà" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {toaNhaList.map((tn) => (
+                        <SelectItem key={tn._id} value={tn._id}>
+                          {tn.tenToaNha}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phongId">Phòng xem <span className="text-red-500">*</span></Label>
+                  <Select 
+                    value={formData.phongId} 
+                    onValueChange={(value) => setFormData({...formData, phongId: value})}
+                    disabled={!selectedToaNhaId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedToaNhaId ? "Chọn phòng" : "Vui lòng chọn tòa nhà trước"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredPhongList.map((phong) => (
+                        <SelectItem key={phong._id} value={phong._id!}>
+                          {phong.maPhong}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -602,23 +690,6 @@ export function LichHenClient() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hoTen">Họ tên khách <span className="text-red-500">*</span></Label>
-              <Input 
-                id="hoTen" 
-                value={formData.hoTen}
-                onChange={(e) => setFormData({...formData, hoTen: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="soDienThoai">Số điện thoại <span className="text-red-500">*</span></Label>
-              <Input 
-                id="soDienThoai" 
-                value={formData.soDienThoai}
-                onChange={(e) => setFormData({...formData, soDienThoai: e.target.value})}
-              />
             </div>
 
             <div className="space-y-2">

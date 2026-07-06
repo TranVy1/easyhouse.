@@ -433,13 +433,15 @@ public class EmailService {
     public void sendAppointmentCreatedEmail(LichHen lh) {
         if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) return;
         try {
+            String sdtNhanVien = (lh.getNguoiDung() != null && lh.getNguoiDung().getSoDienThoai() != null) 
+                                 ? lh.getNguoiDung().getSoDienThoai() : "1900 8888";
             String html = buildAppointmentHtmlTemplate(
                 "Đăng ký lịch hẹn thành công",
                 "#f59e0b", "⏳ CHỜ DUYỆT",
                 "Xin chào " + lh.getHoTen() + ",",
                 "Chúng tôi đã nhận được yêu cầu đặt lịch xem phòng của bạn. Quản lý sẽ xem xét và phản hồi trong thời gian sớm nhất.",
                 lh, null,
-                "Chúng tôi sẽ liên hệ qua số điện thoại <strong>" + lh.getSoDienThoai() + "</strong> để xác nhận lịch hẹn. Cảm ơn bạn đã tin tưởng EasyHouse!"
+                "Quản lý tòa nhà sẽ liên hệ qua số điện thoại <strong>" + lh.getSoDienThoai() + "</strong> để xác nhận lịch hẹn. Số điện thoại liên hệ của người quản lý là: <strong>" + sdtNhanVien + "</strong>. Cảm ơn bạn đã tin tưởng EasyHouse!"
             );
             sendHtmlEmail(lh.getEmail(), "[EasyHouse] Xác nhận đăng ký đặt lịch xem phòng thành công", html);
             log.info("Appointment created HTML email sent to {}", lh.getEmail());
@@ -451,13 +453,15 @@ public class EmailService {
     public void sendAppointmentConfirmedEmail(LichHen lh) {
         if (lh == null || lh.getEmail() == null || lh.getEmail().isBlank()) return;
         try {
+            String sdtNhanVien = (lh.getNguoiDung() != null && lh.getNguoiDung().getSoDienThoai() != null) 
+                                 ? lh.getNguoiDung().getSoDienThoai() : "1900 8888";
             String html = buildAppointmentHtmlTemplate(
                 "Lịch hẹn đã được xác nhận",
                 "#22c55e", "✅ ĐÃ XÁC NHẬN",
                 "Xin chào " + lh.getHoTen() + ",",
                 "Tin vui! Lịch hẹn xem phòng của bạn đã được quản lý xác nhận thành công. Vui lòng đến đúng giờ hẹn bên dưới.",
                 lh, lh.getGhiChuAdmin(),
-                "Nếu bạn cần thay đổi lịch hẹn, vui lòng liên hệ hotline <strong>1900 8888</strong> hoặc phản hồi trực tiếp email này."
+                "Nếu bạn cần thay đổi lịch hẹn, vui lòng liên hệ hotline <strong>" + sdtNhanVien + "</strong> hoặc phản hồi trực tiếp email này."
             );
             sendHtmlEmail(lh.getEmail(), "[EasyHouse] ✅ Lịch hẹn xem phòng đã được xác nhận!", html);
             log.info("Appointment confirmed HTML email sent to {}", lh.getEmail());
