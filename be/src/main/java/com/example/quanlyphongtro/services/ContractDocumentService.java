@@ -106,6 +106,10 @@ public class ContractDocumentService {
         context.setVariable("landlordSignatureText", hd.getLandlordSignedAt() != null ? "Đã ký điện tử bởi " + landlordName : "(Chưa ký)");
         context.setVariable("landlordSignedAt", hd.getLandlordSignedAt() != null ? hd.getLandlordSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
 
+        String tenantName = hd.getKhachThue() != null ? hd.getKhachThue().getHoTen() : "Khách thuê";
+        context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null ? "Đã ký điện tử bởi " + tenantName : "(Chưa ký)");
+        context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
+
         // Lấy hình ảnh chữ ký nếu có
         List<ContractSignature> signatures = signatureRepository.findByHopDongIdOrderBySignedAtAsc(hopDongId);
         String tenantImg = null;
@@ -128,6 +132,16 @@ public class ContractDocumentService {
             try (FileOutputStream os = new FileOutputStream(tempPdf)) {
                 PdfRendererBuilder builder = new PdfRendererBuilder();
                 builder.useFastMode();
+                
+                try (java.io.InputStream fontStream = new org.springframework.core.io.ClassPathResource("fonts/Roboto-Regular.ttf").getInputStream()) {
+                    File fontFile = File.createTempFile("Roboto", ".ttf");
+                    fontFile.deleteOnExit();
+                    java.nio.file.Files.copy(fontStream, fontFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    builder.useFont(fontFile, "Roboto");
+                } catch (Exception fontEx) {
+                    log.warn("Could not load custom font", fontEx);
+                }
+
                 builder.withHtmlContent(htmlContent, null);
                 builder.toStream(os);
                 builder.run();
