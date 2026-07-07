@@ -77,7 +77,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uk_hoadon_hopdong_ky
 docker exec -it <postgres_container_name> psql -U postgres -d easyhouse
 
 # Hoặc dùng psql trực tiếp nếu có local PostgreSQL
-psql -h localhost -p 54323 -U postgres -d easyhouse -f sql/migrations/20260614_hoadon_unique_ky.sql
+psql -h localhost -p 54325 -U easyhouse -d easyhouse -f sql/migrations/20260614_hoadon_unique_ky.sql
 ```
 
 **Bước 3:** Xử lý `DataIntegrityViolationException` trong GlobalExceptionHandler (đã được cover ở Fix #2)

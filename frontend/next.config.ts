@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   /* config options here */
+  allowedDevOrigins: ['mc4vn.net', 'localhost'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },

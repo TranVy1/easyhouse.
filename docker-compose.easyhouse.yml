@@ -1,18 +1,18 @@
-services:
+﻿services:
   postgres:
     image: postgres:16-alpine
     container_name: easyhouse-postgres
     environment:
-      POSTGRES_DB: easyhouse
-      POSTGRES_USER: easyhouse
-      POSTGRES_PASSWORD: easyhouse
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "54323:5432"
+      - "54322:5432"
     volumes:
       - easyhouse_postgres_data:/var/lib/postgresql/data
-      - ./sql/db.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
+      - ./sql/init-db.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U easyhouse -d easyhouse"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -40,9 +40,9 @@ services:
       redis:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/easyhouse
-      SPRING_DATASOURCE_USERNAME: easyhouse
-      SPRING_DATASOURCE_PASSWORD: easyhouse
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
       SPRING_DATASOURCE_HIKARI_DATA_SOURCE_PROPERTIES_STRINGTYPE: unspecified
       JWT_SECRET: easyhouse-docker-dev-jwt-secret-change-me-please-1234567890
@@ -54,8 +54,8 @@ services:
       CLOUDINARY_CLOUD_NAME: your-cloud-name
       CLOUDINARY_API_KEY: your-api-key
       CLOUDINARY_API_SECRET: your-api-secret
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_HOST: host.docker.internal
+      SPRING_DATA_REDIS_PORT: 6380
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
     ports:
       - "8082:8080"

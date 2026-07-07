@@ -10,7 +10,7 @@ Open:
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8080
-- PostgreSQL: `localhost:54323`, db/user/password all `easyhouse`
+- PostgreSQL: `localhost:54325`, db/user/password all `easyhouse`
 
 Seed login:
 
