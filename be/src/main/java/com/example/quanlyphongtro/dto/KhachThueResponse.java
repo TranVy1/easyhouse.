@@ -28,6 +28,7 @@ public class KhachThueResponse {
     private String ghiChu;
     private AnhCCCDResponse anhCCCD;
     private Boolean dangHoatDong;
+    private String matKhau;
 
     @JsonProperty("hopDongHienTai")
     private CurrentContractResponse hopDongHienTai;
@@ -101,6 +102,7 @@ public class KhachThueResponse {
                 .anhCCCD(AnhCCCDResponse.builder().matTruoc("").matSau("").build())
                 .dangHoatDong(kt.getDangHoatDong())
                 .trangThai(Boolean.TRUE.equals(kt.getDangHoatDong()) ? "dangThue" : "chuaThue")
+                .matKhau(kt.getNguoiDung() != null && kt.getNguoiDung().getMatKhau() != null ? "********" : null)
                 .taoLuc(taoLucLocal)
                 .capNhatLuc(capNhatLucLocal)
                 .build();
