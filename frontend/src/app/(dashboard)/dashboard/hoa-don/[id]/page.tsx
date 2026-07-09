@@ -90,6 +90,9 @@ export default function ChinhSuaHoaDonPage() {
     trangThai: 'chuaThanhToan' as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan',
     hanThanhToan: '',
     ghiChu: '',
+    resetCongTo: false,
+    soKwhThucTe: 0,
+    soKhoiNuocThucTe: 0,
   });
 
   const [newPhiDichVu, setNewPhiDichVu] = useState({ ten: '', gia: 0 });
@@ -140,6 +143,9 @@ export default function ChinhSuaHoaDonPage() {
               (typeof hoaDonItem.hanThanhToan === 'string' ? (hoaDonItem.hanThanhToan as string).split('T')[0] : 
                new Date(hoaDonItem.hanThanhToan as Date).toISOString().split('T')[0]) : '',
             ghiChu: hoaDonItem.ghiChu || '',
+            resetCongTo: false,
+            soKwhThucTe: 0,
+            soKhoiNuocThucTe: 0,
           });
         } else {
           toast.error('Không tìm thấy hóa đơn');
@@ -184,8 +190,8 @@ export default function ChinhSuaHoaDonPage() {
     const totalPhiDichVu = formData.phiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
     
     // Tính tiền điện nước từ chỉ số
-    const soDien = formData.chiSoDienCuoiKy - formData.chiSoDienBanDau;
-    const soNuoc = formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau;
+    const soDien = formData.resetCongTo ? formData.soKwhThucTe : (formData.chiSoDienCuoiKy - formData.chiSoDienBanDau);
+    const soNuoc = formData.resetCongTo ? formData.soKhoiNuocThucTe : (formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau);
     
     // Lấy giá điện nước từ hợp đồng
     const selectedHopDong = hopDongList.find(hd => hd._id === formData.hopDong);
@@ -216,6 +222,9 @@ export default function ChinhSuaHoaDonPage() {
     formData.phiDichVu,
     formData.daThanhToan,
     formData.hopDong,
+    formData.resetCongTo,
+    formData.soKwhThucTe,
+    formData.soKhoiNuocThucTe,
     hopDongList,
   ]);
 
@@ -225,6 +234,17 @@ export default function ChinhSuaHoaDonPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.resetCongTo && formData.chiSoDienCuoiKy < formData.chiSoDienBanDau) {
+      toast.error('Chỉ số điện cuối kỳ phải lớn hơn hoặc bằng chỉ số ban đầu');
+      return;
+    }
+    
+    if (!formData.resetCongTo && formData.chiSoNuocCuoiKy < formData.chiSoNuocBanDau) {
+      toast.error('Chỉ số nước cuối kỳ phải lớn hơn hoặc bằng chỉ số ban đầu');
+      return;
+    }
+    
     setSubmitting(true);
     
     try {
@@ -235,6 +255,9 @@ export default function ChinhSuaHoaDonPage() {
         hanTra: formData.hanThanhToan,
         tuNgay: formData.thang && formData.nam ? `${formData.nam}-${String(formData.thang).padStart(2, '0')}-01` : undefined,
         denNgay: formData.thang && formData.nam ? new Date(formData.nam, formData.thang, 0).toISOString().split('T')[0] : undefined,
+        resetCongTo: formData.resetCongTo,
+        soKwhThucTe: formData.soKwhThucTe,
+        soKhoiNuocThucTe: formData.soKhoiNuocThucTe,
       };
       
       console.log('Submitting form data for update:', requestData);
@@ -509,7 +532,22 @@ export default function ChinhSuaHoaDonPage() {
               </TabsContent>
 
               <TabsContent value="dien" className="space-y-4 mt-6">
-                <h3 className="text-base font-semibold">⚡ Chỉ số điện</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold">⚡ Chỉ số điện</h3>
+                </div>
+                
+                <div className="flex items-center space-x-2 mb-2 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <input
+                    type="checkbox"
+                    id="resetCongToDien"
+                    checked={formData.resetCongTo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, resetCongTo: e.target.checked }))}
+                    className="h-4 w-4 rounded border-gray-300 text-[#4FA7A0] focus:ring-[#4FA7A0] cursor-pointer"
+                  />
+                  <Label htmlFor="resetCongToDien" className="text-sm font-medium cursor-pointer text-yellow-800">
+                    Reset công tơ (Áp dụng chung. Vui lòng nhập số kWh/m³ sử dụng thực tế bên dưới)
+                  </Label>
+                </div>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -546,9 +584,10 @@ export default function ChinhSuaHoaDonPage() {
                       id="soDien"
                       type="number"
                       min="0"
-                      value={formData.soDien}
-                      disabled
-                      className="bg-gray-50 h-10"
+                      value={formData.resetCongTo ? formData.soKwhThucTe : formData.soDien}
+                      onChange={(e) => formData.resetCongTo && setFormData(prev => ({ ...prev, soKwhThucTe: Math.max(0, parseInt(e.target.value) || 0) }))}
+                      disabled={!formData.resetCongTo}
+                      className={!formData.resetCongTo ? "bg-gray-50 h-10" : "bg-yellow-50 h-10 font-medium"}
                     />
                   </div>
                   
@@ -567,7 +606,22 @@ export default function ChinhSuaHoaDonPage() {
               </TabsContent>
 
               <TabsContent value="nuoc" className="space-y-4 mt-6">
-                <h3 className="text-base font-semibold">💧 Chỉ số nước</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold">💧 Chỉ số nước</h3>
+                </div>
+                
+                <div className="flex items-center space-x-2 mb-2 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <input
+                    type="checkbox"
+                    id="resetCongToNuoc"
+                    checked={formData.resetCongTo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, resetCongTo: e.target.checked }))}
+                    className="h-4 w-4 rounded border-gray-300 text-[#4FA7A0] focus:ring-[#4FA7A0] cursor-pointer"
+                  />
+                  <Label htmlFor="resetCongToNuoc" className="text-sm font-medium cursor-pointer text-yellow-800">
+                    Reset công tơ (Áp dụng chung. Vui lòng nhập số kWh/m³ sử dụng thực tế bên dưới)
+                  </Label>
+                </div>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -604,9 +658,10 @@ export default function ChinhSuaHoaDonPage() {
                       id="soNuoc"
                       type="number"
                       min="0"
-                      value={formData.soNuoc}
-                      disabled
-                      className="bg-gray-50 h-10"
+                      value={formData.resetCongTo ? formData.soKhoiNuocThucTe : formData.soNuoc}
+                      onChange={(e) => formData.resetCongTo && setFormData(prev => ({ ...prev, soKhoiNuocThucTe: Math.max(0, parseInt(e.target.value) || 0) }))}
+                      disabled={!formData.resetCongTo}
+                      className={!formData.resetCongTo ? "bg-gray-50 h-10" : "bg-yellow-50 h-10 font-medium"}
                     />
                   </div>
                   

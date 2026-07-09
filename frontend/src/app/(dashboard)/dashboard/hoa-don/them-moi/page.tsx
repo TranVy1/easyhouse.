@@ -87,6 +87,9 @@ export default function ThemMoiHoaDonPage() {
     hanThanhToan: '',
     ghiChu: '',
     soDuDauKy: 0,
+    resetCongTo: false,
+    soKwhThucTe: 0,
+    soKhoiNuocThucTe: 0,
   });
 
   // Tự động sinh mã hóa đơn
@@ -231,8 +234,8 @@ export default function ThemMoiHoaDonPage() {
     );
     const totalPhiDichVu = filteredPhiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
 
-    const soDien = formData.chiSoDienCuoiKy - formData.chiSoDienBanDau;
-    const soNuoc = formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau;
+    const soDien = formData.resetCongTo ? formData.soKwhThucTe : (formData.chiSoDienCuoiKy - formData.chiSoDienBanDau);
+    const soNuoc = formData.resetCongTo ? formData.soKhoiNuocThucTe : (formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau);
     
     const tienDienTinh = soDien * giaDien;
     const tienNuocTinh = soNuoc * giaNuoc;
@@ -259,6 +262,9 @@ export default function ThemMoiHoaDonPage() {
     formData.phiDichVu,
     formData.hopDong,
     formData.soDuDauKy,
+    formData.resetCongTo,
+    formData.soKwhThucTe,
+    formData.soKhoiNuocThucTe,
     hopDongList,
   ]);
 
@@ -280,12 +286,12 @@ export default function ThemMoiHoaDonPage() {
       return;
     }
     
-    if (formData.chiSoDienCuoiKy < formData.chiSoDienBanDau) {
+    if (!formData.resetCongTo && formData.chiSoDienCuoiKy < formData.chiSoDienBanDau) {
       toast.error('Chỉ số điện cuối kỳ phải lớn hơn hoặc bằng chỉ số ban đầu');
       return;
     }
     
-    if (formData.chiSoNuocCuoiKy < formData.chiSoNuocBanDau) {
+    if (!formData.resetCongTo && formData.chiSoNuocCuoiKy < formData.chiSoNuocBanDau) {
       toast.error('Chỉ số nước cuối kỳ phải lớn hơn hoặc bằng chỉ số ban đầu');
       return;
     }
@@ -313,6 +319,9 @@ export default function ThemMoiHoaDonPage() {
         hopDong: extractId(formData.hopDong) || formData.hopDong,
         phong: extractId(formData.phong) || formData.phong,
         khachThue: extractId(formData.khachThue) || formData.khachThue,
+        resetCongTo: formData.resetCongTo,
+        soKwhThucTe: formData.soKwhThucTe,
+        soKhoiNuocThucTe: formData.soKhoiNuocThucTe,
         // Nếu maHoaDon trống, không gửi để backend tự sinh
         ...(formData.maHoaDon.trim() ? {} : { maHoaDon: undefined }),
       };
@@ -646,6 +655,19 @@ export default function ThemMoiHoaDonPage() {
                   )}
                 </div>
                 
+                <div className="flex items-center space-x-2 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <input
+                    type="checkbox"
+                    id="resetCongTo"
+                    checked={formData.resetCongTo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, resetCongTo: e.target.checked }))}
+                    className="h-4 w-4 rounded border-gray-300 text-[#4FA7A0] focus:ring-[#4FA7A0] cursor-pointer"
+                  />
+                  <Label htmlFor="resetCongTo" className="text-sm font-medium cursor-pointer text-yellow-800">
+                    Reset công tơ (Công tơ quay lại từ 0. Vui lòng nhập số điện/nước sử dụng thực tế)
+                  </Label>
+                </div>
+
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-200 rounded-lg">
                     <thead>
@@ -710,15 +732,25 @@ export default function ThemMoiHoaDonPage() {
                         </td>
                         <td className="border border-gray-200 px-4 py-3">
                           <div className="flex items-center gap-1">
-                            <span className={`font-medium ${
-                              formData.soDien < 0 ? 'text-red-600' : 
-                              formData.soDien === 0 ? 'text-gray-500' : 
-                              'text-[#243B5A]'
-                            }`}>
-                              {formData.soDien}
-                            </span>
+                            {formData.resetCongTo ? (
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                value={formData.soKwhThucTe} 
+                                onChange={(e) => setFormData(prev => ({ ...prev, soKwhThucTe: Math.max(0, parseInt(e.target.value) || 0) }))} 
+                                className="h-8 w-20 text-center bg-yellow-50 font-medium" 
+                              />
+                            ) : (
+                              <span className={`font-medium ${
+                                formData.soDien < 0 ? 'text-red-600' : 
+                                formData.soDien === 0 ? 'text-gray-500' : 
+                                'text-[#243B5A]'
+                              }`}>
+                                {formData.soDien}
+                              </span>
+                            )}
                             <span className="text-xs text-gray-500">kWh</span>
-                            {formData.soDien < 0 && (
+                            {!formData.resetCongTo && formData.soDien < 0 && (
                               <span className="text-xs text-red-500 ml-1">⚠️</span>
                             )}
                           </div>
@@ -790,15 +822,25 @@ export default function ThemMoiHoaDonPage() {
                         </td>
                         <td className="border border-gray-200 px-4 py-3">
                           <div className="flex items-center gap-1">
-                            <span className={`font-medium ${
-                              formData.soNuoc < 0 ? 'text-red-600' : 
-                              formData.soNuoc === 0 ? 'text-gray-500' : 
-                              'text-[#243B5A]'
-                            }`}>
-                              {formData.soNuoc}
-                            </span>
+                            {formData.resetCongTo ? (
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                value={formData.soKhoiNuocThucTe} 
+                                onChange={(e) => setFormData(prev => ({ ...prev, soKhoiNuocThucTe: Math.max(0, parseInt(e.target.value) || 0) }))} 
+                                className="h-8 w-20 text-center bg-yellow-50 font-medium" 
+                              />
+                            ) : (
+                              <span className={`font-medium ${
+                                formData.soNuoc < 0 ? 'text-red-600' : 
+                                formData.soNuoc === 0 ? 'text-gray-500' : 
+                                'text-[#243B5A]'
+                              }`}>
+                                {formData.soNuoc}
+                              </span>
+                            )}
                             <span className="text-xs text-gray-500">m³</span>
-                            {formData.soNuoc < 0 && (
+                            {!formData.resetCongTo && formData.soNuoc < 0 && (
                               <span className="text-xs text-red-500 ml-1">⚠️</span>
                             )}
                           </div>

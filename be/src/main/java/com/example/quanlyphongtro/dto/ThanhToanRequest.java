@@ -22,6 +22,7 @@ public class ThanhToanRequest {
     private String ghiChu;
     private String anhBienLai;
     private String trangThai;
+    private String idempotencyKey;
 
     @Data
     public static class ThongTinChuyenKhoan {

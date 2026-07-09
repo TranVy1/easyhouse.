@@ -53,6 +53,7 @@ import { unwrapPageData } from "@/lib/api-response"
 import type { ApiResponse, ChiSoDienNuoc, LoaiChiSo, PaginatedResponse, Phong, TrangThaiChiSo } from "@/types"
 
 type ReadingFormData = {
+  toaNhaId: string
   phongId: string
   loai: LoaiChiSo
   kyNam: number
@@ -68,6 +69,7 @@ type ReadingFormData = {
 const today = new Date()
 
 const blankForm = (): ReadingFormData => ({
+  toaNhaId: "",
   phongId: "",
   loai: "ELECTRICITY",
   kyNam: today.getFullYear(),
@@ -119,6 +121,7 @@ function ReadingSkeleton() {
 export default function ChiSoDienNuocPage() {
   const accessToken = useSession()?.data?.accessToken
   const [data, setData] = useState<ChiSoDienNuoc[]>([])
+  const [buildings, setBuildings] = useState<any[]>([])
   const [rooms, setRooms] = useState<Phong[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -129,6 +132,7 @@ export default function ChiSoDienNuocPage() {
   const [cancelTarget, setCancelTarget] = useState<ChiSoDienNuoc | null>(null)
   const [formData, setFormData] = useState<ReadingFormData>(blankForm)
   const [filters, setFilters] = useState({
+    toaNhaId: "all",
     phongId: "all",
     loai: "all",
     trangThai: "all",
@@ -142,6 +146,18 @@ export default function ChiSoDienNuocPage() {
   useEffect(() => {
     document.title = "Chỉ số điện nước | EasyHouse"
   }, [])
+
+  const fetchBuildings = useCallback(async () => {
+    try {
+      const response = await fetch("/api/toa-nha?page=1&limit=100", {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      })
+      const result = await response.json()
+      if (response.ok && result.success) setBuildings(unwrapPageData(result.data))
+    } catch {
+      setBuildings([])
+    }
+  }, [accessToken])
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -198,8 +214,9 @@ export default function ChiSoDienNuocPage() {
   )
 
   useEffect(() => {
+    fetchBuildings()
     fetchRooms()
-  }, [fetchRooms])
+  }, [fetchBuildings, fetchRooms])
 
   useEffect(() => {
     fetchReadings()
@@ -225,7 +242,11 @@ export default function ChiSoDienNuocPage() {
 
   const updateFilter = (key: keyof typeof filters, value: string) => {
     setPagination((current) => ({ ...current, pageIndex: 0 }))
-    setFilters((current) => ({ ...current, [key]: value }))
+    if (key === "toaNhaId") {
+      setFilters((current) => ({ ...current, toaNhaId: value, phongId: "all" }))
+    } else {
+      setFilters((current) => ({ ...current, [key]: value }))
+    }
   }
 
   const openCreate = () => {
@@ -234,6 +255,7 @@ export default function ChiSoDienNuocPage() {
       ...blankForm(),
       kyThang: filters.kyThang === "all" ? today.getMonth() + 1 : Number(filters.kyThang),
       kyNam: filters.kyNam === "all" ? today.getFullYear() : Number(filters.kyNam),
+      toaNhaId: "",
       phongId: filters.phongId === "all" ? "" : filters.phongId,
       loai: filters.loai === "WATER" ? "WATER" : "ELECTRICITY",
     })
@@ -242,8 +264,12 @@ export default function ChiSoDienNuocPage() {
 
   const openEdit = (item: ChiSoDienNuoc) => {
     setEditing(item)
+    const pId = typeof item.phong === "string" ? item.phong : item.phong._id || item.phong.id || ""
+    const roomInfo = rooms.find(r => (r._id || r.id) === pId)
+    const tId = roomInfo ? ((roomInfo.toaNha as any)?._id || (roomInfo.toaNha as any)?.id || roomInfo.nhaTroId || "") : ""
     setFormData({
-      phongId: typeof item.phong === "string" ? item.phong : item.phong._id || item.phong.id || "",
+      toaNhaId: String(tId),
+      phongId: pId,
       loai: item.loai || "ELECTRICITY",
       kyNam: item.kyNam || today.getFullYear(),
       kyThang: item.kyThang || today.getMonth() + 1,
@@ -420,12 +446,26 @@ export default function ChiSoDienNuocPage() {
         <CardHeader className="border-b bg-[#F2E8DC]/70 p-5 md:p-6 pb-4">
           <CardTitle className="text-lg text-[#243B5A]">Danh sách chỉ số</CardTitle>
           <CardDescription className="mt-1">Lọc theo kỳ, phòng, loại và trạng thái trên toàn bộ dữ liệu được phép truy cập.</CardDescription>
-          <div className="grid gap-2 pt-4 sm:grid-cols-2 lg:grid-cols-5">
-            <Select value={filters.phongId} onValueChange={(value) => updateFilter("phongId", value)}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Phòng" /></SelectTrigger>
+          <div className="grid gap-2 pt-4 sm:grid-cols-2 lg:grid-cols-6">
+            <Select value={filters.toaNhaId} onValueChange={(value) => updateFilter("toaNhaId", value)}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Tất cả tòa nhà" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả tòa nhà</SelectItem>
+                {buildings.map((b) => <SelectItem key={b._id || b.id} value={b._id || b.id || ""}>{b.tenToaNha || b.ten}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filters.phongId} onValueChange={(value) => updateFilter("phongId", value)} disabled={filters.toaNhaId !== "all" && rooms.filter(room => {
+                const tId = (room.toaNha as any)?._id || (room.toaNha as any)?.id || room.nhaTroId;
+                return String(tId) === filters.toaNhaId;
+            }).length === 0}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Tất cả phòng" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả phòng</SelectItem>
-                {rooms.map((room) => (
+                {rooms.filter(room => {
+                  if (filters.toaNhaId === "all") return true;
+                  const tId = (room.toaNha as any)?._id || (room.toaNha as any)?.id || room.nhaTroId;
+                  return String(tId) === filters.toaNhaId;
+                }).map((room) => (
                   <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>
                 ))}
               </SelectContent>
@@ -599,11 +639,23 @@ export default function ChiSoDienNuocPage() {
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
+                <Label>Tòa nhà</Label>
+                <Select value={formData.toaNhaId} onValueChange={(value) => setFormData((current) => ({ ...current, toaNhaId: value, phongId: "" }))} disabled={Boolean(editing)}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Chọn tòa nhà" /></SelectTrigger>
+                  <SelectContent>
+                    {buildings.map((b) => <SelectItem key={b._id || b.id} value={b._id || b.id || ""}>{b.tenToaNha || b.ten}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>Phòng</Label>
-                <Select value={formData.phongId} onValueChange={(value) => setFormData((current) => ({ ...current, phongId: value }))} disabled={Boolean(editing)}>
+                <Select value={formData.phongId} onValueChange={(value) => setFormData((current) => ({ ...current, phongId: value }))} disabled={Boolean(editing) || !formData.toaNhaId}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="Chọn phòng" /></SelectTrigger>
                   <SelectContent>
-                    {rooms.map((room) => <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>)}
+                    {rooms.filter(room => {
+                        const tId = (room.toaNha as any)?._id || (room.toaNha as any)?.id || room.nhaTroId;
+                        return String(tId) === String(formData.toaNhaId);
+                    }).map((room) => <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

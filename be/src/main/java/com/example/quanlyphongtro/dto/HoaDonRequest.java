@@ -54,6 +54,9 @@ public class HoaDonRequest {
     private Integer chiSoDienCuoiKy;
     private Integer chiSoNuocBanDau;
     private Integer chiSoNuocCuoiKy;
+    private Boolean resetCongTo = false;
+    private Integer soKwhThucTe;
+    private Integer soKhoiNuocThucTe;
     private BigDecimal daThanhToan;
     private String trangThai;
     private String ghiChu;

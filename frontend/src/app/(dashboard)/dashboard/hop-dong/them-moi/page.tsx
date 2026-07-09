@@ -506,7 +506,7 @@ export default function ThemMoiHopDongPage() {
       
       let apiUrl = '/api/hop-dong';
       if (datCocId) {
-        apiUrl = `/api/dat-coc/${datCocId}/convert`;
+        apiUrl = `/api/dat-coc/${datCocId}/convert-to-contract`;
       }
 
       const hopDongPayload = {

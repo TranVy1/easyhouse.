@@ -115,12 +115,19 @@ public class ThanhToanService {
 
     @Transactional
     public ThanhToanResponse create(ThanhToanRequest req) {
+        if (req.getIdempotencyKey() != null && !req.getIdempotencyKey().isBlank()) {
+            String externalId = "MANUAL:" + req.getIdempotencyKey();
+            if (thanhToanRepository.findByExternalTransactionId(externalId).isPresent()) {
+                throw new RuntimeException("Giao dá»‹ch Ä‘Ã£ Ä‘Æ°á»£c thá»±c hiá»‡n (TrÃ¹ng láº·p)");
+            }
+        }
+
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y hÃ³a Ä‘Æ¡n"));
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWriteHoaDon(hoaDon, userId);
         if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
-            throw new RuntimeException("Không thể thanh toán hóa đơn đã xóa hoặc đã hủy");
+            throw new RuntimeException("KhÃ´ng thá»ƒ thanh toÃ¡n hÃ³a Ä‘Æ¡n Ä‘Ã£ xÃ³a hoáº·c Ä‘Ã£ há»§y");
         }
 
         TrangThaiThanhToan status = TrangThaiThanhToan.SUCCESS;
@@ -134,11 +141,16 @@ public class ThanhToanService {
                 .soTien(req.getSoTien())
                 .phuongThucThanhToan(parsePhuongThuc(req.getPhuongThuc()))
                 .maThamChieu(req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null)
+                .externalTransactionId(req.getIdempotencyKey() != null && !req.getIdempotencyKey().isBlank() ? "MANUAL:" + req.getIdempotencyKey() : null)
                 .ngayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()))
+                .nguoiGhiNhan(NguoiDung.builder().id(userId).build())
                 .ghiChu(req.getGhiChu())
                 .trangThai(status)
                 .build();
         ThanhToan saved = thanhToanRepository.save(tt);
+        if (saved.getTrangThai() == TrangThaiThanhToan.SUCCESS && saved.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT) {
+            adjustDeposit(hoaDon, saved.getSoTien(), true);
+        }
         mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
         recalculate(hoaDon.getId());
 
@@ -184,6 +196,10 @@ public class ThanhToanService {
         assertCanWriteHoaDon(tt.getHoaDon(), userId);
         UUID oldHoaDonId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
 
+        boolean oldIsDeposit = tt.getTrangThai() == TrangThaiThanhToan.SUCCESS && tt.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT;
+        BigDecimal oldSoTien = tt.getSoTien();
+        HoaDon oldHoaDon = tt.getHoaDon();
+
         if (req.getHoaDonId() != null && (tt.getHoaDon() == null || !req.getHoaDonId().equals(tt.getHoaDon().getId()))) {
             HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
                     .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
@@ -203,7 +219,16 @@ public class ThanhToanService {
         if (req.getGhiChu() != null) tt.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) tt.setTrangThai(parseTrangThai(req.getTrangThai()));
 
+        if (oldIsDeposit) {
+            adjustDeposit(oldHoaDon, oldSoTien, false);
+        }
+
         ThanhToan saved = thanhToanRepository.save(tt);
+        
+        boolean newIsDeposit = saved.getTrangThai() == TrangThaiThanhToan.SUCCESS && saved.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT;
+        if (newIsDeposit) {
+            adjustDeposit(saved.getHoaDon(), saved.getSoTien(), true);
+        }
         if (req.getAnhBienLai() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
         }
@@ -224,6 +249,9 @@ public class ThanhToanService {
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         
         // Chuyển delete vật lý thành cancel
+        if (tt.getTrangThai() == TrangThaiThanhToan.SUCCESS && tt.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT) {
+            adjustDeposit(tt.getHoaDon(), tt.getSoTien(), false);
+        }
         tt.setTrangThai(TrangThaiThanhToan.CANCELLED);
         thanhToanRepository.save(tt);
         logAudit(tt, "CANCEL");
@@ -247,9 +275,25 @@ public class ThanhToanService {
             com.example.quanlyphongtro.entity.HopDong hopDong = hd.getHopDong();
             if (hopDong != null && hopDong.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHopDong.PENDING) {
                 hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
+                hopDong.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
                 hopDongRepository.save(hopDong);
             }
         }
+    }
+
+    private void adjustDeposit(HoaDon hoaDon, BigDecimal amount, boolean isDeduction) {
+        if (hoaDon == null || hoaDon.getHopDong() == null || amount == null || amount.compareTo(BigDecimal.ZERO) == 0) return;
+        com.example.quanlyphongtro.entity.HopDong hd = hoaDon.getHopDong();
+        BigDecimal currentDeposit = hd.getTienCoc() != null ? hd.getTienCoc() : BigDecimal.ZERO;
+        if (isDeduction) {
+            if (currentDeposit.compareTo(amount) < 0) {
+                throw new RuntimeException("Số tiền cọc còn lại (" + currentDeposit + ") không đủ để thanh toán (" + amount + ")");
+            }
+            hd.setTienCoc(currentDeposit.subtract(amount));
+        } else {
+            hd.setTienCoc(currentDeposit.add(amount));
+        }
+        hopDongRepository.save(hd);
     }
 
     private void assertCanReadHoaDon(HoaDon hoaDon, UUID userId) {
@@ -319,6 +363,7 @@ public class ThanhToanService {
             case "chuyenKhoan" -> PhuongThucThanhToan.BANK_TRANSFER;
             case "vietQr" -> PhuongThucThanhToan.VIETQR;
             case "viDienTu" -> PhuongThucThanhToan.MOMO;
+            case "truTienCoc" -> PhuongThucThanhToan.DEPOSIT;
             case "khac" -> PhuongThucThanhToan.OTHER;
             default -> {
                 try {

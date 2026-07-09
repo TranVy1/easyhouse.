@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface PhuLucHopDongRepository extends JpaRepository<PhuLucHopDong, UUID> {
     List<PhuLucHopDong> findByHopDongIdOrderByTaoLucDesc(UUID hopDongId);
+    List<PhuLucHopDong> findByHopDongIdOrderByNgayHieuLucDescTaoLucDesc(UUID hopDongId);
 }

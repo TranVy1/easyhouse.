@@ -45,6 +45,7 @@ import { HopDongDataTable } from './table';
 import { hopDongStatusFromDb, normalizeHopDong, normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
 import { toast } from 'sonner';
 import { generateAndDownloadHopDong } from '@/lib/export-hop-dong';
+import { CheckoutModal } from '@/components/hop-dong/CheckoutModal';
 
 export default function HopDongPage() {
   const router = useRouter();
@@ -69,6 +70,7 @@ export default function HopDongPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<HopDong | null>(null);
   const [cancelTarget, setCancelTarget] = useState<HopDong | null>(null);
+  const [checkoutTarget, setCheckoutTarget] = useState<HopDong | null>(null);
   const [extendTarget, setExtendTarget] = useState<HopDong | null>(null);
   const [extendDate, setExtendDate] = useState('');
 
@@ -415,7 +417,11 @@ export default function HopDongPage() {
   };
 
   const requestHuy = (hopDong: HopDong) => {
-    setCancelTarget(hopDong);
+    if (isActiveStatus(hopDong.trangThai)) {
+      setCheckoutTarget(hopDong);
+    } else {
+      setCancelTarget(hopDong);
+    }
   };
 
   const confirmHuy = async () => {
@@ -601,7 +607,7 @@ export default function HopDongPage() {
       <Dialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{cancelTarget && isActiveStatus(cancelTarget.trangThai) ? 'Kết thúc hợp đồng' : 'Hủy hợp đồng'}</DialogTitle>
+            <DialogTitle>Hủy hợp đồng</DialogTitle>
             <DialogDescription>
               Hợp đồng {cancelTarget?.maHopDong} sẽ được cập nhật theo trạng thái thực tế. Phòng sẽ được đồng bộ lại trạng thái sau khi lưu.
             </DialogDescription>
@@ -612,7 +618,7 @@ export default function HopDongPage() {
             </Button>
             <Button variant="destructive" onClick={confirmHuy} disabled={actionLoading === `huy-${cancelTarget?._id}`}>
               {actionLoading === `huy-${cancelTarget?._id}` && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {cancelTarget && isActiveStatus(cancelTarget.trangThai) ? 'Xác nhận kết thúc' : 'Xác nhận hủy'}
+              Xác nhận hủy
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -637,6 +643,19 @@ export default function HopDongPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CheckoutModal 
+        isOpen={!!checkoutTarget}
+        hopDong={checkoutTarget}
+        onClose={() => setCheckoutTarget(null)}
+        accessToken={accessToken}
+        onSuccess={(updatedHopDong) => {
+          clearCache();
+          setHopDongList(prev => prev.map(hd => 
+            hd._id === updatedHopDong.id || hd._id === updatedHopDong._id ? normalizeHopDong(updatedHopDong) : hd
+          ));
+        }}
+      />
 
       {/* View Modal */}
       {viewingHopDong && (
