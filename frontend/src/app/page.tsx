@@ -74,14 +74,12 @@ function MainApp() {
   };
 
   return (
-    <div className="flex h-[100dvh] min-h-screen bg-[#F8F3EC] font-sans">
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div className="h-full w-full">{renderContent()}</div>
-        </div>
+    <main className="min-h-screen overflow-x-hidden bg-[#F8F3EC]">
+      <div className="mx-auto w-full max-w-[1440px] px-0 md:px-4 lg:px-8">
+        <div className="w-full">{renderContent()}</div>
 
         {viewingRoom === null && (
-          <div className="md:hidden relative z-40 shrink-0 border-t border-[#E8DED1] bg-white px-2 pb-6 pt-2 safe-area-bottom">
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[#E8DED1] bg-white px-2 pb-6 pt-2 safe-area-bottom shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
             <div className="flex">
               {navItems.map(({ tab, icon, label }) => (
                 <button
@@ -106,7 +104,7 @@ function MainApp() {
         {!chatOpen && viewingRoom === null && (
           <button
             onClick={() => setChatOpen(true)}
-            className="absolute bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#243B5A] shadow-lg transition-transform active:scale-95 md:hidden"
+            className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#243B5A] shadow-lg transition-transform active:scale-95 md:hidden"
           >
             <Bot size={24} className="text-white" />
           </button>
@@ -114,7 +112,7 @@ function MainApp() {
 
         {chatOpen && <ChatOverlay onClose={() => setChatOpen(false)} />}
       </div>
-    </div>
+    </main>
   );
 }
 

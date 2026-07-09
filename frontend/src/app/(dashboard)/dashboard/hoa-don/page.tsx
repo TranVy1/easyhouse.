@@ -379,11 +379,11 @@ export default function HoaDonPage() {
           {data.length > 0 && (
             <div className="hoa-don-hero__insight">
               <span>
-                Hiện còn <strong>{currency(metrics.outstanding)}</strong> phải thu, đã thu{" "}
-                <strong>{currency(metrics.collected)}</strong> và{" "}
+                Hiện còn <strong className="mx-1">{currency(metrics.outstanding)}</strong> phải thu, đã thu{" "}
+                <strong className="mx-1">{currency(metrics.collected)}</strong> và{" "}
                 {metrics.overdue > 0 ? (
                   <>
-                    có <strong>{metrics.overdue}</strong> hóa đơn quá hạn.
+                    có <strong className="mx-1">{metrics.overdue}</strong> hóa đơn quá hạn.
                   </>
                 ) : (
                   "chưa có hóa đơn quá hạn."
@@ -400,57 +400,6 @@ export default function HoaDonPage() {
             <span className="hoa-don-hero__chip">Quá hạn {metrics.overdue}</span>
           </div>
 
-          {metrics.totalDue > 0 && (
-            <div className="hoa-don-hero__collection-progress">
-              <div className="hoa-don-hero__progress-meta">
-                <span>{collectionRateLabel}% đã thu</span>
-                <span>
-                  Đã thu {currency(metrics.collected)} / Tổng cần thu {currency(metrics.totalDue)}
-                </span>
-              </div>
-              <div className="hoa-don-hero__progress-track" aria-hidden="true">
-                <div
-                  className="hoa-don-hero__progress-fill"
-                  style={{ width: `${metrics.collectionRate}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="hoa-don-hero__stats">
-            <div className="hoa-don-hero__stat-card is-navy">
-              <div className="hoa-don-hero__stat-top">
-                <span>Hóa đơn khớp lọc</span>
-                <ReceiptText className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{total}</strong>
-              <small>Theo điều kiện lọc hiện tại</small>
-            </div>
-            <div className={`hoa-don-hero__stat-card ${metrics.outstanding > 0 ? "is-orange" : "is-teal"}`}>
-              <div className="hoa-don-hero__stat-top">
-                <span>Còn phải thu</span>
-                <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{currency(metrics.outstanding)}</strong>
-              <small>{metrics.outstanding > 0 ? "Cần theo dõi thanh toán" : "Không còn công nợ"}</small>
-            </div>
-            <div className="hoa-don-hero__stat-card is-teal">
-              <div className="hoa-don-hero__stat-top">
-                <span>Đã thu</span>
-                <CalendarDays className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{currency(metrics.collected)}</strong>
-              <small>Đã ghi nhận trong kỳ</small>
-            </div>
-            <div className={`hoa-don-hero__stat-card ${metrics.overdue > 0 ? "is-red" : "is-teal"}`}>
-              <div className="hoa-don-hero__stat-top">
-                <span>Quá hạn</span>
-                <AlertCircle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{metrics.overdue}</strong>
-              <small>{metrics.overdue > 0 ? "Cần xử lý sớm" : "Không có hóa đơn trễ hạn"}</small>
-            </div>
-          </div>
         </div>
 
         <div className="hoa-don-hero__actions">
@@ -477,6 +426,71 @@ export default function HoaDonPage() {
               <span className="hidden sm:inline">Lập hóa đơn</span>
             </Link>
           </Button>
+        </div>
+      </section>
+
+      {/* Thống kê hóa đơn - Stats Section */}
+      <section className="mt-6 mb-2">
+        {metrics.totalDue > 0 && (
+          <div className="mb-6 rounded-2xl border border-[#E6DED2] bg-white/90 p-4 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[#243B5A]">
+                  Tiến độ thu tiền
+                </p>
+
+                <p className="mt-1 text-sm text-[#607089]">
+                  Đã thu {currency(metrics.collected)} / Tổng cần thu {currency(metrics.totalDue)}
+                </p>
+              </div>
+
+              <div className="text-lg font-bold text-[#4FA7A0]">
+                {collectionRateLabel}% đã thu
+              </div>
+            </div>
+
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[#F1E8DC]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#4FA7A0] to-[#F2A45B]"
+                style={{ width: `${metrics.collectionRate}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="hoa-don-hero__stat-card is-navy">
+            <div className="hoa-don-hero__stat-top">
+              <span>Hóa đơn khớp lọc</span>
+              <ReceiptText className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{total}</strong>
+            <small>Theo điều kiện lọc hiện tại</small>
+          </div>
+          <div className={`hoa-don-hero__stat-card ${metrics.outstanding > 0 ? "is-orange" : "is-teal"}`}>
+            <div className="hoa-don-hero__stat-top">
+              <span>Còn phải thu</span>
+              <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{currency(metrics.outstanding)}</strong>
+            <small>{metrics.outstanding > 0 ? "Cần theo dõi thanh toán" : "Không còn công nợ"}</small>
+          </div>
+          <div className="hoa-don-hero__stat-card is-teal">
+            <div className="hoa-don-hero__stat-top">
+              <span>Đã thu</span>
+              <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{currency(metrics.collected)}</strong>
+            <small>Đã ghi nhận trong kỳ</small>
+          </div>
+          <div className={`hoa-don-hero__stat-card ${metrics.overdue > 0 ? "is-red" : "is-teal"}`}>
+            <div className="hoa-don-hero__stat-top">
+              <span>Quá hạn</span>
+              <AlertCircle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{metrics.overdue}</strong>
+            <small>{metrics.overdue > 0 ? "Cần xử lý sớm" : "Không có hóa đơn trễ hạn"}</small>
+          </div>
         </div>
       </section>
 

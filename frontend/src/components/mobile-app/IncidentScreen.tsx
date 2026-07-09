@@ -101,7 +101,7 @@ export function IncidentScreen() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-100 overflow-y-auto">
+    <div className="flex flex-col bg-slate-100">
       {/* Header */}
       <div className="bg-indigo-700 px-4 pt-12 pb-6 relative overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/30 via-transparent to-transparent pointer-events-none" />

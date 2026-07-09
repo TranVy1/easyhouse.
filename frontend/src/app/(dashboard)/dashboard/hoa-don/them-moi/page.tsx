@@ -28,6 +28,9 @@ import {
 import { HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
 
+const invoiceControlClass =
+  "h-11 min-h-11 w-full rounded-xl border border-[#E6DED2] bg-white px-4 text-sm leading-none text-[#0F2A43] shadow-sm outline-none transition-all focus-visible:ring-1 focus-visible:ring-[#4FA7A0]/40";
+
 // Helper functions
 const getPhongName = (phongId: string | Phong, phongList: Phong[]) => {
   if (!phongId) return 'N/A';
@@ -427,133 +430,157 @@ export default function ThemMoiHoaDonPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="thong-tin" className="space-y-3 md:space-y-4 mt-4 md:mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="maHoaDon" className="text-xs md:text-sm">Mã hóa đơn</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="maHoaDon"
-                        value={formData.maHoaDon}
-                        onChange={(e) => setFormData(prev => ({ ...prev, maHoaDon: e.target.value.toUpperCase() }))}
-                        placeholder="HD202401001"
-                        required
-                        className="h-10 flex-1 text-sm"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setFormData(prev => ({ ...prev, maHoaDon: generateInvoiceCode() }))}
-                        className="h-10 px-3"
-                        title="Tự động sinh mã hóa đơn"
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {formData.maHoaDon && (
-                      <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded">
+              <TabsContent value="thong-tin" className="space-y-5 mt-6">
+                <div className="col-span-full w-full">
+                  <div className="grid w-full grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                    <div className="flex w-full min-w-0 flex-col gap-2">
+                      <Label htmlFor="maHoaDon" className="text-sm font-semibold text-[#243B5A]">Mã hóa đơn</Label>
+                      <div className="relative w-full min-w-0">
+                        <Input
+                          id="maHoaDon"
+                          value={formData.maHoaDon}
+                          onChange={(e) => setFormData(prev => ({ ...prev, maHoaDon: e.target.value.toUpperCase() }))}
+                          placeholder="HD202401001"
+                          required
+                          className={`${invoiceControlClass} py-0 pr-12 focus-visible:ring-offset-0`}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setFormData(prev => ({ ...prev, maHoaDon: generateInvoiceCode() }))}
+                          className="absolute right-1.5 top-1/2 h-8 w-8 -translate-y-1/2 rounded-lg border-0 bg-transparent text-[#243B5A] shadow-none hover:bg-[#F8F3EC] hover:text-[#243B5A]"
+                          title="Tự động sinh mã hóa đơn"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="min-h-[28px] text-xs text-[#607089] pt-1">
                         💡 Mã hóa đơn sẽ được tự động sinh nếu để trống
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor="hopDong" className="text-xs md:text-sm">Hợp đồng *</Label>
-                    <div className="text-xs text-[#243B5A] bg-[#4FA7A0]/10 px-2 py-1 rounded mb-1">
-                      {hopDongList.filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE').length} hợp đồng hoạt động
                     </div>
-                    <Select value={formData.hopDong} onValueChange={(value) => setFormData(prev => ({ ...prev, hopDong: value }))}>
-                      <SelectTrigger className="h-10 text-sm">
-                        <SelectValue placeholder="Chọn hợp đồng" />
-                      </SelectTrigger>
-                      <SelectContent className="max-w-[500px]">
-                        {hopDongList.length === 0 ? (
-                          <div className="p-2 text-sm text-gray-500">Đang tải hợp đồng...</div>
-                        ) : (
-                          hopDongList
-                            .filter(hd => hd.trangThai === 'hoatDong')
-                            .map((hopDong) => {
-                              const phongObj = typeof hopDong.phong === 'object' ? (hopDong.phong as Phong) : null;
-                              const phongName = phongObj?.maPhong || getPhongName(hopDong.phong as string, phongList);
-                              const toaNhaName = phongObj?.toaNha && typeof phongObj.toaNha === 'object'
-                                ? ((phongObj.toaNha as { tenToaNha?: string }).tenToaNha ?? 'N/A')
-                                : 'N/A';
-                              const nguoiDaiDienName = getKhachThueName(hopDong.nguoiDaiDien, khachThueList);
-                              
-                              // Xử lý ngày tháng an toàn
-                              const formatDate = (date: string | Date | null | undefined) => {
-                                try {
-                                  if (!date) return 'N/A';
-                                  const dateObj = new Date(date);
-                                  if (isNaN(dateObj.getTime())) return 'N/A';
-                                  return dateObj.toLocaleDateString('vi-VN');
-                                } catch {
-                                  return 'N/A';
-                                }
-                              };
-                              
-                              const ngayBatDau = formatDate(hopDong.ngayBatDau);
-                              const ngayKetThuc = formatDate(hopDong.ngayKetThuc);
-                              
-                              return (
-                                <SelectItem 
-                                  key={hopDong._id} 
-                                  value={hopDong._id!}
-                                  className="cursor-pointer"
-                                >
-                                  <div className="flex flex-col gap-1 py-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-[#243B5A]">{hopDong.maHopDong}</span>
-                                      <span className="text-gray-400">•</span>
-                                      <span className="text-sm font-medium text-gray-700">Phòng {phongName}</span>
-                                      {toaNhaName !== 'N/A' && (
-                                        <>
-                                          <span className="text-gray-400">•</span>
-                                          <span className="text-sm text-gray-600">{toaNhaName}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                                      <span>👤 {nguoiDaiDienName}</span>
-                                      <span className="text-gray-400">•</span>
-                                      <span>📅 {ngayBatDau !== 'N/A' && ngayKetThuc !== 'N/A' ? `${ngayBatDau} → ${ngayKetThuc}` : 'Chưa có thông tin ngày'}</span>
-                                    </div>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })
-                        )}
-                      </SelectContent>
-                    </Select>
+
+                    <div className="flex w-full min-w-0 flex-col gap-2">
+                      <Label htmlFor="hopDong" className="text-sm font-semibold text-[#243B5A]">Hợp đồng *</Label>
+                      <div className="flex w-full min-w-0 flex-col gap-2">
+                        <Select value={formData.hopDong} onValueChange={(value) => setFormData(prev => ({ ...prev, hopDong: value }))}>
+                          <SelectTrigger className={`${invoiceControlClass} justify-between py-0 text-left`}>
+                            <SelectValue placeholder="Chọn hợp đồng">
+                              {formData.hopDong ? (() => {
+                                const hd = hopDongList.find(h => h._id === formData.hopDong);
+                                if (!hd) return "Chọn hợp đồng";
+                                const phongObj = typeof hd.phong === 'object' ? (hd.phong as Phong) : null;
+                                const phongName = phongObj?.maPhong || getPhongName(hd.phong as string, phongList);
+                                const toaNhaName = phongObj?.toaNha && typeof phongObj.toaNha === 'object'
+                                  ? ((phongObj.toaNha as { tenToaNha?: string }).tenToaNha ?? 'N/A')
+                                  : 'N/A';
+                                return <span className="block w-full truncate text-left">{hd.maHopDong} • Phòng {phongName} • {toaNhaName}</span>;
+                              })() : "Chọn hợp đồng"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent
+                            className="w-[calc(100vw-32px)] sm:w-[var(--radix-select-trigger-width)] max-h-[380px] overflow-y-auto rounded-2xl border border-[#E6DED2] bg-white p-2 shadow-xl"
+                          >
+                            {hopDongList.length === 0 ? (
+                              <div className="p-3 text-sm text-gray-500 text-center">Đang tải hợp đồng...</div>
+                            ) : (
+                              hopDongList
+                                .filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE')
+                                .map((hopDong) => {
+                                  const phongObj = typeof hopDong.phong === 'object' ? (hopDong.phong as Phong) : null;
+                                  const phongName = phongObj?.maPhong || getPhongName(hopDong.phong as string, phongList);
+                                  const toaNhaName = phongObj?.toaNha && typeof phongObj.toaNha === 'object'
+                                    ? ((phongObj.toaNha as { tenToaNha?: string }).tenToaNha ?? 'N/A')
+                                    : 'N/A';
+                                  const nguoiDaiDienName = getKhachThueName(hopDong.nguoiDaiDien, khachThueList);
+
+                                  const formatDate = (date: string | Date | null | undefined) => {
+                                    try {
+                                      if (!date) return 'N/A';
+                                      const dateObj = new Date(date);
+                                      if (isNaN(dateObj.getTime())) return 'N/A';
+                                      return dateObj.toLocaleDateString('vi-VN');
+                                    } catch {
+                                      return 'N/A';
+                                    }
+                                  };
+
+                                  const ngayBatDau = formatDate(hopDong.ngayBatDau);
+                                  const ngayKetThuc = formatDate(hopDong.ngayKetThuc);
+
+                                  return (
+                                    <SelectItem
+                                      key={hopDong._id}
+                                      value={hopDong._id!}
+                                      className="p-0 mb-1.5 last:mb-0 items-start rounded-xl border border-transparent focus:bg-transparent data-[state=checked]:bg-transparent whitespace-normal [&>span]:w-full [&>span]:block group"
+                                    >
+                                      <div className="w-full rounded-xl border border-[#EFE7DA] bg-white pl-8 pr-3 py-2.5 transition-all hover:border-[#4FA7A0]/40 hover:bg-[#F8F3EC] hover:shadow-sm group-data-[state=checked]:bg-[#EAF7F5] group-data-[state=checked]:border-[#4FA7A0] group-data-[state=checked]:ring-1 group-data-[state=checked]:ring-[#4FA7A0]/30">
+                                        <div className="flex items-center justify-between gap-3 min-w-0">
+                                          <div className="min-w-0 flex-1 truncate text-sm font-bold text-[#243B5A]">
+                                            {hopDong.maHopDong}
+                                          </div>
+                                          <span className="shrink-0 rounded-full bg-[#EAF7F5] px-2 py-0.5 text-[11px] font-semibold text-[#4FA7A0]">
+                                            Đang hoạt động
+                                          </span>
+                                        </div>
+
+                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-medium text-[#334155]">
+                                          <span>Phòng {phongName}</span>
+                                          {toaNhaName !== 'N/A' && (
+                                            <>
+                                              <span className="text-slate-300">•</span>
+                                              <span className="break-words">{toaNhaName}</span>
+                                            </>
+                                          )}
+                                        </div>
+
+                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                                          <span className="truncate max-w-[220px]">👤 {nguoiDaiDienName}</span>
+                                          <span className="text-slate-300">•</span>
+                                          <span>
+                                            📅 {ngayBatDau !== 'N/A' && ngayKetThuc !== 'N/A' ? `${ngayBatDau} → ${ngayKetThuc}` : 'Chưa có thông tin ngày'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="min-h-[28px] text-xs text-[#607089] pt-1">
+                        {hopDongList.filter(hd => hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE').length} hợp đồng hoạt động
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="phong" className="text-sm">Phòng</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="phong" className="text-sm font-semibold text-[#243B5A]">Phòng</Label>
                     <Input
                       id="phong"
                       value={getPhongName(formData.phong, phongList)}
                       disabled
-                      className="bg-gray-50 h-10"
+                      className="bg-gray-50 h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                   
-                  <div className="space-y-1">
-                    <Label htmlFor="khachThue" className="text-sm">Khách thuê</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="khachThue" className="text-sm font-semibold text-[#243B5A]">Khách thuê</Label>
                     <Input
                       id="khachThue"
                       value={getKhachThueName(formData.khachThue, khachThueList)}
                       disabled
-                      className="bg-gray-50 h-10"
+                      className="bg-gray-50 h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="thang" className="text-sm">Tháng</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="thang" className="text-sm font-semibold text-[#243B5A]">Tháng</Label>
                     <Input
                       id="thang"
                       type="number"
@@ -562,12 +589,12 @@ export default function ThemMoiHoaDonPage() {
                       value={formData.thang}
                       onChange={(e) => setFormData(prev => ({ ...prev, thang: parseInt(e.target.value) || 1 }))}
                       required
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                   
-                  <div className="space-y-1">
-                    <Label htmlFor="nam" className="text-sm">Năm</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="nam" className="text-sm font-semibold text-[#243B5A]">Năm</Label>
                     <Input
                       id="nam"
                       type="number"
@@ -575,26 +602,26 @@ export default function ThemMoiHoaDonPage() {
                       value={formData.nam}
                       onChange={(e) => setFormData(prev => ({ ...prev, nam: parseInt(e.target.value) || new Date().getFullYear() }))}
                       required
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                   
-                  <div className="space-y-1">
-                    <Label htmlFor="hanThanhToan" className="text-sm">Hạn thanh toán</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="hanThanhToan" className="text-sm font-semibold text-[#243B5A]">Hạn thanh toán</Label>
                     <Input
                       id="hanThanhToan"
                       type="date"
                       value={formData.hanThanhToan}
                       onChange={(e) => setFormData(prev => ({ ...prev, hanThanhToan: e.target.value }))}
                       required
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="tienPhong" className="text-sm">Tiền phòng (VNĐ)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="tienPhong" className="text-sm font-semibold text-[#243B5A]">Tiền phòng (VNĐ)</Label>
                     <Input
                       id="tienPhong"
                       type="number"
@@ -602,24 +629,24 @@ export default function ThemMoiHoaDonPage() {
                       value={formData.tienPhong}
                       onChange={(e) => setFormData(prev => ({ ...prev, tienPhong: parseInt(e.target.value) || 0 }))}
                       required
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                   
-                  <div className="space-y-1">
-                    <Label htmlFor="soDuDauKy" className="text-sm">Nợ cũ / Số dư đầu kỳ (VNĐ)</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="soDuDauKy" className="text-sm font-semibold text-[#243B5A]">Nợ cũ / Số dư đầu kỳ (VNĐ)</Label>
                     <Input
                       id="soDuDauKy"
                       type="number"
                       min="0"
                       value={formData.soDuDauKy}
                       onChange={(e) => setFormData(prev => ({ ...prev, soDuDauKy: parseInt(e.target.value) || 0 }))}
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="daThanhToan" className="text-sm">Đã thanh toán (VNĐ)</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="daThanhToan" className="text-sm font-semibold text-[#243B5A]">Đã thanh toán (VNĐ)</Label>
                     <Input
                       id="daThanhToan"
                       type="number"
@@ -627,7 +654,7 @@ export default function ThemMoiHoaDonPage() {
                       value={formData.daThanhToan}
                       onChange={(e) => setFormData(prev => ({ ...prev, daThanhToan: parseInt(e.target.value) || 0 }))}
                       required
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                 </div>
@@ -908,11 +935,11 @@ export default function ThemMoiHoaDonPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="trangThai" className="text-sm">Trạng thái</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="trangThai" className="text-sm font-semibold text-[#243B5A]">Trạng thái</Label>
                     <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan' }))}>
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className="h-12 shadow-sm rounded-xl border-gray-200">
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                       <SelectContent>
@@ -924,14 +951,14 @@ export default function ThemMoiHoaDonPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="ghiChu" className="text-sm">Ghi chú</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="ghiChu" className="text-sm font-semibold text-[#243B5A]">Ghi chú</Label>
                     <Input
                       id="ghiChu"
                       value={formData.ghiChu}
                       onChange={(e) => setFormData(prev => ({ ...prev, ghiChu: e.target.value }))}
                       placeholder="Ghi chú về hóa đơn..."
-                      className="h-10"
+                      className="h-12 shadow-sm rounded-xl border-gray-200"
                     />
                   </div>
                 </div>

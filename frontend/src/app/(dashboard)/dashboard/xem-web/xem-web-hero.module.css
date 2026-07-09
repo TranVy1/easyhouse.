@@ -1,9 +1,12 @@
 .xem-web-hero {
   position: relative;
   overflow: hidden;
-  min-height: 330px;
+  min-height: 270px;
   border-radius: 28px;
-  padding: 42px 48px;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   background-image:
     linear-gradient(
@@ -33,7 +36,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -43,37 +46,38 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .xem-web-hero h1 {
   max-width: 760px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: 0;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .xem-web-hero p {
   max-width: 720px;
-  margin-top: 18px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
-  line-height: 1.55;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
 }
 
 .xem-web-hero__status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 8px 14px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
   border-radius: 999px;
   color: #7fffe0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   background: rgba(79, 167, 160, 0.16);
   border: 1px solid rgba(127, 255, 224, 0.22);
@@ -98,8 +102,8 @@
   align-items: center;
   gap: 12px;
   max-width: 760px;
-  margin-top: 26px;
-  padding: 10px;
+  margin-top: 18px;
+  padding: 8px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -161,20 +165,20 @@
 .xem-web-hero__quick-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .xem-web-hero__chips {
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .xem-web-hero__controls {
   align-items: center;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .xem-web-hero__quick-links {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .xem-web-hero__chip,
@@ -183,10 +187,11 @@
 .xem-web-hero__button-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border-radius: 999px;
   color: #ffffff;
   font-weight: 700;
+  font-size: 13px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(14px);
@@ -198,8 +203,8 @@
 }
 
 .xem-web-hero__chip {
-  min-height: 40px;
-  padding: 9px 15px;
+  min-height: 32px;
+  padding: 6px 12px;
 }
 
 button.xem-web-hero__chip:disabled {
@@ -218,22 +223,22 @@ button.xem-web-hero__chip:disabled {
 }
 
 .xem-web-hero__quick-link {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
 }
 
 .xem-web-hero__current-url {
   max-width: min(520px, 100%);
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 32px;
+  padding: 6px 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .xem-web-hero__button-secondary {
-  min-height: 38px;
-  width: 42px;
+  min-height: 32px;
+  width: 36px;
   padding: 0;
   justify-content: center;
 }
@@ -271,7 +276,8 @@ button.xem-web-hero__chip:disabled {
 
 @media (max-width: 1024px) {
   .xem-web-hero {
-    padding: 34px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .xem-web-hero__content {
@@ -286,7 +292,7 @@ button.xem-web-hero__chip:disabled {
 @media (max-width: 768px) {
   .xem-web-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -307,6 +313,10 @@ button.xem-web-hero__chip:disabled {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .xem-web-hero h1 {
+    font-size: clamp(34px, 11vw, 46px);
   }
 
   .xem-web-hero__url-box {

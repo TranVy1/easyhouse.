@@ -936,7 +936,7 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
   // ── Unauthenticated ──
   if (status === "unauthenticated") {
     return (
-      <div className="flex flex-col h-full bg-[#F8F3EC] overflow-y-auto items-center justify-center px-6 py-20">
+      <div className="flex flex-col bg-[#F8F3EC] items-center justify-center px-6 py-20 pb-40">
         <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-6">
           <User size={36} className="text-indigo-400" />
         </div>
@@ -974,7 +974,7 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
   const initials = getInitials(displayName);
 
   return (
-    <div className="flex min-h-full flex-col overflow-y-auto bg-[#F8F3EC] px-4 pb-20 pt-5 text-[#243B5A] sm:px-6 md:px-8 md:pb-12">
+    <div className="flex min-h-full flex-col pb-20 pt-5 text-[#243B5A] md:pb-12 px-4 sm:px-6 md:px-0">
       <div className="mx-auto w-full max-w-[1180px] space-y-6">
         <section className="relative overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_80%_18%,rgba(79,167,160,0.42),transparent_28%),linear-gradient(135deg,#0F1F3D_0%,#243B5A_38%,#3741B6_72%,#1A73E8_100%)] px-5 py-6 text-white shadow-[0_22px_70px_rgba(36,59,90,0.28)] sm:px-7 md:px-8 md:py-8">
           <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] [background-size:36px_36px]" />
@@ -1057,8 +1057,8 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
           </div>
         </section>
 
-        <div className="grid gap-6 md:grid-cols-[290px_minmax(0,1fr)] md:items-start">
-          <aside className="overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)] max-md:pr-14 md:pr-0">
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <aside className="w-full shrink-0 overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)] md:w-64 lg:w-[280px]">
             <div className="px-5 pb-2 pt-5">
               <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#243B5A]/55">Điều hướng</p>
             </div>
@@ -1098,8 +1098,8 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
             </div>
           </aside>
 
-          <main className="min-w-0 overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)]">
-            <div className="min-h-96 p-5 sm:p-7">
+          <main className="min-w-0 flex-1 overflow-hidden rounded-[1.6rem] border border-[#E8DED1] bg-white/95 shadow-[0_18px_55px_rgba(36,59,90,0.12)]">
+            <div className="p-5 sm:p-7">
               {activeSection === "profile" && <ProfileInfo profile={userProfile} session={session} onRefresh={loadProfile} />}
               {activeSection === "password" && <ChangePassword />}
               {activeSection === "contract" && <ContractSection accessToken={session?.accessToken as string | undefined} />}

@@ -525,7 +525,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const heroRoom = featuredRooms[0];
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-[#F8F3EC] text-[#243B5A]">
+    <div className="flex flex-col bg-[#F8F3EC] text-[#243B5A]">
       <header className="sticky top-0 z-30 border-b border-[#E8DED1] bg-[#F8F3EC]/90 px-4 pb-3 pt-4 shadow-sm backdrop-blur md:px-8">
         <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-3">
           <button onClick={resetFilters} className="flex min-w-0 items-center gap-2 text-left" title="Về trang chủ">

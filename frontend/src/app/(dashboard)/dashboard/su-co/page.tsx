@@ -356,7 +356,7 @@ export default function SuCoPage() {
           {totalIssueCount > 0 && (
             <div className="su-co-hero__insight">
               <span>
-                Hiện có <strong>{pendingIssues} sự cố mới</strong> cần tiếp nhận trên tổng <strong>{totalIssueCount} sự cố</strong> được ghi nhận.
+                Hiện có <strong className="mx-1">{pendingIssues} sự cố mới</strong> cần tiếp nhận trên tổng <strong className="mx-1">{totalIssueCount} sự cố</strong> được ghi nhận.
               </span>
             </div>
           )}
@@ -379,40 +379,7 @@ export default function SuCoPage() {
             <span>Hoàn tất</span>
           </div>
 
-          <div className="su-co-hero__stats">
-            <div className="su-co-hero__stat-card is-navy">
-              <div className="su-co-hero__stat-top">
-                <span>Tổng sự cố</span>
-                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{totalIssueCount}</strong>
-              <small>Toàn bộ sự cố được ghi nhận</small>
-            </div>
-            <div className={`su-co-hero__stat-card ${pendingToneClass}`}>
-              <div className="su-co-hero__stat-top">
-                <span>Mới</span>
-                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{pendingIssues}</strong>
-              <small>Chưa được tiếp nhận xử lý</small>
-            </div>
-            <div className={`su-co-hero__stat-card ${inProgressToneClass}`}>
-              <div className="su-co-hero__stat-top">
-                <span>Đang xử lý</span>
-                <Clock className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{inProgressIssues}</strong>
-              <small>Đang được phân công xử lý</small>
-            </div>
-            <div className={`su-co-hero__stat-card ${resolvedToneClass}`}>
-              <div className="su-co-hero__stat-top">
-                <span>Đã xong</span>
-                <CheckCircle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{resolvedIssues}</strong>
-              <small>Sự cố đã hoàn tất</small>
-            </div>
-          </div>
+
         </div>
 
         <div className="su-co-hero__actions">
@@ -462,6 +429,44 @@ export default function SuCoPage() {
               />
             </DialogContent>
           </Dialog>
+        </div>
+      </section>
+
+      {/* Thống kê sự cố - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="su-co-hero__stat-card is-navy">
+            <div className="su-co-hero__stat-top">
+              <span>Tổng sự cố</span>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{totalIssueCount}</strong>
+            <small>Toàn bộ sự cố được ghi nhận</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${pendingToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Mới</span>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pendingIssues}</strong>
+            <small>Chưa được tiếp nhận xử lý</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${inProgressToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Đang xử lý</span>
+              <Clock className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{inProgressIssues}</strong>
+            <small>Đang được phân công xử lý</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${resolvedToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Đã xong</span>
+              <CheckCircle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{resolvedIssues}</strong>
+            <small>Sự cố đã hoàn tất</small>
+          </div>
         </div>
       </section>
 

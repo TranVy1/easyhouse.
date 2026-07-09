@@ -44,30 +44,38 @@ import type { SoDoPhong, SoDoToaNha, TrangThaiPhongHienThi } from '@/types';
 import { cn } from '@/lib/utils';
 import { PhongForm } from '@/components/ui/phong-form';
 
-const statusConfig: Record<TrangThaiPhongHienThi, { label: string; card: string; badge: string; dot: string }> = {
+const statusConfig: Record<TrangThaiPhongHienThi, { label: string; card: string; badge: string; dot: string; iconText: string; statusText: string }> = {
   VACANT: {
     label: 'Phòng trống',
-    card: 'border-[#4FA7A0]/35 bg-[#EAF7F4] text-[#243B5A] hover:border-[#4FA7A0]/70 hover:bg-[#DFF2EF]',
-    badge: 'border-[#4FA7A0]/35 bg-[#EAF7F4] text-[#267D76]',
-    dot: 'bg-[#4FA7A0]',
+    card: 'border-[#8FD3C7] bg-[#DDF3EF] hover:border-[#2E9C8C] hover:bg-[#C9EAE4]',
+    badge: 'border-[#8FD3C7] bg-[#DDF3EF] text-[#2E7D71]',
+    dot: 'bg-[#2E9C8C]',
+    iconText: 'text-[#2E9C8C]',
+    statusText: 'text-[#2E7D71]',
   },
   RENTED: {
     label: 'Đang thuê',
-    card: 'border-[#243B5A]/25 bg-[#EAF0F8] text-[#243B5A] hover:border-[#243B5A]/55 hover:bg-[#DFE9F5]',
-    badge: 'border-[#243B5A]/25 bg-[#EAF0F8] text-[#243B5A]',
-    dot: 'bg-[#243B5A]',
+    card: 'border-[#9FB6E3] bg-[#E3EBF8] hover:border-[#2F5B9A] hover:bg-[#D4E0F4]',
+    badge: 'border-[#9FB6E3] bg-[#E3EBF8] text-[#274C84]',
+    dot: 'bg-[#2F5B9A]',
+    iconText: 'text-[#2F5B9A]',
+    statusText: 'text-[#274C84]',
   },
   CONTRACT_EXPIRING: {
     label: 'Sắp hết hạn',
-    card: 'border-[#F2A45B]/45 bg-[#FFF6E8] text-[#7A4A12] hover:border-[#F2A45B]/80 hover:bg-[#FFF0D8]',
-    badge: 'border-[#F2A45B]/45 bg-[#FFF6E8] text-[#A15D16]',
-    dot: 'bg-[#F2A45B]',
+    card: 'border-[#F2C97A] bg-[#FDECCF] hover:border-[#C9871A] hover:bg-[#F9DFB3]',
+    badge: 'border-[#F2C97A] bg-[#FDECCF] text-[#A86E10]',
+    dot: 'bg-[#C9871A]',
+    iconText: 'text-[#C9871A]',
+    statusText: 'text-[#A86E10]',
   },
   MAINTENANCE: {
     label: 'Bảo trì',
-    card: 'border-[#F2A45B]/35 bg-[#FFF3E6] text-[#7A3E0D] hover:border-[#F2A45B]/70 hover:bg-[#FFEBD6]',
-    badge: 'border-[#F2A45B]/35 bg-[#FFF3E6] text-[#B45F14]',
-    dot: 'bg-[#F2A45B]',
+    card: 'border-[#E9A8A8] bg-[#FCE2E2] hover:border-[#C94A4A] hover:bg-[#F6CACA]',
+    badge: 'border-[#E9A8A8] bg-[#FCE2E2] text-[#A53A3A]',
+    dot: 'bg-[#C94A4A]',
+    iconText: 'text-[#C94A4A]',
+    statusText: 'text-[#A53A3A]',
   },
 };
 
@@ -347,24 +355,24 @@ export default function ToaNhaDetailPage() {
                         onClick={() => setSelectedRoom(room)}
                         aria-label={`Xem chi tiết phòng ${room.maPhong} - ${config.label}`}
                         className={cn(
-                          'min-h-[124px] rounded-xl border p-3 text-left shadow-sm transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#4FA7A0]/20',
+                          'min-h-[124px] rounded-2xl border p-4 text-left shadow-sm transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#4FA7A0]/20',
                           config.card
                         )}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="truncate text-lg font-bold leading-6">{room.maPhong}</span>
+                          <span className="truncate text-lg font-bold leading-6 text-[#243B5A]">{room.maPhong}</span>
                           {room.trangThaiHienThi === 'MAINTENANCE' ? (
-                            <Hammer className="mt-0.5 h-4 w-4 shrink-0" />
+                            <Hammer className={cn("mt-0.5 h-4 w-4 shrink-0", config.iconText)} />
                           ) : room.trangThaiHienThi === 'RENTED' ? (
-                            <UserRound className="mt-0.5 h-4 w-4 shrink-0" />
+                            <UserRound className={cn("mt-0.5 h-4 w-4 shrink-0", config.iconText)} />
                           ) : null}
                         </div>
-                        <div className="mt-3 flex items-center gap-2 text-xs font-semibold">
-                          <span className={cn('h-2 w-2 rounded-full', config.dot)} />
+                        <div className={cn("mt-3 flex items-center gap-2 text-sm font-semibold", config.statusText)}>
+                          <span className={cn('h-2.5 w-2.5 rounded-full shadow-sm', config.dot)} />
                           <span>{config.label}</span>
                         </div>
                         {room.khachThueHienTai && (
-                          <div className="mt-3 flex items-center gap-1.5 truncate text-xs font-medium opacity-80">
+                          <div className="mt-3 flex items-center gap-1.5 truncate text-xs font-semibold text-[#4B5D75]">
                             <UserRound className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{room.khachThueHienTai}</span>
                           </div>
@@ -386,27 +394,61 @@ export default function ToaNhaDetailPage() {
         </TabsContent>
 
         <TabsContent value="rooms">
-          <Card>
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {rooms.map((room) => (
-                  <button
-                    key={room._id || room.id}
-                    type="button"
-                    onClick={() => setSelectedRoom(room)}
-                    className="grid w-full grid-cols-2 gap-3 p-4 text-left hover:bg-muted/50 md:grid-cols-5"
-                  >
-                    <div className="font-medium">{room.maPhong}</div>
-                    <div>{formatCurrency(room.giaHienTai)}</div>
-                    <div>{room.dienTich || 0} m2</div>
-                    <div>
-                      <Badge variant="outline" className={statusConfig[room.trangThaiHienThi].badge}>
-                        {statusConfig[room.trangThaiHienThi].label}
-                      </Badge>
+          <Card className="overflow-hidden border-[#E8DED2] shadow-sm">
+            <CardContent className="p-0 overflow-x-auto">
+              <div className="min-w-[800px]">
+                <div className="grid grid-cols-[1.2fr_1fr_0.8fr_1fr_1.2fr_0.8fr] items-center border-b border-[#E8DED2] bg-[#F1E8DC] px-5 py-3 text-sm font-semibold text-[#243B5A]">
+                  <div>Phòng</div>
+                  <div>Giá thuê</div>
+                  <div>Diện tích</div>
+                  <div>Trạng thái</div>
+                  <div>Khách thuê</div>
+                  <div className="text-right">Thao tác</div>
+                </div>
+                <div className="divide-y divide-[#E8DED2]">
+                  {rooms.map((room) => (
+                    <button
+                      key={room._id || room.id}
+                      type="button"
+                      onClick={() => setSelectedRoom(room)}
+                      className="grid w-full grid-cols-[1.2fr_1fr_0.8fr_1fr_1.2fr_0.8fr] items-center px-5 py-4 text-left text-sm transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EAF0F8] text-[#243B5A]">
+                          <DoorOpen className="h-4 w-4" />
+                        </div>
+                        <span className="text-base font-bold text-[#243B5A]">{room.maPhong}</span>
+                      </div>
+                      <div className="font-medium text-emerald-600">{formatCurrency(room.giaHienTai)}</div>
+                      <div className="text-muted-foreground">{room.dienTich || 0} m²</div>
+                      <div>
+                        <Badge variant="outline" className={cn("px-2.5 py-0.5 text-xs font-semibold", statusConfig[room.trangThaiHienThi].badge)}>
+                          {statusConfig[room.trangThaiHienThi].label}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 pr-2 truncate">
+                        {room.khachThueHienTai ? (
+                          <>
+                            <UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate font-medium text-[#243B5A]">{room.khachThueHienTai}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+                      <div className="flex justify-end text-sm font-medium text-[#4FA7A0]">
+                        <span className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors hover:bg-[#4FA7A0]/10">
+                          Chi tiết
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                  {rooms.length === 0 && (
+                    <div className="p-8 text-center text-sm text-muted-foreground">
+                      Không có phòng nào trong danh sách.
                     </div>
-                    <div className="truncate text-sm text-muted-foreground">{room.khachThueHienTai || '-'}</div>
-                  </button>
-                ))}
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
