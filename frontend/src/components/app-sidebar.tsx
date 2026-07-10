@@ -130,11 +130,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#243B5A] to-[#4FA7A0] shadow-sm">
-                  <Building2 className="size-5 text-white" />
+                <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-sm">
+                  <Building2 className="size-5 text-primary-foreground" />
                 </div>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-lg font-bold tracking-tight text-[#243B5A]">EasyHouse</span>
+                  <span className="truncate text-lg font-bold tracking-tight text-sidebar-foreground">EasyHouse</span>
                   <span className="truncate text-xs text-muted-foreground">Quản lý nhà trọ</span>
                 </div>
               </Link>
@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   isActive={pathname === "/dashboard"}
                   tooltip="Tổng quan"
-                  className={pathname === "/dashboard" ? "border-l-[3px] border-l-[#4FA7A0] bg-gradient-to-r from-[#4FA7A0]/10 to-transparent text-[#243B5A] font-bold transition-colors duration-200" : "transition-colors duration-200 hover:bg-[#F8F3EC] hover:text-[#243B5A] dark:hover:bg-slate-800"}
+                  className={pathname === "/dashboard" ? "border-l-[3px] border-l-primary bg-gradient-to-r from-primary/10 to-transparent text-sidebar-foreground font-bold transition-colors duration-200" : "transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}
                 >
                   <Link href="/dashboard">
                     <LayoutDashboard />

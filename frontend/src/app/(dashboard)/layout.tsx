@@ -67,7 +67,7 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden bg-background">
-        <header className="sticky top-0 z-40 flex h-[60px] shrink-0 items-center gap-3 border-b border-[#E8DED2]/60 bg-white/90 px-4 backdrop-blur-md md:px-6 shadow-[0_2px_10px_-4px_rgba(15,23,42,0.05)]">
+        <header className="sticky top-0 z-40 flex h-[60px] shrink-0 items-center gap-3 border-b glass-panel px-4 md:px-6">
           <PageProgress />
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mx-1 h-5 opacity-50" />
@@ -77,14 +77,14 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
             </div>
             {/* Search */}
             <div className="hidden lg:flex items-center relative w-64 ml-4 group">
-              <Search className="absolute left-2.5 h-4 w-4 text-slate-400 group-hover:text-[#4FA7A0] transition-colors pointer-events-none z-10" />
+              <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm kiếm..."
-                className="pl-9 pr-12 h-9 bg-[#F8F3EC]/50 hover:bg-[#F8F3EC] border border-[#E8DED2]/60 hover:border-[#4FA7A0]/50 focus-visible:bg-white focus-visible:border-[#4FA7A0] focus-visible:ring-[#4FA7A0]/30 focus-visible:ring-[3px] rounded-lg text-sm text-[#243B5A] transition-all shadow-none"
+                className="pl-9 pr-12 h-9 bg-muted/50 hover:bg-muted border-border hover:border-primary/50 focus-visible:bg-background focus-visible:border-primary focus-visible:ring-primary/30 focus-visible:ring-[3px] rounded-lg text-sm text-foreground transition-all shadow-none"
               />
-              <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-5 select-none items-center gap-1 rounded border border-slate-200 bg-white px-1.5 font-mono text-[10px] font-medium text-slate-500 opacity-100 z-10">
+              <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 z-10">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
@@ -92,16 +92,16 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
           <div className="ml-auto flex items-center gap-3">
             <Link
               href="/"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-[#243B5A] bg-white border border-[#E8DED2] hover:bg-[#F8F3EC] dark:bg-slate-800 dark:border-white/15 dark:text-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all hover:-translate-y-[1px] shadow-[0_2px_8px_-2px_rgba(15,23,42,0.08)] shrink-0"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-foreground bg-card border border-border hover:bg-accent hover:text-accent-foreground rounded-xl transition-all hover:-translate-y-[1px] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] dark:shadow-none shrink-0"
             >
-              <Home size={15} className="text-[#F2A45B]" />
+              <Home size={15} className="text-chart-1" />
               <span className="hidden sm:inline">Trang chủ</span>
             </Link>
-            <div className="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
+            <div className="w-px h-5 bg-border mx-1 hidden sm:block"></div>
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-[#F8F3EC] dark:bg-background">
+        <main className="flex-1 overflow-y-auto bg-background">
           <div className="w-full p-4 md:p-5 lg:p-6">
             {children}
           </div>
