@@ -385,40 +385,6 @@ export default function ChiSoDienNuocPage() {
             <span className="chi-so-dien-nuoc-hero__chip">{pageTotals.water}{" m\u00B3"}</span>
           </div>
 
-          <div className="chi-so-dien-nuoc-hero__stats">
-            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--neutral">
-              <div className="chi-so-dien-nuoc-hero__stat-top">
-                <span>{"B\u1EA3n ghi ph\u00F9 h\u1EE3p"}</span>
-                <CalendarDays className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{totalElements}</strong>
-              <small>{"S\u1EB5n s\u00E0ng ki\u1EC3m tra trong k\u1EF3"}</small>
-            </article>
-            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--electric">
-              <div className="chi-so-dien-nuoc-hero__stat-top">
-                <span>{"\u0110i\u1EC7n tr\u00EAn trang"}</span>
-                <Bolt className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{pageTotals.electricity}{" kWh"}</strong>
-              <small>{"T\u1ED5ng \u0111i\u1EC7n \u0111\u00E3 ghi nh\u1EADn"}</small>
-            </article>
-            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--water">
-              <div className="chi-so-dien-nuoc-hero__stat-top">
-                <span>{"N\u01B0\u1EDBc tr\u00EAn trang"}</span>
-                <Droplets className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{pageTotals.water}{" m\u00B3"}</strong>
-              <small>{"T\u1ED5ng n\u01B0\u1EDBc \u0111\u00E3 ghi nh\u1EADn"}</small>
-            </article>
-            <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--success">
-              <div className="chi-so-dien-nuoc-hero__stat-top">
-                <span>{"\u0110\u00E3 ch\u1ED1t / l\u1EADp H\u0110"}</span>
-                <FileCheck2 className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{pageTotals.confirmed}</strong>
-              <small>{"\u0110\u00E3 kh\u00F3a ch\u1EC9nh s\u1EEDa"}</small>
-            </article>
-          </div>
         </div>
 
         <div className="chi-so-dien-nuoc-hero__actions">
@@ -439,6 +405,44 @@ export default function ChiSoDienNuocPage() {
             <Plus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{"Ghi ch\u1EC9 s\u1ED1"}</span>
           </HeroActionButton>
+        </div>
+      </section>
+
+      {/* Thống kê chỉ số điện nước - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--neutral">
+            <div className="chi-so-dien-nuoc-hero__stat-top">
+              <span>{"B\u1EA3n ghi ph\u00F9 h\u1EE3p"}</span>
+              <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{totalElements}</strong>
+            <small>{"S\u1EB5n s\u00E0ng ki\u1EC3m tra trong k\u1EF3"}</small>
+          </article>
+          <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--electric">
+            <div className="chi-so-dien-nuoc-hero__stat-top">
+              <span>{"\u0110i\u1EC7n tr\u00EAn trang"}</span>
+              <Bolt className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pageTotals.electricity}{" kWh"}</strong>
+            <small>{"T\u1ED5ng \u0111i\u1EC7n \u0111\u00E3 ghi nh\u1EADn"}</small>
+          </article>
+          <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--water">
+            <div className="chi-so-dien-nuoc-hero__stat-top">
+              <span>{"N\u01B0\u1EDBc tr\u00EAn trang"}</span>
+              <Droplets className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pageTotals.water}{" m\u00B3"}</strong>
+            <small>{"T\u1ED5ng n\u01B0\u1EDBc \u0111\u00E3 ghi nh\u1EADn"}</small>
+          </article>
+          <article className="chi-so-dien-nuoc-hero__stat-card chi-so-dien-nuoc-hero__stat-card--success">
+            <div className="chi-so-dien-nuoc-hero__stat-top">
+              <span>{"\u0110\u00E3 ch\u1ED1t / l\u1EADp H\u0110"}</span>
+              <FileCheck2 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pageTotals.confirmed}</strong>
+            <small>{"\u0110\u00E3 kh\u00F3a ch\u1EC9nh s\u1EEDa"}</small>
+          </article>
         </div>
       </section>
 

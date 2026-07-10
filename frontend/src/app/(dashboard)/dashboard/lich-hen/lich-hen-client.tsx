@@ -421,23 +421,28 @@ export function LichHenClient() {
             </span>
           </div>
 
-          <div className="lich-hen-hero__stats">
-            <div className="lich-hen-hero__stat-card is-navy">
-              <span>Tổng lịch hẹn</span>
-              <strong>{totalElements}</strong>
-            </div>
-            <div className="lich-hen-hero__stat-card is-orange">
-              <span>Chờ xác nhận</span>
-              <strong>{heroMetrics.pendingCount}</strong>
-            </div>
-            <div className="lich-hen-hero__stat-card is-teal">
-              <span>Đã xác nhận</span>
-              <strong>{heroMetrics.confirmedCount}</strong>
-            </div>
-            <div className="lich-hen-hero__stat-card is-red">
-              <span>Đã hủy / vắng</span>
-              <strong>{heroMetrics.cancelledCount}</strong>
-            </div>
+
+        </div>
+      </section>
+
+      {/* Thống kê lịch hẹn - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="lich-hen-hero__stat-card is-navy">
+            <span>Tổng lịch hẹn</span>
+            <strong>{totalElements}</strong>
+          </div>
+          <div className="lich-hen-hero__stat-card is-orange">
+            <span>Chờ xác nhận</span>
+            <strong>{heroMetrics.pendingCount}</strong>
+          </div>
+          <div className="lich-hen-hero__stat-card is-teal">
+            <span>Đã xác nhận</span>
+            <strong>{heroMetrics.confirmedCount}</strong>
+          </div>
+          <div className="lich-hen-hero__stat-card is-red">
+            <span>Đã hủy / vắng</span>
+            <strong>{heroMetrics.cancelledCount}</strong>
           </div>
         </div>
       </section>

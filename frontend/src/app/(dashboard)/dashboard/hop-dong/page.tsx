@@ -500,55 +500,16 @@ export default function HopDongPage() {
           </p>
 
           <div className="hop-dong-hero__insight">
-            Hiện có <strong>{activeContracts} hợp đồng đang hiệu lực</strong> trên tổng{' '}
-            <strong>{totalElements} hợp đồng</strong>,{' '}
+            Hiện có <strong className="mx-1">{activeContracts} hợp đồng đang hiệu lực</strong> trên tổng <strong className="mx-1">{totalElements} hợp đồng</strong>, 
             {expiringContracts > 0 ? (
               <>
-                có <strong>{expiringContracts} hợp đồng sắp hết hạn</strong>.
+                có <strong className="ml-1">{expiringContracts} hợp đồng sắp hết hạn</strong>.
               </>
             ) : (
               <>
-                chưa có hợp đồng nào <strong>sắp hết hạn</strong>.
+                chưa có hợp đồng nào <strong className="ml-1">sắp hết hạn</strong>.
               </>
             )}
-          </div>
-
-          <div className="hop-dong-hero__stats">
-            <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--default">
-              <div className="hop-dong-hero__stat-top">
-                <span>Tổng hợp đồng</span>
-                <FileText className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{totalElements}</strong>
-              <small>Toàn bộ hợp đồng đã tạo</small>
-            </div>
-
-            <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--success">
-              <div className="hop-dong-hero__stat-top">
-                <span>Hoạt động</span>
-                <FileText className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{activeContracts}</strong>
-              <small>Đang còn hiệu lực thuê</small>
-            </div>
-
-            <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiringTone}`}>
-              <div className="hop-dong-hero__stat-top">
-                <span>Sắp hết hạn</span>
-                <Calendar className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{expiringContracts}</strong>
-              <small>Cần gia hạn trong 30 ngày</small>
-            </div>
-
-            <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiredTone}`}>
-              <div className="hop-dong-hero__stat-top">
-                <span>Đã hết hạn</span>
-                <Calendar className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{expiredContracts}</strong>
-              <small>{expiredContracts > 0 ? 'Cần xử lý hợp đồng quá hạn' : 'Không có hợp đồng quá hạn'}</small>
-            </div>
           </div>
         </div>
 
@@ -571,6 +532,47 @@ export default function HopDongPage() {
             <span className="hidden sm:inline">Thêm hợp đồng</span>
             <span className="sm:hidden">Thêm</span>
           </Button>
+        </div>
+      </section>
+
+      {/* Tổng quan hợp đồng - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--default">
+            <div className="hop-dong-hero__stat-top">
+              <span>Tổng hợp đồng</span>
+              <FileText className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{totalElements}</strong>
+            <small>Toàn bộ hợp đồng đã tạo</small>
+          </div>
+
+          <div className="hop-dong-hero__stat-card hop-dong-hero__stat-card--success">
+            <div className="hop-dong-hero__stat-top">
+              <span>Hoạt động</span>
+              <FileText className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{activeContracts}</strong>
+            <small>Đang còn hiệu lực thuê</small>
+          </div>
+
+          <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiringTone}`}>
+            <div className="hop-dong-hero__stat-top">
+              <span>Sắp hết hạn</span>
+              <Calendar className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{expiringContracts}</strong>
+            <small>Cần gia hạn trong 30 ngày</small>
+          </div>
+
+          <div className={`hop-dong-hero__stat-card hop-dong-hero__stat-card--${expiredTone}`}>
+            <div className="hop-dong-hero__stat-top">
+              <span>Đã hết hạn</span>
+              <Calendar className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{expiredContracts}</strong>
+            <small>{expiredContracts > 0 ? 'Cần xử lý hợp đồng quá hạn' : 'Không có hợp đồng quá hạn'}</small>
+          </div>
         </div>
       </section>
 

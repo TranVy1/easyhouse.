@@ -142,7 +142,7 @@ export default function AdminYeuCauOGhepPage() {
           <div className="yeu-cau-o-ghep-hero__insight">
             {hasPendingRequests ? (
               <>
-                Hiện có <strong>{requestStats.pending} yêu cầu đang chờ duyệt</strong>, nên xử lý sớm để tránh bỏ lỡ khách thuê tiềm năng.
+                Hiện có <strong className="mx-1">{requestStats.pending} yêu cầu đang chờ duyệt</strong>, nên xử lý sớm để tránh bỏ lỡ khách thuê tiềm năng.
               </>
             ) : (
               <>Không có yêu cầu chờ duyệt. Hệ thống ở ghép đang ổn định.</>
@@ -156,35 +156,42 @@ export default function AdminYeuCauOGhepPage() {
             </Button>
           </div>
 
-          <div className="yeu-cau-o-ghep-hero__stats">
-            <div className="yeu-cau-o-ghep-hero__stat-card is-total" style={{ animationDelay: '80ms' }}>
-              <span>Tổng yêu cầu</span>
-              <strong>{requestStats.total}</strong>
-            </div>
-            <div className="yeu-cau-o-ghep-hero__stat-card is-pending" style={{ animationDelay: '140ms' }}>
-              <span>Chờ duyệt</span>
-              <strong>{requestStats.pending}</strong>
-            </div>
-            <div className="yeu-cau-o-ghep-hero__stat-card is-approved" style={{ animationDelay: '200ms' }}>
-              <span>Đã duyệt</span>
-              <strong>{requestStats.approved}</strong>
-            </div>
-            <div className="yeu-cau-o-ghep-hero__stat-card is-rejected" style={{ animationDelay: '260ms' }}>
-              <span>Đã từ chối</span>
-              <strong>{requestStats.rejected}</strong>
-            </div>
-          </div>
         </div>
 
+      </section>
+
+      {/* Tổng quan yêu cầu - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="yeu-cau-o-ghep-hero__stat-card is-total" style={{ animationDelay: '80ms' }}>
+            <span>Tổng yêu cầu</span>
+            <strong>{requestStats.total}</strong>
+          </div>
+          <div className="yeu-cau-o-ghep-hero__stat-card is-pending" style={{ animationDelay: '140ms' }}>
+            <span>Chờ duyệt</span>
+            <strong>{requestStats.pending}</strong>
+          </div>
+          <div className="yeu-cau-o-ghep-hero__stat-card is-approved" style={{ animationDelay: '200ms' }}>
+            <span>Đã duyệt</span>
+            <strong>{requestStats.approved}</strong>
+          </div>
+          <div className="yeu-cau-o-ghep-hero__stat-card is-rejected" style={{ animationDelay: '260ms' }}>
+            <span>Đã từ chối</span>
+            <strong>{requestStats.rejected}</strong>
+          </div>
+        </div>
       </section>
 
       <style>{`
         .yeu-cau-o-ghep-hero {
           position: relative;
           overflow: hidden;
-          min-height: 320px;
+          min-height: 280px;
           border-radius: 28px;
-          padding: 42px 48px;
+          padding: 28px 32px 32px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
           color: #ffffff;
           background-image:
             linear-gradient(
@@ -212,7 +219,7 @@ export default function AdminYeuCauOGhepPage() {
           align-items: center;
           gap: 8px;
           color: rgba(255, 255, 255, 0.82);
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 800;
           letter-spacing: 0.06em;
           text-transform: uppercase;
@@ -221,39 +228,39 @@ export default function AdminYeuCauOGhepPage() {
         .yeu-cau-o-ghep-hero__title-row {
           display: flex;
           align-items: center;
-          gap: 16px;
-          margin-top: 14px;
+          gap: 12px;
+          margin-top: 8px;
           flex-wrap: wrap;
         }
 
         .yeu-cau-o-ghep-hero h1 {
           max-width: 720px;
           margin: 0;
-          font-size: clamp(40px, 5vw, 72px);
-          line-height: 1.02;
+          font-size: clamp(32px, 4vw, 48px);
+          line-height: 1.1;
           font-weight: 800;
-          letter-spacing: 0;
+          letter-spacing: -0.02em;
           color: #ffffff;
           text-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
         }
 
         .yeu-cau-o-ghep-hero p {
           max-width: 720px;
-          margin-top: 18px;
+          margin-top: 14px;
           color: rgba(255, 255, 255, 0.88);
-          font-size: clamp(17px, 1.45vw, 23px);
-          line-height: 1.55;
+          font-size: clamp(15px, 1.25vw, 18px);
+          line-height: 1.5;
         }
 
         .yeu-cau-o-ghep-hero__status-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          min-height: 38px;
-          padding: 8px 14px;
+          gap: 6px;
+          min-height: 32px;
+          padding: 6px 12px;
           border-radius: 999px;
           color: #F2A45B;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 800;
           background: rgba(242, 164, 91, 0.16);
           border: 1px solid rgba(242, 164, 91, 0.28);
@@ -269,12 +276,11 @@ export default function AdminYeuCauOGhepPage() {
         }
 
         .yeu-cau-o-ghep-hero__insight {
-          display: inline-flex;
-          align-items: center;
+          display: inline-block;
           max-width: 800px;
-          margin-top: 22px;
-          padding: 12px 18px;
-          border-radius: 999px;
+          margin-top: 16px;
+          padding: 10px 16px;
+          border-radius: 12px;
           color: rgba(255, 255, 255, 0.92);
           background: rgba(255, 255, 255, 0.12);
           border: 1px solid rgba(255, 255, 255, 0.18);
@@ -282,7 +288,6 @@ export default function AdminYeuCauOGhepPage() {
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
           font-weight: 600;
           line-height: 1.5;
-          text-wrap: pretty;
         }
 
         .yeu-cau-o-ghep-hero__insight strong {
@@ -423,7 +428,8 @@ export default function AdminYeuCauOGhepPage() {
 
         @media (max-width: 1024px) {
           .yeu-cau-o-ghep-hero {
-            padding: 34px 32px;
+            min-height: 260px;
+            padding: 24px 28px;
           }
 
           .yeu-cau-o-ghep-hero__content {
@@ -447,7 +453,7 @@ export default function AdminYeuCauOGhepPage() {
         @media (max-width: 768px) {
           .yeu-cau-o-ghep-hero {
             min-height: auto;
-            padding: 28px 22px;
+            padding: 24px 22px;
             border-radius: 22px;
             background-position: 72% center;
             background-image:

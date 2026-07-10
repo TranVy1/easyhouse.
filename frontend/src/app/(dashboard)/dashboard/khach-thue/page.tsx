@@ -234,25 +234,9 @@ export default function KhachThuePage() {
 
           {totalKhachThue > 0 && (
             <div className={styles.insight}>
-              Hiện có <strong>{dangThueCount} khách đang thuê</strong> trong <strong>{totalKhachThue} hồ sơ</strong>, hệ thống đang vận hành ổn định.
+              Hiện có <strong className="mx-1">{dangThueCount} khách đang thuê</strong> trong <strong className="mx-1">{totalKhachThue} hồ sơ</strong>, hệ thống đang vận hành ổn định.
             </div>
           )}
-
-          <div className={styles.stats}>
-            {heroStats.map((stat) => (
-              <div
-                key={stat.title}
-                className={`${styles.statCard} ${statToneClass[stat.tone]}`}
-              >
-                <div className={styles.statTop}>
-                  <span>{stat.title}</span>
-                  <Users className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <strong>{stat.value}</strong>
-                <p>{stat.description}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className={`khach-thue-hero__actions ${styles.actions}`}>
@@ -308,6 +292,25 @@ export default function KhachThuePage() {
               />
             </DialogContent>
           </Dialog>
+        </div>
+      </section>
+
+      {/* Tổng quan khách thuê - Stats Section */}
+      <section className="py-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {heroStats.map((stat) => (
+            <div
+              key={stat.title}
+              className={`${styles.statCard} ${statToneClass[stat.tone]}`}
+            >
+              <div className={styles.statTop}>
+                <span>{stat.title}</span>
+                <Users className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <strong>{stat.value}</strong>
+              <p>{stat.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 

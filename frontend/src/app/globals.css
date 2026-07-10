@@ -737,10 +737,13 @@
 /* Su co hero */
 .su-co-hero {
   position: relative;
-  min-height: 360px;
+  min-height: 270px;
   overflow: hidden;
   border-radius: 28px;
-  padding: 42px 48px;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   background-image:
     linear-gradient(
@@ -780,7 +783,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -790,38 +793,39 @@
 .su-co-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .su-co-hero h1 {
   max-width: 760px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .su-co-hero p {
   max-width: 720px;
-  margin-top: 18px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
-  line-height: 1.55;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
 }
 
 .su-co-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #f2a45b;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
   border-radius: 999px;
@@ -844,16 +848,15 @@
 }
 
 .su-co-hero__insight {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   max-width: 860px;
-  margin-top: 22px;
-  padding: 12px 18px;
+  margin-top: 14px;
+  padding: 8px 14px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -869,8 +872,8 @@
 .su-co-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .su-co-hero__chip,
@@ -879,6 +882,7 @@
   align-items: center;
   color: #ffffff;
   font-weight: 700;
+  font-size: 13px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -890,9 +894,9 @@
 }
 
 .su-co-hero__chip {
-  min-height: 40px;
-  gap: 8px;
-  padding: 9px 15px;
+  min-height: 32px;
+  gap: 6px;
+  padding: 6px 12px;
 }
 
 .su-co-hero__chip:hover {
@@ -903,9 +907,9 @@
 
 .su-co-hero__workflow {
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-  padding: 10px 14px;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 12px;
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.16);
@@ -1092,7 +1096,8 @@
 
 @media (max-width: 1024px) {
   .su-co-hero {
-    padding: 34px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .su-co-hero__content {
@@ -1116,7 +1121,7 @@
 @media (max-width: 768px) {
   .su-co-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -1154,8 +1159,8 @@
   }
 
   .su-co-hero__chip {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
@@ -1214,10 +1219,13 @@
 /* Lich hen xem phong hero */
 .lich-hen-hero {
   position: relative;
-  min-height: 300px;
+  min-height: 270px;
   overflow: hidden;
   border-radius: 28px;
   padding: 34px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   background-image:
     linear-gradient(
@@ -1436,6 +1444,7 @@
 
 @media (max-width: 1024px) {
   .lich-hen-hero {
+    min-height: 250px;
     padding: 32px;
   }
 
@@ -1518,9 +1527,12 @@
 
 .chi-so-dien-nuoc-hero {
   position: relative;
-  min-height: 340px;
+  min-height: 280px;
   overflow: hidden;
-  padding: 42px 48px;
+  padding: 28px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   border-radius: 28px;
   background-image:
@@ -1563,7 +1575,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -1573,39 +1585,40 @@
 .chi-so-dien-nuoc-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .chi-so-dien-nuoc-hero h1 {
   max-width: 720px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 4.6vw, 64px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .chi-so-dien-nuoc-hero p {
   max-width: 720px;
-  margin-top: 18px;
+  margin-top: 14px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
+  font-size: clamp(15px, 1.25vw, 18px);
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .chi-so-dien-nuoc-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #7fffe0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   line-height: 1;
   border-radius: 999px;
@@ -1613,6 +1626,7 @@
   border: 1px solid rgba(127, 255, 224, 0.22);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(14px);
+  white-space: nowrap;
 }
 
 .chi-so-dien-nuoc-hero__status-badge.is-warning {
@@ -1624,13 +1638,12 @@
 .chi-so-dien-nuoc-hero__insight {
   display: inline-block;
   max-width: 820px;
-  margin-top: 22px;
-  padding: 12px 18px;
+  margin-top: 16px;
+  padding: 10px 16px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -1646,17 +1659,18 @@
 .chi-so-dien-nuoc-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .chi-so-dien-nuoc-hero__chip {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  padding: 9px 15px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
   border-radius: 999px;
@@ -1845,7 +1859,8 @@
 
 @media (max-width: 1024px) {
   .chi-so-dien-nuoc-hero {
-    padding: 34px 32px;
+    min-height: 260px;
+    padding: 24px 28px;
   }
 
   .chi-so-dien-nuoc-hero__content {
@@ -1868,7 +1883,7 @@
 @media (max-width: 768px) {
   .chi-so-dien-nuoc-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -2173,9 +2188,9 @@
 
 .cau-hinh-gia-hero {
   position: relative;
-  min-height: 360px;
+  min-height: 270px;
   overflow: hidden;
-  padding: 34px 48px;
+  padding: 24px 32px 32px;
   color: #ffffff;
   border-radius: 28px;
   background-image:
@@ -2206,7 +2221,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -2216,39 +2231,40 @@
 .cau-hinh-gia-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .cau-hinh-gia-hero h1 {
   max-width: 760px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(38px, 4vw, 56px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .cau-hinh-gia-hero p {
   max-width: 720px;
-  margin-top: 14px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(16px, 1.25vw, 19px);
+  font-size: clamp(15px, 1.25vw, 18px);
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .cau-hinh-gia-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #7fffe0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   line-height: 1;
   border-radius: 999px;
@@ -2256,6 +2272,7 @@
   border: 1px solid rgba(127, 255, 224, 0.22);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(14px);
+  white-space: nowrap;
 }
 
 .cau-hinh-gia-hero__status-badge.is-warning {
@@ -2265,16 +2282,15 @@
 }
 
 .cau-hinh-gia-hero__insight {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   max-width: 820px;
-  margin-top: 16px;
-  padding: 10px 16px;
+  margin-top: 14px;
+  padding: 8px 14px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -2290,17 +2306,18 @@
 .cau-hinh-gia-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .cau-hinh-gia-hero__chip {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 13px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
   border-radius: 999px;
@@ -2490,8 +2507,8 @@
 
 @media (max-width: 1024px) {
   .cau-hinh-gia-hero {
-    min-height: 300px;
-    padding: 34px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .cau-hinh-gia-hero__content {
@@ -2515,7 +2532,7 @@
 @media (max-width: 768px) {
   .cau-hinh-gia-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -2555,8 +2572,8 @@
   }
 
   .cau-hinh-gia-hero__chip {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
@@ -2572,7 +2589,7 @@
 
 @media (max-width: 480px) {
   .cau-hinh-gia-hero {
-    padding: 24px 18px;
+    padding: 20px 18px;
   }
 
   .cau-hinh-gia-hero__button {
@@ -2606,10 +2623,13 @@
 
 .hoa-don-hero {
   position: relative;
-  min-height: 360px;
+  min-height: 270px;
   overflow: hidden;
   border-radius: 28px;
-  padding: 34px 48px;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   background-image:
     linear-gradient(
@@ -2640,7 +2660,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -2650,39 +2670,40 @@
 .hoa-don-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .hoa-don-hero h1 {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(40px, 4.4vw, 60px);
-  line-height: 1.02;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
   font-weight: 800;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   color: #ffffff;
   text-wrap: balance;
 }
 
 .hoa-don-hero p {
   max-width: 720px;
-  margin-top: 12px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(16px, 1.25vw, 19px);
-  line-height: 1.48;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
   font-weight: 500;
 }
 
 .hoa-don-hero__status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 8px 14px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
   border-radius: 999px;
   color: #f2a45b;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
@@ -2705,12 +2726,12 @@
 }
 
 .hoa-don-hero__insight {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   max-width: 860px;
   margin-top: 14px;
-  padding: 10px 16px;
-  border-radius: 999px;
+  padding: 8px 14px;
+  border-radius: 12px;
   color: rgba(255, 255, 255, 0.92);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -2718,7 +2739,6 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
 }
 
 .hoa-don-hero__insight strong {
@@ -2737,11 +2757,12 @@
 .hoa-don-hero__chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 7px 12px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
   border-radius: 999px;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -2948,7 +2969,8 @@
 
 @media (max-width: 1024px) {
   .hoa-don-hero {
-    padding: 36px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .hoa-don-hero__content {
@@ -2972,7 +2994,7 @@
 @media (max-width: 768px) {
   .hoa-don-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-position: 72% center;
     background-image:
@@ -3011,8 +3033,8 @@
   }
 
   .hoa-don-hero__chip {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
@@ -3032,7 +3054,7 @@
 
 @media (max-width: 480px) {
   .hoa-don-hero {
-    padding: 24px 18px;
+    padding: 20px 18px;
   }
 
   .hoa-don-hero__button {
@@ -3060,10 +3082,10 @@
 
 .hop-dong-hero {
   position: relative;
-  min-height: 330px;
+  min-height: 280px;
   overflow: hidden;
   border-radius: 28px;
-  padding: 42px 48px;
+  padding: 28px 32px 32px;
   color: #ffffff;
   background-image:
     linear-gradient(
@@ -3094,7 +3116,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -3104,41 +3126,43 @@
 .hop-dong-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .hop-dong-hero h1 {
   max-width: 720px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .hop-dong-hero p {
   max-width: 720px;
-  margin-top: 18px;
+  margin-top: 14px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
+  font-size: clamp(15px, 1.25vw, 18px);
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .hop-dong-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #7fffe0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
   border-radius: 999px;
   background: rgba(79, 167, 160, 0.16);
   border: 1px solid rgba(127, 255, 224, 0.22);
@@ -3149,14 +3173,13 @@
 .hop-dong-hero__insight {
   display: inline-block;
   max-width: 800px;
-  margin-top: 22px;
-  padding: 12px 18px;
+  margin-top: 16px;
+  padding: 10px 16px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
   text-align: left;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -3326,7 +3349,7 @@
 
 @media (max-width: 1024px) {
   .hop-dong-hero {
-    padding: 34px 32px;
+    padding: 24px 28px;
   }
 
   .hop-dong-hero__content {
@@ -3349,7 +3372,7 @@
 @media (max-width: 768px) {
   .hop-dong-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -3385,7 +3408,7 @@
 
 @media (max-width: 420px) {
   .hop-dong-hero {
-    padding: 24px 18px;
+    padding: 20px 18px;
   }
 
   .hop-dong-hero__button {
@@ -3726,10 +3749,10 @@
 
 .phong-hero {
   position: relative;
-  min-height: 300px;
-  height: 450px;
+  min-height: 280px;
+  height: auto;
   overflow: hidden;
-  padding: 34px 40px;
+  padding: 28px 32px;
   color: #ffffff;
   border-radius: 28px;
   background-image:
@@ -3975,9 +3998,8 @@
 
 @media (max-width: 1024px) {
   .phong-hero {
-    height: auto;
-    min-height: 300px;
-    padding: 34px 32px;
+    min-height: 260px;
+    padding: 24px 28px;
   }
 
   .phong-hero__content {
@@ -4011,7 +4033,7 @@
 @media (max-width: 768px) {
   .phong-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -4086,9 +4108,12 @@
 /* Bao cao hero */
 .bao-cao-hero {
   position: relative;
-  min-height: 380px;
+  min-height: 270px;
   overflow: hidden;
-  padding: 42px 48px 40px;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   border-radius: 28px;
   background-image:
@@ -4129,7 +4154,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.35;
@@ -4140,8 +4165,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .bao-cao-hero h1 {
@@ -4149,30 +4174,30 @@
   max-width: 820px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .bao-cao-hero p {
   max-width: 760px;
-  margin-top: 18px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
-  line-height: 1.55;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
 }
 
 .bao-cao-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #f2a45b;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
   border-radius: 999px;
@@ -4195,18 +4220,15 @@
 }
 
 .bao-cao-hero__insight {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0 5px;
   max-width: 900px;
-  margin-top: 22px;
-  padding: 12px 18px;
+  margin-top: 14px;
+  padding: 8px 14px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -4222,18 +4244,19 @@
 .bao-cao-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .bao-cao-hero__chip {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  padding: 9px 15px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #ffffff;
   font-weight: 700;
+  font-size: 13px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -4252,10 +4275,10 @@
 }
 
 .bao-cao-hero__stat-card {
-  min-height: 130px;
-  padding: 18px;
+  min-height: 110px;
+  padding: 14px;
   color: #243b5a;
-  border-radius: 22px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.58);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.12);
@@ -4291,11 +4314,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .bao-cao-hero__stat-top svg {
@@ -4304,17 +4327,18 @@
 
 .bao-cao-hero__stat-card strong {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   color: #243b5a;
-  font-size: clamp(22px, 1.8vw, 30px);
+  font-size: clamp(16px, 1.4vw, 24px);
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  word-break: break-word;
 }
 
 .bao-cao-hero__stat-card small {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   color: #64748b;
   font-size: 12px;
   font-weight: 700;
@@ -4403,7 +4427,8 @@
 
 @media (max-width: 1024px) {
   .bao-cao-hero {
-    padding: 34px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .bao-cao-hero__content {
@@ -4427,7 +4452,7 @@
 @media (max-width: 768px) {
   .bao-cao-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -4465,8 +4490,8 @@
   }
 
   .bao-cao-hero__chip {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
@@ -4533,9 +4558,12 @@
 /* Cong no hero */
 .cong-no-hero {
   position: relative;
-  min-height: 380px;
+  min-height: 270px;
   overflow: hidden;
-  padding: 36px 48px 40px;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   color: #ffffff;
   border-radius: 28px;
   background-image:
@@ -4566,7 +4594,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4575,38 +4603,40 @@
 .cong-no-hero__title-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .cong-no-hero h1 {
   max-width: 760px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(40px, 5vw, 64px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.02;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 
 .cong-no-hero p {
   max-width: 720px;
-  margin-top: 14px;
+  margin-top: 10px;
   color: rgba(255, 255, 255, 0.88);
-  font-size: clamp(17px, 1.45vw, 23px);
+  font-size: clamp(15px, 1.25vw, 18px);
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .cong-no-hero__status-badge {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 32px;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #f2a45b;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   border-radius: 999px;
   background: rgba(242, 164, 91, 0.16);
@@ -4629,16 +4659,15 @@
 }
 
 .cong-no-hero__insight {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   max-width: 860px;
-  margin-top: 16px;
-  padding: 10px 16px;
+  margin-top: 14px;
+  padding: 8px 14px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 600;
   line-height: 1.5;
-  text-wrap: pretty;
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -4654,17 +4683,18 @@
 .cong-no-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .cong-no-hero__chip {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 13px;
+  gap: 6px;
+  padding: 6px 12px;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.13);
@@ -4891,7 +4921,8 @@
 
 @media (max-width: 1024px) {
   .cong-no-hero {
-    padding: 34px 32px;
+    min-height: 250px;
+    padding: 24px 28px;
   }
 
   .cong-no-hero__content {
@@ -4915,7 +4946,7 @@
 @media (max-width: 768px) {
   .cong-no-hero {
     min-height: auto;
-    padding: 28px 22px;
+    padding: 24px 22px;
     border-radius: 22px;
     background-image:
       linear-gradient(
@@ -4953,8 +4984,8 @@
   }
 
   .cong-no-hero__chip {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
@@ -4970,7 +5001,7 @@
 
 @media (max-width: 480px) {
   .cong-no-hero {
-    padding: 24px 18px;
+    padding: 20px 18px;
   }
 
   .cong-no-hero__button {

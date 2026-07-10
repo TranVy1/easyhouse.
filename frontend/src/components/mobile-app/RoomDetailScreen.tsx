@@ -76,7 +76,7 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
     : ((roomData.hinhAnh && roomData.hinhAnh.length > 0) ? roomData.hinhAnh : fallbackImages);
 
   return (
-    <div className="flex flex-col h-full bg-[#F8F3EC] overflow-y-auto w-full">
+    <div className="flex flex-col bg-[#F8F3EC] w-full pb-20">
       <div className="max-w-screen-2xl mx-auto w-full px-4 md:px-8 py-6 flex-1 flex flex-col gap-6 pb-32 relative">
         
         {/* Header Action Bar */}

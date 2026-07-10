@@ -99,9 +99,9 @@ export function BaoCaoClient() {
           </p>
 
           <div className="bao-cao-hero__insight">
-            Doanh thu tháng này đạt <strong>{formatCurrency(baoCao.doanhThu)}</strong>, còn{" "}
-            <strong>{formatCurrency(baoCao.tienChuaThu)}</strong> công nợ và có{" "}
-            <strong>{baoCao.suCoCanXuLy}</strong> sự cố cần xử lý.
+            Doanh thu tháng này đạt <strong className="mx-1">{formatCurrency(baoCao.doanhThu)}</strong>, còn{" "}
+            <strong className="mx-1">{formatCurrency(baoCao.tienChuaThu)}</strong> công nợ và có{" "}
+            <strong className="mx-1">{baoCao.suCoCanXuLy}</strong> sự cố cần xử lý.
           </div>
 
           <div className="bao-cao-hero__chips" aria-label="Tóm tắt báo cáo hiện tại">
@@ -117,7 +117,12 @@ export function BaoCaoClient() {
           </HeroActionButton>
         </div>
 
-        <div className="bao-cao-hero__stats">
+
+      </section>
+
+      {/* Thống kê báo cáo - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
           <article className="bao-cao-hero__stat-card is-navy">
             <div className="bao-cao-hero__stat-top">
               <span>Doanh thu tháng này</span>

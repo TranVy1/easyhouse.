@@ -287,8 +287,8 @@ export default function CauHinhGiaPage() {
           <div className="cau-hinh-gia-hero__insight">
             {hasPriceConfigs ? (
               <span>
-                Hiện có <strong>{activeConfigs.length} cấu hình giá</strong> đang áp dụng,{' '}
-                <strong>{pendingConfigs.length} cấu hình</strong> chờ hiệu lực trong kỳ tới.
+                Hiện có <strong className="mx-1">{activeConfigs.length} cấu hình giá</strong> đang áp dụng, 
+                <strong className="mx-1">{pendingConfigs.length} cấu hình</strong> chờ hiệu lực trong kỳ tới.
               </span>
             ) : (
               <span>Theo dõi đơn giá phòng, điện, nước và dịch vụ để lập hóa đơn chính xác cho từng kỳ.</span>

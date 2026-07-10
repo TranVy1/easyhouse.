@@ -234,14 +234,14 @@ export default function CongNoPage() {
           {data.length > 0 ? (
             <div className="cong-no-hero__insight">
               <span>
-                Theo dữ liệu đang hiển thị: <strong>{totalElements} phòng đang có nợ</strong>, tổng công nợ{" "}
-                <strong>{formatCurrency(pageTotals.debt)}</strong> và{" "}
+                Theo dữ liệu đang hiển thị: <strong className="mx-1">{totalElements} phòng đang có nợ</strong>, tổng công nợ{" "}
+                <strong className="mx-1">{formatCurrency(pageTotals.debt)}</strong> và{" "}
                 {pageTotals.overdue > 0 ? (
                   <>
-                    quá hạn <strong>{formatCurrency(pageTotals.overdue)}</strong>.
+                    quá hạn <strong className="mx-1">{formatCurrency(pageTotals.overdue)}</strong>.
                   </>
                 ) : (
-                  <strong>chưa có khoản nào quá hạn</strong>
+                  <strong className="mx-1">chưa có khoản nào quá hạn</strong>
                 )}
               </span>
             </div>
@@ -288,40 +288,45 @@ export default function CongNoPage() {
             </Button>
           </div>
 
-          <div className="cong-no-hero__stats">
-            <article className="cong-no-hero__stat-card is-navy">
-              <div className="cong-no-hero__stat-top">
-                <span>Phòng đang có nợ</span>
-                <House className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{totalElements}</strong>
-              <small>Có khoản cần theo dõi</small>
-            </article>
-            <article className={cn("cong-no-hero__stat-card", pageTotals.debt > 0 ? "is-orange" : "is-teal")}>
-              <div className="cong-no-hero__stat-top">
-                <span>Tổng nợ trên trang</span>
-                <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{formatCurrency(pageTotals.debt)}</strong>
-              <small>Theo dữ liệu đang hiển thị</small>
-            </article>
-            <article className={cn("cong-no-hero__stat-card", pageTotals.overdue > 0 ? "is-red" : "is-teal")}>
-              <div className="cong-no-hero__stat-top">
-                <span>Quá hạn trên trang</span>
-                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{formatCurrency(pageTotals.overdue)}</strong>
-              <small>{pageTotals.overdue > 0 ? "Khoản cần ưu tiên liên hệ" : "Không có khoản quá hạn"}</small>
-            </article>
-            <article className="cong-no-hero__stat-card is-navy">
-              <div className="cong-no-hero__stat-top">
-                <span>Hóa đơn trên trang</span>
-                <FileText className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <strong>{pageTotals.invoices}</strong>
-              <small>Hóa đơn chưa tất toán</small>
-            </article>
-          </div>
+
+        </div>
+      </section>
+
+      {/* Thống kê công nợ - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <article className="cong-no-hero__stat-card is-navy">
+            <div className="cong-no-hero__stat-top">
+              <span>Phòng đang có nợ</span>
+              <House className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{totalElements}</strong>
+            <small>Có khoản cần theo dõi</small>
+          </article>
+          <article className={cn("cong-no-hero__stat-card", pageTotals.debt > 0 ? "is-orange" : "is-teal")}>
+            <div className="cong-no-hero__stat-top">
+              <span>Tổng nợ trên trang</span>
+              <CircleDollarSign className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{formatCurrency(pageTotals.debt)}</strong>
+            <small>Theo dữ liệu đang hiển thị</small>
+          </article>
+          <article className={cn("cong-no-hero__stat-card", pageTotals.overdue > 0 ? "is-red" : "is-teal")}>
+            <div className="cong-no-hero__stat-top">
+              <span>Quá hạn trên trang</span>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{formatCurrency(pageTotals.overdue)}</strong>
+            <small>{pageTotals.overdue > 0 ? "Khoản cần ưu tiên liên hệ" : "Không có khoản quá hạn"}</small>
+          </article>
+          <article className="cong-no-hero__stat-card is-navy">
+            <div className="cong-no-hero__stat-top">
+              <span>Hóa đơn trên trang</span>
+              <FileText className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pageTotals.invoices}</strong>
+            <small>Hóa đơn chưa tất toán</small>
+          </article>
         </div>
       </section>
 

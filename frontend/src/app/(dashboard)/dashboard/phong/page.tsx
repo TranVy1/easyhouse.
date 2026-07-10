@@ -317,52 +317,6 @@ export default function PhongPage() {
               </span>
             </div>
           )}
-
-          <div className="phong-hero__stats">
-            <div className="phong-hero__stat-card">
-              <div className="phong-hero__stat-top">
-                <div>
-                  <span>Tổng số phòng</span>
-                  <strong>{totalElements}</strong>
-                </div>
-                <Building2 className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <p>Toàn bộ phòng trong hệ thống</p>
-            </div>
-
-            <div className="phong-hero__stat-card phong-hero__stat-card--teal">
-              <div className="phong-hero__stat-top">
-                <div>
-                  <span>Phòng trống</span>
-                  <strong>{availableRoomCount}</strong>
-                </div>
-                <Home className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <p>Sẵn sàng cho thuê</p>
-            </div>
-
-            <div className="phong-hero__stat-card phong-hero__stat-card--orange">
-              <div className="phong-hero__stat-top">
-                <div>
-                  <span>Đang thuê</span>
-                  <strong>{rentedRoomCount}</strong>
-                </div>
-                <Users className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <p>Đang có khách sử dụng</p>
-            </div>
-
-            <div className="phong-hero__stat-card phong-hero__stat-card--red">
-              <div className="phong-hero__stat-top">
-                <div>
-                  <span>Bảo trì</span>
-                  <strong>{maintenanceRoomCount}</strong>
-                </div>
-                <AlertCircle className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <p>{maintenanceRoomCount > 0 ? 'Phòng cần xử lý' : 'Không có phòng cần xử lý'}</p>
-            </div>
-          </div>
         </div>
 
         <div className="phong-hero__actions">
@@ -429,6 +383,55 @@ export default function PhongPage() {
               />
             </DialogContent>
           </Dialog>
+        </div>
+      </section>
+
+      {/* Tổng quan phòng - Stats Section */}
+      <section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="phong-hero__stat-card">
+            <div className="phong-hero__stat-top">
+              <div>
+                <span>Tổng số phòng</span>
+                <strong>{totalElements}</strong>
+              </div>
+              <Building2 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <p>Toàn bộ phòng trong hệ thống</p>
+          </div>
+
+          <div className="phong-hero__stat-card phong-hero__stat-card--teal">
+            <div className="phong-hero__stat-top">
+              <div>
+                <span>Phòng trống</span>
+                <strong>{availableRoomCount}</strong>
+              </div>
+              <Home className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <p>Sẵn sàng cho thuê</p>
+          </div>
+
+          <div className="phong-hero__stat-card phong-hero__stat-card--orange">
+            <div className="phong-hero__stat-top">
+              <div>
+                <span>Đang thuê</span>
+                <strong>{rentedRoomCount}</strong>
+              </div>
+              <Users className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <p>Đang có khách sử dụng</p>
+          </div>
+
+          <div className="phong-hero__stat-card phong-hero__stat-card--red">
+            <div className="phong-hero__stat-top">
+              <div>
+                <span>Bảo trì</span>
+                <strong>{maintenanceRoomCount}</strong>
+              </div>
+              <AlertCircle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <p>{maintenanceRoomCount > 0 ? 'Phòng cần xử lý' : 'Không có phòng cần xử lý'}</p>
+          </div>
         </div>
       </section>
 

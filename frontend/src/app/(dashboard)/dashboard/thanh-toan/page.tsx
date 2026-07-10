@@ -428,9 +428,9 @@ export default function ThanhToanPage() {
 
           <div className={cn("thanh-toan-hero__insight", styles.insight)}>
             <span>
-              Hiện đã ghi nhận <strong>{currency(metrics.successMoney)}</strong>, có{" "}
-              <strong>{metrics.pendingCount}</strong> giao dịch chờ xác nhận và{" "}
-              <strong>{metrics.cancelledCount}</strong> giao dịch đã hủy/hoàn.
+              Hiện đã ghi nhận <strong className="mx-1">{currency(metrics.successMoney)}</strong>, có{" "}
+              <strong className="mx-1">{metrics.pendingCount}</strong> giao dịch chờ xác nhận và{" "}
+              <strong className="mx-1">{metrics.cancelledCount}</strong> giao dịch đã hủy/hoàn.
             </span>
           </div>
 
@@ -442,58 +442,6 @@ export default function ThanhToanPage() {
             <span className={cn("thanh-toan-hero__chip", styles.chip)}>Hủy/hoàn {metrics.cancelledCount}</span>
           </div>
 
-          <div className={cn("thanh-toan-hero__stats", styles.stats)}>
-            {[
-              {
-                title: "Khớp lọc",
-                value: String(total),
-                hint: "Theo điều kiện lọc hiện tại",
-                icon: <ReceiptText className="h-5 w-5" />,
-                tone: "neutral",
-              },
-              {
-                title: "Đã thu trên trang",
-                value: currency(metrics.successMoney),
-                hint: "Tổng tiền đã ghi nhận",
-                icon: <Banknote className="h-5 w-5" />,
-                tone: metrics.successMoney > 0 ? "success" : "neutral",
-              },
-              {
-                title: "Chờ xác nhận",
-                value: String(metrics.pendingCount),
-                hint: metrics.pendingCount > 0 ? "Có giao dịch cần duyệt" : "Không có giao dịch cần duyệt",
-                icon: <CalendarDays className="h-5 w-5" />,
-                tone: metrics.pendingCount > 0 ? "warning" : "success",
-              },
-              {
-                title: "Đã hủy/hoàn",
-                value: String(metrics.cancelledCount),
-                hint: metrics.cancelledCount > 0 ? "Có giao dịch cần kiểm tra" : "Không có giao dịch hoàn/hủy",
-                icon: <FileCheck2 className="h-5 w-5" />,
-                tone: metrics.cancelledCount > 0 ? "danger" : "neutral",
-              },
-            ].map((item, index) => (
-              <div
-                key={item.title}
-                className={cn(
-                  "thanh-toan-hero__stat-card",
-                  `is-${item.tone}`,
-                  styles.statCard,
-                  item.tone === "success" && styles.toneSuccess,
-                  item.tone === "warning" && styles.toneWarning,
-                  item.tone === "danger" && styles.toneDanger,
-                )}
-                style={{ animationDelay: `${index * 70}ms` }}
-              >
-                <div className={cn("thanh-toan-hero__stat-top", styles.statTop)}>
-                  <span>{item.title}</span>
-                  <span className={cn("thanh-toan-hero__stat-icon", styles.statIcon)}>{item.icon}</span>
-                </div>
-                <strong>{item.value}</strong>
-                <small>{item.hint}</small>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className={cn("thanh-toan-hero__actions", styles.actions)}>
@@ -514,6 +462,62 @@ export default function ThanhToanPage() {
             <Plus />
             Ghi nhận thanh toán
           </HeroActionButton>
+        </div>
+      </section>
+
+      {/* Thống kê thanh toán - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[
+            {
+              title: "Khớp lọc",
+              value: String(total),
+              hint: "Theo điều kiện lọc hiện tại",
+              icon: <ReceiptText className="h-5 w-5" />,
+              tone: "neutral",
+            },
+            {
+              title: "Đã thu trên trang",
+              value: currency(metrics.successMoney),
+              hint: "Tổng tiền đã ghi nhận",
+              icon: <Banknote className="h-5 w-5" />,
+              tone: metrics.successMoney > 0 ? "success" : "neutral",
+            },
+            {
+              title: "Chờ xác nhận",
+              value: String(metrics.pendingCount),
+              hint: metrics.pendingCount > 0 ? "Có giao dịch cần duyệt" : "Không có giao dịch cần duyệt",
+              icon: <CalendarDays className="h-5 w-5" />,
+              tone: metrics.pendingCount > 0 ? "warning" : "success",
+            },
+            {
+              title: "Đã hủy/hoàn",
+              value: String(metrics.cancelledCount),
+              hint: metrics.cancelledCount > 0 ? "Có giao dịch cần kiểm tra" : "Không có giao dịch hoàn/hủy",
+              icon: <FileCheck2 className="h-5 w-5" />,
+              tone: metrics.cancelledCount > 0 ? "danger" : "neutral",
+            },
+          ].map((item, index) => (
+            <div
+              key={item.title}
+              className={cn(
+                "thanh-toan-hero__stat-card",
+                `is-${item.tone}`,
+                styles.statCard,
+                item.tone === "success" && styles.toneSuccess,
+                item.tone === "warning" && styles.toneWarning,
+                item.tone === "danger" && styles.toneDanger,
+              )}
+              style={{ animationDelay: `${index * 70}ms` }}
+            >
+              <div className={cn("thanh-toan-hero__stat-top", styles.statTop)}>
+                <span>{item.title}</span>
+                <span className={cn("thanh-toan-hero__stat-icon", styles.statIcon)}>{item.icon}</span>
+              </div>
+              <strong>{item.value}</strong>
+              <small>{item.hint}</small>
+            </div>
+          ))}
         </div>
       </section>
 
