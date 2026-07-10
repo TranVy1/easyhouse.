@@ -95,6 +95,8 @@
 
   /* Font Settings */
   --font-family: 'Be Vietnam Pro', Inter, system-ui, sans-serif;
+  --font-heading: 'Be Vietnam Pro';
+  --font-body: Inter;
   --font-size-base: 16px;
   --line-height-base: 1.5;
   --font-weight-base: 400;
@@ -578,6 +580,154 @@
   .dashboard-hero,
   .dashboard-hero__button,
   .dashboard-hero__chip {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+.tenant-dashboard-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tenant-dashboard-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  min-height: 230px;
+  border-radius: 28px;
+  padding: 32px 42px;
+  color: #ffffff;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(9, 31, 56, 0.96) 0%,
+      rgba(12, 52, 77, 0.86) 42%,
+      rgba(18, 88, 105, 0.36) 68%,
+      rgba(18, 88, 105, 0.08) 100%
+    ),
+    url("/images/khach-thue-dashboard-hero-bg.png");
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 52px rgba(36, 59, 90, 0.16);
+  animation: tenantHeroIn 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tenant-dashboard-hero__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+}
+
+.tenant-dashboard-hero__main {
+  max-width: min(620px, 58%);
+}
+
+.tenant-dashboard-hero h1 {
+  max-width: 620px;
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-heading), "Be Vietnam Pro", Inter, system-ui, sans-serif;
+  font-size: clamp(34px, 3.5vw, 52px);
+  line-height: 1.06;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.tenant-dashboard-hero p {
+  max-width: 620px;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  font-size: clamp(15px, 1.1vw, 17px);
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.tenant-dashboard-kpi-grid {
+  margin-top: 0;
+}
+
+@keyframes tenantHeroIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .tenant-dashboard-hero {
+    min-height: 210px;
+    padding: 28px 30px;
+    background-position: 68% center;
+  }
+
+  .tenant-dashboard-hero__main {
+    max-width: min(620px, 70%);
+  }
+
+  .tenant-dashboard-hero h1 {
+    max-width: 620px;
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tenant-dashboard-hero {
+    min-height: auto;
+    padding: 24px 20px;
+    border-radius: 22px;
+    background-position: 72% center;
+    background-image:
+      linear-gradient(
+        90deg,
+        rgba(9, 31, 56, 0.98) 0%,
+        rgba(12, 52, 77, 0.94) 64%,
+        rgba(18, 88, 105, 0.78) 100%
+      ),
+      url("/images/khach-thue-dashboard-hero-bg.png");
+  }
+
+  .tenant-dashboard-hero__content {
+    min-height: 0;
+  }
+
+  .tenant-dashboard-hero__main {
+    max-width: 100%;
+  }
+
+  .tenant-dashboard-hero h1 {
+    font-size: 32px;
+    line-height: 1.08;
+  }
+
+  .tenant-dashboard-hero p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 420px) {
+  .tenant-dashboard-hero {
+    padding: 22px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tenant-dashboard-hero,
+  .tenant-dashboard-hero * {
     animation: none !important;
     transition: none !important;
     transform: none !important;
