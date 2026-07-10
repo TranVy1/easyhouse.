@@ -232,26 +232,39 @@ export function DashboardKpiCard({
 }) {
   return (
     <Card className={cn(
-      "group relative flex min-h-[118px] flex-col justify-between rounded-[22px] border-0 bg-white/95 p-4 shadow-[0_12px_28px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.2)] animate-in fade-in slide-in-from-bottom-4",
-      tone === 'emerald' && "ring-[#4FA7A0]/30 hover:shadow-[#4FA7A0]/15",
-      tone === 'blue' && "ring-[#243B5A]/30 hover:shadow-[#243B5A]/15",
-      tone === 'orange' && "ring-[#F2A45B]/30 hover:shadow-[#F2A45B]/15",
-      tone === 'red' && "ring-red-200 hover:shadow-red-500/10"
+      "group relative flex min-h-[118px] overflow-hidden flex-col justify-between rounded-[22px] border-0 glass-card p-5 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-12px_rgba(15,23,42,0.25)] animate-in fade-in slide-in-from-bottom-4",
+      tone === 'emerald' && "ring-1 ring-[#4FA7A0]/30 hover:shadow-[#4FA7A0]/20",
+      tone === 'blue' && "ring-1 ring-[#243B5A]/30 hover:shadow-[#243B5A]/20",
+      tone === 'orange' && "ring-1 ring-[#F2A45B]/30 hover:shadow-[#F2A45B]/20",
+      tone === 'red' && "ring-1 ring-red-200 hover:shadow-red-500/20"
     )}>
-      <div className="flex items-start justify-between gap-3">
+      {/* Subtle background glow effect on hover */}
+      <div className={cn(
+        "pointer-events-none absolute -inset-px rounded-[22px] opacity-0 transition-opacity duration-500 group-hover:opacity-100",
+        tone === 'emerald' ? "bg-gradient-to-br from-[#4FA7A0]/10 via-transparent to-transparent" :
+        tone === 'blue' ? "bg-gradient-to-br from-[#243B5A]/10 via-transparent to-transparent" :
+        tone === 'orange' ? "bg-gradient-to-br from-[#F2A45B]/10 via-transparent to-transparent" :
+        tone === 'red' ? "bg-gradient-to-br from-red-500/10 via-transparent to-transparent" :
+        "bg-gradient-to-br from-slate-500/10 via-transparent to-transparent"
+      )} />
+
+      {/* Decorative dot pattern background */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+
+      <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="max-w-[150px] text-sm font-semibold leading-snug text-slate-500">
+          <p className="max-w-[150px] text-sm font-semibold leading-snug text-slate-500 dark:text-slate-400">
             {title}
           </p>
         </div>
 
         <div className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border shadow-[0_6px_16px_rgba(15,23,42,0.08)] transition-transform duration-300 group-hover:scale-110",
-          tone === 'emerald' ? 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#267D76]' :
-          tone === 'blue' ? 'border-[#4FA7A0]/30 bg-[#4FA7A0]/10 text-[#243B5A]' :
-          tone === 'orange' ? 'border-[#F2A45B]/30 bg-[#F2A45B]/10 text-[#F2A45B]' :
-          tone === 'red' ? 'border-red-200 bg-red-50 text-red-600' :
-          'border-slate-200/80 bg-white/80 text-muted-foreground'
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
+          tone === 'emerald' ? 'border-[#4FA7A0]/30 bg-gradient-to-br from-[#4FA7A0]/20 to-[#4FA7A0]/5 text-[#267D76] dark:text-[#7DCDC6]' :
+          tone === 'blue' ? 'border-[#243B5A]/30 bg-gradient-to-br from-[#243B5A]/20 to-[#243B5A]/5 text-[#243B5A] dark:text-[#8CCBC5]' :
+          tone === 'orange' ? 'border-[#F2A45B]/30 bg-gradient-to-br from-[#F2A45B]/20 to-[#F2A45B]/5 text-[#F2A45B]' :
+          tone === 'red' ? 'border-red-200 bg-gradient-to-br from-red-100 to-red-50 text-red-600 dark:from-red-900/50 dark:to-red-900/10 dark:border-red-500/30 dark:text-red-400' :
+          'border-slate-200/80 bg-gradient-to-br from-slate-100 to-white text-slate-500 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700'
         )}>
           {icon}
         </div>

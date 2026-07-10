@@ -52,43 +52,47 @@
 
 :root {
   --radius: 0.75rem;
-  --easy-bg: #F8F3EC;
-  --easy-primary: #243B5A;
-  --easy-teal: #4FA7A0;
-  --easy-orange: #F2A45B;
-  --easy-card: #FFFDF8;
-  --easy-border: #E8DED2;
-  --easy-muted: #6B7A8C;
-  --easy-soft: #F1E8DC;
-  --easy-danger: #C75345;
+  /* Premium Modern SaaS Light Mode */
+  --easy-bg: #F8FAFC;        /* Crisp Slate 50 cho nền ngoài */
+  --easy-primary: #0F172A;   /* Slate 900 cho text chính - cực sắc nét */
+  --easy-teal: #0D9488;      /* Teal đậm hơn để nổi trên nền sáng */
+  --easy-orange: #F97316;    /* Orange sáng và năng động hơn */
+  --easy-card: #FFFFFF;      /* Nền thẻ màu trắng tinh khiết */
+  --easy-border: #E2E8F0;    /* Slate 200 cho viền */
+  --easy-muted: #64748B;     /* Slate 500 cho text phụ */
+  --easy-soft: #F1F5F9;      /* Slate 100 cho nền hover */
+  --easy-danger: #EF4444;    /* Red 500 chuẩn */
+  
   --background: var(--easy-bg);
   --foreground: var(--easy-primary);
   --card: var(--easy-card);
   --card-foreground: var(--easy-primary);
   --popover: var(--easy-card);
   --popover-foreground: var(--easy-primary);
-  --primary: var(--easy-primary);
-  --primary-foreground: #FFFDF8;
-  --secondary: #E6F3F1;
+  --primary: var(--easy-teal); /* Lấy Teal làm màu chủ đạo (brand) */
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--easy-soft);
   --secondary-foreground: var(--easy-primary);
   --muted: var(--easy-soft);
   --muted-foreground: var(--easy-muted);
-  --accent: #E6F3F1;
+  --accent: var(--easy-soft);
   --accent-foreground: var(--easy-primary);
   --destructive: var(--easy-danger);
   --border: var(--easy-border);
   --input: var(--easy-border);
   --ring: var(--easy-teal);
+  
   --chart-1: var(--easy-orange);
   --chart-2: var(--easy-teal);
   --chart-3: var(--easy-primary);
-  --chart-4: #8CCBC5;
-  --chart-5: #F6C68F;
+  --chart-4: #38BDF8;
+  --chart-5: #FBBF24;
+  
   --sidebar: var(--easy-card);
   --sidebar-foreground: var(--easy-primary);
-  --sidebar-primary: var(--easy-primary);
-  --sidebar-primary-foreground: #FFFDF8;
-  --sidebar-accent: #E6F3F1;
+  --sidebar-primary: var(--easy-teal);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--easy-soft);
   --sidebar-accent-foreground: var(--easy-primary);
   --sidebar-border: var(--easy-border);
   --sidebar-ring: var(--easy-teal);
@@ -108,36 +112,36 @@
 }
 
 .dark {
-  --background: #172A42;
-  --foreground: #FFFDF8;
-  --card: #243B5A;
-  --card-foreground: #FFFDF8;
-  --popover: #243B5A;
-  --popover-foreground: #FFFDF8;
+  --background: #0B1120;
+  --foreground: #F8FAFC;
+  --card: #141E33;
+  --card-foreground: #F8FAFC;
+  --popover: #141E33;
+  --popover-foreground: #F8FAFC;
   --primary: #4FA7A0;
-  --primary-foreground: #102235;
-  --secondary: #1E344E;
-  --secondary-foreground: #FFFDF8;
-  --muted: #1E344E;
-  --muted-foreground: #C8D0D8;
-  --accent: #31506F;
-  --accent-foreground: #FFFDF8;
-  --destructive: #E06B5F;
-  --border: rgba(255, 253, 248, 0.16);
-  --input: rgba(255, 253, 248, 0.2);
+  --primary-foreground: #0B1120;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
   --ring: #4FA7A0;
   --chart-1: #F2A45B;
   --chart-2: #4FA7A0;
   --chart-3: #FFFDF8;
   --chart-4: #8CCBC5;
   --chart-5: #F6C68F;
-  --sidebar: #1E344E;
-  --sidebar-foreground: #FFFDF8;
+  --sidebar: #141E33;
+  --sidebar-foreground: #F8FAFC;
   --sidebar-primary: #4FA7A0;
-  --sidebar-primary-foreground: #102235;
-  --sidebar-accent: #31506F;
-  --sidebar-accent-foreground: #FFFDF8;
-  --sidebar-border: rgba(255, 253, 248, 0.16);
+  --sidebar-primary-foreground: #0B1120;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #4FA7A0;
 }
 
@@ -232,6 +236,13 @@
   }
   .font-legal {
     font-family: "Times New Roman", Times, serif !important;
+  }
+  /* Glassmorphism utilities */
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm dark:bg-[#141E33]/70 dark:border-white/10;
+  }
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:bg-[#141E33]/80 dark:border-white/10 dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)];
   }
 }
 
