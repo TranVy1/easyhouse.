@@ -239,10 +239,10 @@
   }
   /* Glassmorphism utilities */
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm dark:bg-[#141E33]/70 dark:border-white/10;
+    @apply bg-background/70 backdrop-blur-xl border border-border/40 shadow-sm;
   }
   .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:bg-[#141E33]/80 dark:border-white/10 dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)];
+    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-md;
   }
 }
 

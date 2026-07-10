@@ -124,7 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   )
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border" {...props}>
+    <Sidebar collapsible="icon" variant="inset" className="border-r border-sidebar-border" {...props}>
       <SidebarHeader className="border-b border-sidebar-border p-3 pb-4">
         <SidebarMenu>
           <SidebarMenuItem>
