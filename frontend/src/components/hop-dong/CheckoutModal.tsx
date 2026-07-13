@@ -66,7 +66,7 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
           tienPhong: hopDong.giaThue || 0,
           giaDien: hopDong.giaDien || 0,
           giaNuoc: hopDong.giaNuoc || 0,
-          tienDichVu: hopDong.dichVuList?.reduce((sum: number, dv: any) => sum + (dv.gia || 0), 0) || 0,
+          tienDichVu: hopDong.phiDichVu?.reduce((sum: number, dv: any) => sum + (dv.gia || 0), 0) || 0,
         }));
       }
     } catch (error) {
