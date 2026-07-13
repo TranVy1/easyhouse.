@@ -54,8 +54,8 @@ services:
       CLOUDINARY_CLOUD_NAME: your-cloud-name
       CLOUDINARY_API_KEY: your-api-key
       CLOUDINARY_API_SECRET: your-api-secret
-      SPRING_DATA_REDIS_HOST: host.docker.internal
-      SPRING_DATA_REDIS_PORT: 6380
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
     ports:
       - "8082:8080"

@@ -126,7 +126,7 @@ public class HoaDonService {
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), null);
 
         if (req.getDaThanhToan() != null && req.getDaThanhToan().compareTo(BigDecimal.ZERO) > 0) {
-            throw new RuntimeException("Sá»‘ tiá» n Ä‘Ã£ thanh toÃ¡n chá»‰ Ä‘Æ°á»£c cáº­p nháº­t qua module thanh toÃ¡n");
+            throw new RuntimeException("Số tiền đã thanh toán chỉ được cập nhật thông qua module thanh toán.");
         }
         BigDecimal daTra = BigDecimal.ZERO;
         HoaDon hd = HoaDon.builder()
