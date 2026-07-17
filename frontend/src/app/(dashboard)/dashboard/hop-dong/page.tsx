@@ -49,7 +49,7 @@ import { CheckoutModal } from '@/components/hop-dong/CheckoutModal';
 
 export default function HopDongPage() {
   const router = useRouter();
-  const accessToken = useSession()?.data?.accessToken;
+  const accessToken = useSession()?.data?.accessToken as string | undefined;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hopDongList: HopDong[];
     phongList: Phong[];
