@@ -60,6 +60,8 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  Columns,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -339,412 +341,200 @@ export default function ToaNhaPage() {
   }
 
   return (
-    <div className="space-y-5 md:space-y-6">
-      <section className="toa-nha-hero">
-        <div className="toa-nha-hero__content">
-          <div className="toa-nha-hero__eyebrow">
-            <Building2 className="h-4 w-4" aria-hidden="true" />
-            <span>Tòa nhà</span>
+    <div className="space-y-4 md:space-y-6 pb-10 bg-slate-50 min-h-screen">
+      {/* ── BREADCRUMB / TOP BARS ── */}
+      <div className="flex items-center text-sm text-gray-500 mb-2">
+        <span>Danh mục dữ liệu</span>
+        <span className="mx-2">&gt;</span>
+        <span className="font-semibold text-gray-900">Tòa nhà</span>
+      </div>
+
+      {/* ── KPI CARDS ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
+          <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+               <div className="bg-blue-50 text-blue-500 p-3 rounded-full border border-blue-100 flex items-center justify-center">
+                 <Building2 className="w-6 h-6" />
+               </div>
+            </div>
+            <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
+              <div className="text-2xl font-bold text-blue-600">{totalElements}</div>
+              <div className="text-xs text-blue-500 uppercase tracking-wide mt-1 font-medium">Tất cả tòa nhà</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
+          <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+               <div className="bg-emerald-50 text-emerald-500 p-3 rounded-full border border-emerald-100 flex items-center justify-center">
+                 <Building2 className="w-6 h-6" />
+               </div>
+            </div>
+            <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
+              <div className="text-2xl font-bold text-emerald-600">{totalElements}</div>
+              <div className="text-xs text-emerald-500 uppercase tracking-wide mt-1 font-medium">Đang hoạt động</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
+          <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+               <div className="bg-red-50 text-red-500 p-3 rounded-full border border-red-100 flex items-center justify-center">
+                 <Building2 className="w-6 h-6" />
+               </div>
+            </div>
+            <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
+              <div className="text-2xl font-bold text-red-600">0</div>
+              <div className="text-xs text-red-500 uppercase tracking-wide mt-1 font-medium">Ngưng hoạt động</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── CONTENT AREA ── */}
+      <Card className="shadow-sm border-t-0 rounded-t-none md:rounded-t-lg md:border-t rounded-xl overflow-hidden mt-4">
+        <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 text-sm w-full md:w-[200px]"
+              />
+            </div>
+            <Select>
+              <SelectTrigger className="w-[180px] text-sm text-gray-500">
+                <SelectValue placeholder="Trạng thái hoạt động" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="active">Đang hoạt động</SelectItem>
+                <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger className="w-[150px] text-sm text-gray-500 flex items-center gap-2">
+                <MapPin className="w-4 h-4 mr-1" />
+                <SelectValue placeholder="Khu vực" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <h1>Tòa nhà</h1>
-
-          <p>
-            Theo dõi tình trạng phòng, tỷ lệ lấp đầy và hiệu suất khai thác từng tòa nhà.
-          </p>
-
-          {tongPhong > 0 && (
-            <div className="toa-nha-hero__insight">
-              <span className="toa-nha-hero__insight-icon">
-                <Building2 className="h-4 w-4 text-white/90" />
-              </span>
-              <span className="toa-nha-hero__insight-text">
-                Hiện có <strong className="whitespace-nowrap">{phongTrong} phòng trống</strong>, cần ưu tiên tối ưu khai thác các tòa có tỷ lệ lấp đầy thấp.
-              </span>
-            </div>
-          )}
-
-          <div className="toa-nha-hero__chips">
-            <span className="toa-nha-hero__chip">{totalElements} tòa nhà</span>
-            <span className="toa-nha-hero__chip">{tongPhong} phòng</span>
-            <span className="toa-nha-hero__chip">Lấp đầy {tyLeLapDay}%</span>
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <Button size="icon" onClick={() => { setEditingToaNha(null); setIsDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 text-white">
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="outline" className="border-amber-400 text-amber-500 hover:bg-amber-50 h-9 w-9">
+              <FileUp className="h-4 w-4 rotate-180" /> 
+            </Button>
+            <Button size="icon" variant="outline" onClick={() => setIsImportOpen(true)} className="border-emerald-400 text-emerald-500 hover:bg-emerald-50 h-9 w-9">
+              <FileUp className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="outline" className="border-blue-500 text-white bg-blue-600 hover:bg-blue-700 h-9 w-9">
+              <Columns className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        <div className="toa-nha-hero__actions">
-            <HeroActionButton
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="toa-nha-hero__button toa-nha-hero__button-secondary"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
-            </HeroActionButton>
-            
-            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-              <DialogTrigger asChild>
-                <HeroActionButton variant="secondary" className="toa-nha-hero__button toa-nha-hero__button-secondary">
-                  <FileUp className="h-4 w-4 mr-2" />
-                  <span>Import</span>
-                </HeroActionButton>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
-                <DialogHeader>
-                  <DialogTitle>Import tòa nhà và phòng</DialogTitle>
-                  <DialogDescription>
-                    Dán dữ liệu từ Excel, kiểm tra lỗi theo dòng rồi mới xác nhận ghi vào hệ thống.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3">
-                  <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-                    Thứ tự cột: <b>ten_toa_nha</b>, <b>dia_chi</b>, <b>tang</b>, <b>ma_phong</b>, <b>dien_tich</b>, <b>gia_thue</b>, <b>tien_coc</b>, <b>so_nguoi_toi_da</b>.
+        {/* Dialogs */}
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
+            <DialogHeader>
+              <DialogTitle>Import tòa nhà và phòng</DialogTitle>
+              <DialogDescription>
+                Dán dữ liệu từ Excel, kiểm tra lỗi theo dòng rồi mới xác nhận ghi vào hệ thống.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+                Thứ tự cột: <b>ten_toa_nha</b>, <b>dia_chi</b>, <b>tang</b>, <b>ma_phong</b>, <b>dien_tich</b>, <b>gia_thue</b>, <b>tien_coc</b>, <b>so_nguoi_toi_da</b>.
+              </div>
+              <Textarea
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                rows={8}
+                placeholder={'Tòa A\t123 Nguyễn Trãi\t1\t101\t20\t2500000\t2500000\t2'}
+                className="font-mono text-xs"
+              />
+              {importPreview && (
+                <div className="rounded-lg border p-3 text-sm">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                    <div className="rounded-md bg-muted/40 p-2">Tổng dòng: <b>{importPreview.tongDong}</b></div>
+                    <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#267D76]">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
+                    <div className="rounded-md bg-red-50 p-2 text-red-700">Lỗi: <b>{importPreview.dongLoi}</b></div>
+                    <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#243B5A]">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
                   </div>
-                  <Textarea
-                    value={importText}
-                    onChange={(e) => setImportText(e.target.value)}
-                    rows={8}
-                    placeholder={'Tòa A\t123 Nguyễn Trãi\t1\t101\t20\t2500000\t2500000\t2'}
-                    className="font-mono text-xs"
-                  />
-                  {importPreview && (
-                    <div className="rounded-lg border p-3 text-sm">
-                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                        <div className="rounded-md bg-muted/40 p-2">Tổng dòng: <b>{importPreview.tongDong}</b></div>
-                        <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#267D76]">Hợp lệ: <b>{importPreview.dongHopLe}</b></div>
-                        <div className="rounded-md bg-red-50 p-2 text-red-700">Lỗi: <b>{importPreview.dongLoi}</b></div>
-                        <div className="rounded-md bg-[#4FA7A0]/10 p-2 text-[#243B5A]">Phòng tạo mới: <b>{importPreview.phongTaoMoi}</b></div>
-                      </div>
-                      {importPreview.rows?.some(row => !row.hopLe) && (
-                        <div className="mt-3 max-h-40 overflow-auto rounded border">
-                          {importPreview.rows.filter(row => !row.hopLe).map(row => (
-                            <div key={row.dong} className="border-b p-2 text-xs last:border-b-0">
-                              Dòng {row.dong}: {row.loi}
-                            </div>
-                          ))}
+                  {importPreview.rows?.some(row => !row.hopLe) && (
+                    <div className="mt-3 max-h-40 overflow-auto rounded border">
+                      {importPreview.rows.filter(row => !row.hopLe).map(row => (
+                        <div key={row.dong} className="border-b p-2 text-xs last:border-b-0">
+                          Dòng {row.dong}: {row.loi}
                         </div>
-                      )}
+                      ))}
                     </div>
                   )}
                 </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" disabled={importing} onClick={() => runImport('preview')}>
-                    Kiểm tra
-                  </Button>
-                  <Button type="button" disabled={importing || !importPreview || importPreview.dongLoi > 0} onClick={() => runImport('confirm')}>
-                    Xác nhận import
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" disabled={importing} onClick={() => runImport('preview')}>
+                Kiểm tra
+              </Button>
+              <Button type="button" disabled={importing || !importPreview || importPreview.dongLoi > 0} onClick={() => runImport('confirm')}>
+                Xác nhận import
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <HeroActionButton variant="default" onClick={() => setEditingToaNha(null)} className="toa-nha-hero__button toa-nha-hero__button-primary">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span>Thêm tòa nhà</span>
-                </HeroActionButton>
-              </DialogTrigger>
-              <DialogContent className="flex max-h-[calc(100vh-48px)] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-[#E8DCCB] bg-[#FFFBF5] p-0 shadow-[0_24px_70px_rgba(36,59,90,0.24)] sm:max-w-3xl">
-                <DialogHeader className="border-b border-[#E8DCCB]/80 px-5 py-4 sm:px-6">
-                  <DialogTitle className="text-lg font-bold text-[#243B5A] md:text-xl">
-                    {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
-                  </DialogTitle>
-                  <DialogDescription className="text-sm text-[#5F7087]">
-                    {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà và cấu hình phòng ban đầu'}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <ToaNhaForm 
-                  key={editingToaNha?._id || 'new'}
-                  toaNha={editingToaNha}
-                  onClose={() => setIsDialogOpen(false)}
-                  onSuccess={() => {
-                    clearCache();
-                    setIsDialogOpen(false);
-                    fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
-                    toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-        </div>
-      </section>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <DashboardKpiCard title="Tòa nhà" value={totalElements} icon={<Building2 className="h-5 w-5" />} tone="default" />
-        <DashboardKpiCard title="Tổng phòng" value={tongPhong} icon={<Home className="h-5 w-5" />} tone="default" />
-        <DashboardKpiCard title="Phòng trống" value={phongTrong} tone="emerald" icon={<DoorOpen className="h-5 w-5" />} trend={{ value: `${tongPhong > 0 ? Math.round((phongTrong / tongPhong) * 100) : 0}%`, isUp: true }} />
-        <DashboardKpiCard title="Đang thuê" value={phongDangThue} tone="blue" icon={<Home className="h-5 w-5" />} />
-        <DashboardKpiCard title="Lấp đầy" value={`${tyLeLapDay}%`} tone="orange" icon={<Percent className="h-5 w-5" />} trend={tyLeLapDay < 50 ? { value: 'Cần chú ý', isUp: false } : undefined} />
-      </div>
-
-      {/* Filter Chips */}
-      <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {[
-          { id: 'ALL', label: 'Tất cả' },
-          { id: 'AVAILABLE', label: 'Còn phòng trống' },
-          { id: 'LOW', label: 'Lấp đầy thấp' },
-          { id: 'RENTED', label: 'Đang khai thác' },
-          { id: 'ATTENTION', label: 'Cần chú ý' }
-        ].map(filter => (
-          <FilterBadge 
-            key={filter.id}
-            active={activeFilter === filter.id}
-            onClick={() => {
-              setActiveFilter(filter.id as any);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-          >
-            {filter.label}
-          </FilterBadge>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <div className="xl:col-span-3 space-y-6">
-          {/* Desktop Table View */}
-          <DashboardCard className="hidden md:block overflow-hidden">
-            <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
-              <CardTitle className="text-lg text-[#243B5A]">Danh sách tòa nhà</CardTitle>
-              <CardDescription>
-                {filteredToaNha.length} tòa nhà phù hợp bộ lọc hiện tại
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="p-4 md:p-5">
-                <ToaNhaDataTable
-                  data={filteredToaNha}
-                  onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  pageCount={totalPages}
-                  totalElements={totalElements}
-                  pagination={pagination}
-                  onPaginationChange={setPagination}
-                />
-              </div>
-            </CardContent>
-          </DashboardCard>
-
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-base font-semibold">Danh sách tòa nhà</h2>
-          <span className="text-xs text-muted-foreground">{filteredToaNha.length} tòa nhà</span>
-        </div>
-
-        {/* Mobile Filters */}
-        <div className="space-y-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Tìm kiếm tòa nhà..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-sm"
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="flex max-h-[calc(100vh-48px)] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-[#E8DCCB] bg-[#FFFBF5] p-0 shadow-[0_24px_70px_rgba(36,59,90,0.24)] sm:max-w-3xl">
+            <DialogHeader className="border-b border-[#E8DCCB]/80 px-5 py-4 sm:px-6">
+              <DialogTitle className="text-lg font-bold text-[#243B5A] md:text-xl">
+                {editingToaNha ? 'Chỉnh sửa tòa nhà' : 'Thêm tòa nhà mới'}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-[#5F7087]">
+                {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà và cấu hình phòng ban đầu'}
+              </DialogDescription>
+            </DialogHeader>
+            <ToaNhaForm 
+              key={editingToaNha?._id || 'new'}
+              toaNha={editingToaNha}
+              onClose={() => setIsDialogOpen(false)}
+              onSuccess={() => {
+                clearCache();
+                setIsDialogOpen(false);
+                fetchToaNha(pagination.pageIndex + 1, pagination.pageSize, appliedSearch);
+                toast.success(editingToaNha ? 'Cập nhật tòa nhà thành công!' : 'Thêm tòa nhà thành công!');
+              }}
             />
-          </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Table */}
+        <div className="w-full">
+          <ToaNhaDataTable
+            data={filteredToaNha}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          />
         </div>
-        
-        {filteredToaNha.length === 0 ? (
-          <Card className="p-6 text-center">
-            <Building2 className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-            <h3 className="text-base font-medium text-gray-900 mb-1">Không tìm thấy tòa nhà nào</h3>
-            <p className="text-sm text-gray-600">Thử thay đổi tìm kiếm</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {filteredToaNha.map((toaNha) => {
-              const phongTrong = toaNha.phongTrong || 0;
-              const phongDangThue = toaNha.phongDangThue || 0;
-              const tongPhongToa = toaNha.tongSoPhong || 0;
-              const tyLeToa = tongPhongToa > 0 ? Math.round((phongDangThue / tongPhongToa) * 100) : 0;
-              
-              return (
-                <Card key={toaNha._id} className="py-0 transition-shadow hover:shadow-md cursor-pointer" onDoubleClick={() => handleView(toaNha)}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Building2 className="h-4 w-4 text-primary" />
-                          <h3 className="font-semibold text-base">{toaNha.tenToaNha}</h3>
-                        </div>
-                        <div className="flex items-start gap-1.5 text-xs text-gray-600">
-                          <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-2">{formatAddress(toaNha.diaChi)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3 rounded-md border bg-muted/30 p-3">
-                      <div className="mb-3 flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Tỷ lệ lấp đầy</span>
-                        <span className="font-medium">{tyLeToa}%</span>
-                      </div>
-                      <div className="mb-3 h-2 overflow-hidden rounded-full bg-background">
-                        <div className="h-full rounded-full bg-[#4FA7A0]" style={{ width: `${tyLeToa}%` }} />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                      <div className="text-center">
-                        <div className="text-xs text-gray-600">Tổng</div>
-                        <div className="text-sm font-semibold">{tongPhongToa}</div>
-                      </div>
-                      <div className="text-center border-x border-gray-200">
-                        <div className="text-xs text-gray-600">Trống</div>
-                        <div className="text-sm font-semibold text-[#267D76]">{phongTrong}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xs text-gray-600">Thuê</div>
-                        <div className="text-sm font-semibold text-[#243B5A]">{phongDangThue}</div>
-                      </div>
-                      </div>
-                    </div>
-
-                    {toaNha.tienNghiChung && toaNha.tienNghiChung.length > 0 && (
-                      <div className="mb-3">
-                        <div className="text-xs text-muted-foreground mb-1">Tiện nghi:</div>
-                        <div className="flex flex-wrap gap-1">
-                          {toaNha.tienNghiChung.slice(0, 3).map((tienNghi) => (
-                            <Badge key={tienNghi} variant="secondary" className="text-xs">
-                              {tienNghi}
-                            </Badge>
-                          ))}
-                          {toaNha.tienNghiChung.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{toaNha.tienNghiChung.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const publicUrl = `${window.location.origin}/xem-phong`;
-                            navigator.clipboard.writeText(publicUrl);
-                            toast.success('Đã sao chép link trang xem phòng');
-                          }}
-                          className="text-[#267D76] hover:text-[#267D76] hover:bg-[#4FA7A0]/10"
-                          title="Sao chép liên kết trang xem phòng"
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleView(toaNha)}
-                          className="flex-1 text-xs"
-                        >
-                          Sơ đồ
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(toaNha)}
-                          className="flex-1 text-xs"
-                        >
-                          <Edit className="h-3.5 w-3.5 mr-1" />
-                          Sửa
-                        </Button>
-                        <DeleteConfirmPopover
-                          onConfirm={() => handleDelete(toaNha._id!)}
-                          title="Xóa tòa nhà"
-                          description="Bạn có chắc chắn muốn xóa tòa nhà này?"
-                          className="text-black hover:text-red-700 hover:bg-red-50"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      </div>
-
-      {/* Right Column Panels */}
-      <div className="space-y-6">
-        {/* Panel Tòa nhà cần chú ý */}
-        <Card className="rounded-xl shadow-sm border-border/50">
-          <CardHeader className="border-b bg-[#F8F3EC] pb-4">
-            <CardTitle className="text-base text-[#243B5A] flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-[#F2A45B]" />
-              Cần chú ý
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Tòa nhà có lấp đầy thấp nhất
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            {lowOccupancyBuildings.length === 0 ? (
-              <div className="text-center text-sm text-muted-foreground py-4">
-                Không có dữ liệu
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {lowOccupancyBuildings.map((toaNha) => {
-                  const rate = calculateOccupancyRate(toaNha.phongDangThue || 0, toaNha.tongSoPhong || 0);
-                  const suggestion = rate === 0 
-                    ? "Chưa có phòng thuê. Nên đẩy mạnh hoạt động quảng bá." 
-                    : "Tỷ lệ lấp đầy thấp. Cần kiểm tra giá thuê hoặc trạng thái phòng.";
-                  
-                  return (
-                    <div key={toaNha._id} className="group relative rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleView(toaNha)}>
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-sm text-[#243B5A] truncate pr-2">{toaNha.tenToaNha}</span>
-                        <Badge variant="outline" className={cn("text-[10px] font-bold", getOccupancyColor(rate))}>{rate}%</Badge>
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-2">
-                        {toaNha.phongDangThue || 0} / {toaNha.tongSoPhong || 0} phòng đang thuê
-                      </div>
-                      <div className="text-xs text-[#243B5A] bg-white border rounded p-2 italic shadow-sm group-hover:bg-[#F8F3EC] transition-colors">
-                        "{suggestion}"
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Panel Phân bố khu vực */}
-        <Card className="rounded-xl shadow-sm border-border/50">
-          <CardHeader className="border-b bg-[#F8F3EC] pb-4">
-            <CardTitle className="text-base text-[#243B5A] flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#4FA7A0]" />
-              Khu vực
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 space-y-4">
-            {sortedAreas.map(([quan, count]) => {
-              const maxCount = sortedAreas[0][1];
-              const percentage = Math.round((count / maxCount) * 100);
-              return (
-                <div key={quan} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-medium text-[#243B5A] truncate pr-2">{quan}</span>
-                    <span className="text-muted-foreground">{count}</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-[#4FA7A0]/70" style={{ width: `${percentage}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -762,6 +552,8 @@ function ToaNhaForm({
   const accessToken = useSession()?.data?.accessToken;
   const [formData, setFormData] = useState({
     tenToaNha: toaNha?.tenToaNha || '',
+    maToa: (toaNha as any)?.maToa || '',
+    hoatDong: toaNha?.trangThai !== 'INACTIVE',
     soNha: toaNha?.diaChi.soNha || '',
     duong: toaNha?.diaChi.duong || '',
     phuong: toaNha?.diaChi.phuong || '',
@@ -777,6 +569,41 @@ function ToaNhaForm({
     soNguoiToiDa: '2',
     tienNghiMacDinh: [] as string[],
   });
+
+  const [dichVuList, setDichVuList] = useState([
+    { id: 'dien', ten: 'Tiền Điện', suDung: true, donGia: 3900, donVi: 'đ / Kwh' },
+    { id: 'nuoc', ten: 'Tiền Nước', suDung: true, donGia: 25000, donVi: 'đ / m3' },
+    { id: 'rac', ten: 'Tiền Rác', suDung: false, donGia: 50000, donVi: 'đ / tháng' },
+  ]);
+
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [newService, setNewService] = useState({
+    ten: '',
+    loaiTinhPhi: 'Cố định',
+    donVi: '',
+    donGia: '',
+    batBuoc: false
+  });
+
+  const handleSaveService = () => {
+    if (!newService.ten) return;
+    setDichVuList(prev => [
+      ...prev,
+      {
+        id: `custom-${Date.now()}`,
+        ten: newService.ten,
+        suDung: true,
+        donGia: Number(newService.donGia) || 0,
+        donVi: newService.donVi,
+        loaiTinhPhi: newService.loaiTinhPhi,
+        batBuoc: newService.batBuoc,
+        isCustom: true
+      }
+    ]);
+    setIsServiceModalOpen(false);
+    setNewService({ ten: '', loaiTinhPhi: 'Cố định', donVi: '', donGia: '', batBuoc: false });
+  };
+
   const [cauTrucTang, setCauTrucTang] = useState([
     { soTang: '1', soPhong: '5', dienTichMacDinh: '20', giaThueMacDinh: '2500000', tienCocMacDinh: '2500000', soNguoiToiDa: '2' },
     { soTang: '2', soPhong: '8', dienTichMacDinh: '22', giaThueMacDinh: '2700000', tienCocMacDinh: '2700000', soNguoiToiDa: '2' },
@@ -903,6 +730,14 @@ function ToaNhaForm({
     setFormData(prev => ({ ...prev, phuong: name }));
   };
 
+  const DEFAULT_SERVICES = [
+    { id: 'internet', ten: 'Internet', donGia: 100000, donVi: 'đ / tháng' },
+    { id: 'guixe', ten: 'Gửi xe máy', donGia: 100000, donVi: 'đ / xe' },
+    { id: 'dondep', ten: 'Dọn vệ sinh', donGia: 50000, donVi: 'đ / người' },
+    { id: 'thangmay', ten: 'Thang máy', donGia: 50000, donVi: 'đ / người' },
+    { id: 'maygiat', ten: 'Máy giặt chung', donGia: 50000, donVi: 'đ / người' },
+  ];
+
   const tienNghiOptions = [
     { value: 'wifi', label: 'WiFi' },
     { value: 'camera', label: 'Camera an ninh' },
@@ -942,12 +777,13 @@ function ToaNhaForm({
     try {
       const submitData = {
         tenToaNha: formData.tenToaNha,
-        diaChi: {
-          soNha: formData.soNha,
-          duong: formData.duong,
-          phuong: formData.phuong,
-          thanhPho: formData.thanhPho,
-        },
+        maToa: formData.maToa,
+        hoatDong: formData.hoatDong,
+        dichVuList: dichVuList.filter(d => d.suDung),
+        thanhPho: formData.thanhPho,
+        phuong: formData.phuong,
+        duong: formData.duong,
+        soNha: formData.soNha,
         moTa: formData.moTa,
         tienNghiChung: formData.tienNghiChung,
         ...(toaNha || formData.cheDoTaoPhong === 'NONE' ? {} : formData.cheDoTaoPhong === 'CUSTOM' ? {
@@ -1038,17 +874,44 @@ function ToaNhaForm({
   return (
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
-        <div className={fieldWrap}>
-          <Label htmlFor="tenToaNha" className={labelClass}>Tên tòa nhà</Label>
-          <Input
-            id="tenToaNha"
-            value={formData.tenToaNha}
-            onChange={(e) => setFormData(prev => ({ ...prev, tenToaNha: e.target.value }))}
-            required
-            className={inputClass}
-          />
+        {/* Thông tin cơ bản */}
+        <div className="mb-2 font-semibold text-[#243B5A] flex items-center justify-between border-b border-[#E2D6C8] pb-2">
+          <span>Thông tin cơ bản</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[#5F7087]">Hoạt động</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" checked={formData.hoatDong} onChange={(e) => setFormData(prev => ({ ...prev, hoatDong: e.target.checked }))} />
+              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4FA7A0]"></div>
+            </label>
+          </div>
         </div>
 
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className={fieldWrap}>
+            <Label htmlFor="tenToaNha" className={labelClass}>Tên tòa nhà *</Label>
+            <Input
+              id="tenToaNha"
+              value={formData.tenToaNha}
+              onChange={(e) => setFormData(prev => ({ ...prev, tenToaNha: e.target.value }))}
+              placeholder="Nhập tên toà nhà..."
+              required
+              className={inputClass}
+            />
+          </div>
+          <div className={fieldWrap}>
+            <Label htmlFor="maToa" className={labelClass}>Tên viết tắt/Mã tòa</Label>
+            <Input
+              id="maToa"
+              value={formData.maToa}
+              onChange={(e) => setFormData(prev => ({ ...prev, maToa: e.target.value }))}
+              placeholder="Nhập mã viết tắt..."
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Thông tin địa chỉ */}
+        <div className="mt-6 mb-2 font-semibold text-[#243B5A] border-b border-[#E2D6C8] pb-2">Thông tin địa chỉ</div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className={fieldWrap}>
             <Label htmlFor="thanhPho" className={labelClass}>Tỉnh / Thành phố</Label>
@@ -1194,6 +1057,172 @@ function ToaNhaForm({
             rows={3}
             className={cn(inputClass, "min-h-20 resize-none py-2 leading-5")}
           />
+        </div>
+
+        {/* Dịch vụ toà nhà */}
+        <div className="mt-6 mb-2 flex items-center justify-between border-b border-[#E2D6C8] pb-2">
+          <span className="font-semibold text-[#243B5A]">Dịch vụ toà nhà</span>
+          <Dialog open={isServiceModalOpen} onOpenChange={setIsServiceModalOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" size="sm" className="bg-[#111827] text-white hover:bg-gray-800 h-8 rounded-md text-xs px-3">
+                <Plus className="w-3 h-3 mr-1" /> Thêm dịch vụ mới
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-0">
+              <div className="px-6 py-5 pb-4">
+                <DialogTitle className="text-xl font-bold text-[#1f2937]">Thêm dịch vụ mới</DialogTitle>
+                <DialogDescription className="text-sm text-gray-500 mt-1">
+                  Điền thông tin dịch vụ vào form bên dưới.
+                </DialogDescription>
+              </div>
+              <div className="px-6 py-4 space-y-5">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Tên dịch vụ</Label>
+                  <Input 
+                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]" 
+                    value={newService.ten} 
+                    onChange={e => setNewService(prev => ({...prev, ten: e.target.value}))} 
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Loại tính phí</Label>
+                  <Select value={newService.loaiTinhPhi} onValueChange={val => setNewService(prev => ({...prev, loaiTinhPhi: val}))}>
+                    <SelectTrigger className="col-span-3 rounded-lg border-gray-300 focus:ring-1 focus:ring-[#009688]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cố định">Cố định</SelectItem>
+                      <SelectItem value="Theo đồng hồ">Theo đồng hồ</SelectItem>
+                      <SelectItem value="Theo người">Theo người</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn vị tính</Label>
+                  <Input 
+                    placeholder="VD: kWh, m3, người, tháng" 
+                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]"
+                    value={newService.donVi} 
+                    onChange={e => setNewService(prev => ({...prev, donVi: e.target.value}))} 
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn giá</Label>
+                  <div className="col-span-3 relative">
+                    <Input 
+                      type="number"
+                      className="rounded-lg border-[#009688] ring-1 ring-[#009688] focus-visible:ring-[#009688] font-medium pr-8"
+                      value={newService.donGia} 
+                      onChange={e => setNewService(prev => ({...prev, donGia: e.target.value}))} 
+                    />
+                    <div className="absolute inset-y-0 right-0 flex flex-col justify-center pr-2">
+                      <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4 pt-1">
+                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Bắt buộc</Label>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Checkbox 
+                      id="bat-buoc" 
+                      className="border-gray-300 data-[state=checked]:border-[#009688] data-[state=checked]:bg-[#009688] rounded-sm h-5 w-5"
+                      checked={newService.batBuoc}
+                      onCheckedChange={(checked) => setNewService(prev => ({...prev, batBuoc: checked === true}))}
+                    />
+                    <label htmlFor="bat-buoc" className="text-sm text-gray-700 cursor-pointer select-none">
+                      Dịch vụ bắt buộc khi lập hợp đồng
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
+                <Button type="button" variant="outline" className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-5" onClick={() => setIsServiceModalOpen(false)}>Hủy</Button>
+                <Button type="button" className="rounded-xl bg-[#009688] hover:bg-[#00897B] text-white h-10 px-5 font-semibold" onClick={handleSaveService}>Lưu</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="border border-[#E2D6C8] rounded-xl overflow-hidden bg-white/50">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-[#F8F3EC] border-b border-[#E2D6C8] text-[#243B5A]">
+              <tr>
+                <th className="px-4 py-3 font-semibold w-24 text-center">Sử dụng</th>
+                <th className="px-4 py-3 font-semibold border-l border-[#E2D6C8]">Tên dịch vụ</th>
+                <th className="px-4 py-3 font-semibold border-l border-[#E2D6C8] text-right">Đơn giá</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E2D6C8]">
+              {dichVuList.map((dv, idx) => (
+                <tr key={dv.id} className="hover:bg-gray-50/50">
+                  <td className="px-4 py-3 text-center align-middle">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" checked={dv.suDung} onChange={(e) => {
+                        const next = [...dichVuList];
+                        next[idx].suDung = e.target.checked;
+                        setDichVuList(next);
+                      }} />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4FA7A0]"></div>
+                    </label>
+                  </td>
+                  <td className="px-4 py-3 border-l border-[#E2D6C8] font-medium text-[#243B5A]">
+                    {(dv as any).isCustom ? (
+                      <Input
+                        className="h-8 text-sm bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium"
+                        value={dv.ten}
+                        onChange={(e) => {
+                          const next = [...dichVuList];
+                          next[idx].ten = e.target.value;
+                          setDichVuList(next);
+                        }}
+                      />
+                    ) : (
+                      dv.ten
+                    )}
+                  </td>
+                  <td className="px-4 py-3 border-l border-[#E2D6C8] text-right text-[#5F7087]">
+                    <div className="flex items-center justify-end gap-1">
+                      <Input 
+                        className="w-24 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium" 
+                        value={dv.donGia.toLocaleString('vi-VN')} 
+                        onChange={(e) => {
+                           const val = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+                           const next = [...dichVuList];
+                           next[idx].donGia = val;
+                           setDichVuList(next);
+                        }}
+                      />
+                      {(dv as any).isCustom ? (
+                        <Input
+                          className="w-20 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0"
+                          value={dv.donVi}
+                          onChange={(e) => {
+                            const next = [...dichVuList];
+                            next[idx].donVi = e.target.value;
+                            setDichVuList(next);
+                          }}
+                        />
+                      ) : (
+                        <span>{dv.donVi}</span>
+                      )}
+                      {(dv as any).isCustom && (
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 ml-1"
+                          onClick={() => {
+                            setDichVuList(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
       <div className={fieldWrap}>

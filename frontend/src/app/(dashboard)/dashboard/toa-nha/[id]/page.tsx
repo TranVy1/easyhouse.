@@ -455,193 +455,177 @@ export default function ToaNhaDetailPage() {
         </TabsContent>
       </Tabs>
 
-      <Sheet open={Boolean(selectedRoom)} onOpenChange={(open) => !open && setSelectedRoom(null)}>
-        <SheetContent 
-          aria-describedby={undefined}
-          className="flex flex-col h-full w-full sm:max-w-md p-0 overflow-hidden border-l"
-          onInteractOutside={(e) => {
-            const target = e.target as Element | null;
-            if (target?.closest('[data-radix-popper-content-wrapper]') || target?.closest('[role="dialog"]')) {
-              e.preventDefault();
-            }
-          }}
-        >
+      <Dialog open={Boolean(selectedRoom)} onOpenChange={(open) => !open && setSelectedRoom(null)}>
+        <DialogContent className="w-[95vw] sm:max-w-[1200px] p-0 overflow-hidden border-0 bg-white rounded-xl shadow-xl flex flex-col max-h-[90vh]">
           {selectedRoom && (
             <>
-              <div className="bg-muted/30 border-b p-6 pt-10">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
-                      <DoorOpen className="h-4 w-4" />
-                      Chi tiết phòng
-                    </div>
-                    <SheetTitle className="text-3xl font-bold tracking-tight">Phòng {selectedRoom.maPhong}</SheetTitle>
-                  </div>
-                  <Badge variant="outline" className={cn("px-3 py-1 text-xs uppercase tracking-wider font-semibold", statusConfig[selectedRoom.trangThaiHienThi].badge)}>
-                    {statusConfig[selectedRoom.trangThaiHienThi].label}
-                  </Badge>
-                </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
+                <DialogTitle className="text-sm font-bold text-[#148356] uppercase tracking-wide">Thông tin căn hộ</DialogTitle>
+                {/* The close button is rendered automatically by DialogContent, we don't need to add it again unless it's hidden */}
               </div>
-
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6 pb-6">
-                  {/* Thông tin cơ bản */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="shadow-none border-muted/60 bg-muted/20">
-                      <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-                        <div className="p-2 bg-background rounded-full shadow-sm mb-1">
-                          <Maximize className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Diện tích</p>
-                        <p className="text-base font-semibold">{selectedRoom.dienTich || 0} m²</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="shadow-none border-blue-100 bg-blue-50/50">
-                      <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-                        <div className="p-2 bg-white rounded-full shadow-sm mb-1">
-                          <Banknote className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <p className="text-xs text-blue-600/80 font-medium uppercase tracking-wider">Giá thuê</p>
-                        <p className="text-base font-semibold text-blue-700">{formatCurrency(selectedRoom.giaHienTai)}</p>
-                      </CardContent>
-                    </Card>
+              
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <div className="p-6 space-y-8">
+                  
+                  {/* Thông tin chung */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">Thông tin chung</h3>
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-sm text-left">
+                        <tbody className="divide-y divide-gray-200">
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Tên căn hộ</td>
+                            <td className="px-4 py-3 text-gray-900 font-medium">{selectedRoom.maPhong}</td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Tòa nhà</td>
+                            <td className="px-4 py-3 text-gray-900">{data?.tenToaNha}</td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Tầng</td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {(() => {
+                                const floor = data?.tang.find(f => f.phong.some(p => p.id === selectedRoom.id || p._id === selectedRoom._id));
+                                return floor ? (floor.tenTang || `Tầng ${floor.soTang}`) : '—';
+                              })()}
+                            </td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Giá thuê</td>
+                            <td className="px-4 py-3 text-gray-900">{formatCurrency(selectedRoom.giaHienTai)}</td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Đặt cọc</td>
+                            <td className="px-4 py-3 text-gray-900">{formatCurrency(selectedRoom.giaHienTai)}</td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Trạng thái hoạt động</td>
+                            <td className="px-4 py-3">
+                              <label className="relative inline-flex items-center cursor-not-allowed opacity-70">
+                                <input type="checkbox" className="sr-only peer" checked disabled />
+                                <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gray-500"></div>
+                              </label>
+                            </td>
+                          </tr>
+                          <tr className="bg-white">
+                            <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-r border-gray-100 bg-gray-50/50">Trạng thái thuê</td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline" className={cn("px-2 py-0.5 text-xs font-semibold rounded bg-[#E4F4EC] text-[#148356] border-[#148356]/20")}>
+                                {statusConfig[selectedRoom.trangThaiHienThi].label}
+                              </Badge>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
-                  {/* Thông tin thuê */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <UserRound className="h-4 w-4 text-primary" />
-                      Thông tin khách thuê
-                    </h4>
-                    <div className="rounded-xl border bg-card overflow-hidden">
-                      <div className="p-4 flex items-center gap-4 border-b">
-                        <Avatar className="h-10 w-10 border bg-muted">
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {selectedRoom.khachThueHienTai ? selectedRoom.khachThueHienTai.charAt(0).toUpperCase() : '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">{selectedRoom.khachThueHienTai || 'Chưa có người thuê'}</p>
-                          {selectedRoom.maHopDong && (
-                            <p className="text-xs text-muted-foreground flex items-center mt-0.5">
-                              <FileSignature className="h-3 w-3 mr-1" />
-                              Hợp đồng: {selectedRoom.maHopDong}
-                            </p>
+                  {/* Đặt cọc */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">Đặt cọc</h3>
+                    <div className="border rounded-md bg-[#FAFAFA] p-3 text-center text-sm font-medium text-gray-600">
+                      Không có dữ liệu
+                    </div>
+                  </div>
+
+                  {/* Hợp đồng */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">Hợp đồng</h3>
+                    <div className="border rounded-md overflow-hidden overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-[#FAFAFA] border-b border-gray-200 text-gray-700">
+                          <tr>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Số hợp đồng</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Khách hàng</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Giá thuê</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Đặt cọc</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Ngày bắt đầu</th>
+                            <th className="px-4 py-3 font-medium">Ngày hết hạn</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {selectedRoom.hopDongId ? (
+                            <tr className="bg-white hover:bg-gray-50/50">
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{selectedRoom.maHopDong}</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{selectedRoom.khachThueHienTai || '—'}</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{formatCurrency(selectedRoom.giaHienTai)}</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{formatCurrency(selectedRoom.giaHienTai)}</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{formatDate(selectedRoom.ngayBatDau)}</td>
+                              <td className="px-4 py-3 text-gray-900">{formatDate(selectedRoom.ngayKetThuc)}</td>
+                            </tr>
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-6 text-center text-gray-500 bg-white">Không có hợp đồng</td>
+                            </tr>
                           )}
-                        </div>
-                      </div>
-                      {selectedRoom.hopDongId && (
-                        <div className="bg-muted/20 p-3 px-4 grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-0.5">Ngày bắt đầu</p>
-                            <p className="font-medium">{formatDate(selectedRoom.ngayBatDau)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-0.5">Ngày kết thúc</p>
-                            <p className="font-medium">{formatDate(selectedRoom.ngayKetThuc)}</p>
-                          </div>
-                        </div>
-                      )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
-                  {/* Hành động nhanh */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-foreground">Hành động nhanh</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {selectedRoom.hopDongId ? (
-                        <Button variant="outline" className="h-12 justify-start px-4 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-all" asChild>
-                          <Link href={`/dashboard/hop-dong/${selectedRoom.hopDongId}`}>
-                            <div className="p-1.5 bg-muted rounded-md mr-3">
-                              <FileText className="h-4 w-4 text-foreground" />
-                            </div>
-                            <span className="font-medium">Hợp đồng</span>
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button variant="outline" className="h-12 justify-start px-4 shadow-sm opacity-50 cursor-not-allowed" disabled>
-                          <div className="p-1.5 bg-muted rounded-md mr-3">
-                            <FileText className="h-4 w-4 text-foreground" />
-                          </div>
-                          <span className="font-medium">Hợp đồng</span>
-                        </Button>
-                      )}
-                      <Button variant="outline" className="h-12 justify-start px-4 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-all" asChild>
-                        <Link href={`/dashboard/hoa-don?search=${selectedRoom.maPhong}`}>
-                          <div className="p-1.5 bg-muted rounded-md mr-3">
-                            <CalendarDays className="h-4 w-4 text-foreground" />
-                          </div>
-                          <span className="font-medium">Hóa đơn</span>
-                        </Link>
-                      </Button>
+                  {/* Khách hàng */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">Khách hàng</h3>
+                    <div className="border rounded-md overflow-hidden overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-[#FAFAFA] border-b border-gray-200 text-gray-700">
+                          <tr>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium">Tên cư dân</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Số điện thoại</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Email</th>
+                            <th className="px-4 py-3 font-medium w-1/4">GTTT</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {selectedRoom.khachThueHienTai ? (
+                            <tr className="bg-white hover:bg-gray-50/50">
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">{selectedRoom.khachThueHienTai}</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-900">0396822875</td>
+                              <td className="px-4 py-3 border-r border-gray-100 text-gray-400">—</td>
+                              <td className="px-4 py-3 text-gray-400">—</td>
+                            </tr>
+                          ) : (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-6 text-center text-gray-500 bg-white">Chưa có khách thuê</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
+
+                  {/* Tài sản */}
+                  <div className="pb-4">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3">Tài sản</h3>
+                    <div className="border rounded-md overflow-hidden overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-[#FAFAFA] border-b border-gray-200 text-gray-700">
+                          <tr>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Mã TS</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Tên TS</th>
+                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Giá trị</th>
+                            <th className="px-4 py-3 font-medium w-1/4">Tình trạng</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          <tr className="bg-white hover:bg-gray-50/50">
+                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">TS107786</td>
+                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">Tủ Lạnh</td>
+                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">2,000,000 đ</td>
+                            <td className="px-4 py-3 text-gray-900"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
                 </div>
-              </ScrollArea>
-
-              <div className="p-4 border-t bg-muted/10 mt-auto">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Xóa phòng này
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Xóa phòng</DialogTitle>
-                      <DialogDescription>
-                        Bạn có chắc chắn muốn xóa phòng {selectedRoom.maPhong}? Thao tác này không thể hoàn tác.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <DialogClose asChild>
-                        <Button variant="outline">Hủy</Button>
-                      </DialogClose>
-                      <DialogClose asChild>
-                        <Button variant="destructive" onClick={async () => {
-                          const roomId = selectedRoom._id || selectedRoom.id;
-                          if (!roomId) {
-                            toast.error('Không tìm thấy mã định danh của phòng để xóa');
-                            return;
-                          }
-                          try {
-                            const res = await fetch(`/api/phong/${roomId}`, {
-                              method: 'DELETE',
-                              headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-                            });
-                            if (res.ok) {
-                              const result = await res.json();
-                              if (result.success) {
-                                toast.success('Đã xóa phòng thành công');
-                                fetchSoDo();
-                                setTimeout(() => setSelectedRoom(null), 100);
-                              } else {
-                                toast.error(result.message || 'Có lỗi xảy ra khi xóa phòng');
-                              }
-                            } else {
-                              let errorMsg = 'Có lỗi xảy ra khi xóa phòng (HTTP ' + res.status + ')';
-                              try {
-                                const errData = await res.json();
-                                errorMsg = errData.message || errorMsg;
-                              } catch {}
-                              toast.error(errorMsg);
-                            }
-                          } catch {
-                            toast.error('Không thể kết nối đến máy chủ để xóa phòng');
-                          }
-                        }}>
-                          Xóa
-                        </Button>
-                      </DialogClose>
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </div>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

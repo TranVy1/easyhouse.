@@ -117,15 +117,9 @@ type ToaNhaTableProps = {
 
 const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
   {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original._id!} />,
-    enableHiding: false,
-  },
-  {
     id: "select",
     header: ({ table }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center p-2">
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
@@ -137,7 +131,7 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center p-2">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -149,155 +143,90 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
     enableHiding: false,
   },
   {
-    accessorKey: "tenToaNha",
-    header: "Tòa nhà",
+    id: "ma",
+    header: () => <div className="font-semibold text-gray-700 text-sm">Mã</div>,
     cell: ({ row }) => (
-      <div className="flex items-center gap-2 min-w-40">
-        <Building2 className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{row.original.tenToaNha}</span>
+      <span className="font-medium text-emerald-600">
+        CH007588
+      </span>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    id: "actions",
+    header: () => <div className="font-semibold text-gray-700 text-sm">Thao tác</div>,
+    cell: ({ row }) => (
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 bg-gray-100 hover:bg-gray-200 border-0"
+          onClick={(e) => { e.stopPropagation(); props.onEdit(row.original); }}
+        >
+          <Edit className="h-3.5 w-3.5 text-gray-600" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 bg-red-600 hover:bg-red-700 text-white border-0"
+          onClick={(e) => { e.stopPropagation(); props.onDelete(row.original._id!); }}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
       </div>
+    ),
+    enableHiding: false,
+  },
+  {
+    accessorKey: "tenToaNha",
+    header: () => <div className="font-semibold text-gray-700 text-sm">Tên tòa nhà</div>,
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.tenToaNha}</span>
     ),
     enableHiding: false,
   },
   {
     accessorKey: "diaChi",
-    header: "Địa chỉ",
+    header: () => <div className="font-semibold text-gray-700 text-sm">Địa chỉ</div>,
     cell: ({ row }) => (
-      <div className="flex items-center gap-2 min-w-64">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm">{formatAddress(row.original.diaChi)}</span>
-      </div>
+      <span className="text-sm">{formatAddress(row.original.diaChi)}</span>
     ),
   },
   {
     accessorKey: "tongSoPhong",
-    header: () => <div className="text-center">Tổng phòng</div>,
+    header: () => <div className="font-semibold text-gray-700 text-sm">Số căn hộ</div>,
     cell: ({ row }) => (
-      <div className="text-center font-medium">
-        {row.original.tongSoPhong}
+      <div className="text-sm">
+        {row.original.tongSoPhong} căn hộ{" "}
+        {props.onView && (
+          <span 
+            className="text-emerald-600 cursor-pointer hover:underline ml-1 font-medium" 
+            onClick={(e) => { e.stopPropagation(); props.onView!(row.original); }}
+          >
+            (Xem)
+          </span>
+        )}
       </div>
     ),
   },
   {
-    id: "phongTrong",
-    header: () => <div className="text-center">Phòng trống</div>,
-    cell: ({ row }) => {
-      const phongTrong = row.original.phongTrong || 0
-      const total = row.original.tongSoPhong
-      const percentage = total > 0 ? Math.round((phongTrong / total) * 100) : 0
-      return (
-        <div className="text-center">
-          <div className="font-medium text-green-600">{phongTrong}</div>
-          <div className="text-xs text-muted-foreground">({percentage}%)</div>
-        </div>
-      )
-    },
-  },
-  {
-    id: "phongDangThue",
-    header: () => <div className="text-center">Đang thuê</div>,
-    cell: ({ row }) => {
-      const phongDangThue = row.original.phongDangThue || 0
-      const total = row.original.tongSoPhong
-      const percentage = total > 0 ? Math.round((phongDangThue / total) * 100) : 0
-      return (
-        <div className="text-center">
-          <div className="font-medium text-[#243B5A]">{phongDangThue}</div>
-          <div className="text-xs text-muted-foreground">({percentage}%)</div>
-        </div>
-      )
-    },
-  },
-  {
-    id: "occupancy",
-    header: () => <div className="min-w-36">Lấp đầy</div>,
-    cell: ({ row }) => {
-      const rented = row.original.phongDangThue || 0
-      const total = row.original.tongSoPhong || 0
-      const percentage = total > 0 ? Math.round((rented / total) * 100) : 0
-      return (
-        <div className="min-w-36 space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">{rented}/{total} phòng</span>
-            <span className="font-medium">{percentage}%</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-[#4FA7A0]/10">
-            <div className={cn(
-              "h-full rounded-full transition-all duration-500",
-              percentage <= 30 ? "bg-red-500" : percentage <= 70 ? "bg-orange-500" : "bg-[#4FA7A0]"
-            )} style={{ width: `${percentage}%` }} />
-          </div>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "tienNghiChung",
-    header: "Tiện nghi",
-    cell: ({ row }) => {
-      const tienNghiList = row.original.tienNghiChung || [];
-      return (
-        <div className="flex flex-wrap gap-1 max-w-48">
-          {tienNghiList.slice(0, 2).map((tienNghi) => (
-            <Badge key={tienNghi} variant="secondary" className="text-xs">
-              {tienNghi}
-            </Badge>
-          ))}
-          {tienNghiList.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{tienNghiList.length - 2}
-            </Badge>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "ngayTao",
-    header: "Ngày tạo",
+    id: "ngayTT",
+    header: () => <div className="font-semibold text-gray-700 text-sm">Ngày TT</div>,
     cell: ({ row }) => (
-      <span className="text-sm">
-        {new Date(row.original.ngayTao).toLocaleDateString('vi-VN')}
-      </span>
+      <span className="text-sm">Ngày 0</span>
     ),
   },
   {
-    id: "actions",
+    id: "hoatDong",
+    header: () => <div className="font-semibold text-gray-700 text-sm whitespace-nowrap">Hoạt động</div>,
     cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <MoreVertical className="size-4" />
-            <span className="sr-only">Mở menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          {props.onView && (
-            <DropdownMenuItem onClick={() => props.onView!(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Xem chi tiết
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={() => props.onEdit(row.original)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Chỉnh sửa
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            className="text-destructive"
-            onClick={() => props.onDelete(row.original._id!)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Xóa
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+        <div className="relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full bg-emerald-500">
+          <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-4 shadow-sm" />
+        </div>
+      </div>
     ),
-    enableHiding: false,
   },
 ]
 

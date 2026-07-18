@@ -12,7 +12,7 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
 interface RevenueData {
@@ -53,12 +53,6 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
 
   return (
     <Card className="col-span-4 border-border/60 shadow-sm overflow-hidden rounded-2xl bg-white">
-      <CardHeader className="pb-4 border-b bg-gradient-to-r from-[#243B5A]/[0.02] to-transparent">
-        <CardTitle className="text-lg text-[#243B5A]">Doanh thu 12 tháng gần nhất</CardTitle>
-        <CardDescription>
-          Theo dõi số tiền phải thu, đã thu và còn nợ
-        </CardDescription>
-      </CardHeader>
       <CardContent className="h-[350px] p-6 pt-8">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

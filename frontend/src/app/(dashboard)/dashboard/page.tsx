@@ -4,50 +4,30 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import {
-  AlertTriangle,
-  ArrowRight,
-  CalendarClock,
-  CircleDollarSign,
-  ClipboardCheck,
+  Building2,
   DoorOpen,
-  FilePlus2,
-  Gauge,
-  ReceiptText,
-  RefreshCw,
-  Wrench,
-  TrendingUp,
-  Activity,
-  Clock,
-  Edit,
-  Trash2,
-  LogIn,
+  Bed,
+  Percent,
+  Star,
   Plus,
-  Eye,
-  Download,
-  CheckCircle2,
+  RefreshCw,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react"
 
 import {
   DashboardSkeleton,
   ErrorState,
-  QuickAction,
-  EmptyState,
 } from "@/components/dashboard/dashboard-ui"
-import {
-  DashboardHero,
-  DashboardKpiCard,
-  HeroActionButton,
-} from "@/components/dashboard/shared-ui"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ApiResponse } from "@/types"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 import { RevenueChart } from "@/components/dashboard/RevenueChart"
-import { DebtAgingChart } from "@/components/dashboard/DebtAgingChart"
-import { TopDebtorsTable } from "@/components/dashboard/TopDebtorsTable"
-import { ActionItemsPanel } from "@/components/dashboard/ActionItemsPanel"
 
+// Reusing types
 type AnalyticsOverview = {
   totalRooms: number;
   occupiedRooms: number;
@@ -70,43 +50,20 @@ function formatCurrency(amount?: number) {
   }).format(amount || 0)
 }
 
-/* ── Health Score ── */
-
-function computeHealthScore(overview: AnalyticsOverview) {
-  // Collection rate contributes 40%
-  const collectionScore = Math.min(overview.collectionRate, 100) * 0.4
-  // Occupancy rate contributes 35%
-  const occupancyScore = Math.min(overview.occupancyRate, 100) * 0.35
-  // Incidents penalty: max 25%, each open incident costs 5 points
-  const incidentPenalty = Math.min(overview.openIncidentCount * 5, 25)
-  const incidentScore = 25 - incidentPenalty
-
-  const total = Math.round(collectionScore + occupancyScore + incidentScore)
-  const clamped = Math.max(0, Math.min(100, total))
-
-  let status: string
-  let statusColor: string
-  if (clamped >= 85) { status = "Tốt"; statusColor = "text-[#4FA7A0]" }
-  else if (clamped >= 65) { status = "Khá"; statusColor = "text-[#F2A45B]" }
-  else { status = "Cần cải thiện"; statusColor = "text-[#C75345]" }
-
-  return { score: clamped, status, statusColor }
-}
-
 export default function DashboardPage() {
   const { data: session } = useSession()
-  const role = session?.user?.role?.replace(/^ROLE_/, "").toUpperCase()
   
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null)
   const [revenueData, setRevenueData] = useState<any[]>([])
-  const [debtAgingData, setDebtAgingData] = useState<any>(null)
-  const [topDebtors, setTopDebtors] = useState<any[]>([])
+  const [toaNhas, setToaNhas] = useState<any[]>([])
+  const [selectedToaNhaId, setSelectedToaNhaId] = useState<string>("all")
+  const [openCombobox, setOpenCombobox] = useState(false)
   
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    document.title = "Analytics | EasyHouse"
+    document.title = "Bảng tin | EasyHouse"
   }, [])
 
   const fetchData = useCallback(async () => {
@@ -126,28 +83,27 @@ export default function DashboardPage() {
         }
       };
 
-      const [overviewRes, revRes, debtRes, debtorsRes] = await Promise.all([
-        fetch("/api/dashboard/analytics/overview", { headers }),
-        fetch("/api/dashboard/analytics/revenue-chart?months=12", { headers }),
-        fetch("/api/dashboard/analytics/debt-aging", { headers }),
-        fetch("/api/dashboard/analytics/top-debtors?limit=5", { headers })
+      const [overviewRes, revRes, toaNhasRes] = await Promise.all([
+        fetch(selectedToaNhaId !== "all" ? `/api/dashboard/analytics/overview?toaNhaId=${selectedToaNhaId}` : "/api/dashboard/analytics/overview", { headers }),
+        fetch(selectedToaNhaId !== "all" ? `/api/dashboard/analytics/revenue-chart?months=12&toaNhaId=${selectedToaNhaId}` : "/api/dashboard/analytics/revenue-chart?months=12", { headers }),
+        fetch("/api/toa-nha?size=100", { headers }),
       ]);
 
       const oData = await parseRes(overviewRes, "overview");
       const rData = await parseRes(revRes, "revenue");
-      const dData = await parseRes(debtRes, "debt");
-      const tdData = await parseRes(debtorsRes, "debtors");
+      const tData = await parseRes(toaNhasRes, "toa-nha");
 
       if (oData.success) setOverview(oData.data);
       if (rData.success) setRevenueData(rData.data);
-      if (dData.success) setDebtAgingData(dData.data);
-      if (tdData.success) setTopDebtors(tdData.data);
+      if (tData.success || (tData.data && Array.isArray(tData.data.data))) {
+        setToaNhas(Array.isArray(tData.data) ? tData.data : (tData.data?.data || []));
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Không thể kết nối máy chủ.")
     } finally {
       setLoading(false)
     }
-  }, [role, session?.accessToken])
+  }, [session?.accessToken, selectedToaNhaId])
 
   useEffect(() => {
     if (session?.accessToken) {
@@ -166,224 +122,461 @@ export default function DashboardPage() {
     )
   }
 
-  const userName = session?.user?.name || "Quản trị viên"
-  const currentMonth = new Date().toLocaleDateString("vi-VN", { month: "long", year: "numeric" })
-  const health = computeHealthScore(overview)
-
-  const taskItems = [
-    {
-      title: "Hóa đơn quá hạn",
-      value: overview.overdueInvoiceCount,
-      href: "/dashboard/cong-no",
-      description: "Hóa đơn đã quá hạn cần nhắc thanh toán",
-      tone: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-    },
-    {
-      title: "Hợp đồng sắp hết hạn",
-      value: overview.expiringContractCount,
-      href: "/dashboard/hop-dong",
-      description: "Hợp đồng sắp hết hạn trong 30 ngày tới",
-      tone: "bg-[#4FA7A0]/10 text-[#243B5A] dark:bg-[#243B5A]/35 dark:text-[#8CCBC5]",
-    },
-    {
-      title: "Sự cố đang mở",
-      value: overview.openIncidentCount,
-      href: "/dashboard/su-co",
-      description: "Sự cố người thuê báo cáo chưa xử lý",
-      tone: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300",
-    },
-  ]
-
   return (
-    <div className="space-y-6 lg:space-y-8">
-      {/* ── HERO ── */}
-      <DashboardHero
-        variant="image"
-        icon={Activity}
-        title="Phân tích tài chính & Vận hành"
-        description="Theo dõi chi tiết dòng tiền, công nợ và tình hình kinh doanh."
-        stats={
-          <>
-            <span className="dashboard-hero__chip">
-              <Clock className="size-3.5" aria-hidden="true" />
-              Kỳ: {currentMonth}
-            </span>
-            <span className="dashboard-hero__chip">
-              <DoorOpen className="size-3.5" aria-hidden="true" />
-              {overview.totalRooms} phòng
-            </span>
-          </>
-        }
-        actions={
-          <>
-            <HeroActionButton onClick={fetchData} variant="secondary" className="dashboard-hero__button dashboard-hero__button-secondary">
-              <RefreshCw className="h-4 w-4 sm:mr-2 inline-block" />
-              <span className="hidden sm:inline">Làm mới</span>
-            </HeroActionButton>
-            <HeroActionButton href="/dashboard/bao-cao" variant="secondary" className="dashboard-hero__button dashboard-hero__button-secondary">
-              <Download className="h-4 w-4 sm:mr-2 inline-block" />
-              <span className="hidden sm:inline">Xuất báo cáo</span>
-            </HeroActionButton>
-            <HeroActionButton href="/dashboard/hoa-don/them-moi" variant="default" className="dashboard-hero__button dashboard-hero__button-primary">
-              <FilePlus2 className="h-4 w-4 sm:mr-2 inline-block" />
-              <span className="hidden sm:inline">Tạo hóa đơn</span>
-            </HeroActionButton>
-          </>
-        }
-      />
-
-      {/* ── KPI CARDS ── */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 animate-fade-in-up-d1">
-        <DashboardKpiCard
-          title="Tỷ lệ thu tiền tháng này"
-          value={`${overview.collectionRate.toFixed(1)}%`}
-          icon={<TrendingUp className="h-5 w-5" />}
-          tone={overview.collectionRate >= 90 ? "emerald" : "orange"}
-          trend={{ value: `Phải thu: ${formatCurrency(overview.expectedRevenueThisMonth)}`, isUp: overview.collectionRate >= 90 }}
-        />
-        <DashboardKpiCard
-          title="Đã thu tháng này"
-          value={formatCurrency(overview.collectedThisMonth)}
-          icon={<CircleDollarSign className="h-5 w-5" />}
-          tone="emerald"
-          trend={{ value: "Thực thu từ khách", isUp: true }}
-        />
-        <DashboardKpiCard
-          title="Còn nợ tháng này"
-          value={formatCurrency(overview.outstandingThisMonth)}
-          icon={<ReceiptText className="h-5 w-5" />}
-          tone={overview.outstandingThisMonth > 0 ? "red" : "default"}
-          trend={{ value: "Số tiền chưa thanh toán", isUp: overview.outstandingThisMonth === 0 }}
-        />
-        <DashboardKpiCard
-          title="Phòng đang thuê"
-          value={`${overview.occupiedRooms}/${overview.totalRooms}`}
-          icon={<DoorOpen className="h-5 w-5" />}
-          tone="blue"
-          trend={{ value: `${overview.occupancyRate.toFixed(1)}% tỷ lệ lấp đầy`, isUp: overview.occupancyRate > 70 }}
-        />
-      </div>
-
-      {/* ── BIỂU ĐỒ TÀI CHÍNH ── */}
-      <div className="grid gap-4 md:grid-cols-7 animate-fade-in-up-d2">
-        <div className="col-span-4">
-          <RevenueChart data={revenueData} />
-        </div>
-        <div className="col-span-3">
-          <DebtAgingChart data={debtAgingData} />
+    <div className="space-y-6 min-h-screen pb-10">
+      {/* ── HEADER ── */}
+      <div className="flex items-center justify-end mb-4">
+        <div className="flex items-center gap-3">
+          <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openCombobox}
+                className="justify-between min-w-[200px] border-gray-300 text-gray-700 font-normal hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500"
+              >
+                {selectedToaNhaId === "all"
+                  ? "Tất cả tòa nhà"
+                  : toaNhas.find((t) => t._id === selectedToaNhaId)?.tenToaNha || "Chọn tòa nhà..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0" align="end">
+              <Command>
+                <CommandInput placeholder="Tìm kiếm tòa nhà..." />
+                <CommandList>
+                  <CommandEmpty>Không tìm thấy tòa nhà nào.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      key="all"
+                      value="all"
+                      onSelect={() => {
+                        setSelectedToaNhaId("all")
+                        setOpenCombobox(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedToaNhaId === "all" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      Tất cả tòa nhà
+                    </CommandItem>
+                    {toaNhas.map((toaNha) => (
+                      <CommandItem
+                        key={toaNha._id}
+                        value={toaNha.tenToaNha}
+                        onSelect={() => {
+                          setSelectedToaNhaId(toaNha._id)
+                          setOpenCombobox(false)
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedToaNhaId === toaNha._id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {toaNha.tenToaNha}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Plus className="w-4 h-4 mr-1" />
+            Tòa nhà
+          </Button>
         </div>
       </div>
 
-      {/* ── TRUNG TÂM VẬN HÀNH & TOP KHÁCH NỢ ── */}
-      <div className="grid gap-4 xl:grid-cols-[2fr_1.1fr] animate-fade-in-up-d3">
-        <ActionItemsPanel taskItems={taskItems} />
-        <TopDebtorsTable data={topDebtors} />
-      </div>
-
-      {/* ── ĐIỂM VẬN HÀNH + THAO TÁC NHANH ── */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_2fr] animate-fade-in-up-d5">
-        {/* Health Score Card */}
-        <Card className="border-border/60 shadow-sm overflow-hidden rounded-2xl">
-          <CardHeader className="pb-3 border-b bg-gradient-to-r from-[#E6F3F1]/50 to-transparent">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-[#4FA7A0]/10 p-1.5">
-                <Gauge className="size-4 text-[#4FA7A0]" />
-              </div>
-              <CardTitle className="text-base text-[#243B5A]">Tình hình vận hành</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-5 space-y-5">
-            {/* Score display */}
-            <div className="flex items-center justify-center gap-6 py-2">
-              <div className="relative flex size-24 items-center justify-center">
-                <svg className="size-24 -rotate-90 drop-shadow-sm" viewBox="0 0 80 80">
-                  <circle cx="40" cy="40" r="34" fill="none" stroke="#E8DED2" strokeWidth="6" />
-                  <circle
-                    cx="40" cy="40" r="34" fill="none"
-                    stroke={health.score >= 85 ? "#4FA7A0" : health.score >= 65 ? "#F2A45B" : "#C75345"}
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(health.score / 100) * 213.6} 213.6`}
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black text-[#243B5A] tracking-tighter">{health.score}</span>
-                  <span className="text-[10px] uppercase font-bold text-[#6B7A8C] tracking-wider mt-0.5">Điểm</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className={`text-xl font-bold ${health.statusColor}`}>{health.status}</p>
-                <p className="text-sm text-[#6B7A8C] leading-snug">
-                  Hệ thống đang hoạt động {health.status.toLowerCase()} dựa trên dữ liệu thu tiền và lấp đầy.
-                </p>
-              </div>
-            </div>
-            {/* Factor breakdown */}
-            <div className="space-y-3 rounded-xl bg-[#F8F3EC]/50 p-4 border border-[#E8DED2]/50">
-              <HealthFactor
-                label="Thu tiền"
-                value={`${overview.collectionRate.toFixed(0)}%`}
-                good={overview.collectionRate >= 80}
-              />
-              <HealthFactor
-                label="Lấp đầy"
-                value={`${overview.occupancyRate.toFixed(0)}%`}
-                good={overview.occupancyRate >= 80}
-              />
-              <HealthFactor
-                label="Sự cố mở"
-                value={`${overview.openIncidentCount}`}
-                good={overview.openIncidentCount === 0}
-              />
+      {/* ── ROW 1: TÒA NHÀ & CĂN HỘ ── */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        {/* Tòa nhà */}
+        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
+          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+            <Building2 className="w-5 h-5 text-gray-700 mb-auto" />
+            <div>
+              <div className="text-3xl font-bold text-gray-900">0</div>
+              <div className="text-xs text-gray-500 mt-1">Tòa nhà</div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-bold text-[#243B5A]">Thao tác nhanh</h2>
-          <div className="grid gap-3 sm:grid-cols-2 h-[calc(100%-2rem)]">
-            <QuickAction
-              href="/dashboard/chi-so-dien-nuoc"
-              title="Ghi chỉ số"
-              description="Chốt điện nước cho kỳ mới."
-              icon={ClipboardCheck}
-            />
-            <QuickAction
-              href="/dashboard/hop-dong/them-moi"
-              title="Tạo hợp đồng"
-              description="Đưa khách vào phòng trống."
-              icon={CalendarClock}
-            />
-            <QuickAction
-              href="/dashboard/cong-no"
-              title="Theo dõi công nợ"
-              description="Kiểm tra khoản còn thiếu."
-              icon={CircleDollarSign}
-            />
-            <QuickAction
-              href="/dashboard/su-co"
-              title="Xử lý sự cố"
-              description="Xem yêu cầu bảo trì mới."
-              icon={Wrench}
-            />
-          </div>
-        </section>
+        {/* Căn hộ */}
+        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
+          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+            <DoorOpen className="w-5 h-5 text-gray-700 mb-auto" />
+            <div>
+              <div className="text-3xl font-bold text-gray-900">{overview.totalRooms}</div>
+              <div className="text-xs text-gray-500 mt-1">Căn hộ</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Căn hộ chi tiết */}
+        <Card className="col-span-1 md:col-span-4 shadow-sm border border-gray-100 rounded-xl overflow-hidden">
+          <CardContent className="p-0 h-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 h-full divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang thuê</div>
+                <div className="text-3xl font-bold text-emerald-500">{overview.occupiedRooms}</div>
+                <div className="text-xs mt-1 text-emerald-500">{(overview.occupancyRate).toFixed(2)} % <span className="text-gray-400">căn hộ</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang cọc</div>
+                <div className="text-3xl font-bold text-amber-500">0</div>
+                <div className="text-xs mt-1 text-amber-500">0.00 % <span className="text-gray-400">căn hộ</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang trống</div>
+                <div className="text-3xl font-bold text-red-500">{overview.availableRooms}</div>
+                <div className="text-xs mt-1 text-red-500">{overview.totalRooms > 0 ? ((overview.availableRooms / overview.totalRooms) * 100).toFixed(2) : "0.00"} % <span className="text-gray-400">căn hộ</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ ngừng hoạt động</div>
+                <div className="text-3xl font-bold text-slate-400">0</div>
+                <div className="text-xs mt-1 text-slate-400">0.00 % <span className="text-gray-400">căn hộ</span></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
-  )
-}
 
-/* ── Health Factor Row ── */
+      {/* ── ROW 2: GIƯỜNG & TỶ LỆ LẤP ĐẦY ── */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        {/* Giường */}
+        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
+          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+            <Bed className="w-5 h-5 text-gray-700 mb-auto" />
+            <div>
+              <div className="text-3xl font-bold text-gray-900">0</div>
+              <div className="text-xs text-gray-500 mt-1">giường</div>
+            </div>
+          </CardContent>
+        </Card>
 
-function HealthFactor({ label, value, good }: { label: string; value: string; good: boolean }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-[#6B7A8C]">{label}</span>
-      <span className={`font-semibold ${good ? "text-[#4FA7A0]" : "text-[#F2A45B]"}`}>
-        {value}
-      </span>
+        {/* Tỷ lệ lấp đầy */}
+        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
+          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+            <Percent className="w-5 h-5 text-gray-700 mb-auto" />
+            <div>
+              <div className="text-3xl font-bold text-gray-900">{overview.occupancyRate.toFixed(0)}%</div>
+              <div className="text-xs text-gray-500 mt-1">Tỷ lệ lấp đầy</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Giường chi tiết */}
+        <Card className="col-span-1 md:col-span-4 shadow-sm border border-gray-100 rounded-xl overflow-hidden">
+          <CardContent className="p-0 h-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 h-full divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang thuê</div>
+                <div className="text-3xl font-bold text-emerald-500">0</div>
+                <div className="text-xs mt-1 text-emerald-500">0.00 % <span className="text-gray-400">giường</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang cọc</div>
+                <div className="text-3xl font-bold text-amber-500">0</div>
+                <div className="text-xs mt-1 text-amber-500">0.00 % <span className="text-gray-400">giường</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang trống</div>
+                <div className="text-3xl font-bold text-red-500">0</div>
+                <div className="text-xs mt-1 text-red-500">0.00 % <span className="text-gray-400">giường</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Giường ngừng hoạt động</div>
+                <div className="text-3xl font-bold text-slate-400">0</div>
+                <div className="text-xs mt-1 text-slate-400">0.00 % <span className="text-gray-400">giường</span></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── ROW 3: KHÁCH HẸN, ĐẶT CỌC, HỢP ĐỒNG ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Khách hẹn */}
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan khách hẹn</CardTitle>
+            <Link href="#" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">0</div>
+                <div className="text-xs text-gray-500 mt-1">Khách hẹn mới</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">0</div>
+                <div className="text-xs text-gray-500 mt-1">Đã ký hợp đồng</div>
+              </div>
+            </div>
+            {/* Progress bar line placeholder */}
+            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex">
+              <div className="w-1/2 bg-gray-200"></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Nguồn khách lớn nhất</div>
+                <div className="text-sm font-medium text-gray-900">N/A</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Tỷ lệ chuyển đổi <span className="text-gray-400 ml-1">ⓘ</span></div>
+                <div className="text-sm font-medium text-gray-900">0%</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Đặt cọc */}
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan đặt cọc</CardTitle>
+            <Link href="#" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">0</div>
+                <div className="text-xs text-gray-500 mt-1">Khách cọc mới</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">0</div>
+                <div className="text-xs text-gray-500 mt-1">Khách vào thuê</div>
+              </div>
+            </div>
+            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex">
+              <div className="w-1/2 bg-gray-200"></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Top sale</div>
+                <div className="text-sm font-medium text-gray-900">N/A</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Tỷ lệ chuyển đổi <span className="text-gray-400 ml-1">ⓘ</span></div>
+                <div className="text-sm font-medium text-gray-900">0%</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Hợp đồng */}
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan hợp đồng</CardTitle>
+            <Link href="/dashboard/hop-dong" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
+          </CardHeader>
+          <CardContent className="p-4 flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-emerald-600 font-medium">Ký mới trong tháng</span>
+                <span className="text-sm text-emerald-600 font-bold">0</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-red-500 font-medium">Thanh lý trong tháng</span>
+                <span className="text-sm text-red-500 font-bold">0</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-auto">
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-emerald-600">{overview.occupiedRooms}</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Đang thuê</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-amber-500">0</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Sắp chuyển đi</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-indigo-500">{overview.expiringContractCount}</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Sắp hết hạn</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── ROW 4: HÓA ĐƠN & BIỂU ĐỒ ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Hóa đơn */}
+        <Card className="shadow-sm lg:col-span-1">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Tiền hóa đơn tháng này</CardTitle>
+            <Link href="/dashboard/hoa-don" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
+          </CardHeader>
+          <CardContent className="p-4 space-y-5">
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Tất cả</div>
+              <div className="flex items-end gap-2">
+                <div className="text-3xl font-bold text-gray-900">{formatCurrency(overview.expectedRevenueThisMonth)}</div>
+                <span className="text-xs text-red-500 bg-red-50 px-1.5 py-0.5 rounded font-medium mb-1.5">0.00 % tháng trước</span>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
+                <div className="bg-emerald-500 h-full" style={{ width: `${overview.collectionRate}%` }}></div>
+                <div className="bg-red-500 h-full" style={{ width: `${100 - overview.collectionRate}%` }}></div>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Đã thu
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span> Chưa thu
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[10px]">🏠</div>
+                  Tiền nhà
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">0 đ</span>
+                  <span className="text-xs text-gray-400 w-6 text-right">0%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[10px]">💡</div>
+                  Tiền điện
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">0 đ</span>
+                  <span className="text-xs text-gray-400 w-6 text-right">0%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[10px]">💧</div>
+                  Tiền nước
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">0 đ</span>
+                  <span className="text-xs text-gray-400 w-6 text-right">0%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[10px]">📋</div>
+                  Dịch vụ khác
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">0 đ</span>
+                  <span className="text-xs text-gray-400 w-6 text-right">0%</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Biểu đồ */}
+        <Card className="shadow-sm lg:col-span-2">
+          <CardHeader className="p-4 pb-2 border-b border-gray-50 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold text-gray-800">Biểu đồ thu chi</CardTitle>
+            <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" onClick={fetchData} />
+          </CardHeader>
+          <CardContent className="p-4 bg-gray-50/50">
+            <RevenueChart data={revenueData} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── ROW 5: CÔNG VIỆC, ĐÁNH GIÁ, THỐNG KÊ ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Tổng quan công việc */}
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan công việc</CardTitle>
+            <Link href="/dashboard/su-co" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Phát sinh trong tháng</span>
+                <span className="text-sm font-bold">{overview.openIncidentCount}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Hoàn thành</span>
+                <span className="text-sm font-bold">0</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-emerald-500">{overview.openIncidentCount}</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Chưa làm</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-amber-500">0</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Đang làm</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md text-center">
+                <div className="text-lg font-bold text-indigo-500">0</div>
+                <div className="text-[10px] text-gray-500 uppercase mt-1">Chờ nghiệm thu</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Đánh giá khách hàng */}
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 pb-2 border-b border-gray-50">
+            <CardTitle className="text-sm font-semibold text-gray-800">Đánh giá khách hàng</CardTitle>
+            <div className="text-xs text-gray-500 mt-1">Dựa trên 0 đánh giá</div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <div key={star} className="flex items-center gap-2 text-sm">
+                  <span className="w-3 text-gray-600 font-medium">{star}</span>
+                  <div className="flex gap-0.5 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`w-3 h-3 ${i < star ? "fill-current" : "text-gray-200 fill-gray-200"}`} />
+                    ))}
+                  </div>
+                  <div className="flex-1"></div>
+                  <span className="text-gray-400 text-xs">0 (0%)</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 4 Thống kê nhỏ */}
+        <Card className="shadow-sm lg:col-span-2">
+          <CardContent className="p-0 h-full">
+            <div className="grid grid-cols-2 h-full divide-x divide-y divide-gray-100">
+              <div className="p-4 flex flex-col justify-center border-b">
+                <div className="text-sm font-medium text-gray-800 mb-2">Tòa nhà nhiều sự cố nhất</div>
+                <div className="text-xs text-emerald-600 mt-auto">0 <span className="text-gray-500">sự cố/công việc</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center border-b border-l">
+                <div className="text-sm font-medium text-gray-800 mb-2">Căn hộ nhiều sự cố nhất</div>
+                <div className="text-xs text-emerald-600 mt-auto">0 <span className="text-gray-500">sự cố/công việc</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center">
+                <div className="text-sm font-medium text-gray-800 mb-2">Loại công việc phát sinh nhiều nhất</div>
+                <div className="text-xs text-emerald-600 mt-auto">0 <span className="text-gray-500">sự cố/công việc</span></div>
+              </div>
+              <div className="p-4 flex flex-col justify-center border-l">
+                <div className="text-sm font-medium text-gray-800 mb-2">Nhân viên còn nhiều việc nhất</div>
+                <div className="text-xs text-emerald-600 mt-auto">0 <span className="text-gray-500">việc chưa xong</span></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   )
 }
