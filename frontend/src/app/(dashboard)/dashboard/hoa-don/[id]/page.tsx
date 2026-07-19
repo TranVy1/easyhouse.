@@ -307,6 +307,27 @@ export default function ChinhSuaHoaDonPage() {
     }));
   };
 
+  const handleSendZalo = async () => {
+    try {
+      const response = await fetch(`/api/hoa-don/${hopDongId}/send-zalo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        toast.success(result.message || 'Đã gửi thông báo Zalo ZNS thành công');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi gửi Zalo');
+      }
+    } catch (error) {
+      console.error('Lỗi khi gửi Zalo:', error);
+      toast.error('Có lỗi xảy ra khi gửi Zalo');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -791,6 +812,16 @@ export default function ChinhSuaHoaDonPage() {
                     className="w-full sm:w-auto sm:min-w-[80px]"
                   >
                     Hủy
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleSendZalo}
+                    disabled={submitting}
+                    className="w-full sm:w-auto sm:min-w-[120px]"
+                  >
+                    Gửi Zalo ZNS
                   </Button>
                   <Button 
                     type="submit"

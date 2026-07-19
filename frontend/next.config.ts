@@ -238,6 +238,10 @@ const nextConfig: NextConfig = {
         source: '/api/vnpay',
         destination: `${backendUrl}/api/vnpay`
       },
+      {
+        source: '/api/webhook/:path*',
+        destination: `${backendUrl}/api/webhook/:path*`
+      },
     ];
   }
 };

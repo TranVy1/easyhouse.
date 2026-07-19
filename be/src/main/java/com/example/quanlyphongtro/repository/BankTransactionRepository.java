@@ -16,4 +16,5 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
     Page<BankTransaction> findByNhaTroIdAndDaDoiSoat(UUID nhaTroId, Boolean daDoiSoat, Pageable pageable);
     Page<BankTransaction> findByNhaTroIdIn(List<UUID> nhaTroIds, Pageable pageable);
     Page<BankTransaction> findByNhaTroIdInAndDaDoiSoat(List<UUID> nhaTroIds, Boolean daDoiSoat, Pageable pageable);
+    boolean existsByMaGiaoDich(String maGiaoDich);
 }

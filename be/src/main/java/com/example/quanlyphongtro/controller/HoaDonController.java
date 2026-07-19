@@ -41,6 +41,8 @@ public class HoaDonController {
     private final HoaDonService hoaDonService;
     private final ThanhToanService thanhToanService;
     private final InvoiceGenerationService invoiceGenerationService;
+    private final com.example.quanlyphongtro.services.ZaloZNSService zaloZNSService;
+    private final com.example.quanlyphongtro.repository.HoaDonRepository hoaDonRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<HoaDonResponse>>> getAll(
@@ -135,5 +137,14 @@ public class HoaDonController {
             @RequestBody InvoiceGenerationRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
                 invoiceGenerationService.generate(request), "Sinh hóa đơn hàng tháng thành công"));
+    }
+
+    @PostMapping("/{id}/send-zalo")
+    public ResponseEntity<ApiResponse<String>> sendZalo(@PathVariable UUID id) {
+        com.example.quanlyphongtro.entity.HoaDon hoaDon = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        
+        zaloZNSService.sendInvoiceNotification(hoaDon);
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi yêu cầu thông báo Zalo ZNS"));
     }
 }

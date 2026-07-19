@@ -19,6 +19,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     List<HoaDon> findByXoaLucIsNullOrderByTaoLucDesc();
 
+    Optional<HoaDon> findByMaHoaDon(String maHoaDon);
+
     @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
            "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:hopDongId as string) IS NULL OR h.hopDong.id = :hopDongId) " +
