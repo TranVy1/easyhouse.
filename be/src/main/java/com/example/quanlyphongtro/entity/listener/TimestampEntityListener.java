@@ -13,6 +13,8 @@ public class TimestampEntityListener {
         ZonedDateTime now = ZonedDateTime.now();
         setIfNull(entity, "taoLuc", now);
         setIfNull(entity, "capNhatLuc", now);
+        setIfNull(entity, "createdAt", now);
+        setIfNull(entity, "updatedAt", now);
         setIfNull(entity, "ngayLapHoaDon", now);
         setIfNull(entity, "ngayThanhToan", now);
         setIfNull(entity, "guiLuc", now);
@@ -20,7 +22,9 @@ public class TimestampEntityListener {
 
     @PreUpdate
     public void preUpdate(Object entity) {
-        set(entity, "capNhatLuc", ZonedDateTime.now());
+        ZonedDateTime now = ZonedDateTime.now();
+        set(entity, "capNhatLuc", now);
+        set(entity, "updatedAt", now);
     }
 
     private void setIfNull(Object target, String fieldName, ZonedDateTime value) {

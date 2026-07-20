@@ -1,0 +1,3 @@
+@echo off
+echo Dang khoi dong CSDL PostgreSQL (SQL)...
+docker compose -f docker-compose.easyhouse.yml up postgres

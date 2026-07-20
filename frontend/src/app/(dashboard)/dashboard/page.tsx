@@ -13,6 +13,15 @@ import {
   RefreshCw,
   Check,
   ChevronsUpDown,
+  ShoppingCart,
+  Package,
+  Box,
+  AlertTriangle,
+  ClipboardList,
+  Clock,
+  DollarSign,
+  Anchor,
+  ChevronRight,
 } from "lucide-react"
 
 import {
@@ -193,214 +202,200 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── ROW 1: TÒA NHÀ & CĂN HỘ ── */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        {/* Tòa nhà */}
-        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
-          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
-            <Building2 className="w-5 h-5 text-gray-700 mb-auto" />
-            <div>
-              <div className="text-3xl font-bold text-gray-900">0</div>
-              <div className="text-xs text-gray-500 mt-1">Tòa nhà</div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* ── THỐNG KÊ PHÒNG ── */}
+      {/* ── THỐNG KÊ PHÒNG ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Số phòng có thể cho thuê */}
+        <Link href="/dashboard/phong?trangThai=trong">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0">
+                    <ShoppingCart className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">{overview.totalRooms}</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">100%</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng có thể cho thuê
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Căn hộ */}
-        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
-          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
-            <DoorOpen className="w-5 h-5 text-gray-700 mb-auto" />
-            <div>
-              <div className="text-3xl font-bold text-gray-900">{overview.totalRooms}</div>
-              <div className="text-xs text-gray-500 mt-1">Căn hộ</div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Card 2: Số phòng đang trống */}
+        <Link href="/dashboard/phong?trangThai=trong">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0">
+                    <Package className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">{overview.availableRooms}</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">
+                      {overview.totalRooms > 0 ? Math.round((overview.availableRooms / overview.totalRooms) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng đang trống
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Căn hộ chi tiết */}
-        <Card className="col-span-1 md:col-span-4 shadow-sm border border-gray-100 rounded-xl overflow-hidden">
-          <CardContent className="p-0 h-full">
-            <div className="grid grid-cols-2 md:grid-cols-4 h-full divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang thuê</div>
-                <div className="text-3xl font-bold text-emerald-500">{overview.occupiedRooms}</div>
-                <div className="text-xs mt-1 text-emerald-500">{(overview.occupancyRate).toFixed(2)} % <span className="text-gray-400">căn hộ</span></div>
+        {/* Card 3: Số phòng đang thuê */}
+        <Link href="/dashboard/phong?trangThai=dangThue">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <Box className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">{overview.occupiedRooms}</span>
+                    <span className="text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md font-medium">
+                      {overview.totalRooms > 0 ? Math.round((overview.occupiedRooms / overview.totalRooms) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang cọc</div>
-                <div className="text-3xl font-bold text-amber-500">0</div>
-                <div className="text-xs mt-1 text-amber-500">0.00 % <span className="text-gray-400">căn hộ</span></div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng đang thuê
               </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ đang trống</div>
-                <div className="text-3xl font-bold text-red-500">{overview.availableRooms}</div>
-                <div className="text-xs mt-1 text-red-500">{overview.totalRooms > 0 ? ((overview.availableRooms / overview.totalRooms) * 100).toFixed(2) : "0.00"} % <span className="text-gray-400">căn hộ</span></div>
-              </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Căn hộ ngừng hoạt động</div>
-                <div className="text-3xl font-bold text-slate-400">0</div>
-                <div className="text-xs mt-1 text-slate-400">0.00 % <span className="text-gray-400">căn hộ</span></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-      {/* ── ROW 2: GIƯỜNG & TỶ LỆ LẤP ĐẦY ── */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        {/* Giường */}
-        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
-          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
-            <Bed className="w-5 h-5 text-gray-700 mb-auto" />
-            <div>
-              <div className="text-3xl font-bold text-gray-900">0</div>
-              <div className="text-xs text-gray-500 mt-1">giường</div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Card 4: Số phòng sắp kết thúc hợp đồng */}
+        <Link href="/dashboard/hop-dong?status=SAP_HET_HAN">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">{overview.expiringContractCount}</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">
+                      {overview.occupiedRooms > 0 ? Math.round((overview.expiringContractCount / overview.occupiedRooms) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng sắp kết thúc hợp đồng
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Tỷ lệ lấp đầy */}
-        <Card className="col-span-1 shadow-sm border border-gray-100 rounded-xl">
-          <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
-            <Percent className="w-5 h-5 text-gray-700 mb-auto" />
-            <div>
-              <div className="text-3xl font-bold text-gray-900">{overview.occupancyRate.toFixed(0)}%</div>
-              <div className="text-xs text-gray-500 mt-1">Tỷ lệ lấp đầy</div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Card 5: Số phòng báo kết thúc hợp đồng */}
+        <Link href="/dashboard/hop-dong?status=DA_CHAM_DUT">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-400 text-white flex items-center justify-center shrink-0">
+                    <ClipboardList className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">0</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">0%</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng báo kết thúc hợp đồng
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Giường chi tiết */}
-        <Card className="col-span-1 md:col-span-4 shadow-sm border border-gray-100 rounded-xl overflow-hidden">
-          <CardContent className="p-0 h-full">
-            <div className="grid grid-cols-2 md:grid-cols-4 h-full divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang thuê</div>
-                <div className="text-3xl font-bold text-emerald-500">0</div>
-                <div className="text-xs mt-1 text-emerald-500">0.00 % <span className="text-gray-400">giường</span></div>
+        {/* Card 6: Số phòng quá hạn hợp đồng */}
+        <Link href="/dashboard/hop-dong?status=QUA_HAN">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center shrink-0">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">0</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">0%</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang cọc</div>
-                <div className="text-3xl font-bold text-amber-500">0</div>
-                <div className="text-xs mt-1 text-amber-500">0.00 % <span className="text-gray-400">giường</span></div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng quá hạn hợp đồng
               </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Giường đang trống</div>
-                <div className="text-3xl font-bold text-red-500">0</div>
-                <div className="text-xs mt-1 text-red-500">0.00 % <span className="text-gray-400">giường</span></div>
-              </div>
-              <div className="p-4 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Giường ngừng hoạt động</div>
-                <div className="text-3xl font-bold text-slate-400">0</div>
-                <div className="text-xs mt-1 text-slate-400">0.00 % <span className="text-gray-400">giường</span></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-      {/* ── ROW 3: KHÁCH HẸN, ĐẶT CỌC, HỢP ĐỒNG ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Khách hẹn */}
-        <Card className="shadow-sm">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
-            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan khách hẹn</CardTitle>
-            <Link href="#" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
-          </CardHeader>
-          <CardContent className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-500 mt-1">Khách hẹn mới</div>
+        {/* Card 7: Số phòng đang nợ tiền */}
+        <Link href="/dashboard/hoa-don?status=CHUA_THANH_TOAN">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <DollarSign className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">{overview.overdueInvoiceCount}</span>
+                    <span className="text-sm text-orange-500 bg-orange-50 px-2 py-1 rounded-md font-medium">
+                      {overview.occupiedRooms > 0 ? Math.round((overview.overdueInvoiceCount / overview.occupiedRooms) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-500 mt-1">Đã ký hợp đồng</div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng đang nợ tiền
               </div>
-            </div>
-            {/* Progress bar line placeholder */}
-            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex">
-              <div className="w-1/2 bg-gray-200"></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div>
-                <div className="text-xs text-gray-500 mb-1">Nguồn khách lớn nhất</div>
-                <div className="text-sm font-medium text-gray-900">N/A</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-1">Tỷ lệ chuyển đổi <span className="text-gray-400 ml-1">ⓘ</span></div>
-                <div className="text-sm font-medium text-gray-900">0%</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Đặt cọc */}
-        <Card className="shadow-sm">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
-            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan đặt cọc</CardTitle>
-            <Link href="#" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
-          </CardHeader>
-          <CardContent className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-500 mt-1">Khách cọc mới</div>
+        {/* Card 8: Số phòng đang cọc giữ chỗ */}
+        <Link href="/dashboard/phong">
+          <Card className="shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-slate-500 text-white flex items-center justify-center shrink-0">
+                    <Anchor className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-gray-900">0</span>
+                    <span className="text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md font-medium">0%</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-500 mt-1">Khách vào thuê</div>
+              <div className="text-[15px] font-medium text-gray-700">
+                Số phòng đang cọc giữ chỗ
               </div>
-            </div>
-            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex">
-              <div className="w-1/2 bg-gray-200"></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div>
-                <div className="text-xs text-gray-500 mb-1">Top sale</div>
-                <div className="text-sm font-medium text-gray-900">N/A</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-1">Tỷ lệ chuyển đổi <span className="text-gray-400 ml-1">ⓘ</span></div>
-                <div className="text-sm font-medium text-gray-900">0%</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Hợp đồng */}
-        <Card className="shadow-sm">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-gray-50">
-            <CardTitle className="text-sm font-semibold text-gray-800">Tổng quan hợp đồng</CardTitle>
-            <Link href="/dashboard/hop-dong" className="text-xs text-emerald-600 hover:underline">Xem chi tiết</Link>
-          </CardHeader>
-          <CardContent className="p-4 flex flex-col justify-between space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-emerald-600 font-medium">Ký mới trong tháng</span>
-                <span className="text-sm text-emerald-600 font-bold">0</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-red-500 font-medium">Thanh lý trong tháng</span>
-                <span className="text-sm text-red-500 font-bold">0</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mt-auto">
-              <div className="bg-gray-50 p-2 rounded-md text-center">
-                <div className="text-lg font-bold text-emerald-600">{overview.occupiedRooms}</div>
-                <div className="text-[10px] text-gray-500 uppercase mt-1">Đang thuê</div>
-              </div>
-              <div className="bg-gray-50 p-2 rounded-md text-center">
-                <div className="text-lg font-bold text-amber-500">0</div>
-                <div className="text-[10px] text-gray-500 uppercase mt-1">Sắp chuyển đi</div>
-              </div>
-              <div className="bg-gray-50 p-2 rounded-md text-center">
-                <div className="text-lg font-bold text-indigo-500">{overview.expiringContractCount}</div>
-                <div className="text-[10px] text-gray-500 uppercase mt-1">Sắp hết hạn</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* ── ROW 4: HÓA ĐƠN & BIỂU ĐỒ ── */}

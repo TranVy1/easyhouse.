@@ -20,4 +20,9 @@ public class TaiSanPhongDto {
     private BigDecimal giaTri;
     private String tinhTrang;
     private String ghiChu;
+    private String anhTaiSan;
+    
+    private UUID nhaTroId;
+    private String tenNhaTro;
+    private String tenPhong;
 }

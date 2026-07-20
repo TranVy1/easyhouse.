@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, FileText, Clock, Banknote } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Clock, Banknote, Settings, Printer, Share2, Phone, CheckCircle2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { HoaDon, ThanhToan } from '@/types';
@@ -113,180 +113,351 @@ export default function TenantInvoiceDetailPage() {
 
   const trangThai = invoice.trangThai as string;
   const isPaid = trangThai === 'PAID' || trangThai === 'daThanhToan' || trangThai === 'thanhToanDu';
-  return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-24 md:pb-8">
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link href="/khach-thue/dashboard/hoa-don">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại danh sách
-        </Link>
-      </Button>
+  const tenPhong = typeof invoice.phong === 'object' && invoice.phong !== null
+    ? ((invoice.phong as any).ten || (invoice.phong as any).maPhong || 'Phòng thuê')
+    : 'Phòng thuê';
+  const tenNhaTro = typeof invoice.phong === 'object' && invoice.phong !== null
+    ? ((invoice.phong as any).nhaTro?.ten || '---')
+    : '---';
+  const tenKhach = typeof invoice.khachThue === 'object' && invoice.khachThue !== null
+    ? ((invoice.khachThue as any).hoTen || '---')
+    : '---';
 
-      {/* Header Info */}
-      <Card className="border-t-4 border-t-blue-600">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-start mb-2">
-            <div className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-sm font-mono font-semibold">
-              HD: {invoice.maHoaDon}
-            </div>
-            {getStatusBadge(trangThai)}
+  const trangThaiConfig: Record<string, { label: string; color: string; bg: string }> = {
+    chuaThanhToan: { label: 'Chưa thu', color: '#D97706', bg: '#FEF3C7' },
+    daThanhToanMotPhan: { label: 'Thu một phần', color: '#2563EB', bg: '#DBEAFE' },
+    daThanhToan: { label: 'Đã thu xong', color: '#16A34A', bg: '#DCFCE7' },
+    quaHan: { label: 'Quá hạn', color: '#DC2626', bg: '#FEE2E2' },
+    PAID: { label: 'Đã thu xong', color: '#16A34A', bg: '#DCFCE7' },
+    UNPAID: { label: 'Chưa thu', color: '#D97706', bg: '#FEF3C7' },
+    PARTIAL: { label: 'Thu một phần', color: '#2563EB', bg: '#DBEAFE' },
+    OVERDUE: { label: 'Quá hạn', color: '#DC2626', bg: '#FEE2E2' },
+  };
+  const tsConf = trangThaiConfig[invoice.trangThai as string] || trangThaiConfig.chuaThanhToan;
+
+  const ngayTao = invoice.ngayTao || invoice.taoLuc
+    ? new Date(String(invoice.ngayTao || invoice.taoLuc)).toLocaleDateString('vi-VN')
+    : '---';
+  const hanThanhToanDate = invoice.hanTra || invoice.hanThanhToan
+    ? new Date(String(invoice.hanTra || invoice.hanThanhToan)).toLocaleDateString('vi-VN')
+    : '---';
+
+  // Fallback for services if not array
+  const phiDichVu = Array.isArray(invoice.phiDichVu) ? invoice.phiDichVu : [];
+  const totalDichVu = phiDichVu.reduce((sum: number, p: any) => sum + (p.gia || 0), 0);
+
+  const soDienSD = Math.max(0, (invoice.chiSoDienCuoiKy || 0) - (invoice.chiSoDienBanDau || 0));
+  const soNuocSD = Math.max(0, (invoice.chiSoNuocCuoiKy || 0) - (invoice.chiSoNuocBanDau || 0));
+
+  // Determine what services exist
+  const hasDien = (invoice.tienDien || 0) > 0;
+  const hasNuoc = (invoice.tienNuoc || 0) > 0;
+  const hasOtherDichVu = phiDichVu.length > 0;
+  const hasAnyServiceSection = hasDien || hasNuoc || hasOtherDichVu;
+  const overallServiceTotal = (invoice.tienDien || 0) + (invoice.tienNuoc || 0) + totalDichVu;
+
+  return (
+    <div className="bg-[#F6F7F9] min-h-screen pb-24 md:pb-8 font-sans">
+      {/* Top bar (Floating Card) */}
+      <div className="sticky top-4 z-10 max-w-3xl mx-auto px-4 pt-2">
+        <div className="bg-white rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between p-3 px-4">
+          <button
+            onClick={() => router.push('/khach-thue/dashboard/hoa-don')}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </button>
+          <h1 className="text-[17px] font-bold text-gray-800">Chi tiết hóa đơn</h1>
+          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors">
+            <Settings className="h-5 w-5 text-gray-700" />
+          </button>
+        </div>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+
+
+        {/* Main Receipt Card */}
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 overflow-hidden relative">
+          {/* Header */}
+          <div className="p-6 text-center">
+            <h2 className="text-[22px] font-bold text-gray-900">{tenPhong}</h2>
+            <p className="text-[15px] font-medium text-gray-600 mt-1">Khách thuê: {tenKhach}</p>
           </div>
-          <CardTitle className="text-2xl pt-2">
-            Hóa đơn Tháng {invoice.thang || invoice.kyThang}/{invoice.nam || invoice.kyNam}
-          </CardTitle>
-          <CardDescription className="flex flex-col gap-2 mt-2">
-            <div className="flex items-center text-gray-600">
-              <Calendar className="h-4 w-4 mr-2" /> Hạn thanh toán: <strong className="ml-1 text-gray-900">{formatDate(invoice.hanTra || invoice.hanThanhToan)}</strong>
+
+          {/* Meta Grid */}
+          <div className="grid grid-cols-3 divide-x divide-gray-200 border-t border-b border-gray-200 mx-5 rounded-[14px] overflow-hidden mb-6 border">
+            <div className="px-2 py-3.5 text-center bg-gray-50/50">
+              <p className="text-[11.5px] text-gray-500 mb-1.5">Hóa đơn tháng</p>
+              <p className="text-[13px] font-semibold text-gray-900">T.{invoice.thang || invoice.kyThang}, {invoice.nam || invoice.kyNam}</p>
             </div>
-            {invoice.hopDong && typeof invoice.hopDong === 'string' && (
-              <div className="flex items-center mt-1">
-                <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-800" asChild>
-                  <Link href={`/khach-thue/dashboard/hop-dong/${invoice.hopDong}`}>
-                    <FileText className="h-4 w-4 mr-1" />
-                    Xem hợp đồng liên quan
-                  </Link>
-                </Button>
+            <div className="px-2 py-3.5 text-center bg-white">
+              <p className="text-[11.5px] text-gray-500 mb-1.5">Ngày lập hóa đơn</p>
+              <p className="text-[13px] font-semibold text-gray-900">{ngayTao}</p>
+            </div>
+            <div className="px-2 py-3.5 text-center bg-gray-50/50">
+              <p className="text-[11.5px] text-gray-500 mb-1.5">Hạn nạp tiền</p>
+              <p className="text-[13px] font-semibold text-gray-900">{hanThanhToanDate}</p>
+            </div>
+          </div>
+
+          <div className="px-5 space-y-4">
+            {/* Lý do thu */}
+            <div className="flex items-start justify-between py-2">
+              <div>
+                <p className="text-[14px] text-gray-600 mb-1.5">Lý do thu</p>
+                <p className="text-[15px] font-bold text-gray-900">Tiền phòng tháng {invoice.thang || invoice.kyThang}</p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="px-3 py-1 rounded-full text-[12px] font-semibold flex items-center gap-1.5" style={{ color: tsConf.color, backgroundColor: tsConf.bg }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tsConf.color }}></span>
+                  {tsConf.label}
+                </span>
+
+              </div>
+            </div>
+
+            {/* Tiền thuê nhà */}
+            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.some((c: any) => c.loai === 'TIEN_PHONG') ? (
+              invoice.chiTietHoaDon.filter((c: any) => c.loai === 'TIEN_PHONG').map((c: any, idx: number) => (
+                <div key={idx} className="flex items-start justify-between py-3 border-t border-gray-100">
+                  <div>
+                    <p className="text-[15px] font-semibold text-gray-800">Tiền thuê nhà</p>
+                    <p className="text-[14px] font-bold text-gray-900 mt-1">{c.moTa}</p>
+                    {c.soLuong > 1 && (
+                      <p className="text-[12px] text-gray-500 mt-1">{c.soLuong} × {formatCurrency(c.donGia)}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(c.thanhTien)}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-start justify-between py-3 border-t border-gray-100">
+                <div>
+                  <p className="text-[15px] font-semibold text-gray-800">Tiền thuê nhà</p>
+                  <p className="text-[14px] text-gray-500 mt-1">1 tháng</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                  <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienPhong || 0)}</p>
+                </div>
               </div>
             )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border">
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Tổng tiền</p>
-              <p className="font-bold text-gray-900 text-lg">{formatCurrency(invoice.tongTien)}</p>
+
+            {/* Thu tiền cọc */}
+            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.some((c: any) => c.loai === 'TIEN_COC') && (
+              <>
+                <div className="h-[1px] bg-gray-100 w-full" />
+                {invoice.chiTietHoaDon.filter((c: any) => c.loai === 'TIEN_COC').map((c: any, idx: number) => (
+                  <div key={idx} className="flex items-start justify-between py-3">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-800">Thu tiền cọc</p>
+                      {c.moTa && c.moTa !== 'Thu tiền cọc' && <p className="text-[14px] text-gray-500 mt-1">{c.moTa}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                      <p className="text-[16px] font-bold text-gray-900">{formatCurrency(c.thanhTien)}</p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Tiền điện */}
+            <div className="flex justify-between items-start py-4 border-t border-gray-100">
+              <div>
+                <p className="text-[15px] font-bold text-gray-900">Tiền điện</p>
+                <p className="text-[13px] text-gray-500 mt-0.5 mb-1.5">Số mới: {invoice.chiSoDienCuoiKy || 0} - Số cũ: {invoice.chiSoDienBanDau || 0}</p>
+                {invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_DIEN') ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                    {invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_DIEN')?.soLuong} KWh x {formatCurrency(invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_DIEN')?.donGia || 0).replace(' đ', '')}đ
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                    {soDienSD} KWh
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienDien || 0)}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Đã trả</p>
-              <p className="font-bold text-green-600 text-lg">{formatCurrency(invoice.daTra || invoice.daThanhToan || 0)}</p>
+
+            {/* Tiền nước */}
+            <div className="flex justify-between items-start py-4 border-t border-gray-100">
+              <div>
+                <p className="text-[15px] font-bold text-gray-900">Tiền nước</p>
+                {(invoice.chiSoNuocCuoiKy > 0 || invoice.chiSoNuocBanDau > 0) && (
+                  <p className="text-[13px] text-gray-500 mt-0.5 mb-1.5">Số mới: {invoice.chiSoNuocCuoiKy || 0} - Số cũ: {invoice.chiSoNuocBanDau || 0}</p>
+                )}
+                {invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_NUOC') ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                    {invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_NUOC')?.soLuong} khối x {formatCurrency(invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_NUOC')?.donGia || 0).replace(' đ', '')}đ
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                    {soNuocSD} khối
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienNuoc || 0)}</p>
+              </div>
             </div>
-            <div className="md:col-span-2 text-right border-t md:border-t-0 md:border-l pt-3 md:pt-0 pl-0 md:pl-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Cần thanh toán</p>
-              <p className={`font-bold text-2xl ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(invoice.conLai)}
-              </p>
+
+            {/* Dịch vụ khác */}
+            {phiDichVu.map((phi: any, i: number) => {
+              const matchChiTiet = invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_DICH_VU' && c.moTa?.includes(phi.ten));
+              return (
+                <div key={i} className="flex justify-between items-start py-4 border-t border-gray-100">
+                  <div>
+                    <p className="text-[15px] font-bold text-gray-900">{phi.ten}</p>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium mt-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                      {matchChiTiet?.moTa || 'Phí dịch vụ'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(phi.gia || 0)}</p>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="h-[1px] bg-gray-200 w-full" />
+
+            {/* Other line items from chiTietHoaDon just in case */}
+            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.filter((c: any) => c.loai !== 'TIEN_PHONG' && c.loai !== 'TIEN_DIEN' && c.loai !== 'TIEN_NUOC' && c.loai !== 'TIEN_DICH_VU').map((item, idx) => (
+              <div key={idx} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <p className="text-[15px] font-medium text-gray-800">{item.moTa}</p>
+                  {item.soLuong > 1 && (
+                    <span className="inline-block mt-1.5 text-[12px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {item.soLuong} × {formatCurrency(item.donGia)}
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] text-gray-500">Thành tiền</p>
+                  <p className="text-[17px] font-bold text-gray-900 mt-1">{formatCurrency(item.thanhTien)}</p>
+                </div>
+              </div>
+            ))}
+
+            <div className="flex flex-col items-end pb-5 pt-3">
+              <p className="text-[14px] text-gray-600 mb-1.5">Tổng cộng kỳ này</p>
+              <p className="text-[22px] font-extrabold text-gray-900">{formatCurrency(invoice.tongTien || 0)}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          {/* Edge shadow overlay for right side scroll indication (optional) */}
+          <div className="absolute top-0 bottom-0 right-0 w-1 bg-gradient-to-l from-black/5 to-transparent pointer-events-none"></div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Line Items */}
-        <Card className="md:col-span-1 h-fit">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Chi tiết các khoản phí
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {invoice.chiTietHoaDon?.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2 border-b last:border-0 last:pb-0">
-                  <div className="flex-1 pr-4">
-                    <p className="font-medium text-gray-900">{item.moTa}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {item.soLuong} x {formatCurrency(item.donGia)}
-                    </p>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    {formatCurrency(item.thanhTien)}
-                  </div>
-                </div>
-              ))}
-              
-              {(!invoice.chiTietHoaDon || invoice.chiTietHoaDon.length === 0) && (
-                <div className="text-center text-gray-500 py-4">Không có chi tiết</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Đã trả & Số lần thanh toán */}
+        <div className="flex flex-col items-end px-2 pt-2 pb-1">
+          <p className="text-[14px] text-gray-600 mb-1">Đã trả</p>
+          <p className="text-[22px] font-bold text-[#16A34A]">{formatCurrency(invoice.daTra || invoice.daThanhToan || 0)}</p>
+        </div>
 
-        <div className="space-y-6">
-          {/* Thanh toán trực tuyến VNPay */}
-          {!isPaid && (
-            <Card className="border-orange-200 bg-orange-50/50">
-              <CardHeader className="pb-3 border-b border-orange-100">
-                <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
-                  <Banknote className="h-5 w-5" />
-                  Thanh toán trực tuyến
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="bg-white p-4 rounded-lg border text-center">
-                  <p className="text-sm text-gray-600 mb-2">Số tiền cần thanh toán:</p>
-                  <p className="text-2xl font-bold text-red-600 mb-4">{formatCurrency(invoice.conLai)}</p>
-                  <Button 
-                    className="w-full bg-[#243B5A] hover:bg-[#1B2E47] text-white" 
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice._id || invoice.id}&amount=${invoice.conLai}`);
-                        const data = await res.json();
-                        if (data.success && data.data) {
-                          window.location.href = data.data;
-                        } else {
-                          toast.error("Không thể khởi tạo thanh toán VNPay");
-                        }
-                      } catch (error) {
-                        toast.error("Lỗi khi kết nối đến server");
-                      }
-                    }}
-                  >
-                    Thanh toán bằng VNPay
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-4">
-                    Giao dịch sẽ được gạch nợ tự động ngay sau khi thanh toán thành công.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-4 flex items-center justify-between shadow-sm relative">
+          <div>
+            <p className="text-[14px] text-gray-800 font-medium">Số lần thanh toán</p>
+            <a href="#payment-history" className="text-[14px] text-[#2563EB] hover:underline mt-1 inline-block">
+              {payments.length} lần, nhấp để xem
+            </a>
+          </div>
+          <div className="text-right">
+            <p className="text-[14px] text-gray-800 font-medium mb-1">Tổng phải thu</p>
+            {isPaid ? (
+              <span className="text-[14px] font-semibold text-[#16A34A] flex items-center justify-end gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                Đã thu xong
+              </span>
+            ) : (
+              <span className="text-[14px] font-semibold text-red-600">
+                Còn nợ {formatCurrency(invoice.conLai)}
+              </span>
+            )}
+          </div>
+          {/* Vertical right accent line as seen in image */}
+          <div className="absolute top-3 bottom-3 right-0 w-[3px] bg-gray-300 rounded-l-full"></div>
+        </div>
 
-          {/* Lịch sử thanh toán */}
+        {/* VNPay Payment Button (if unpaid) */}
+        {!isPaid && (
+          <div className="pt-2">
+            <Button
+              className="w-full bg-[#243B5A] hover:bg-[#1B2E47] text-white py-6 text-[16px] font-semibold rounded-xl shadow-md"
+              onClick={async () => {
+                try {
+                  const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice._id || invoice.id}&amount=${invoice.conLai}`);
+                  const data = await res.json();
+                  if (data.success && data.data) {
+                    window.location.href = data.data;
+                  } else {
+                    toast.error("Không thể khởi tạo thanh toán VNPay");
+                  }
+                } catch (error) {
+                  toast.error("Lỗi khi kết nối đến server");
+                }
+              }}
+            >
+              <Banknote className="mr-2 h-5 w-5" /> Thanh toán bằng VNPay
+            </Button>
+          </div>
+        )}
+
+        {/* Lịch sử thanh toán */}
+        <div id="payment-history" className="pt-4 space-y-4">
           {payments.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3 border-b">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Lịch sử giao dịch
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 p-0">
-                <div className="divide-y">
-                  {payments.map((payment, idx) => (
-                    <div key={idx} className="p-4 flex flex-col gap-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-bold text-green-600">{formatCurrency(payment.soTien)}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {formatDate(payment.ngayThanhToan)}
-                          </p>
-                        </div>
-                        {getPaymentStatusBadge(payment.trangThai)}
-                      </div>
-                      
-                      {payment.ghiChu && (
-                        <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded mt-1 text-xs">
-                          {payment.ghiChu}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-gray-600" />
+                <h3 className="text-[15px] font-bold text-gray-800">Lịch sử giao dịch</h3>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {payments.map((payment, idx) => (
+                  <div key={idx} className="p-5 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[16px] font-bold text-green-600">{formatCurrency(payment.soTien)}</p>
+                        <p className="text-[13px] text-gray-500 mt-1">
+                          {formatDate(payment.ngayThanhToan)}
                         </p>
-                      )}
-                      
-                      {payment.anhBienLai && (
-                        <div className="relative mt-2 h-20 w-20 overflow-hidden rounded border">
-                          <Image
-                            src={payment.anhBienLai} 
-                            alt="Biên lai" 
-                            fill
-                            sizes="80px"
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
+                      </div>
+                      {getPaymentStatusBadge(payment.trangThai)}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {payment.ghiChu && (
+                      <p className="text-[13px] text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 mt-1">
+                        {payment.ghiChu}
+                      </p>
+                    )}
+
+                    {payment.anhBienLai && (
+                      <div className="relative mt-2 h-24 w-24 overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                        <Image
+                          src={payment.anhBienLai}
+                          alt="Biên lai"
+                          fill
+                          sizes="96px"
+                          className="object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

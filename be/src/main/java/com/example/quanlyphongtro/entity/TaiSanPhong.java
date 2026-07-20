@@ -36,6 +36,8 @@ public class TaiSanPhong {
 
     private String ghiChu;
 
+    private String anhTaiSan;
+
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
 }

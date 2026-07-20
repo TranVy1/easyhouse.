@@ -11,6 +11,7 @@ import {
   Car,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Heart,
   Home,
   LogIn,
@@ -80,7 +81,7 @@ const AREA_RANGES = [
   { id: "over-40", label: "Trên 40m2", shortLabel: "> 40m2", min: 40, max: Infinity },
 ];
 
-const ROOMS_PER_PAGE = 9;
+const ROOMS_PER_PAGE = 8;
 const HOME_VIEW_STATE_KEY = "easyhouse_home_view_state";
 
 const getInitialHomeViewState = (): Required<HomeViewState> => {
@@ -301,9 +302,7 @@ function RoomCardView({
   return (
     <article
       onClick={onSelect}
-      className={`group cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left shadow-[0_12px_30px_rgba(36,59,90,0.08)] ring-1 ring-[#243B5A]/[0.08] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
-        featured ? "min-w-[310px] snap-start md:min-w-[390px]" : ""
-      }`}
+      className={`group cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left shadow-[0_12px_30px_rgba(36,59,90,0.08)] ring-1 ring-[#243B5A]/[0.08] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
     >
       <RoomImage src={room.image} alt={room.name} className={featured ? "h-64" : "h-56"}>
         <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/50 via-transparent to-transparent opacity-80" />
@@ -331,7 +330,16 @@ function RoomCardView({
             <h3 className="line-clamp-1 text-lg font-black tracking-tight text-[#243B5A]">{room.name}</h3>
             <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[#6B7A8C]">
               <MapPin size={15} className="shrink-0 text-[#4FA7A0]" />
-              <span className="line-clamp-1">{room.location}</span>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(room.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="line-clamp-1 hover:text-[#4FA7A0] hover:underline transition-colors"
+                title="Xem trên Google Maps"
+              >
+                {room.location}
+              </a>
             </p>
           </div>
           <p className="shrink-0 text-right text-lg font-black text-[#F2A45B]">{room.priceLabel}</p>
@@ -417,7 +425,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       .catch(() => {});
 
 
-    fetch("/api/public/phong")
+    fetch("/api/public/phong?limit=1000")
       .then(async (res) => {
         const text = await res.text();
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -456,17 +464,16 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
     });
   }, [allRooms, filterArea, filterPrice, searchQuery]);
 
-  const featuredRooms = useMemo(() => filteredRooms.slice(0, 5), [filteredRooms]);
+  const featuredRooms = useMemo(() => filteredRooms.slice(0, 4), [filteredRooms]);
 
   const listSource = useMemo(() => filteredRooms.slice(featuredRooms.length), [filteredRooms, featuredRooms.length]);
   const totalPages = Math.max(1, Math.ceil(listSource.length / ROOMS_PER_PAGE));
   const paginatedRooms = useMemo(() => {
-    const start = (currentPage - 1) * ROOMS_PER_PAGE;
-    return listSource.slice(start, start + ROOMS_PER_PAGE);
+    return listSource.slice(0, currentPage * ROOMS_PER_PAGE);
   }, [currentPage, listSource]);
-  const visiblePages = useMemo(() => getVisiblePages(currentPage, totalPages), [currentPage, totalPages]);
-  const showingFrom = filteredRooms.length === 0 ? 0 : featuredRooms.length + ((currentPage - 1) * ROOMS_PER_PAGE + 1);
-  const showingTo = filteredRooms.length === 0 ? 0 : featuredRooms.length + Math.min(currentPage * ROOMS_PER_PAGE, listSource.length);
+  
+  const showingFrom = filteredRooms.length === 0 ? 0 : featuredRooms.length + 1;
+  const showingTo = filteredRooms.length === 0 ? 0 : featuredRooms.length + paginatedRooms.length;
   const savedCount = savedRooms.size;
   const currentUserName = String(userProfile?.name || userProfile?.hoTen || "Khách thuê");
   const selectedPriceLabel = PRICE_RANGES.find((item) => item.id === filterPrice)?.shortLabel || "Giá";
@@ -734,8 +741,8 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
                 Xem tất cả <ChevronRight size={17} />
               </button>
             </div>
-            <div className="scrollbar-none flex snap-x gap-5 overflow-x-auto pb-3">
-              {featuredRooms.map((room) => (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-3">
+              {featuredRooms.slice(0, 4).map((room) => (
                 <RoomCardView
                   key={room.id}
                   room={room}
@@ -779,7 +786,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             </div>
           ) : (
             <>
-              <div id="room-list" className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div id="room-list" className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedRooms.map((room) => (
                   <RoomCardView
                     key={room.id}
@@ -790,51 +797,15 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
                   />
                 ))}
               </div>
-              {totalPages > 1 && (
-                <nav className="mt-7 flex flex-col items-center justify-between gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-[#E8DED1] sm:flex-row" aria-label="Phân trang danh sách phòng">
-                  <p className="text-xs font-bold text-[#243B5A]/60">
-                    Trang {currentPage}/{totalPages} - tối đa {ROOMS_PER_PAGE} phòng mỗi trang
-                  </p>
-                  <div className="flex flex-wrap items-center justify-center gap-1">
-                    <button
-                      onClick={() => changePage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-[#E8DED1] bg-white px-3 text-sm font-black text-[#243B5A] transition hover:border-[#4FA7A0] hover:text-[#4FA7A0] disabled:cursor-not-allowed disabled:opacity-40"
-                      aria-label="Trang trước"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    {visiblePages.map((page, index) => {
-                      const previousPage = visiblePages[index - 1];
-                      const needsSeparator = previousPage && page - previousPage > 1;
-
-                      return (
-                        <span key={page} className="flex items-center gap-1">
-                          {needsSeparator && <span className="px-1 text-sm font-bold text-[#6B7A8C]">...</span>}
-                          <button
-                            onClick={() => changePage(page)}
-                            className={`h-10 min-w-10 rounded-xl px-3 text-sm font-black transition ${
-                              currentPage === page
-                                ? "bg-[#4FA7A0] text-white shadow-sm"
-                                : "border border-[#E8DED1] bg-white text-[#243B5A] hover:border-[#4FA7A0] hover:text-[#4FA7A0]"
-                            }`}
-                            aria-current={currentPage === page ? "page" : undefined}
-                          >
-                            {page}
-                          </button>
-                        </span>
-                      );
-                    })}
-                    <button
-                      onClick={() => changePage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-[#E8DED1] bg-white px-3 text-sm font-black text-[#243B5A] transition hover:border-[#4FA7A0] hover:text-[#4FA7A0] disabled:cursor-not-allowed disabled:opacity-40"
-                      aria-label="Trang sau"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </nav>
+              {currentPage < totalPages && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    onClick={() => changePage(currentPage + 1)}
+                    className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-[#243B5A] shadow-sm ring-1 ring-[#E8DED1] transition hover:bg-[#F8F3EC] hover:text-[#4FA7A0]"
+                  >
+                    Hiển thị thêm phòng <ChevronDown size={18} />
+                  </button>
+                </div>
               )}
             </>
           )}

@@ -214,6 +214,17 @@ export interface SoDoToaNha extends ThongKeToaNha {
   tang: SoDoTang[];
 }
 
+export interface TaiSanPhong {
+  id?: ID;
+  _id?: ID;
+  phongId?: ID;
+  tenTaiSan: string;
+  soLuong: number;
+  giaTri: number;
+  tinhTrang: string;
+  ghiChu?: string;
+}
+
 export interface Phong {
   id?: ID;
   _id?: ID;
@@ -695,3 +706,42 @@ export interface ContractSignature {
   userAgent?: string;
 }
 
+export type TrangThaiPhuongTien = 'HIEU_LUC' | 'HET_HIEU_LUC';
+
+export interface PhuongTien {
+  id?: ID;
+  _id?: ID;
+  maPt: string;
+  loaiXe: string;
+  bienSo: string;
+  anhXe?: string;
+  loaiPhuongTien?: string;
+  tenDongXe?: string;
+  mauXe?: string;
+  tenChuXe?: string;
+  soVeXe?: string;
+  nhaTroId: ID;
+  khachThueId?: ID;
+  khachThue?: KhachThue;
+  phongId?: ID;
+  phong?: Phong;
+  nhaTro?: ToaNha;
+  trangThai: TrangThaiPhuongTien;
+  createdAt?: DateLike;
+  updatedAt?: DateLike;
+}
+
+export interface TaiSanPhong {
+  id?: string;
+  _id?: string;
+  phongId?: string;
+  tenPhong?: string;
+  nhaTroId?: string;
+  tenNhaTro?: string;
+  tenTaiSan: string;
+  soLuong: number;
+  giaTri: number;
+  tinhTrang: string;
+  ghiChu?: string;
+  anhTaiSan?: string;
+}

@@ -163,7 +163,15 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-[#6B7A8C] pt-1">
                 <div className="flex items-center gap-1.5">
                   <MapPin size={16} className="text-[#FF5A3D] shrink-0" />
-                  <span className="font-medium text-[#243B5A]">{roomLocation}</span>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(roomLocation)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-[#243B5A] hover:text-[#FF5A3D] hover:underline transition-colors"
+                    title="Xem bản đồ"
+                  >
+                    {roomLocation}
+                  </a>
                 </div>
                 <div className="hidden sm:block text-slate-300">|</div>
                 <div className="flex items-center gap-1.5">

@@ -71,6 +71,12 @@ public class PhongService {
         return toResponse(phong, false);
     }
 
+    public List<PhongResponse> getPhongByNhaTro(UUID nhaTroId) {
+        return phongRepository.findByNhaTroIdAndXoaLucIsNull(nhaTroId).stream()
+                .map(p -> toResponse(p, true))
+                .toList();
+    }
+
     public PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> getPublicAllPhong(
             String nhaTroId, String search, java.math.BigDecimal minGia, java.math.BigDecimal maxGia, java.math.BigDecimal minDienTich, int page, int limit) {
         UUID nid = parseUuid(nhaTroId);

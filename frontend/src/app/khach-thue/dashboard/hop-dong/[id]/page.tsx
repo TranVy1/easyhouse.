@@ -31,7 +31,8 @@ import {
   Laptop,
   Network,
   History,
-  Loader2
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -369,9 +370,99 @@ export default function TenantContractDetailPage() {
                 Nếu tài liệu không hiển thị, vui lòng <a href={contract.filePdf} target="_blank" rel="noreferrer" className="text-[#4FA7A0] underline font-semibold">bấm vào đây để tải xuống trực tiếp</a>.
               </div>
             </div>
+          ) : contract.noiDungHopDong ? (
+            <div 
+              className="border rounded-lg p-6 md:p-8 bg-white shadow-sm overflow-x-auto text-sm md:text-base max-h-[800px] overflow-y-auto prose max-w-none" 
+              dangerouslySetInnerHTML={{ __html: contract.noiDungHopDong }} 
+            />
           ) : (
-            <div className="text-center p-12 border border-dashed rounded-lg bg-[#F8F3EC] text-[#6B7A8C]">
-              Chưa có văn bản PDF hợp đồng. Vui lòng liên hệ chủ trọ để sinh tài liệu PDF.
+            <div className="space-y-6">
+              <div className="text-center p-6 border border-dashed rounded-lg bg-[#F8F3EC] text-[#6B7A8C]">
+                Chưa có văn bản PDF. Dưới đây là thông tin chi tiết của hợp đồng.
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-xl bg-white shadow-sm">
+                <div>
+                  <h4 className="font-bold text-[#243B5A] mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-[#4FA7A0]/10 flex items-center justify-center text-[#4FA7A0]">A</span>
+                    Bên Cho Thuê (Bên A)
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="text-gray-500">Người đại diện:</span> <strong>{contract.phong?.toaNha?.chuTro?.ten || 'Ban quản lý'}</strong></p>
+                    <p><span className="text-gray-500">Điện thoại:</span> <strong>{contract.phong?.toaNha?.chuTro?.soDienThoai || '---'}</strong></p>
+                    <p><span className="text-gray-500">Tòa nhà:</span> <strong>{contract.phong?.toaNha?.tenToaNha || '---'}</strong></p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-bold text-[#243B5A] mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">B</span>
+                    Bên Thuê (Bên B)
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="text-gray-500">Họ và tên:</span> <strong>{contract.khachThue?.hoTen || '---'}</strong></p>
+                    <p><span className="text-gray-500">Điện thoại:</span> <strong>{contract.khachThue?.soDienThoai || '---'}</strong></p>
+                    <p><span className="text-gray-500">CCCD/CMND:</span> <strong>{contract.khachThue?.cccd || '---'}</strong></p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
+                <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
+                  <Home className="h-5 w-5 text-gray-500" /> Thông tin thuê chi tiết
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p><span className="text-gray-500">Phòng thuê:</span> <strong>{contract.phong?.maPhong || '---'}</strong></p>
+                  <p><span className="text-gray-500">Kỳ thanh toán:</span> <strong>{contract.chuKyThanhToan === 'MONTHLY' ? 'Hàng tháng' : contract.chuKyThanhToan}</strong></p>
+                  <p><span className="text-gray-500">Giá thuê:</span> <strong>{formatCurrency(contract.giaThue || contract.giaThueHopDong || 0)} / tháng</strong></p>
+                  <p><span className="text-gray-500">Tiền cọc:</span> <strong>{formatCurrency(contract.tienCoc || 0)}</strong></p>
+                  <p><span className="text-gray-500">Ngày bắt đầu:</span> <strong>{formatDate(contract.ngayBatDau)}</strong></p>
+                  <p><span className="text-gray-500">Ngày kết thúc:</span> <strong>{formatDate(contract.ngayKetThuc)}</strong></p>
+                  {contract.phong?.dienTich && <p><span className="text-gray-500">Diện tích phòng:</span> <strong>{contract.phong.dienTich} m2</strong></p>}
+                  {contract.phong?.soNguoiToiDa && <p><span className="text-gray-500">Số người ở tối đa:</span> <strong>{contract.phong.soNguoiToiDa} người</strong></p>}
+                </div>
+              </div>
+
+              {(contract.dichVuHopDongs && contract.dichVuHopDongs.length > 0) ? (
+                <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
+                  <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-500" /> Các phí dịch vụ đính kèm
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {contract.dichVuHopDongs.map((dv: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div>
+                          <p className="font-semibold text-gray-800">{dv.dichVu?.tenDichVu || 'Dịch vụ'}</p>
+                          <p className="text-xs text-gray-500">
+                            {dv.loaiTinhPhi === 'PER_USER' ? 'Tính theo người' : 
+                             dv.loaiTinhPhi === 'PER_ROOM' ? 'Tính theo phòng' : 
+                             dv.loaiTinhPhi === 'METERED' ? 'Tính theo chỉ số' : 'Cố định'}
+                          </p>
+                        </div>
+                        <p className="font-bold text-[#4FA7A0]">{formatCurrency(dv.donGiaApDung || dv.dichVu?.donGia || 0)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (contract.phong?.dichVus && contract.phong.dichVus.length > 0) ? (
+                <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
+                  <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-500" /> Các phí dịch vụ cơ bản của phòng
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {contract.phong.dichVus.map((dv: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div>
+                          <p className="font-semibold text-gray-800">{dv.tenDichVu || 'Dịch vụ'}</p>
+                          <p className="text-xs text-gray-500">
+                            {dv.loaiTinhPhi === 'PER_USER' ? 'Tính theo người' : 
+                             dv.loaiTinhPhi === 'PER_ROOM' ? 'Tính theo phòng' : 
+                             dv.loaiTinhPhi === 'METERED' ? 'Tính theo chỉ số' : 'Cố định'}
+                          </p>
+                        </div>
+                        <p className="font-bold text-[#4FA7A0]">{formatCurrency(dv.donGia || 0)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
 

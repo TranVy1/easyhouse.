@@ -43,6 +43,22 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/phong/:path*`
       },
       {
+        source: '/api/tai-san-phong',
+        destination: `${backendUrl}/api/tai-san-phong`
+      },
+      {
+        source: '/api/tai-san-phong/:path*',
+        destination: `${backendUrl}/api/tai-san-phong/:path*`
+      },
+      {
+        source: '/api/phuong-tien',
+        destination: `${backendUrl}/api/phuong-tien`
+      },
+      {
+        source: '/api/phuong-tien/:path*',
+        destination: `${backendUrl}/api/phuong-tien/:path*`
+      },
+      {
         source: '/api/toa-nha',
         destination: `${backendUrl}/api/toa-nha`
       },

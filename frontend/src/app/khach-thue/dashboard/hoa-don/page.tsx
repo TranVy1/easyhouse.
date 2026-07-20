@@ -511,12 +511,27 @@ export default function TenantInvoicesPage() {
                     </div>
                   </CardContent>
                   
-                  <CardFooter className="pt-2 pb-5 px-6 relative z-10">
-                    <Button asChild variant={isPaid ? "outline" : "default"} className={`w-full h-11 rounded-xl font-bold text-[14px] shadow-sm ${!isPaid ? 'bg-[#4FA7A0] hover:bg-[#3D8580] text-white border-transparent' : 'border-[#E2DACF] text-[#243B5A] hover:bg-slate-50'}`}>
-                      <Link href={`/khach-thue/dashboard/hoa-don/${id}`}>
-                        {isPaid ? 'Xem chi tiết' : 'Thanh toán ngay'} <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                  <CardFooter className="pt-2 pb-5 px-6 relative z-10 flex gap-2">
+                    {isPaid ? (
+                      <Button asChild variant="outline" className="w-full h-11 rounded-xl font-bold text-[14px] shadow-sm border-[#E2DACF] text-[#243B5A] hover:bg-slate-50">
+                        <Link href={`/khach-thue/dashboard/hoa-don/${id}`}>
+                          Xem chi tiết <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <>
+                        <Button asChild variant="outline" className="flex-1 h-11 rounded-xl font-bold text-[14px] shadow-sm border-[#4FA7A0]/30 text-[#243B5A] hover:bg-[#4FA7A0]/5">
+                          <Link href={`/khach-thue/dashboard/hoa-don/${id}`}>
+                            Xem chi tiết
+                          </Link>
+                        </Button>
+                        <Button asChild className="flex-1 h-11 rounded-xl font-bold text-[14px] shadow-sm bg-[#4FA7A0] hover:bg-[#3D8580] text-white border-transparent">
+                          <Link href={`/khach-thue/dashboard/hoa-don/${id}`}>
+                            Thanh toán
+                          </Link>
+                        </Button>
+                      </>
+                    )}
                   </CardFooter>
                 </Card>
               );

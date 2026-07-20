@@ -279,7 +279,16 @@ function SavedScreen({ onRoomSelect, onTabChange }: SavedScreenProps) {
                       <span className="text-slate-300">•</span>
                       <span className="inline-flex max-w-[200px] items-center gap-1 truncate text-[#6B7A8C]">
                         <MapPin size={13} className="shrink-0 text-[#4FA7A0]" />
-                        {getRoomField(room.location)}
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getRoomField(room.location))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="line-clamp-1 hover:text-[#4FA7A0] hover:underline transition-colors"
+                          title="Xem trên Google Maps"
+                        >
+                          {getRoomField(room.location)}
+                        </a>
                       </span>
                     </div>
 

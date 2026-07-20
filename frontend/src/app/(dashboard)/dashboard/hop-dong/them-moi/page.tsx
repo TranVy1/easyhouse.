@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { TaiSanPhong } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
@@ -225,6 +226,12 @@ export default function ThemMoiHopDongPage() {
     phiDichVu: [] as PhiDichVuForm[],
     trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
+
+  const { data: taiSanListData } = useSWR(
+    formData.phong ? `/api/tai-san-phong/phong/${formData.phong}` : null,
+    fetcher
+  );
+  const taiSanList = (taiSanListData || []) as TaiSanPhong[];
 
   const [openPhong, setOpenPhong] = useState(false);
   const [openKhachThue, setOpenKhachThue] = useState(false);
@@ -798,6 +805,52 @@ export default function ThemMoiHopDongPage() {
 
 
             </FormSection>
+
+            {formData.phong && (
+              <FormSection
+                title="Tài sản bàn giao"
+                description="Các tài sản có sẵn trong phòng sẽ được bàn giao cho khách thuê."
+                icon={Info}
+              >
+                <div className="rounded-[14px] border border-[rgba(36,59,90,0.12)] bg-white overflow-hidden">
+                  <table className="w-full text-[13px] text-left">
+                    <thead className="bg-[#F8FAFC] border-b border-[rgba(36,59,90,0.08)] text-[#6B7A90]">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold">Tên tài sản</th>
+                        <th className="px-4 py-3 font-semibold w-[20%] text-center">Số lượng</th>
+                        <th className="px-4 py-3 font-semibold w-[25%] text-right">Giá trị (VNĐ)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[rgba(36,59,90,0.08)]">
+                      {taiSanList.length > 0 ? (
+                        taiSanList.map((ts, idx) => (
+                          <tr key={String(ts.id || ts._id || idx)} className="hover:bg-[#F8FAFC]/50 transition-colors">
+                            <td className="px-4 py-3 text-[#243B5A] font-medium">
+                              {ts.tenTaiSan}
+                              {ts.tinhTrang && (
+                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#4FA7A0]/10 text-[#4FA7A0]">
+                                  {ts.tinhTrang}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-[#6B7A90] text-center">{ts.soLuong}</td>
+                            <td className="px-4 py-3 text-[#243B5A] font-medium text-right text-[#E76F51]">
+                              {new Intl.NumberFormat('vi-VN').format(ts.giaTri)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="px-4 py-8 text-center text-[#6B7A90]">
+                            Không có tài sản nào được ghi nhận cho phòng này.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </FormSection>
+            )}
 
             <FormSection
               title="Thời hạn hợp đồng"

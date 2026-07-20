@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
@@ -49,6 +49,7 @@ import { CheckoutModal } from '@/components/hop-dong/CheckoutModal';
 
 export default function HopDongPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const accessToken = useSession()?.data?.accessToken as string | undefined;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hopDongList: HopDong[];
@@ -64,7 +65,7 @@ export default function HopDongPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || 'all');
   const [toaNhaFilter, setToaNhaFilter] = useState<string>('all');
   const [viewingHopDong, setViewingHopDong] = useState<HopDong | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

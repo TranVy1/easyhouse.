@@ -47,6 +47,15 @@ public class PhongController {
         }
     }
 
+    @GetMapping("/nha-tro/{nhaTroId}")
+    public ApiResponse<List<PhongResponse>> getByNhaTro(@PathVariable UUID nhaTroId) {
+        try {
+            return ApiResponse.success(phongService.getPhongByNhaTro(nhaTroId));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<PhongResponse> getById(@PathVariable UUID id) {
         try {

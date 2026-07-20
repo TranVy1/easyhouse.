@@ -67,7 +67,10 @@ type PhongTenant = {
   soDienThoai: string;
 };
 
+import { useSearchParams } from 'next/navigation';
+
 export default function PhongPage() {
+  const searchParams = useSearchParams();
   const accessToken = useSession()?.data?.accessToken;
   const { clearCache, isRefreshing, setIsRefreshing } = useCache<{
     phongList: Phong[];
@@ -80,7 +83,7 @@ export default function PhongPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [selectedToaNha, setSelectedToaNha] = useState('');
-  const [selectedTrangThai, setSelectedTrangThai] = useState('');
+  const [selectedTrangThai, setSelectedTrangThai] = useState(searchParams.get('trangThai') || '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPhong, setEditingPhong] = useState<Phong | null>(null);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);

@@ -103,7 +103,10 @@ function InvoiceSkeleton() {
   )
 }
 
+import { useSearchParams } from "next/navigation"
+
 export default function HoaDonPage() {
+  const searchParams = useSearchParams()
   const accessToken = useSession()?.data?.accessToken
   const [isGenerateOpen, setIsGenerateOpen] = useState(false)
   const [toaNhas, setToaNhas] = useState<any[]>([])
@@ -128,7 +131,7 @@ export default function HoaDonPage() {
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
   const [filters, setFilters] = useState({
-    trangThai: "all",
+    trangThai: searchParams.get("status") || "all",
     kyThang: "all",
     kyNam: String(currentYear),
   })

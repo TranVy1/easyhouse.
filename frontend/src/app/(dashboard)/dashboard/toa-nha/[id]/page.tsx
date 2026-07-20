@@ -43,6 +43,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { SoDoPhong, SoDoToaNha, TrangThaiPhongHienThi } from '@/types';
 import { cn } from '@/lib/utils';
 import { PhongForm } from '@/components/ui/phong-form';
+import { TaiSanSection } from '@/components/ui/tai-san-section';
 
 const statusConfig: Record<TrangThaiPhongHienThi, { label: string; card: string; badge: string; dot: string; iconText: string; statusText: string }> = {
   VACANT: {
@@ -596,29 +597,7 @@ export default function ToaNhaDetailPage() {
                   </div>
 
                   {/* Tài sản */}
-                  <div className="pb-4">
-                    <h3 className="text-sm font-bold text-gray-800 mb-3">Tài sản</h3>
-                    <div className="border rounded-md overflow-hidden overflow-x-auto">
-                      <table className="w-full text-sm text-left">
-                        <thead className="bg-[#FAFAFA] border-b border-gray-200 text-gray-700">
-                          <tr>
-                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Mã TS</th>
-                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Tên TS</th>
-                            <th className="px-4 py-3 border-r border-gray-100 font-medium w-1/4">Giá trị</th>
-                            <th className="px-4 py-3 font-medium w-1/4">Tình trạng</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          <tr className="bg-white hover:bg-gray-50/50">
-                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">TS107786</td>
-                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">Tủ Lạnh</td>
-                            <td className="px-4 py-3 border-r border-gray-100 text-gray-900">2,000,000 đ</td>
-                            <td className="px-4 py-3 text-gray-900"></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                  <TaiSanSection phongId={String(selectedRoom.id || selectedRoom._id)} />
 
                 </div>
               </div>
