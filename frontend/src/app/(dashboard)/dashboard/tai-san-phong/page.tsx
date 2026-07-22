@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { Search, Plus, RefreshCw, Box, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Search, Plus, RefreshCw, Box, CheckCircle2, AlertTriangle, Download, FileUp } from "lucide-react"
 import { toast } from "sonner"
 import { TaiSanPhong, ToaNha, Phong } from "@/types"
 import { Button } from "@/components/ui/button"
@@ -28,26 +28,26 @@ export default function TaiSanPhongPage() {
   const [data, setData] = useState<TaiSanPhong[]>([])
   const [toaNhas, setToaNhas] = useState<ToaNha[]>([])
   const [phongs, setPhongs] = useState<Phong[]>([])
-  
+
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [search, setSearch] = useState("")
   const [filters, setFilters] = useState({
     nhaTroId: "all",
     phongId: "all",
     tinhTrang: "all",
   })
-  
+
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<TaiSanPhong | null>(null)
-  
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<TaiSanPhong | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -93,7 +93,7 @@ export default function TaiSanPhongPage() {
   useEffect(() => {
     fetchToaNhas()
   }, [fetchToaNhas])
-  
+
   useEffect(() => {
     fetchPhongs()
   }, [fetchPhongs])
@@ -106,7 +106,7 @@ export default function TaiSanPhongPage() {
       setLoading(true)
     }
     setError(null)
-    
+
     try {
       const query = new URLSearchParams()
       if (search) query.set("keyword", search)
@@ -115,7 +115,7 @@ export default function TaiSanPhongPage() {
       if (filters.tinhTrang !== "all") query.set("tinhTrang", filters.tinhTrang)
       query.set("page", String(pagination.pageIndex + 1))
       query.set("limit", String(pagination.pageSize))
-      
+
       const res = await fetch(`/api/tai-san-phong?${query.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
@@ -246,9 +246,9 @@ export default function TaiSanPhongPage() {
             }}
           />
         </div>
-        
-        <Select 
-          value={filters.nhaTroId} 
+
+        <Select
+          value={filters.nhaTroId}
           onValueChange={(val) => {
             setFilters(prev => ({ ...prev, nhaTroId: val, phongId: "all" }))
             setPagination(prev => ({ ...prev, pageIndex: 0 }))
@@ -265,8 +265,8 @@ export default function TaiSanPhongPage() {
           </SelectContent>
         </Select>
 
-        <Select 
-          value={filters.phongId} 
+        <Select
+          value={filters.phongId}
           onValueChange={(val) => {
             setFilters(prev => ({ ...prev, phongId: val }))
             setPagination(prev => ({ ...prev, pageIndex: 0 }))
@@ -284,8 +284,8 @@ export default function TaiSanPhongPage() {
           </SelectContent>
         </Select>
 
-        <Select 
-          value={filters.tinhTrang} 
+        <Select
+          value={filters.tinhTrang}
           onValueChange={(val) => {
             setFilters(prev => ({ ...prev, tinhTrang: val }))
             setPagination(prev => ({ ...prev, pageIndex: 0 }))
