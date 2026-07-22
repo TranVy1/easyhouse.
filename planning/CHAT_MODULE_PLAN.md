@@ -1116,10 +1116,34 @@ nhờ vậy lúc ảnh đang tải vẫn luôn có thứ để nhìn, không nh�
 gắn vào mọi tin thì một chuỗi 5 tin sẽ có 5 ảnh giống hệt nhau. Các tin còn lại chừa
 một khoảng trống cùng bề rộng để bong bóng vẫn thẳng hàng.
 
-**Đổi ảnh nhóm:** nút máy ảnh ở bảng thông tin, chỉ hiện với nhóm. Tải ảnh qua đúng
-đường đã có cho tệp đính kèm rồi `PATCH` URL vào nhóm — không làm đường upload thứ hai.
-Server tự phát tin hệ thống *"X đã đổi ảnh nhóm"*. Chat 1-1 **cố ý không cho đổi** vì
-ảnh đó là ảnh đại diện của đối phương.
+**Đổi tên và ảnh nhóm:** nút bút chì cạnh tên + nút máy ảnh trên avatar, đều ở bảng
+thông tin. Backend vốn đã hỗ trợ cả hai qua `PATCH /hoi-thoai/{id}` từ P2 — **chỉ thiếu
+giao diện**, không ai gọi tới. Ô nhập tên dùng cùng kiểu tương tác với sửa biệt danh
+bên dưới (Enter lưu, Esc huỷ) để không phải học hai cách. Tên rỗng hoặc y hệt tên cũ
+thì chỉ đóng ô nhập, không gọi API — tránh sinh tin hệ thống rác.
+
+Chat 1-1 **cố ý không cho đổi ảnh** vì đó là ảnh đại diện của đối phương.
+
+**Điều kiện hiện nút — khớp đúng `ChatPermissionService.yeuCauQuanTriNhom`:**
+
+1. Chỉ nhóm **tự tạo** (`GROUP`). Nhóm theo nhà trọ / theo tầng do job đồng bộ quản lý,
+   sửa tay xong sẽ bị ghi đè — server cũng từ chối thẳng.
+2. Phải là **OWNER hoặc MODERATOR** của nhóm.
+
+*Lỗi bắt được ngay khi làm phần này:* nút đổi ảnh ban đầu dùng `laLoaiNhom(...)` nên
+hiện cả với nhóm `BUILDING`/`FLOOR` — bấm vào chắc chắn 403. Đúng kiểu "nút bấm không
+ăn" mà đã bị phàn nàn trước đó. Đã siết lại đúng hai điều kiện trên.
+
+*Chỗ chưa phủ hết (biết và chấp nhận):* server còn cho chủ trọ / nhân viên có quyền sửa
+nhà trọ được quản trị nhóm trong phạm vi đó, nhưng client không biết được quyền ấy. Nếu
+họ chỉ là thành viên thường của nhóm thì sẽ **không thấy nút**, dù server cho phép. Chọn
+ẩn nút thay vì hiện một nút có thể 403, vì trường hợp thường gặp là người tạo nhóm cũng
+chính là OWNER.
+
+**Kiểm chứng đổi tên:** OWNER thấy cả hai nút; MEMBER của nhóm tự tạo **không** thấy;
+nhóm `FLOOR` (Tầng 2) **không** thấy. Đổi tên từ giao diện: tên trong danh sách khớp
+đúng tên vừa nhập, tin hệ thống *"… đã đổi tên nhóm thành …"* đúng nội dung, ô nhập tự
+đóng. Backend cũng kiểm riêng qua API (`PATCH` 200, tên trong response khớp).
 
 **Kiểm chứng:** DB local vốn có **0/8** người dùng với ảnh — nên phải seed ảnh thật rồi
 mới kiểm được, nếu không màn hình vẫn hiện chữ cái và dễ tưởng nhầm là code sai.

@@ -69,6 +69,7 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
     roiNhom,
     layDanhBa,
     doiAnhNhom,
+    doiTenNhom,
     // P8
     tinGhims,
     datGhimTin,
@@ -662,9 +663,16 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
             layTepDinhKem={layTepDinhKem}
             layLienKet={layLienKet}
             datBietDanh={datBietDanh}
+            // Chỉ nhóm TỰ TẠO mới sửa được; nhóm theo nhà/tầng do hệ thống quản lý.
+            // BangThongTin còn kiểm thêm vai trò trước khi hiện nút.
             onDoiAnhNhom={
-              laLoaiNhom(hoiThoaiDangMo.loai)
+              hoiThoaiDangMo.loai === 'GROUP'
                 ? (tep) => doiAnhNhom(hoiThoaiDangMo._id, tep)
+                : undefined
+            }
+            onDoiTenNhom={
+              hoiThoaiDangMo.loai === 'GROUP'
+                ? (ten) => doiTenNhom(hoiThoaiDangMo._id, ten)
                 : undefined
             }
           />

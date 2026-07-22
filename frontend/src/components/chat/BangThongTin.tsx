@@ -42,6 +42,7 @@ export function BangThongTin({
   layLienKet,
   datBietDanh,
   onDoiAnhNhom,
+  onDoiTenNhom,
 }: {
   hoiThoai: CuocTroChuyen;
   nguoiDungId?: string;
@@ -57,6 +58,8 @@ export function BangThongTin({
   datBietDanh: (hoiThoaiId: string, nguoiDungIdDich: string, bietDanh: string) => Promise<void>;
   /** Chỉ truyền cho nhóm. Bỏ trống thì không hiện nút đổi ảnh. */
   onDoiAnhNhom?: (tep: File) => Promise<void>;
+  /** Chỉ truyền cho nhóm. Bỏ trống thì không hiện nút đổi tên. */
+  onDoiTenNhom?: (ten: string) => Promise<void>;
 }) {
   const [tab, setTab] = useState<TabDinhKem>('IMAGE');
   const [dinhKem, setDinhKem] = useState<TinNhan[]>([]);
@@ -67,10 +70,41 @@ export function BangThongTin({
   const [moMenuTat, setMoMenuTat] = useState(false);
   const [moTim, setMoTim] = useState(false);
   const [dangTaiAnh, setDangTaiAnh] = useState(false);
+  const [dangSuaTen, setDangSuaTen] = useState(false);
+  const [tenMoi, setTenMoi] = useState('');
   const oChonAnh = useRef<HTMLInputElement>(null);
 
   const laNhom =
     hoiThoai.loai === 'GROUP' || hoiThoai.loai === 'BUILDING' || hoiThoai.loai === 'FLOOR';
+
+  /**
+   * Ai được sửa tên / ảnh nhóm.
+   *
+   * Hai điều kiện, khớp đúng với `ChatPermissionService.yeuCauQuanTriNhom` ở server:
+   *   1. Chỉ nhóm TỰ TẠO. Nhóm theo nhà trọ và theo tầng do job đồng bộ quản lý,
+   *      sửa tay xong sẽ bị ghi đè — server cũng từ chối thẳng.
+   *   2. Phải là người tạo nhóm hoặc quản trị nhóm.
+   *
+   * Kiểm ở client chỉ để KHÔNG hiện nút chắc chắn hỏng; server vẫn kiểm lại.
+   *
+   * Điểm chưa phủ hết: server còn cho chủ trọ/nhân viên có quyền sửa nhà trọ được
+   * quản trị nhóm trong phạm vi đó, nhưng client không biết được quyền ấy. Nếu họ
+   * chỉ là thành viên thường thì sẽ không thấy nút, dù server cho phép.
+   */
+  const vaiTroCuaToi = hoiThoai.thanhVien?.find((tv) => tv._id === nguoiDungId)?.vaiTro;
+  const coQuyenSuaNhom =
+    hoiThoai.loai === 'GROUP' && (vaiTroCuaToi === 'OWNER' || vaiTroCuaToi === 'MODERATOR');
+
+  const luuTenNhom = async () => {
+    const ten = tenMoi.trim();
+    // Tên rỗng hoặc y hệt cũ thì chỉ đóng ô nhập — đừng gọi API để sinh tin hệ thống rác.
+    if (!ten || ten === hoiThoai.ten) {
+      setDangSuaTen(false);
+      return;
+    }
+    await onDoiTenNhom?.(ten);
+    setDangSuaTen(false);
+  };
 
   const taiTab = useCallback(async () => {
     setDangTai(true);
@@ -109,7 +143,7 @@ export function BangThongTin({
               nên không ai được sửa. */}
           <div className="relative">
             <AnhDaiDien ten={hoiThoai.ten} anh={hoiThoai.anh} laNhom={laNhom} co={56} />
-            {laNhom && onDoiAnhNhom && (
+            {coQuyenSuaNhom && onDoiAnhNhom && (
               <>
                 <button
                   onClick={() => oChonAnh.current?.click()}
@@ -141,7 +175,53 @@ export function BangThongTin({
               </>
             )}
           </div>
-          <p className="text-center text-sm font-semibold">{hoiThoai.ten}</p>
+          {/* Đổi tên nhóm ngay tại chỗ — cùng kiểu tương tác với sửa biệt danh
+              bên dưới, để không phải học hai cách làm khác nhau. */}
+          {dangSuaTen ? (
+            <div className="flex w-full items-center gap-1">
+              <input
+                autoFocus
+                value={tenMoi}
+                onChange={(e) => setTenMoi(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') luuTenNhom();
+                  if (e.key === 'Escape') setDangSuaTen(false);
+                }}
+                maxLength={100}
+                placeholder="Tên nhóm"
+                className="min-w-0 flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                onClick={luuTenNhom}
+                className="rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground"
+              >
+                Lưu
+              </button>
+              <button
+                onClick={() => setDangSuaTen(false)}
+                className="rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:bg-muted"
+              >
+                Huỷ
+              </button>
+            </div>
+          ) : (
+            <p className="flex items-center gap-1.5 text-center text-sm font-semibold">
+              {hoiThoai.ten}
+              {coQuyenSuaNhom && onDoiTenNhom && (
+                <button
+                  onClick={() => {
+                    setTenMoi(hoiThoai.ten ?? '');
+                    setDangSuaTen(true);
+                  }}
+                  title="Đổi tên nhóm"
+                  aria-label="Đổi tên nhóm"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Pencil size={12} />
+                </button>
+              )}
+            </p>
+          )}
           {dangTaiAnh && <p className="text-[11px] text-muted-foreground">Đang tải ảnh lên…</p>}
           <p className="text-xs text-muted-foreground">
             {laNhom

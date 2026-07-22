@@ -339,6 +339,25 @@ export function useChat() {
     [goi, taiTepLen, taiDanhSach],
   );
 
+  /**
+   * Đổi tên nhóm. Server chỉ cho phép với nhóm TỰ TẠO và người quản trị nhóm —
+   * nhóm theo nhà trọ / theo tầng do job đồng bộ quản lý nên sửa tay sẽ bị từ chối.
+   */
+  const doiTenNhom = useCallback(
+    async (hoiThoaiId: string, ten: string) => {
+      try {
+        await goi(`/hoi-thoai/${hoiThoaiId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ ten }),
+        });
+        await taiDanhSach();
+      } catch (e) {
+        setLoi(e instanceof Error ? e.message : 'Không đổi được tên nhóm');
+      }
+    },
+    [goi, taiDanhSach],
+  );
+
   const guiTin = useCallback(
     async (noiDung: string, tep?: TepDinhKem | null, traLoiChoId?: string) => {
       const hoiThoaiId = hoiThoaiDangMoRef.current;
@@ -772,6 +791,7 @@ export function useChat() {
     layDanhBa,
     taiDanhSach,
     doiAnhNhom,
+    doiTenNhom,
     // P8
     tinGhims,
     datGhimTin,
