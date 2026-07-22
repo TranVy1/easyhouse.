@@ -112,7 +112,7 @@ export const generateAndDownloadHopDong = async (
           new Paragraph({
             children: [
               new TextRun({
-                text: "Ông/bà: [Tên chủ nhà] Sinh ngày: [Ngày sinh]",
+                text: "Ông/bà:...................... Sinh ngày:......................",
                 size: 20,
               }),
             ],
@@ -121,7 +121,7 @@ export const generateAndDownloadHopDong = async (
           new Paragraph({
             children: [
               new TextRun({
-                text: "Nơi đăng ký hộ khẩu thường trú: [Địa chỉ thường trú]",
+                text: "Nơi đăng ký hộ khẩu thường trú:......................",
                 size: 20,
               }),
             ],
@@ -130,7 +130,7 @@ export const generateAndDownloadHopDong = async (
           new Paragraph({
             children: [
               new TextRun({
-                text: "CMND (CCCD) số: [Số CMND] cấp ngày [Ngày cấp] tại: [Nơi cấp]",
+                text: "CMND (CCCD) số:...................... cấp ngày ...................... tại: ......................",
                 size: 20,
               }),
             ],
@@ -139,7 +139,7 @@ export const generateAndDownloadHopDong = async (
           new Paragraph({
             children: [
               new TextRun({
-                text: "Số điện thoại liên hệ: [Số điện thoại]",
+                text: "Số điện thoại liên hệ:......................",
                 size: 20,
               }),
             ],
