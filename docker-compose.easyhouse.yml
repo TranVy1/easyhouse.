@@ -1,6 +1,10 @@
 services:
   postgres:
-    image: postgres:14-alpine
+    # Giu 16 (gia tri ban dau, truoc commit dff3005 ha xuong 14).
+    # Ha xuong 14 gay hai van de: volume cu do PostgreSQL 16 tao se khong mo duoc
+    # ("database files are incompatible with server"), va sql/init-db.sql duoc
+    # pg_dump tu ban 17.6 nen phuc hoi vao 14 de vap cu phap moi.
+    image: postgres:16-alpine
     container_name: easyhouse-postgres
     environment:
       POSTGRES_DB: postgres
@@ -54,6 +58,13 @@ services:
       CLOUDINARY_CLOUD_NAME: your-cloud-name
       CLOUDINARY_API_KEY: your-api-key
       CLOUDINARY_API_SECRET: your-api-secret
+      # Khoa VAPID cho Web Push. Sinh bang: npx web-push generate-vapid-keys
+      # Day la khoa DEV, production phai sinh cap khac va dat qua bien moi truong.
+      # Thieu hai bien nay thi WebPushSender khong duoc tao bean va he thong bo qua
+      # viec gui push — ung dung van chay binh thuong.
+      PUSH_VAPID_PUBLIC_KEY: BMO7X0njraca6-q756yDbbLddU1rTwcbKycznqk6l9noj02B--_Z96GUqCstDJMLP48YEkP1lPY6fXhsEGsdv2Q
+      PUSH_VAPID_PRIVATE_KEY: zXTZzsbV4rKdnllXEoFyg7nR3QHnLbaxhZakAHF6h1w
+      PUSH_VAPID_SUBJECT: mailto:admin@easyhouse.local
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
@@ -78,6 +89,10 @@ services:
       BACKEND_URL: http://backend:8080
       NEXTAUTH_URL: http://localhost:3002
       NEXTAUTH_SECRET: easyhouse-docker-dev-secret-change-me
+      # Chat realtime: WebSocket noi THANG tu trinh duyet toi backend, khong qua
+      # rewrite cua Next (rewrite khong nang cap duoc ket noi WebSocket).
+      # Dung cong da publish ra host (8082), khong phai backend:8080 trong mang docker.
+      NEXT_PUBLIC_WS_URL: ws://localhost:8082/ws
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
       REDIS_URL: redis://redis:6379

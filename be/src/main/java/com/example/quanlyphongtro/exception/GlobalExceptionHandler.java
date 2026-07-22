@@ -25,6 +25,30 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // ── Exception có kiểu (module chat) ─────────────────────────────────────
+    // Handler bên dưới đoán HTTP status bằng cách dò chuỗi trong message — cách đó
+    // hỏng ngay khi ai đó sửa câu chữ. Module chat dùng exception có kiểu để status
+    // là hợp đồng rõ ràng, không phụ thuộc vào cách viết message.
+    // Spring luôn ưu tiên handler khớp cụ thể hơn, nên hành vi cũ giữ nguyên.
+
+    @ExceptionHandler(ChatKhongTimThayException.class)
+    public ResponseEntity<ApiResponse<Void>> handleChatNotFound(ChatKhongTimThayException ex) {
+        log.warn("[404][chat] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ChatKhongCoQuyenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleChatForbidden(ChatKhongCoQuyenException ex) {
+        log.warn("[403][chat] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ChatYeuCauKhongHopLeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleChatBadRequest(ChatYeuCauKhongHopLeException ex) {
+        log.warn("[400][chat] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    }
+
     // ── 404 / 403 / 400 — RuntimeException từ Services ──────────────────────
 
     @ExceptionHandler(RuntimeException.class)

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "EasyHouse",
+    "slug": "easyhouse-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "easyhouse",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f766e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.easyhouse.mobile"
+    },
+    "android": {
+      "package": "com.easyhouse.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "apiBaseUrl": "http://10.0.2.2:8082"
+    }
+  }
+}

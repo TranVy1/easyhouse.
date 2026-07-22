@@ -31,6 +31,38 @@ public class SchedulerService {
     @org.springframework.beans.factory.annotation.Autowired
     private HopDongService hopDongService;
 
+    @org.springframework.context.annotation.Lazy
+    @org.springframework.beans.factory.annotation.Autowired
+    private ChatMembershipService chatMembershipService;
+
+    /**
+     * Doi soat thanh vien nhom chat tu dong (nhom theo nha tro / theo tang).
+     *
+     * Chay 3:30 sang, tach hoan toan khoi runDailyChecks luc 7:00:
+     *   - khong dung chung transaction, nen dong bo chat hong khong lam quay lui
+     *     viec nhac no va gia han hop dong
+     *   - moi nguoi dung la mot transaction rieng, tranh giu ket noi DB qua lau
+     *
+     * Lop nay chi de bat nhung truong hop lop dong bo lazy khong cham toi (nguoi
+     * khong bao gio mo trang tin nhan).
+     */
+    @Scheduled(cron = "0 30 3 * * ?")
+    public void doiSoatNhomChat() {
+        List<java.util.UUID> nguoiDungIds = chatMembershipService.danhSachNguoiDungDangThue();
+        log.info("Bat dau doi soat nhom chat cho {} nguoi dung...", nguoiDungIds.size());
+
+        int loi = 0;
+        for (java.util.UUID nguoiDungId : nguoiDungIds) {
+            try {
+                chatMembershipService.dongBoChoNguoiDung(nguoiDungId);
+            } catch (RuntimeException ex) {
+                loi++;
+                log.warn("Doi soat nhom chat that bai cho {}: {}", nguoiDungId, ex.getMessage());
+            }
+        }
+        log.info("Hoan thanh doi soat nhom chat. Loi: {}/{}", loi, nguoiDungIds.size());
+    }
+
     /**
      * Chạy mỗi ngày lúc 7:00 AM để quét các hợp đồng sắp hết hạn và nhắc nợ quá hạn.
      */
