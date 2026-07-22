@@ -34,4 +34,21 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'uu_tien_enum') THEN
     CREATE TYPE uu_tien_enum AS ENUM ('thap', 'trung_binh', 'cao', 'khan_cap');
   END IF;
+
+  -- Module tin nhan (chat realtime) — xem sql/migrations/20260722_add_chat_module.sql
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'loai_cuoc_tro_chuyen') THEN
+    CREATE TYPE loai_cuoc_tro_chuyen AS ENUM ('DIRECT', 'GROUP', 'BUILDING', 'FLOOR', 'SUPPORT');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'trang_thai_cuoc_tro_chuyen') THEN
+    CREATE TYPE trang_thai_cuoc_tro_chuyen AS ENUM ('ACTIVE', 'ARCHIVED', 'LOCKED');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vai_tro_thanh_vien_chat') THEN
+    CREATE TYPE vai_tro_thanh_vien_chat AS ENUM ('OWNER', 'MODERATOR', 'MEMBER');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'loai_tin_nhan') THEN
+    CREATE TYPE loai_tin_nhan AS ENUM ('TEXT', 'IMAGE', 'FILE', 'SYSTEM');
+  END IF;
 END $$;

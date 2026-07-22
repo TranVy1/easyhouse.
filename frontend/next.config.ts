@@ -154,6 +154,26 @@ const nextConfig: NextConfig = {
         source: '/api/thong-bao/:path*',
         destination: `${backendUrl}/api/thong-bao/:path*`
       },
+      // Module tin nhắn. Đặt ở /api/tin-nhan chứ KHÔNG phải /api/chat: đã có
+      // route handler /api/chat cho chatbot Gemini, mà rewrites() trả về mảng
+      // phẳng nên chạy SAU filesystem route — trùng tên sẽ khiến định tuyến khó đoán.
+      //
+      // Chỉ REST đi qua đây. WebSocket nối THẲNG tới backend qua NEXT_PUBLIC_WS_URL
+      // vì rewrite của Next không nâng cấp được kết nối WebSocket.
+      // Thông báo đẩy (P5). Tách khỏi /api/tin-nhan vì là hạ tầng chung —
+      // sau này hoá đơn, sự cố, lịch hẹn cũng dùng chung đường này.
+      {
+        source: '/api/thong-bao-day/:path*',
+        destination: `${backendUrl}/api/thong-bao-day/:path*`
+      },
+      {
+        source: '/api/tin-nhan',
+        destination: `${backendUrl}/api/tin-nhan`
+      },
+      {
+        source: '/api/tin-nhan/:path*',
+        destination: `${backendUrl}/api/tin-nhan/:path*`
+      },
       {
         source: '/api/su-co',
         destination: `${backendUrl}/api/su-co`

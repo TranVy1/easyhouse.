@@ -52,7 +52,13 @@ public class SecurityConfig {
                     "/api/public/**",
                     "/api/hoa-don-public/**",
                     "/actuator/**",
-                    "/error"
+                    "/error",
+                    // Bat tay WebSocket: trinh duyet KHONG dat duoc header Authorization
+                    // tren request handshake, nen khong the xac thuc o day. Viec kiem tra
+                    // token chuyen xuong frame STOMP CONNECT — xem StompAuthChannelInterceptor.
+                    // Mo permitAll o day KHONG lam ho bao mat: chua CONNECT hop le thi
+                    // khong subscribe hay gui duoc gi.
+                    "/ws/**"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/lich-hen").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vnpay/ipn", "/api/vnpay/vnpay-return").permitAll()

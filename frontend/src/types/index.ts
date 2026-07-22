@@ -724,6 +724,7 @@ export interface TaiSanPhong {
   id?: string;
   _id?: string;
   phongId?: string;
+  khoTaiSanId?: string;
   tenPhong?: string;
   nhaTroId?: string;
   tenNhaTro?: string;
@@ -759,4 +760,110 @@ export interface LichSuKhoTaiSan {
   soLuong: number;
   ghiChu?: string;
   taoLuc?: string;
+}
+
+// ─── Module tin nhắn (chat realtime) ────────────────────────────────────────
+
+export type LoaiCuocTroChuyen = 'DIRECT' | 'GROUP' | 'BUILDING' | 'FLOOR' | 'SUPPORT';
+export type LoaiTinNhan = 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
+
+export interface ThanhVienChat {
+  _id: string;              // nguoiDungId
+  hoTen?: string;
+  bietDanh?: string;        // hiển thị ưu tiên bietDanh ?? hoTen
+  anhDaiDien?: string;
+  vaiTro?: string;
+  docDenSeq?: number;       // dùng để hiện "đã xem"
+}
+
+export interface CuocTroChuyen {
+  _id: string;
+  loai: LoaiCuocTroChuyen;
+  ten?: string;             // server đã tự suy tên hiển thị cho chat 1-1
+  anh?: string;
+  nhaTroId?: string;
+  trangThai?: string;
+  tinNhanCuoiLuc?: string;
+  xemTruoc?: string;
+  soTinChuaDoc?: number;
+  ghim?: boolean;
+  /** Đang tắt thông báo (gộp cả tắt vô thời hạn lẫn tắt có hạn). */
+  tatThongBao?: boolean;
+  /** Mốc hết hạn tắt. Null mà tatThongBao=true nghĩa là tắt vô thời hạn. */
+  tatThongBaoDen?: string;
+  /** Đang lưu trữ: ẩn khỏi danh sách chính nhưng giữ nguyên lịch sử (P8). */
+  luuTru?: boolean;
+  docDenSeq?: number;
+  thanhVien?: ThanhVienChat[];
+}
+
+export interface TinNhan {
+  _id: string;
+  soThuTu: number;          // mốc thứ tự tuyệt đối, dùng làm cursor
+  cuocTroChuyenId: string;
+  nguoiGuiId?: string;      // null = tin hệ thống
+  tenNguoiGui?: string;
+  anhNguoiGui?: string;
+  loai: LoaiTinNhan;
+  noiDung?: string;
+  fileUrl?: string;
+  traLoiChoId?: string;
+  maClient?: string;        // khớp tin optimistic với tin server trả về
+  daThuHoi?: boolean;
+  ngayTao?: string;
+  dangGui?: boolean;        // chỉ tồn tại ở client, chưa có phản hồi từ server
+  loiGui?: boolean;
+
+  // P8 — ghim tin có phạm vi CẢ HỘI THOẠI, khác ghim hội thoại ở CuocTroChuyen.ghim
+  dangGhim?: boolean;
+  ghimLuc?: string;
+  tenNguoiGhim?: string;
+  chuyenTiepTuId?: string;  // có giá trị = tin này là bản chuyển tiếp
+}
+
+/** Ai đã xem một tin nhắn — dùng cho hộp thoại "Chi tiết tin nhắn" (P8). */
+export interface NguoiXemTin {
+  _id: string;
+  hoTen?: string;
+  anhDaiDien?: string;
+  xemLuc?: string;
+}
+
+export interface ChiTietTinNhan {
+  tinNhan: TinNhan;
+  daXem: NguoiXemTin[];
+  chuaXem: NguoiXemTin[];
+}
+
+export interface NguoiLienHe {
+  _id: string;
+  hoTen?: string;
+  soDienThoai?: string;
+  anhDaiDien?: string;
+  vaiTro?: 'LANDLORD' | 'STAFF' | 'TENANT';
+}
+
+export interface SuKienTrangThaiChat {
+  loai: 'DANG_GO' | 'DUNG_GO' | 'DA_DOC';
+  cuocTroChuyenId: string;
+  nguoiDungId: string;
+  denSeq?: number;
+}
+
+/** Kết quả tải tệp đính kèm cho chat — client gửi `_id` kèm trong tin nhắn. */
+export interface TepDinhKem {
+  _id: string;
+  url: string;
+  loaiTinNhan: 'IMAGE' | 'FILE';
+  tenTep?: string;
+  kichThuocBytes?: number;
+}
+
+/** Một liên kết được chia sẻ trong hội thoại (server trích từ nội dung tin nhắn). */
+export interface LienKetChat {
+  url: string;
+  tinNhanId: string;
+  soThuTu: number;
+  tenNguoiGui?: string;
+  ngayGui?: string;
 }

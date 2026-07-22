@@ -11,4 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface NguoiDungNhaTroRepository extends JpaRepository<NguoiDungNhaTro, UUID> {
     List<NguoiDungNhaTro> findByNguoiDungId(UUID nguoiDungId);
     Optional<NguoiDungNhaTro> findByNguoiDungIdAndNhaTroId(UUID nguoiDungId, UUID nhaTroId);
+
+    /** Module tin nhan: nhan vien quan ly cua mot nhom nha tro, de dua vao kenh ho tro. */
+    List<NguoiDungNhaTro> findByNhaTroIdIn(List<UUID> nhaTroIds);
 }

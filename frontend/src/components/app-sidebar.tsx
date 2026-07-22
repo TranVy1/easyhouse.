@@ -72,6 +72,7 @@ const mainSections: NavigationSection[] = [
     url: "#",
     icon: ClipboardList,
     items: [
+      { title: "Tin nhắn", url: "/dashboard/tin-nhan" },
       { title: "Sự cố", url: "/dashboard/su-co" },
       { title: "Lịch hẹn", url: "/dashboard/lich-hen" },
       { title: "Xem website", url: "/dashboard/xem-web" },
