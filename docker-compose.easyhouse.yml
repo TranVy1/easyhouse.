@@ -4,7 +4,7 @@ services:
     # Ha xuong 14 gay hai van de: volume cu do PostgreSQL 16 tao se khong mo duoc
     # ("database files are incompatible with server"), va sql/init-db.sql duoc
     # pg_dump tu ban 17.6 nen phuc hoi vao 14 de vap cu phap moi.
-    image: postgres:16-alpine
+    image: postgres:14-alpine
     container_name: easyhouse-postgres
     environment:
       POSTGRES_DB: postgres
