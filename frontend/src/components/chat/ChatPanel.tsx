@@ -27,6 +27,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
+import { AnhDaiDien } from '@/components/chat/AnhDaiDien';
 import { BangThongTin } from '@/components/chat/BangThongTin';
 import { useChat } from '@/hooks/use-chat';
 import { gioDayDu, gioPhut, nhanNgan, nhanPhanCach, viTriTrongCum, type ViTriTrongCum } from '@/lib/chat-time';
@@ -67,6 +68,7 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
     taoNhom,
     roiNhom,
     layDanhBa,
+    doiAnhNhom,
     // P8
     tinGhims,
     datGhimTin,
@@ -403,11 +405,14 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
               >
                 <X size={18} />
               </button>
+              <AnhDaiDien
+                ten={hoiThoaiDangMo.ten}
+                anh={hoiThoaiDangMo.anh}
+                laNhom={laNhom}
+                co={34}
+              />
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 truncate text-sm font-semibold">
-                  {laNhom && <Users size={13} className="shrink-0 text-muted-foreground" />}
-                  {hoiThoaiDangMo.ten}
-                </p>
+                <p className="truncate text-sm font-semibold">{hoiThoaiDangMo.ten}</p>
                 <p className="truncate text-xs text-muted-foreground">
                   {tenAiDangGo.length > 0
                     ? `${tenAiDangGo.join(', ')} đang nhập…`
@@ -657,6 +662,11 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
             layTepDinhKem={layTepDinhKem}
             layLienKet={layLienKet}
             datBietDanh={datBietDanh}
+            onDoiAnhNhom={
+              laLoaiNhom(hoiThoaiDangMo.loai)
+                ? (tep) => doiAnhNhom(hoiThoaiDangMo._id, tep)
+                : undefined
+            }
           />
         </div>
       )}
@@ -896,13 +906,13 @@ function MucHoiThoai({
       {/* Không đặt z-index cho các phần hiển thị: chúng chỉ cần nằm trên nút phủ
           trong suốt ở trên, mà thứ tự DOM đã lo việc đó. Gán z-index ở đây sẽ tạo
           ra thứ cạnh tranh với menu thả xuống của các mục khác. */}
-      <div
-        className={`pointer-events-none relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-          laNhom ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-primary/10 text-primary'
-        }`}
-      >
-        {laNhom ? <Users size={16} /> : (hoiThoai.ten ?? '?').charAt(0).toUpperCase()}
-      </div>
+      <AnhDaiDien
+        ten={hoiThoai.ten}
+        anh={hoiThoai.anh}
+        laNhom={laNhom}
+        co={36}
+        className="pointer-events-none relative"
+      />
 
       <div className="pointer-events-none relative min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
@@ -1161,7 +1171,7 @@ function BongBongTin({
     >
       {/* Tên người gửi chỉ hiện ở tin ĐẦU cụm, và không hiện với tin của chính mình. */}
       {!cuaToi && viTri.dauCum && tin.tenNguoiGui && (
-        <span className="mb-0.5 px-1 text-[11px] font-medium text-muted-foreground">
+        <span className="mb-0.5 pl-8 text-[11px] font-medium text-muted-foreground">
           {tin.tenNguoiGui}
         </span>
       )}
@@ -1185,7 +1195,16 @@ function BongBongTin({
 
       {/* Nhóm bong bóng + nút hành động: nút chỉ hiện khi rê chuột, để không
           chiếm chỗ và không làm rối khi đang đọc. */}
-      <div className={`group flex items-center gap-1 ${cuaToi ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`group flex items-end gap-1.5 ${cuaToi ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Ảnh người gửi chỉ cạnh tin CUỐI cụm và chỉ với tin của người khác —
+            gắn vào mọi tin thì một chuỗi 5 tin sẽ có 5 ảnh giống hệt nhau.
+            Vẫn chừa chỗ trống ở các tin khác để bong bóng thẳng hàng. */}
+        {!cuaToi &&
+          (viTri.cuoiCum ? (
+            <AnhDaiDien ten={tin.tenNguoiGui} anh={tin.anhNguoiGui} co={26} className="mb-0.5" />
+          ) : (
+            <span className="w-[26px] shrink-0" aria-hidden />
+          ))}
         <div
           // Rê chuột lên bong bóng để xem giờ chính xác tới giây.
           title={gioDayDu(tin.ngayTao)}
@@ -1372,9 +1391,7 @@ function HopThoaiDanhBa({
                   {daChon.includes(nguoi._id) && <Check size={11} />}
                 </span>
               )}
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                {(nguoi.hoTen ?? '?').charAt(0).toUpperCase()}
-              </div>
+              <AnhDaiDien ten={nguoi.hoTen} anh={nguoi.anhDaiDien} co={32} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{nguoi.hoTen}</p>
                 <p className="truncate text-xs text-muted-foreground">{nguoi.soDienThoai}</p>

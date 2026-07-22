@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BellOff,
+  Camera,
   ExternalLink,
   FileText,
   Images,
@@ -14,6 +15,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { AnhDaiDien } from '@/components/chat/AnhDaiDien';
 import { nhanNgan, nhanPhanCach } from '@/lib/chat-time';
 import { useThongBaoDay } from '@/hooks/use-thong-bao-day';
 import type { CuocTroChuyen, LienKetChat, ThanhVienChat, TinNhan } from '@/types';
@@ -39,6 +41,7 @@ export function BangThongTin({
   layTepDinhKem,
   layLienKet,
   datBietDanh,
+  onDoiAnhNhom,
 }: {
   hoiThoai: CuocTroChuyen;
   nguoiDungId?: string;
@@ -52,6 +55,8 @@ export function BangThongTin({
   layTepDinhKem: (hoiThoaiId: string, loai: 'IMAGE' | 'FILE') => Promise<TinNhan[]>;
   layLienKet: (hoiThoaiId: string) => Promise<LienKetChat[]>;
   datBietDanh: (hoiThoaiId: string, nguoiDungIdDich: string, bietDanh: string) => Promise<void>;
+  /** Chỉ truyền cho nhóm. Bỏ trống thì không hiện nút đổi ảnh. */
+  onDoiAnhNhom?: (tep: File) => Promise<void>;
 }) {
   const [tab, setTab] = useState<TabDinhKem>('IMAGE');
   const [dinhKem, setDinhKem] = useState<TinNhan[]>([]);
@@ -61,6 +66,8 @@ export function BangThongTin({
   const [bietDanhMoi, setBietDanhMoi] = useState('');
   const [moMenuTat, setMoMenuTat] = useState(false);
   const [moTim, setMoTim] = useState(false);
+  const [dangTaiAnh, setDangTaiAnh] = useState(false);
+  const oChonAnh = useRef<HTMLInputElement>(null);
 
   const laNhom =
     hoiThoai.loai === 'GROUP' || hoiThoai.loai === 'BUILDING' || hoiThoai.loai === 'FLOOR';
@@ -98,10 +105,44 @@ export function BangThongTin({
       <div className="flex-1 overflow-y-auto">
         {/* ── Đầu bảng ── */}
         <div className="flex flex-col items-center gap-2 border-b p-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
-            {(hoiThoai.ten ?? '?').charAt(0).toUpperCase()}
+          {/* Nhóm thì cho đổi ảnh ngay tại đây; chat 1-1 dùng ảnh của đối phương
+              nên không ai được sửa. */}
+          <div className="relative">
+            <AnhDaiDien ten={hoiThoai.ten} anh={hoiThoai.anh} laNhom={laNhom} co={56} />
+            {laNhom && onDoiAnhNhom && (
+              <>
+                <button
+                  onClick={() => oChonAnh.current?.click()}
+                  disabled={dangTaiAnh}
+                  title="Đổi ảnh nhóm"
+                  aria-label="Đổi ảnh nhóm"
+                  className="absolute -bottom-0.5 -right-0.5 rounded-full border bg-background p-1 shadow-sm hover:bg-muted disabled:opacity-50"
+                >
+                  <Camera size={11} />
+                </button>
+                <input
+                  ref={oChonAnh}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={async (e) => {
+                    const tep = e.target.files?.[0];
+                    // Xoá value ngay để chọn lại đúng tệp đó lần nữa vẫn kích hoạt.
+                    e.target.value = '';
+                    if (!tep) return;
+                    setDangTaiAnh(true);
+                    try {
+                      await onDoiAnhNhom(tep);
+                    } finally {
+                      setDangTaiAnh(false);
+                    }
+                  }}
+                />
+              </>
+            )}
           </div>
           <p className="text-center text-sm font-semibold">{hoiThoai.ten}</p>
+          {dangTaiAnh && <p className="text-[11px] text-muted-foreground">Đang tải ảnh lên…</p>}
           <p className="text-xs text-muted-foreground">
             {laNhom
               ? `${hoiThoai.thanhVien?.length ?? 0} thành viên`
@@ -490,9 +531,11 @@ function MucThanhVien({
 
   return (
     <div className="group flex items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-muted/50">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-        {(thanhVien.bietDanh ?? thanhVien.hoTen ?? '?').charAt(0).toUpperCase()}
-      </div>
+      <AnhDaiDien
+        ten={thanhVien.bietDanh ?? thanhVien.hoTen}
+        anh={thanhVien.anhDaiDien}
+        co={28}
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium">
           {thanhVien.bietDanh ?? thanhVien.hoTen}

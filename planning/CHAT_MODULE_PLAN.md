@@ -1089,6 +1089,62 @@ giữ lại đây để thấy cái gì còn treo.
 | 7 | **Khách thuê chưa có tài khoản** (R7 ở trên) | 1/7 bản ghi. |
 | 8 | **R9: Flyway** | Migration vẫn chạy tay bằng script idempotent. Đề xuất tách thành task riêng, ngoài phạm vi module chat. |
 
+#### Ảnh đại diện trong chat — làm 2026-07-22
+
+Trước đó mọi chỗ trong chat đều vẽ **chữ cái đầu**, không nơi nào dùng ảnh thật của
+người dùng, và nhóm thì không đặt được ảnh.
+
+**Backend:** `CuocTroChuyenResponse.anh` giờ được **suy ra** giống hệt cách `ten` được
+suy, chứ không đọc thẳng `cuoc_tro_chuyen.anh`:
+
+| Loại | Ảnh hiển thị |
+|---|---|
+| `GROUP` / `BUILDING` / `FLOOR` | Ảnh của nhóm (`cuoc_tro_chuyen.anh`) |
+| `DIRECT` / `SUPPORT` | Ảnh đại diện của **người còn lại** |
+
+Lý do giống với tên: cùng một hàng `cuoc_tro_chuyen` nhưng **mỗi bên nhìn thấy một ảnh
+khác nhau**, nên không thể lưu chung một cột. Trường hợp có hơn một người khác (kênh hỗ
+trợ nhiều nhân viên) thì **không đoán bừa** — trả về ảnh nhóm/null để client vẽ chữ cái.
+
+**Frontend:** gom về một component `AnhDaiDien` dùng chung cho cả 5 chỗ (danh sách, đầu
+khung chat, cạnh bong bóng tin, bảng thông tin, hộp danh bạ). Trước đây mỗi nơi tự vẽ
+một kiểu. Có ảnh thì hiện ảnh, không thì rơi về chữ cái đầu / biểu tượng nhóm; **ảnh
+hỏng link cũng rơi về chữ cái** chứ không để ô vỡ. Chữ cái nằm *dưới*, ảnh phủ *lên* —
+nhờ vậy lúc ảnh đang tải vẫn luôn có thứ để nhìn, không nhấp nháy ô trống.
+
+Ảnh cạnh bong bóng tin chỉ hiện ở **tin cuối cụm** và chỉ với tin của **người khác** —
+gắn vào mọi tin thì một chuỗi 5 tin sẽ có 5 ảnh giống hệt nhau. Các tin còn lại chừa
+một khoảng trống cùng bề rộng để bong bóng vẫn thẳng hàng.
+
+**Đổi ảnh nhóm:** nút máy ảnh ở bảng thông tin, chỉ hiện với nhóm. Tải ảnh qua đúng
+đường đã có cho tệp đính kèm rồi `PATCH` URL vào nhóm — không làm đường upload thứ hai.
+Server tự phát tin hệ thống *"X đã đổi ảnh nhóm"*. Chat 1-1 **cố ý không cho đổi** vì
+ảnh đó là ảnh đại diện của đối phương.
+
+**Kiểm chứng:** DB local vốn có **0/8** người dùng với ảnh — nên phải seed ảnh thật rồi
+mới kiểm được, nếu không màn hình vẫn hiện chữ cái và dễ tưởng nhầm là code sai.
+Kết quả: A nhìn thấy ảnh của B và B nhìn thấy ảnh của A (đúng đối xứng); ảnh hiện ở
+danh sách, đầu khung chat, cạnh tin của người khác, và trong bảng thông tin; nhóm có
+ảnh thì hiện ảnh, nhóm chưa có thì hiện biểu tượng nhóm; nút đổi ảnh chỉ có ở nhóm.
+
+⚠️ **Chưa kiểm chứng được:** bước **tải ảnh lên** thật, vì Cloudinary trong môi trường
+dev đang là khoá giả (`cloud_name is disabled`). Đường `PATCH` gắn URL vào nhóm thì đã
+kiểm chứng chạy đúng (200 + sinh tin hệ thống). Khi có khoá Cloudinary thật cần thử lại
+nguyên luồng chọn tệp → tải lên → đổi ảnh.
+
+#### Xác nhận lại hành vi lưu trữ và xoá — 2026-07-22
+
+Theo yêu cầu, đã viết smoke test riêng để **chứng minh** hai điều (10/10 pass), không
+phải sửa gì vì hành vi vốn đã đúng:
+
+- **Lưu trữ là lưu trữ mãi.** Có tin mới cũng **không** tự bật lại về danh sách chính;
+  vẫn nằm trong kho, lịch sử và tin mới vẫn đọc được bình thường.
+  *(Khác với hành vi Messenger đã tra ở §11.3 — Messenger tự bỏ lưu trữ khi có tin mới.
+  Ở đây làm theo yêu cầu: giữ nguyên trong kho.)*
+- **Xoá chỉ ảnh hưởng người xoá.** Người kia giữ **nguyên vẹn** toàn bộ lịch sử (82/82
+  tin) và hội thoại vẫn nằm trong danh sách của họ. Trong nhóm: thành viên khác thấy đủ
+  lịch sử, và **người xoá vẫn còn là thành viên** — xoá ≠ rời nhóm.
+
 > ⚠️ **P6 kiểm duyệt hiện KHÔNG dùng được từ giao diện** — đính chính 2026-07-22.
 >
 > Ghi chú cũ nói "chỉ thiếu màn hình admin" là **sai, thiếu nhiều hơn thế**. Kiểm lại:

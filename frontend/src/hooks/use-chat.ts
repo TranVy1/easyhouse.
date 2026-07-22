@@ -314,6 +314,31 @@ export function useChat() {
     [token],
   );
 
+  /**
+   * Đổi ảnh đại diện nhóm.
+   *
+   * Tải ảnh lên qua đúng đường đã có cho tệp đính kèm rồi gắn URL vào nhóm — không
+   * làm đường upload thứ hai. Server tự phát tin hệ thống "đã đổi ảnh nhóm".
+   *
+   * Chỉ áp cho NHÓM: chat 1-1 dùng ảnh đại diện của đối phương, không ai được sửa.
+   */
+  const doiAnhNhom = useCallback(
+    async (hoiThoaiId: string, tep: File) => {
+      try {
+        const daTai = await taiTepLen(tep);
+        if (!daTai?.url) throw new Error('Không lấy được đường dẫn ảnh');
+        await goi(`/hoi-thoai/${hoiThoaiId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ anh: daTai.url }),
+        });
+        await taiDanhSach();
+      } catch (e) {
+        setLoi(e instanceof Error ? e.message : 'Không đổi được ảnh nhóm');
+      }
+    },
+    [goi, taiTepLen, taiDanhSach],
+  );
+
   const guiTin = useCallback(
     async (noiDung: string, tep?: TepDinhKem | null, traLoiChoId?: string) => {
       const hoiThoaiId = hoiThoaiDangMoRef.current;
@@ -746,6 +771,7 @@ export function useChat() {
     roiNhom,
     layDanhBa,
     taiDanhSach,
+    doiAnhNhom,
     // P8
     tinGhims,
     datGhimTin,

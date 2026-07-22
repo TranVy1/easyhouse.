@@ -74,7 +74,7 @@ public class CuocTroChuyenResponse {
                 .id(c.getId())
                 .loai(c.getLoai() != null ? c.getLoai().name() : null)
                 .ten(tenHienThi(c, dsThanhVien, nguoiXem))
-                .anh(c.getAnh())
+                .anh(anhHienThi(c, dsThanhVien, nguoiXem))
                 .nhaTroId(c.getNhaTro() != null ? c.getNhaTro().getId() : null)
                 .trangThai(c.getTrangThai() != null ? c.getTrangThai().name() : null)
                 .tinNhanCuoiLuc(c.getTinNhanCuoiLuc())
@@ -88,6 +88,31 @@ public class CuocTroChuyenResponse {
                 .docDenSeq(cuaToi != null ? cuaToi.getDocDenSeq() : 0L)
                 .thanhVien(dsThanhVien)
                 .build();
+    }
+
+    /**
+     * Anh dai dien hien thi — doi xung voi {@link #tenHienThi}.
+     *
+     * Nhom dung anh cua nhom (nguoi quan tri dat). Chat 1-1 va kenh ho tro thi dung
+     * anh dai dien cua NGUOI CON LAI: giong het ly do voi ten — voi moi ben thi
+     * "anh cuoc tro chuyen" la mot anh khac nhau, khong the luu chung mot cot.
+     *
+     * Tra null khi khong co; client tu ve chu cai dau lam anh thay the.
+     */
+    private static String anhHienThi(CuocTroChuyen c, List<ThanhVienChatResponse> thanhVien, UUID nguoiXem) {
+        if (c.getLoai() != null && c.getLoai().laNhom()) return c.getAnh();
+
+        // Nhom 1-1 co nhieu hon mot nguoi khac (hiem, vd kenh ho tro nhieu nhan vien)
+        // thi khong doan bua — de client ve chu cai dau cho nhat quan.
+        List<String> anhNguoiKhac = thanhVien.stream()
+                .filter(tv -> !tv.getNguoiDungId().equals(nguoiXem))
+                .map(ThanhVienChatResponse::getAnhDaiDien)
+                .filter(a -> a != null && !a.isBlank())
+                .distinct()
+                .toList();
+
+        if (anhNguoiKhac.size() == 1) return anhNguoiKhac.get(0);
+        return c.getAnh();
     }
 
     /**
