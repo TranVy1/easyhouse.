@@ -1297,90 +1297,112 @@ export default function ChinhSuaHopDongPage() {
               <Label>Dịch vụ áp dụng cho hợp đồng</Label>
               {!formData.phong ? (
                 <p className="text-sm text-muted-foreground">Chọn phòng trước để tải danh sách dịch vụ đang áp dụng cho tòa nhà/phòng.</p>
-              ) : dichVuOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    {dichVuOptions.map((option) => {
-                      const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
-                      return (
-                        <div key={option.dichVuId} className="grid grid-cols-1 md:grid-cols-[1fr_160px_120px_auto] gap-2 rounded border p-3">
-                          <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-2 text-left">
-                            <span className={cn("flex h-4 w-4 items-center justify-center rounded-sm border", selected ? "bg-primary text-primary-foreground" : "bg-background")}>
-                              {selected && <Check className="h-3 w-3" />}
-                            </span>
-                            <span className="text-sm font-medium">{option.ten}</span>
-                            {option.batBuoc && <Badge variant="outline">Bắt buộc</Badge>}
-                          </button>
-                          <Input type="number" min="0" value={selected?.gia ?? option.donGiaMacDinh} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)} />
-                          <Input type="number" min="0" step="0.1" value={selected?.soLuong ?? 1} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)} />
-                          <div className="text-sm text-muted-foreground md:text-right">
-                            {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4 border-t pt-4">
-                    <Label className="text-xs md:text-sm mb-2 block">Thêm dịch vụ khác</Label>
-                    <Popover open={openAddDichVu} onOpenChange={setOpenAddDichVu}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className="w-full justify-between text-sm">
-                          Chọn thêm dịch vụ từ danh sách...
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[90vw] md:w-full p-0">
-                        <Command>
-                          <CommandInput placeholder="Tìm dịch vụ..." value={searchDichVu} onValueChange={setSearchDichVu} />
-                          <CommandEmpty>
-                            <div className="flex flex-col items-center justify-center py-4 space-y-3">
-                              <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ &quot;{searchDichVu}&quot;.</p>
-                              {searchDichVu.trim() && (
-                                <Button 
-                                  type="button" 
-                                  variant="secondary" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    const newDv: DichVuOption = {
-                                      dichVuId: `new-${Date.now()}`,
-                                      ten: searchDichVu.trim(),
-                                      donGiaMacDinh: 0,
-                                      loaiTinhPhi: 'FIXED'
-                                    };
-                                    setDichVuOptions(prev => [...prev, newDv]);
-                                    toggleDichVuHopDong(newDv);
-                                    setSearchDichVu("");
-                                    setOpenAddDichVu(false);
-                                  }}
-                                >
-                                  <Plus className="mr-2 h-4 w-4" /> Tạo nhanh dịch vụ này
-                                </Button>
-                              )}
+                  {dichVuOptions.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
+                  )}
+                  {dichVuOptions.length > 0 && (
+                    <div className="space-y-2">
+                      {dichVuOptions.map((option) => {
+                        const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
+                        return (
+                          <div key={option.dichVuId} className="grid grid-cols-1 md:grid-cols-[1fr_160px_120px_auto] gap-2 rounded border p-3">
+                            <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-2 text-left">
+                              <span className={cn("flex h-4 w-4 items-center justify-center rounded-sm border", selected ? "bg-primary text-primary-foreground" : "bg-background")}>
+                                {selected && <Check className="h-3 w-3" />}
+                              </span>
+                              <span className="text-sm font-medium">{option.ten}</span>
+                              {option.batBuoc && <Badge variant="outline">Bắt buộc</Badge>}
+                            </button>
+                            <Input type="number" min="0" value={selected?.gia ?? option.donGiaMacDinh} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)} />
+                            <Input type="number" min="0" step="0.1" value={selected?.soLuong ?? 1} disabled={!selected} onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)} />
+                            <div className="text-sm text-muted-foreground md:text-right">
+                              {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
                             </div>
-                          </CommandEmpty>
-                          <CommandGroup className="max-h-64 overflow-auto">
-                            {globalDichVuList
-                              .filter(dv => !dichVuOptions.some(opt => opt.dichVuId === dv.dichVuId))
-                              .map((dv) => (
-                                <CommandItem
-                                  key={dv.dichVuId}
-                                  value={dv.ten}
-                                  onSelect={() => {
-                                    setDichVuOptions(prev => [...prev, dv]);
-                                    toggleDichVuHopDong(dv);
-                                    setOpenAddDichVu(false);
-                                  }}
-                                >
-                                  {dv.ten} - {formatCurrency(dv.donGiaMacDinh)} {dv.donVi ? `/${dv.donVi}` : ''}
-                                </CommandItem>
-                              ))}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="mt-4 border-t pt-4 flex flex-col md:flex-row gap-3 items-start md:items-end">
+                    <div className="flex-1 w-full">
+                      <Label className="text-xs md:text-sm mb-2 block">Thêm dịch vụ khác</Label>
+                      <Popover open={openAddDichVu} onOpenChange={setOpenAddDichVu}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className="w-full justify-between text-sm">
+                            Chọn thêm dịch vụ từ danh sách...
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[90vw] md:w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="Tìm dịch vụ..." value={searchDichVu} onValueChange={setSearchDichVu} />
+                            <CommandEmpty>
+                              <div className="flex flex-col items-center justify-center py-4 space-y-3">
+                                <p className="text-sm text-muted-foreground">Không tìm thấy dịch vụ &quot;{searchDichVu}&quot;.</p>
+                                {searchDichVu.trim() && (
+                                  <Button 
+                                    type="button" 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      const newDv: DichVuOption = {
+                                        dichVuId: `new-${Date.now()}`,
+                                        ten: searchDichVu.trim(),
+                                        donGiaMacDinh: 0,
+                                        loaiTinhPhi: 'FIXED'
+                                      };
+                                      setDichVuOptions(prev => [...prev, newDv]);
+                                      toggleDichVuHopDong(newDv);
+                                      setSearchDichVu("");
+                                      setOpenAddDichVu(false);
+                                    }}
+                                  >
+                                    <Plus className="mr-2 h-4 w-4" /> Tạo nhanh dịch vụ này
+                                  </Button>
+                                )}
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup className="max-h-64 overflow-auto">
+                              {globalDichVuList
+                                .filter(dv => !dichVuOptions.some(opt => opt.dichVuId === dv.dichVuId))
+                                .map((dv) => (
+                                  <CommandItem
+                                    key={dv.dichVuId}
+                                    value={dv.ten}
+                                    onSelect={() => {
+                                      setDichVuOptions(prev => [...prev, dv]);
+                                      toggleDichVuHopDong(dv);
+                                      setOpenAddDichVu(false);
+                                    }}
+                                  >
+                                    {dv.ten} - {formatCurrency(dv.donGiaMacDinh)} {dv.donVi ? `/${dv.donVi}` : ''}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      onClick={() => {
+                        const newDv: DichVuOption = {
+                          dichVuId: `new-${Date.now()}`,
+                          ten: 'Dịch vụ mới',
+                          donGiaMacDinh: 0,
+                          loaiTinhPhi: 'FIXED'
+                        };
+                        setDichVuOptions(prev => [...prev, newDv]);
+                        toggleDichVuHopDong(newDv);
+                      }}
+                      className="w-full md:w-auto"
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Thêm nhanh dịch vụ
+                    </Button>
                   </div>
                 </div>
               )}

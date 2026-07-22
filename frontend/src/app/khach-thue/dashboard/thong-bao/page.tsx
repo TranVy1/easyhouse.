@@ -8,6 +8,8 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { ThongBao } from '@/types';
 import { useTenantDashboard } from '../context';
+import { cn } from '@/lib/utils';
+import { chatSocket } from '@/lib/ws-client';
 
 export default function TenantNotificationsPage() {
   const session = useSession()?.data;
@@ -45,6 +47,14 @@ export default function TenantNotificationsPage() {
         setCurrentUserId(session.user.id);
       }
       void fetchNotifications();
+      
+      const unsub = chatSocket.onThongBao(() => {
+        void fetchNotifications();
+      });
+      
+      return () => {
+        unsub();
+      };
     }
   }, [accessToken, session?.user?.id, fetchNotifications]);
 
@@ -58,18 +68,15 @@ export default function TenantNotificationsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Update local state
         setNotifications(notifications.map(n => {
           if (n.id === id || n._id === id) {
             return {
               ...n,
-              daDoc: [...(n.daDoc || []), currentUserId] // Optimistic update
+              daDoc: [...(n.daDoc || []), currentUserId]
             };
           }
           return n;
         }));
-        
-        // Refresh context unread count
         refreshData();
       }
     } catch (error) {
@@ -84,7 +91,6 @@ export default function TenantNotificationsPage() {
       return;
     }
     
-    // Simplistic loop for MVP. In reality, we'd want a bulk API
     let count = 0;
     for (const id of unreadIds) {
       try {
@@ -107,7 +113,7 @@ export default function TenantNotificationsPage() {
     if (!dateStr) return '---';
     const date = new Date(dateStr);
     return date.toLocaleString('vi-VN', {
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
       day: '2-digit', month: '2-digit', year: 'numeric'
     });
   };
@@ -117,29 +123,33 @@ export default function TenantNotificationsPage() {
     return notification.daDoc.includes(currentUserId);
   };
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: string, read: boolean) => {
+    const dim = read ? 'text-gray-400' : '';
     switch (type) {
       case 'hoaDon':
       case 'INVOICE':
-        return <FileText className="h-5 w-5 text-[#4FA7A0]" />;
+        return <FileText className={`h-5 w-5 ${dim || 'text-[#4FA7A0]'}`} />;
       case 'thanhToan':
       case 'PAYMENT':
-        return <Banknote className="h-5 w-5 text-green-500" />;
+        return <Banknote className={`h-5 w-5 ${dim || 'text-emerald-500'}`} />;
       case 'suCo':
       case 'INCIDENT':
-        return <AlertTriangle className="h-5 w-5 text-orange-500" />;
+        return <AlertTriangle className={`h-5 w-5 ${dim || 'text-orange-500'}`} />;
       case 'hopDong':
       case 'CONTRACT':
-        return <FileText className="h-5 w-5 text-[#F2A45B]" />;
+        return <FileText className={`h-5 w-5 ${dim || 'text-amber-500'}`} />;
       default:
-        return <Info className="h-5 w-5 text-gray-500" />;
+        return <Info className="h-5 w-5 text-gray-400" />;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0]"></div>
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="relative flex justify-center items-center">
+          <div className="absolute animate-ping inline-flex h-12 w-12 rounded-full bg-[#4FA7A0]/20 opacity-75"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4FA7A0] relative z-10"></div>
+        </div>
       </div>
     );
   }
@@ -147,15 +157,22 @@ export default function TenantNotificationsPage() {
   const unreadCount = notifications.filter(n => !isRead(n)).length;
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-24 md:pb-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8 pb-24 md:pb-8 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Thông Báo</h1>
-          <p className="text-muted-foreground mt-1">Cập nhật mới nhất từ quản lý nhà trọ</p>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-500 bg-clip-text text-transparent">
+            Thông Báo
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
+            Cập nhật mới nhất từ ban quản lý nhà trọ
+          </p>
         </div>
         
         {unreadCount > 0 && (
-          <Button variant="outline" onClick={markAllAsRead} className="shrink-0">
+          <Button 
+            onClick={markAllAsRead} 
+            className="shrink-0 rounded-full shadow-sm hover:shadow-md transition-all bg-[#4FA7A0] hover:bg-[#3F8780]"
+          >
             <CheckCircle2 className="mr-2 h-4 w-4" />
             Đánh dấu đọc tất cả ({unreadCount})
           </Button>
@@ -163,53 +180,74 @@ export default function TenantNotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <Card className="bg-gray-50 border-dashed border-2">
-          <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
-            <div className="bg-gray-100 p-4 rounded-full text-gray-400">
-              <Bell className="h-12 w-12" />
+        <Card className="shadow-sm border-dashed border-2 border-gray-200">
+          <CardContent className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-5">
+            <div className="bg-gradient-to-br from-[#4FA7A0]/10 to-[#4FA7A0]/5 p-6 rounded-full ring-1 ring-[#4FA7A0]/20 shadow-inner">
+              <Bell className="h-12 w-12 text-[#4FA7A0]/50" />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-gray-800">Không có thông báo</h3>
-              <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-                Bạn chưa nhận được thông báo nào từ hệ thống.
+              <h3 className="font-bold text-xl text-gray-800">Không có thông báo mới</h3>
+              <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto leading-relaxed">
+                Bạn đã xem hết tất cả các thông báo. Khi có cập nhật mới từ hệ thống hoặc ban quản lý, chúng sẽ xuất hiện ở đây.
               </p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <div className="divide-y">
-            {notifications.map((notification) => {
+        <Card className="shadow-sm border-gray-100 overflow-hidden">
+          <div className="divide-y divide-gray-100/80">
+            {notifications.map((notification, idx) => {
               const id = notification.id || notification._id;
               const read = isRead(notification);
               
               return (
                 <div 
                   key={id as string} 
-                  className={`p-4 md:p-5 flex gap-4 transition-colors ${read ? 'bg-white' : 'bg-[#4FA7A0]/10 hover:bg-[#4FA7A0]/10'} cursor-pointer`}
+                  className={cn(
+                    "group relative p-4 md:p-5 flex gap-4 md:gap-5 transition-colors duration-300 ease-out animate-in fade-in slide-in-from-bottom-4",
+                    read 
+                      ? "bg-white hover:bg-gray-50/50" 
+                      : "bg-gradient-to-r from-[#4FA7A0]/[0.08] to-transparent cursor-pointer hover:bg-[#4FA7A0]/[0.12]"
+                  )}
                   onClick={() => !read && markAsRead(id as string)}
+                  style={{ animationDelay: `${Math.min(idx * 50, 500)}ms`, animationFillMode: 'both' }}
                 >
-                  <div className={`mt-1 shrink-0 bg-white p-2 rounded-full border ${!read ? 'border-[#4FA7A0]/30 shadow-sm' : 'border-gray-100'}`}>
-                    {getIcon(notification.loai as string)}
+                  {!read && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#4FA7A0]" />
+                  )}
+                  
+                  <div className={cn(
+                    "mt-0.5 shrink-0 p-3 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110",
+                    read ? "bg-gray-50 text-gray-400" : "bg-white shadow-sm ring-1 ring-black/5 text-[#4FA7A0]"
+                  )}>
+                    {getIcon(notification.loai as string, read)}
                   </div>
                   
-                  <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className={`text-base ${read ? 'font-medium text-gray-800' : 'font-bold text-gray-900'}`}>
+                  <div className="flex-1 space-y-1.5 pt-0.5">
+                    <div className="flex justify-between items-start gap-4">
+                      <h4 className={cn(
+                        "text-base tracking-tight transition-colors duration-200", 
+                        read ? "font-medium text-gray-600" : "font-semibold text-gray-900 group-hover:text-[#4FA7A0]"
+                      )}>
                         {notification.tieuDe}
                       </h4>
                       {!read && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#243B5A] shrink-0 mt-1.5 hidden md:block"></span>
+                        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-600 ring-1 ring-inset ring-red-500/20 shrink-0 mt-0.5 shadow-sm">
+                          Mới
+                        </span>
                       )}
                     </div>
                     
-                    <p className={`text-sm ${read ? 'text-gray-600' : 'text-gray-800'}`}>
+                    <p className={cn(
+                      "text-sm leading-relaxed whitespace-pre-wrap", 
+                      read ? "text-gray-500" : "text-gray-700"
+                    )}>
                       {notification.noiDung}
                     </p>
                     
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-2">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-3 pt-2 border-t border-gray-50/50">
                       <Clock className="h-3.5 w-3.5" />
-                      {formatDate(notification.ngayGui || notification.taoLuc)}
+                      {formatDate(notification.ngayGui || (notification as any).ngayTao)}
                     </div>
                   </div>
                 </div>

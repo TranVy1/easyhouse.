@@ -24,4 +24,14 @@ public interface ThongBaoRepository extends JpaRepository<ThongBao, UUID> {
 
     @Query("SELECT t FROM ThongBao t WHERE t.xoaLuc IS NULL AND t.guiTatCa = true ORDER BY t.taoLuc DESC")
     Page<ThongBao> findMyThongBaoGuiTatCa(Pageable pageable);
+
+    @Query("""
+        SELECT COUNT(t) FROM ThongBao t 
+        WHERE t.xoaLuc IS NULL AND t.guiTatCa = true 
+        AND NOT EXISTS (
+            SELECT 1 FROM ThongBaoNguoiNhan tn 
+            WHERE tn.thongBao = t AND tn.nguoiDung.id = :userId
+        )
+    """)
+    long countUnreadGuiTatCa(@Param("userId") UUID userId);
 }

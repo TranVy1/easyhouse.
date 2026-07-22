@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, Upload } from "lucide-react"
 import { KhoTaiSan } from "@/types"
 
 const formSchema = z.object({
@@ -38,6 +38,7 @@ export function KhoTaiSanForm({ open, onOpenChange, initialData, nhaTroId, onSuc
   const accessToken = session?.accessToken
   
   const [loading, setLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -50,6 +51,34 @@ export function KhoTaiSanForm({ open, onOpenChange, initialData, nhaTroId, onSuc
       ghiChu: initialData?.ghiChu || "",
     }
   })
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !accessToken) return
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+      })
+      const result = await res.json()
+      if (result.success) {
+        const url = result.data?.url || result.data?.secure_url || ""
+        setValue("hinhAnh", url, { shouldValidate: true })
+        toast.success("Tải ảnh lên thành công")
+      } else {
+        toast.error(result.message || "Lỗi khi tải ảnh lên")
+      }
+    } catch (err) {
+      toast.error("Có lỗi khi tải ảnh lên")
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   const onSubmit = async (data: FormValues) => {
     if (!accessToken) return
@@ -123,8 +152,27 @@ export function KhoTaiSanForm({ open, onOpenChange, initialData, nhaTroId, onSuc
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="hinhAnh">Hình ảnh (URL)</Label>
-            <Input id="hinhAnh" {...register("hinhAnh")} placeholder="https://..." />
+            <Label htmlFor="hinhAnh">Hình ảnh</Label>
+            <div className="flex gap-2 items-center">
+              <Input id="hinhAnh" {...register("hinhAnh")} placeholder="https://..." className="flex-1" />
+              <div className="relative">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                />
+                <Button type="button" variant="outline" disabled={isUploading}>
+                  {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            {watch("hinhAnh") && (
+              <div className="mt-2 w-24 h-24 rounded overflow-hidden border">
+                <img src={watch("hinhAnh")} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">

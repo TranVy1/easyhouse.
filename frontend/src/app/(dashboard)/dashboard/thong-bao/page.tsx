@@ -533,7 +533,7 @@ export default function ThongBaoPage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">
-                          {new Date(thongBao.ngayGui).toLocaleDateString('vi-VN')}
+                          {new Date(thongBao.ngayGui || thongBao.taoLuc || (thongBao as any).ngayTao || new Date()).toLocaleDateString('vi-VN')}
                         </span>
                       </div>
                     </TableCell>
@@ -858,6 +858,35 @@ function ThongBaoForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    let finalNguoiNhan = [...formData.nguoiNhan];
+
+    // Nếu không chọn người nhận cụ thể nào, ta sẽ tự động lấy danh sách theo phòng hoặc tòa nhà
+    if (finalNguoiNhan.length === 0) {
+      if (formData.phong.length > 0) {
+        finalNguoiNhan = khachThueList
+          .filter(kt => {
+            const pId = getId(kt.hopDongHienTai?.phong);
+            return pId && formData.phong.includes(pId);
+          })
+          .map(kt => getId(kt))
+          .filter(Boolean) as string[];
+      } else if (formData.toaNha !== 'all') {
+        finalNguoiNhan = khachThueList
+          .filter(kt => {
+            const tnId = getId(kt.hopDongHienTai?.phong?.toaNha);
+            return tnId === formData.toaNha;
+          })
+          .map(kt => getId(kt))
+          .filter(Boolean) as string[];
+      }
+    }
+
+    // Nếu đã chọn tòa nhà/phòng nhưng khu vực đó không có khách thuê nào
+    if (formData.toaNha !== 'all' && finalNguoiNhan.length === 0) {
+      toast.error('Không có khách thuê nào trong khu vực đã chọn để gửi thông báo.');
+      return;
+    }
+
     try {
       const url = thongBao
         ? `/api/thong-bao/${thongBao._id}`
@@ -865,6 +894,7 @@ function ThongBaoForm({
       const method = thongBao ? 'PUT' : 'POST';
       const payload = {
         ...formData,
+        nguoiNhan: finalNguoiNhan,
         toaNha: formData.toaNha === 'all' ? undefined : formData.toaNha,
       };
 

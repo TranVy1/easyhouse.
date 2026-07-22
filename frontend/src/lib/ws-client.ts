@@ -35,6 +35,7 @@ class ChatSocket {
 
   private handlersTinNhan = new Set<Handler>();
   private handlersTrangThai = new Set<Handler>();
+  private handlersThongBao = new Set<Handler>();
   private handlersState = new Set<(s: ChatSocketState) => void>();
 
   /** Gọi mỗi lần (re)connect để lấy lại token còn hạn — xem beforeConnect. */
@@ -96,6 +97,12 @@ class ChatSocket {
         client.subscribe('/user/queue/trang-thai', (msg: IMessage) =>
           this.phatTin(this.handlersTrangThai, msg),
         );
+        client.subscribe('/user/queue/thong-bao', (msg: IMessage) =>
+          this.phatTin(this.handlersThongBao, msg),
+        );
+        client.subscribe('/queue/thong-bao-chung', (msg: IMessage) =>
+          this.phatTin(this.handlersThongBao, msg),
+        );
       },
 
       onWebSocketClose: () => {
@@ -147,6 +154,11 @@ class ChatSocket {
   onTrangThai(h: Handler) {
     this.handlersTrangThai.add(h);
     return () => this.handlersTrangThai.delete(h);
+  }
+
+  onThongBao(h: Handler) {
+    this.handlersThongBao.add(h);
+    return () => this.handlersThongBao.delete(h);
   }
 
   onStateChange(h: (s: ChatSocketState) => void) {

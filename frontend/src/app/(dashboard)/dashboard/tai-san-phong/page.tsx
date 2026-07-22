@@ -359,7 +359,7 @@ export default function TaiSanPhongPage() {
           setIsImportOpen(false)
           fetchData(true)
         }}
-        accessToken={session?.accessToken || ""}
+        accessToken={(session as any)?.accessToken || ""}
       />
     </div>
   )

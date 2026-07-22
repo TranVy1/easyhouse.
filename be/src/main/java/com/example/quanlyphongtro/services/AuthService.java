@@ -44,6 +44,7 @@ public class AuthService {
     private final LoginHistoryRepository loginHistoryRepository;
     private final SuCoRepository suCoRepository;
     private final ThongBaoNguoiNhanRepository thongBaoNguoiNhanRepository;
+    private final ThongBaoRepository thongBaoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
@@ -378,7 +379,9 @@ public class AuthService {
                 List.of(TrangThaiSuCo.PENDING, TrangThaiSuCo.IN_PROGRESS)
         );
 
-        long soThongBaoMoi = thongBaoNguoiNhanRepository.countByNguoiDungIdAndDaDocFalse(userId);
+        long unreadSpecific = thongBaoNguoiNhanRepository.countByNguoiDungIdAndDaDocFalse(userId);
+        long unreadBroadcast = thongBaoRepository != null ? thongBaoRepository.countUnreadGuiTatCa(userId) : 0;
+        long soThongBaoMoi = unreadSpecific + unreadBroadcast;
 
         KhachThueDashboardResponse.LienHeNhaTro lienHe = null;
         if (hopDong != null && hopDong.getPhong() != null && hopDong.getPhong().getNhaTro() != null) {

@@ -18,11 +18,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ThongBaoService {
 
     private final ThongBaoRepository thongBaoRepository;
@@ -118,11 +120,36 @@ public class ThongBaoService {
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thong bao"));
         List<ThongBaoNguoiNhan> recipients = thongBaoNguoiNhanRepository.findByThongBaoId(id);
         ZonedDateTime now = ZonedDateTime.now();
-        for (ThongBaoNguoiNhan recipient : recipients) {
-            recipient.setGuiLuc(now);
-            recipient.setLoiGui(null);
+        
+        List<UUID> recipientIds = recipients.stream().map(r -> r.getNguoiDung().getId()).toList();
+        
+        if (Boolean.TRUE.equals(tb.getGuiTatCa()) && recipients.isEmpty()) {
+            tb.setCapNhatLuc(now);
+            thongBaoRepository.save(tb);
+        } else {
+            for (ThongBaoNguoiNhan recipient : recipients) {
+                recipient.setGuiLuc(now);
+                recipient.setLoiGui(null);
+            }
+            thongBaoNguoiNhanRepository.saveAll(recipients);
         }
-        thongBaoNguoiNhanRepository.saveAll(recipients);
+        
+        if (pushService != null) {
+            pushService.guiChoThongBao(tb, recipientIds);
+        }
+        
+        try {
+            if (Boolean.TRUE.equals(tb.getGuiTatCa()) && recipients.isEmpty()) {
+                messagingTemplate.convertAndSend("/queue/thong-bao-chung", "{\"type\":\"NEW_THONG_BAO\"}");
+            } else {
+                for (UUID recipientId : recipientIds) {
+                    messagingTemplate.convertAndSendToUser(recipientId.toString(), "/queue/thong-bao", "{\"type\":\"NEW_THONG_BAO\"}");
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Khong the gui STOMP message: {}", ex.getMessage());
+        }
+        
         logAudit(tb, "SEND");
         return toResponse(tb);
     }
@@ -232,6 +259,10 @@ public class ThongBaoService {
     private com.example.quanlyphongtro.services.PermissionService permissionService;
     @org.springframework.beans.factory.annotation.Autowired
     private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.example.quanlyphongtro.services.push.PushService pushService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     private void logAudit(ThongBao thongBao, String action) {
         if (auditLogRepository == null) return;

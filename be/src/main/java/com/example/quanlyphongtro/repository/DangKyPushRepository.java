@@ -26,4 +26,7 @@ public interface DangKyPushRepository extends JpaRepository<DangKyPush, UUID> {
             WHERE d.nguoiDung.id IN :nguoiDungIds AND d.dungLuc IS NULL
             """)
     List<DangKyPush> dangDung(@Param("nguoiDungIds") List<UUID> nguoiDungIds);
+
+    @Query("SELECT d FROM DangKyPush d WHERE d.dungLuc IS NULL")
+    List<DangKyPush> tatCaDangDung();
 }

@@ -93,9 +93,12 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
     private void chanKenhLa(StompHeaderAccessor accessor) {
         String kenh = accessor.getDestination();
-        if (kenh == null || !kenh.startsWith(TIEN_TO_KENH_RIENG)) {
+        if (kenh == null) {
+            throw new MessageDeliveryException("Kenh khong hop le");
+        }
+        if (!kenh.startsWith(TIEN_TO_KENH_RIENG) && !kenh.equals("/queue/thong-bao-chung")) {
             log.warn("Chan SUBSCRIBE toi kenh khong hop le: {}", kenh);
-            throw new MessageDeliveryException("Chi duoc subscribe kenh rieng /user/**");
+            throw new MessageDeliveryException("Chi duoc subscribe kenh rieng /user/** hoac /queue/thong-bao-chung");
         }
     }
 

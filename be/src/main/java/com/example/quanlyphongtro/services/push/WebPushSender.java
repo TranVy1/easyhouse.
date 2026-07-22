@@ -53,6 +53,10 @@ public class WebPushSender implements KenhGuiPush {
 
     @PostConstruct
     void khoiTao() throws Exception {
+        if (khoaCong == null || khoaCong.isBlank() || khoaRieng == null || khoaRieng.isBlank()) {
+            log.warn("Web Push bị tắt do thiếu VAPID keys");
+            return;
+        }
         // Thu vien web-push dung mat ma duong cong elliptic, can BouncyCastle.
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
@@ -68,6 +72,10 @@ public class WebPushSender implements KenhGuiPush {
 
     @Override
     public boolean gui(DangKyPush dangKy, NoiDungPush noiDung) {
+        if (pushService == null) {
+            log.warn("Bỏ qua gửi push vì Web Push chưa được cấu hình VAPID keys");
+            return false;
+        }
         try {
             String payload = objectMapper.writeValueAsString(Map.of(
                     "tieuDe", noiDung.tieuDe(),

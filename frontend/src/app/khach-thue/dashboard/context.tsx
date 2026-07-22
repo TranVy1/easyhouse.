@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { TenantDashboardData } from '@/types';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { chatSocket } from '@/lib/ws-client';
 
 interface TenantContextType {
   data: TenantDashboardData | null;
@@ -54,6 +55,16 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session?.accessToken) {
       refreshData();
+      
+      chatSocket.connect();
+      const unsub = chatSocket.onThongBao(() => {
+        refreshData();
+        toast.info('Bạn có thông báo mới');
+      });
+      
+      return () => {
+        unsub();
+      };
     } else if (session === null) {
       setLoading(false);
     }

@@ -133,4 +133,41 @@ public class PushService {
         String gon = text.strip().replaceAll("\\s+", " ");
         return gon.length() <= DO_DAI_TRICH_DAN ? gon : gon.substring(0, DO_DAI_TRICH_DAN) + "…";
     }
+
+    @Transactional
+    public void guiChoThongBao(com.example.quanlyphongtro.entity.ThongBao tb, List<UUID> nguoiNhanIds) {
+        if (tb == null || cacKenhGui.isEmpty()) return;
+
+        List<DangKyPush> dangKys;
+        if (Boolean.TRUE.equals(tb.getGuiTatCa()) || nguoiNhanIds == null || nguoiNhanIds.isEmpty()) {
+            dangKys = dangKyPushRepository.tatCaDangDung();
+        } else {
+            dangKys = dangKyPushRepository.dangDung(nguoiNhanIds);
+        }
+
+        if (dangKys == null || dangKys.isEmpty()) return;
+
+        NoiDungPush noiDung = new NoiDungPush(
+            tb.getTieuDe(),
+            catNgan(tb.getNoiDung()),
+            "/khach-thue/dashboard/thong-bao",
+            null
+        );
+
+        List<DangKyPush> daChet = new ArrayList<>();
+        for (DangKyPush dangKy : dangKys) {
+            cacKenhGui.stream()
+                    .filter(kenh -> kenh.hoTro(dangKy.getNenTang()))
+                    .findFirst()
+                    .ifPresent(kenh -> {
+                        if (!kenh.gui(dangKy, noiDung)) daChet.add(dangKy);
+                    });
+        }
+
+        if (!daChet.isEmpty()) {
+            daChet.forEach(d -> d.setDungLuc(ZonedDateTime.now()));
+            dangKyPushRepository.saveAll(daChet);
+            log.info("Da ngung {} dang ky push khong con hop le sau khi gui thong bao", daChet.size());
+        }
+    }
 }
