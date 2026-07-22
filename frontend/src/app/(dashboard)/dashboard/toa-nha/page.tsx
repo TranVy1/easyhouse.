@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -557,6 +558,7 @@ function ToaNhaForm({
     soNha: toaNha?.diaChi.soNha || '',
     duong: toaNha?.diaChi.duong || '',
     phuong: toaNha?.diaChi.phuong || '',
+    quan: toaNha?.diaChi.quan || '',
     thanhPho: toaNha?.diaChi.thanhPho || '',
     moTa: toaNha?.moTa || '',
     tienNghiChung: toaNha?.tienNghiChung || [],
@@ -610,13 +612,19 @@ function ToaNhaForm({
   ]);
 
   const [provinces, setProvinces] = useState<{code: string, name: string}[]>([]);
+  const [districts, setDistricts] = useState<{code: string, name: string}[]>([]);
   const [wards, setWards] = useState<{code: string, name: string}[]>([]);
   
   const [provinceCode, setProvinceCode] = useState<string>('');
+  const [districtCode, setDistrictCode] = useState<string>('');
 
   const [openProvince, setOpenProvince] = useState(false);
+  const [openDistrict, setOpenDistrict] = useState(false);
   const [openWard, setOpenWard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isConfirmFillOpen, setIsConfirmFillOpen] = useState(false);
+  const [pendingNumFloors, setPendingNumFloors] = useState<number>(0);
 
   const handleAutoFillCustomFloors = () => {
     const numFloors = parseInt(formData.soTang, 10);
@@ -630,11 +638,15 @@ function ToaNhaForm({
     }
 
     if (cauTrucTang.length > 0 && cauTrucTang.some(f => f.soTang || f.soPhong)) {
-      if (!window.confirm(`Thao tác này sẽ ghi đè danh sách hiện tại bằng ${numFloors} tầng mới. Bạn có chắc chắn không?`)) {
-        return;
-      }
+      setPendingNumFloors(numFloors);
+      setIsConfirmFillOpen(true);
+      return;
     }
 
+    executeAutoFill(numFloors);
+  };
+
+  const executeAutoFill = (numFloors: number) => {
     const newFloors = Array.from({ length: numFloors }).map((_, i) => ({
       soTang: String(i + 1),
       soPhong: formData.soPhongMoiTang || '',
@@ -646,6 +658,7 @@ function ToaNhaForm({
 
     setCauTrucTang(newFloors);
     toast.success(`Đã tự động điền danh sách ${numFloors} tầng.`);
+    setIsConfirmFillOpen(false);
   };
 
   useEffect(() => {
@@ -680,26 +693,46 @@ function ToaNhaForm({
 
   useEffect(() => {
     if (provinceCode) {
-      fetch(`https://esgoo.net/api-tinhthanh/4/${provinceCode}.htm`)
+      fetch(`https://esgoo.net/api-tinhthanh/2/${provinceCode}.htm`)
         .then(res => res.json())
         .then(json => {
-          if (json.error === 0) {
-            const data = json.data[0];
-            const nextWards: {code: string, name: string}[] = [];
-            if (data && Array.isArray(data.data2)) {
-               data.data2.forEach((district: any) => {
-                  if (Array.isArray(district.data3)) {
-                     district.data3.forEach((ward: any) => {
-                        nextWards.push({ code: ward.id, name: ward.full_name });
-                     });
-                  }
-               });
+          if (json.error === 0 && Array.isArray(json.data)) {
+            const nextDistricts = json.data.map((d: any) => ({ code: d.id, name: d.full_name }));
+            setDistricts(nextDistricts);
+            if (formData.quan && nextDistricts.length) {
+              const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
+              const target = normalizeStr(formData.quan);
+              const district = nextDistricts.find((x: any) => {
+                const name = normalizeStr(x.name);
+                return name === target || name.includes(target) || target.includes(name);
+              });
+              if (district) {
+                setDistrictCode(String(district.code));
+                setFormData(prev => ({ ...prev, quan: district.name }));
+              }
             }
+          }
+        })
+        .catch(err => console.error("Error fetching districts:", err));
+    } else {
+      setDistricts([]);
+      setWards([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provinceCode]);
+
+  useEffect(() => {
+    if (districtCode) {
+      fetch(`https://esgoo.net/api-tinhthanh/3/${districtCode}.htm`)
+        .then(res => res.json())
+        .then(json => {
+          if (json.error === 0 && Array.isArray(json.data)) {
+            const nextWards = json.data.map((w: any) => ({ code: w.id, name: w.full_name }));
             setWards(nextWards);
             if (formData.phuong && nextWards.length) {
               const normalizeStr = (s: string) => s.toLowerCase().replace(/thành phố|tỉnh|tp\s*|quận|huyện|phường|xã|q\.|h\.|p\./gi, '').trim();
               const target = normalizeStr(formData.phuong);
-              const ward = nextWards.find((x: {name: string, code: string}) => {
+              const ward = nextWards.find((x: any) => {
                 const name = normalizeStr(x.name);
                 return name === target || name.includes(target) || target.includes(name);
               });
@@ -714,14 +747,26 @@ function ToaNhaForm({
       setWards([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provinceCode]);
+  }, [districtCode]);
 
   const handleProvinceChange = (codeStr: string) => {
     const p = provinces.find(x => String(x.code) === codeStr);
     setProvinceCode(codeStr);
+    setDistrictCode('');
     setFormData(prev => ({ 
       ...prev, 
       thanhPho: p?.name || '',
+      quan: '',
+      phuong: ''
+    }));
+  };
+
+  const handleDistrictChange = (codeStr: string) => {
+    const d = districts.find(x => String(x.code) === codeStr);
+    setDistrictCode(codeStr);
+    setFormData(prev => ({
+      ...prev,
+      quan: d?.name || '',
       phuong: ''
     }));
   };
@@ -780,10 +825,13 @@ function ToaNhaForm({
         maToa: formData.maToa,
         hoatDong: formData.hoatDong,
         dichVuList: dichVuList.filter(d => d.suDung),
-        thanhPho: formData.thanhPho,
-        phuong: formData.phuong,
-        duong: formData.duong,
-        soNha: formData.soNha,
+        diaChi: {
+          thanhPho: formData.thanhPho,
+          quan: formData.quan,
+          phuong: formData.phuong,
+          duong: formData.duong,
+          soNha: formData.soNha,
+        },
         moTa: formData.moTa,
         tienNghiChung: formData.tienNghiChung,
         ...(toaNha || formData.cheDoTaoPhong === 'NONE' ? {} : formData.cheDoTaoPhong === 'CUSTOM' ? {
@@ -970,6 +1018,58 @@ function ToaNhaForm({
           </div>
 
           <div className={fieldWrap}>
+            <Label htmlFor="quan" className={labelClass}>Quận / Huyện</Label>
+            <Popover open={openDistrict} onOpenChange={setOpenDistrict} modal={true}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openDistrict}
+                  className={selectButtonClass}
+                  disabled={!provinceCode}
+                >
+                  <span className="truncate">{formData.quan || "Chọn Quận/Huyện"}</span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={popoverClass} align="start" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDown={(e) => e.stopPropagation()}>
+                <Command filter={customFilter}>
+                  <CommandInput placeholder="Tìm Quận/Huyện..." className="h-10 text-sm" autoFocus />
+                  <CommandList className="max-h-[260px]">
+                    <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                    <CommandGroup>
+                      {districts.map((d) => (
+                        <CommandItem
+                          key={d.code}
+                          value={d.name}
+                          onSelect={() => {
+                            handleDistrictChange(String(d.code));
+                            setOpenDistrict(false);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDistrictChange(String(d.code));
+                            setOpenDistrict(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 text-[#4FA7A0]",
+                              districtCode === String(d.code) ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {d.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className={fieldWrap}>
             <Label htmlFor="phuong" className={labelClass}>Phường / Xã</Label>
             <Popover open={openWard} onOpenChange={setOpenWard} modal={true}>
               <PopoverTrigger asChild>
@@ -978,7 +1078,7 @@ function ToaNhaForm({
                   role="combobox"
                   aria-expanded={openWard}
                   className={selectButtonClass}
-                  disabled={!provinceCode}
+                  disabled={!districtCode}
                 >
                   <span className="truncate">{formData.phuong || "Chọn Phường/Xã"}</span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[#6D7B8E]" />
@@ -1471,6 +1571,16 @@ function ToaNhaForm({
           {isSubmitting ? 'Đang xử lý...' : (toaNha ? 'Cập nhật' : 'Thêm tòa nhà')}
         </Button>
       </DialogFooter>
+
+      <ConfirmActionDialog
+        open={isConfirmFillOpen}
+        onOpenChange={setIsConfirmFillOpen}
+        title="Xác nhận cấu hình lại số tầng"
+        description={`Thao tác này sẽ ghi đè danh sách hiện tại bằng ${pendingNumFloors} tầng mới. Bạn có chắc chắn không?`}
+        confirmText="Đồng ý"
+        variant="default"
+        onConfirm={() => executeAutoFill(pendingNumFloors)}
+      />
     </form>
   );
 }

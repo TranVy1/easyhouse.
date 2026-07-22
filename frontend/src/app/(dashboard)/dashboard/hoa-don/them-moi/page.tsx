@@ -956,6 +956,13 @@ export default function ThemMoiHoaDonPage() {
                     </Button>
                   </div>
                 </div>
+
+                <div className="bg-amber-50 text-amber-600 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2 mt-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  <p>
+                    <strong>Lưu ý:</strong> Hệ thống sẽ tự động tính toán và thêm phí gửi xe (nếu có từ xe thứ 2 trở đi của mỗi khách thuê) khi lưu hóa đơn.
+                  </p>
+                </div>
               </TabsContent>
 
               <TabsContent value="tong-ket" className="space-y-4 mt-6">

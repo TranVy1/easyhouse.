@@ -31,8 +31,9 @@ import {
   CheckCircle2,
   Trash2
 } from 'lucide-react';
-import { HoaDon, HopDong, Phong, KhachThue } from '@/types';
+import { KhachThue, Phong, HoaDon, HopDong } from '@/types';
 import { toast } from 'sonner';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 
 // Helper functions
 const getPhongName = (phongId: string | Phong, phongList: Phong[]) => {
@@ -72,6 +73,8 @@ export default function ChinhSuaHoaDonPage() {
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     maHoaDon: '',
@@ -293,6 +296,24 @@ export default function ChinhSuaHoaDonPage() {
       toast.error('Có lỗi xảy ra khi gửi dữ liệu');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/hoa-don/${hoaDonId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Xóa hóa đơn thành công');
+        router.push('/dashboard/hoa-don');
+      } else {
+        toast.error('Có lỗi khi xóa hóa đơn');
+      }
+    } catch (e) {
+      toast.error('Lỗi kết nối');
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -607,21 +628,7 @@ export default function ChinhSuaHoaDonPage() {
         <Button
           variant="destructive"
           className="w-full py-6 text-[16px] font-semibold rounded-xl shadow-md mb-6 hover:bg-red-700"
-          onClick={async () => {
-            if (confirm('Bạn có chắc chắn muốn xóa hóa đơn này?')) {
-              try {
-                const res = await fetch(`/api/hoa-don/${hoaDonId}`, { method: 'DELETE' });
-                if (res.ok) {
-                  toast.success('Xóa hóa đơn thành công');
-                  router.push('/dashboard/hoa-don');
-                } else {
-                  toast.error('Có lỗi khi xóa hóa đơn');
-                }
-              } catch (e) {
-                toast.error('Lỗi kết nối');
-              }
-            }
-          }}
+          onClick={() => setIsConfirmOpen(true)}
         >
           <Trash2 className="mr-2 h-5 w-5" /> Xóa hóa đơn
         </Button>
@@ -752,6 +759,17 @@ export default function ChinhSuaHoaDonPage() {
           </div>
         </details>
       </div>
+
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa hóa đơn"
+        description="Bạn có chắc chắn muốn xóa hóa đơn này? Thao tác này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

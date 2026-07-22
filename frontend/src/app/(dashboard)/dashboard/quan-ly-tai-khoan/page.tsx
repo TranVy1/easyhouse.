@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { UserDataTable } from './table';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 
 interface User {
   _id: string;
@@ -73,6 +74,11 @@ export default function AccountManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const hasFetchedRef = useRef(false); // Track xem đã fetch chưa
   const [createUserData, setCreateUserData] = useState<CreateUserData>({
     name: '',
@@ -217,11 +223,16 @@ export default function AccountManagementPage() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) return;
+  const handleDeleteUser = (userId: string) => {
+    setItemToDelete(userId);
+    setIsConfirmOpen(true);
+  };
 
+  const confirmDeleteUser = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`/api/admin/users/${itemToDelete}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${session?.accessToken}` },
       });
@@ -242,6 +253,10 @@ export default function AccountManagementPage() {
     } catch (error) {
       console.error('Error deleting user:', error);
       toast.error('Có lỗi xảy ra khi xóa tài khoản');
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -632,6 +647,17 @@ export default function AccountManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa tài khoản"
+        description="Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={confirmDeleteUser}
+      />
     </div>
   );
 }

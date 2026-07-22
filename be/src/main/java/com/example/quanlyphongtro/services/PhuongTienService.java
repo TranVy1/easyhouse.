@@ -91,6 +91,11 @@ public class PhuongTienService {
             pt.setMaPt(request.getMaPt());
         }
         
+        if (request.getBienSo() != null && !request.getBienSo().isBlank()) {
+            if (phuongTienRepository.existsByBienSoAndTrangThaiAndChuTroId(request.getBienSo(), TrangThaiPhuongTien.HIEU_LUC, chuTroId)) {
+                throw new RuntimeException("Biển số xe đã được sử dụng và đang hiệu lực");
+            }
+        }
         pt.setLoaiXe(request.getLoaiXe());
         pt.setBienSo(request.getBienSo());
         pt.setTrangThai(request.getTrangThai());
@@ -129,6 +134,11 @@ public class PhuongTienService {
             pt.setMaPt(request.getMaPt());
         }
         
+        if (request.getBienSo() != null && !request.getBienSo().isBlank() && !request.getBienSo().equals(pt.getBienSo())) {
+            if (phuongTienRepository.existsByBienSoAndTrangThaiAndChuTroId(request.getBienSo(), TrangThaiPhuongTien.HIEU_LUC, chuTroId)) {
+                throw new RuntimeException("Biển số xe đã được sử dụng và đang hiệu lực");
+            }
+        }
         pt.setLoaiXe(request.getLoaiXe());
         pt.setBienSo(request.getBienSo());
         pt.setTrangThai(request.getTrangThai());

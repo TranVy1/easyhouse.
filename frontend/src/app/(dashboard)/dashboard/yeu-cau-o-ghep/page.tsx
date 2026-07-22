@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle, XCircle, Users } from 'lucide-react';
 import { DashboardCard } from '@/components/dashboard/shared-ui';
 import { toast } from 'sonner';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 
 type YeuCauOGhepRequest = {
   id: string;
@@ -32,6 +33,10 @@ export default function AdminYeuCauOGhepPage() {
 
   const [requests, setRequests] = useState<YeuCauOGhepRequest[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [actionItem, setActionItem] = useState<{ id: string; isApprove: boolean } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     // If we don't have a specific house selected, we might fetch for a default one or get all. 
@@ -91,23 +96,32 @@ export default function AdminYeuCauOGhepPage() {
 
   const hasPendingRequests = requestStats.pending > 0;
 
-  const handleApprove = async (id: string, isApprove: boolean) => {
-    if (!confirm(isApprove ? "Bạn chắc chắn muốn DUYỆT yêu cầu này?" : "Bạn chắc chắn muốn TỪ CHỐI yêu cầu này?")) return;
-    
+  const handleApprove = (id: string, isApprove: boolean) => {
+    setActionItem({ id, isApprove });
+    setIsConfirmOpen(true);
+  };
+
+  const confirmAction = async () => {
+    if (!actionItem) return;
+    setIsProcessing(true);
     try {
-      const res = await fetch(`/api/admin/o-ghep/${id}/approve?isApprove=${isApprove}`, {
+      const res = await fetch(`/api/admin/o-ghep/${actionItem.id}/approve?isApprove=${actionItem.isApprove}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${accessToken}` }
       });
       const result = await res.json();
       if (result.success) {
-        toast.success(isApprove ? "Đã duyệt thành công" : "Đã từ chối");
+        toast.success(actionItem.isApprove ? "Đã duyệt thành công" : "Đã từ chối");
         fetchRequests();
       } else {
         toast.error(result.message || "Có lỗi xảy ra");
       }
     } catch {
       toast.error("Lỗi kết nối");
+    } finally {
+      setIsProcessing(false);
+      setIsConfirmOpen(false);
+      setActionItem(null);
     }
   };
 
@@ -546,6 +560,17 @@ export default function AdminYeuCauOGhepPage() {
           )}
         </CardContent>
       </DashboardCard>
+
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={actionItem?.isApprove ? "Xác nhận duyệt yêu cầu" : "Xác nhận từ chối yêu cầu"}
+        description={actionItem?.isApprove ? "Bạn chắc chắn muốn DUYỆT yêu cầu này?" : "Bạn chắc chắn muốn TỪ CHỐI yêu cầu này?"}
+        confirmText={actionItem?.isApprove ? "Duyệt" : "Từ chối"}
+        variant={actionItem?.isApprove ? "default" : "destructive"}
+        loading={isProcessing}
+        onConfirm={confirmAction}
+      />
     </div>
   );
 }

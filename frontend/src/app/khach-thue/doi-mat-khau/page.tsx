@@ -130,7 +130,7 @@ function DoiMatKhauContent() {
 
 export default function DoiMatKhauLanDauPage() {
   return (
-    <SessionProvider>
+    <SessionProvider basePath="/api/auth-tenant">
       <DoiMatKhauContent />
     </SessionProvider>
   );

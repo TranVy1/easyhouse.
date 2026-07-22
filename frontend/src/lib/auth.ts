@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
               refreshToken: user.refreshToken || '',
               emailVerified: user.emailVerified ?? true,
               requirePasswordChange: user.requirePasswordChange || false,
-              accessTokenExpires: Date.now() + 60 * 60 * 1000,
+              accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
             };
           }
           
@@ -98,7 +98,7 @@ export const authOptions: NextAuthOptions = {
               accessToken: token,
               refreshToken: refreshToken || '',
               emailVerified: true,
-              accessTokenExpires: Date.now() + 60 * 60 * 1000,
+              accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
               requirePasswordChange: result.data.requirePasswordChange || false,
             };
           }
@@ -129,13 +129,8 @@ export const authOptions: NextAuthOptions = {
         token.requirePasswordChange = user.requirePasswordChange;
       }
 
-      // If access token has NOT expired, return as-is
-      if (typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
-        return token;
-      }
-
-      // Access token has expired – try to refresh
-      return await refreshAccessToken(token);
+      // Always return token for now, avoid RefreshAccessTokenError bug
+      return token;
     },
     async session({ session, token }) {
       if (token) {
@@ -179,7 +174,7 @@ async function refreshAccessToken(token: Record<string, unknown>) {
         ...token,
         accessToken: data.token,
         refreshToken: data.refreshToken ?? token.refreshToken,
-        accessTokenExpires: Date.now() + 60 * 60 * 1000,
+        accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
         error: undefined,
       };
     }

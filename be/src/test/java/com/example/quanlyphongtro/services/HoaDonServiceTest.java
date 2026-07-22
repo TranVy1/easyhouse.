@@ -40,6 +40,7 @@ class HoaDonServiceTest {
     @Mock private DichVuHopDongRepository dichVuHopDongRepository;
     @Mock private ThanhVienHopDongRepository thanhVienHopDongRepository;
     @Mock private PhuLucHopDongRepository phuLucHopDongRepository;
+    @Mock private PhuongTienRepository phuongTienRepository;
     @Mock private PermissionService permissionService;
     @Mock private EmailService emailService;
     @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -65,6 +66,7 @@ class HoaDonServiceTest {
                 dichVuHopDongRepository,
                 thanhVienHopDongRepository,
                 phuLucHopDongRepository,
+                phuongTienRepository,
                 permissionService,
                 emailService,
                 eventPublisher

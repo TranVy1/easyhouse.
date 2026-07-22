@@ -1,0 +1,12 @@
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials/
+/apk/
+/be/node_modules/
+/frontend/node_modules/
+
+
+*.zip

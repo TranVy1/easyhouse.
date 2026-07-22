@@ -18,6 +18,7 @@ import { DashboardCard, DashboardKpiCard } from "@/components/dashboard/shared-u
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
 import { PhuongTienDataTable } from "./table"
 import { PhuongTienForm } from "./form"
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 
 export default function PhuongTienPage() {
   const { data: session } = useSession()
@@ -41,6 +42,10 @@ export default function PhuongTienPage() {
   
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<PhuongTien | null>(null)
+  
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<PhuongTien | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     document.title = "Quản lý Phương tiện | EasyHouse"
@@ -116,10 +121,16 @@ export default function PhuongTienPage() {
     setIsFormOpen(true)
   }
 
-  const handleDelete = async (item: PhuongTien) => {
-    if (!confirm(`Bạn có chắc muốn xóa phương tiện ${item.bienSo}?`)) return
+  const handleDelete = (item: PhuongTien) => {
+    setItemToDelete(item)
+    setIsConfirmOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+    setIsDeleting(true)
     try {
-      const res = await fetch(`/api/phuong-tien/${item.id}`, {
+      const res = await fetch(`/api/phuong-tien/${itemToDelete.id || itemToDelete._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` }
       })
@@ -132,6 +143,10 @@ export default function PhuongTienPage() {
       }
     } catch (e: any) {
       toast.error(e.message || "Lỗi xóa phương tiện")
+    } finally {
+      setIsDeleting(false)
+      setIsConfirmOpen(false)
+      setItemToDelete(null)
     }
   }
 
@@ -264,6 +279,17 @@ export default function PhuongTienPage() {
           onSuccess={handleFormSuccess}
         />
       )}
+
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa phương tiện"
+        description={`Bạn có chắc muốn xóa phương tiện có biển số ${itemToDelete?.bienSo}? Thao tác này không thể hoàn tác.`}
+        confirmText="Xóa phương tiện"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

@@ -214,17 +214,6 @@ export interface SoDoToaNha extends ThongKeToaNha {
   tang: SoDoTang[];
 }
 
-export interface TaiSanPhong {
-  id?: ID;
-  _id?: ID;
-  phongId?: ID;
-  tenTaiSan: string;
-  soLuong: number;
-  giaTri: number;
-  tinhTrang: string;
-  ghiChu?: string;
-}
-
 export interface Phong {
   id?: ID;
   _id?: ID;
@@ -744,4 +733,30 @@ export interface TaiSanPhong {
   tinhTrang: string;
   ghiChu?: string;
   anhTaiSan?: string;
+}
+
+export interface KhoTaiSan {
+  id?: string;
+  _id?: string;
+  nhaTroId?: string;
+  tenNhaTro?: string;
+  tenTaiSan: string;
+  hinhAnh?: string;
+  tongSoLuong: number;
+  soLuongKhaDung?: number;
+  soLuongDaCapPhat?: number;
+  soLuongHuHong?: number;
+  tinhTrang: string;
+  ghiChu?: string;
+}
+
+export interface LichSuKhoTaiSan {
+  id?: string;
+  khoTaiSanId?: string;
+  phongId?: string;
+  tenPhong?: string;
+  loaiGiaoDich: string;
+  soLuong: number;
+  ghiChu?: string;
+  taoLuc?: string;
 }

@@ -263,8 +263,19 @@ public class NhaTroService {
         if (request.getDiaChi() != null) {
             String soNha = request.getDiaChi().getSoNha() != null ? request.getDiaChi().getSoNha() : "";
             String duong = request.getDiaChi().getDuong() != null ? request.getDiaChi().getDuong() : "";
+            String phuong = request.getDiaChi().getPhuong() != null ? ", " + request.getDiaChi().getPhuong() : "";
+            String quan = request.getDiaChi().getQuan() != null ? ", " + request.getDiaChi().getQuan() : "";
+            String thanhPho = request.getDiaChi().getThanhPho() != null ? ", " + request.getDiaChi().getThanhPho() : "";
+            
             String fullDiaChi = (soNha + " " + duong).trim();
-            nt.setDiaChi(fullDiaChi.isEmpty() ? null : fullDiaChi);
+            if (fullDiaChi.isEmpty()) {
+                String extended = (phuong + quan + thanhPho).replaceAll("^, ", "").trim();
+                fullDiaChi = extended.isEmpty() ? "Chưa cập nhật" : extended;
+            } else {
+                fullDiaChi = fullDiaChi + phuong + quan + thanhPho;
+            }
+            
+            nt.setDiaChi(fullDiaChi);
             nt.setSoNha(request.getDiaChi().getSoNha());
             nt.setDuong(request.getDiaChi().getDuong());
             nt.setPhuong(request.getDiaChi().getPhuong());

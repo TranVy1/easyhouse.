@@ -310,18 +310,18 @@ export function PhongDataTable({ data, onEdit, onDelete }: PhongDataTableProps) 
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex flex-col sm:flex-row sm:items-center py-4 gap-4 justify-between">
         <Input
           placeholder="Tìm kiếm theo tên phòng..."
           value={(table.getColumn("maPhong")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("maPhong")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="w-full sm:ml-auto sm:w-auto">
               Cột <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

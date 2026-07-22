@@ -45,6 +45,7 @@ import { KhachThueDataTable } from './table';
 import { CCCDUpload } from '@/components/ui/cccd-upload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 import styles from './page.module.css';
 
 export default function KhachThuePage() {
@@ -59,6 +60,9 @@ export default function KhachThuePage() {
   const [editingKhachThue, setEditingKhachThue] = useState<KhachThue | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   // Pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -169,34 +173,40 @@ export default function KhachThuePage() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa khách thuê này?')) {
-      setActionLoading(`delete-${id}`);
-      try {
-        const response = await fetch(`/api/khach-thue/${id}`, {
-          method: 'DELETE',
-          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            clearCache();
-            await fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
-            toast.success('Xóa khách thuê thành công!');
-          } else {
-            toast.error(result.message || 'Có lỗi xảy ra');
-          }
+  const handleDelete = (id: string) => {
+    setItemToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    setActionLoading(`delete-${itemToDelete}`);
+    try {
+      const response = await fetch(`/api/khach-thue/${itemToDelete}`, {
+        method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          clearCache();
+          await fetchKhachThue(selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
+          toast.success('Xóa khách thuê thành công!');
         } else {
-          const error = await response.json();
-          toast.error(error.message || 'Có lỗi xảy ra');
+          toast.error(result.message || 'Có lỗi xảy ra');
         }
-      } catch (error) {
-        console.error('Error deleting khach thue:', error);
-        toast.error('Có lỗi xảy ra khi xóa khách thuê');
-      } finally {
-        setActionLoading(null);
+      } else {
+        const error = await response.json();
+        toast.error(error.message || 'Có lỗi xảy ra');
       }
+    } catch (error) {
+      console.error('Error deleting khach thue:', error);
+      toast.error('Có lỗi xảy ra khi xóa khách thuê');
+    } finally {
+      setActionLoading(null);
+      setIsConfirmOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -496,6 +506,17 @@ export default function KhachThuePage() {
           </div>
         )}
       </div>
+      
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa khách thuê"
+        description="Thao tác xóa có thể ảnh hưởng đến dữ liệu liên quan. Bạn có chắc muốn xóa?"
+        confirmText="Xóa"
+        variant="destructive"
+        loading={actionLoading?.startsWith('delete')}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

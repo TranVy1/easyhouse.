@@ -302,7 +302,7 @@ export default function KhachThueDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider>
+    <SessionProvider basePath="/api/auth-tenant">
       <KhachThueDashboardLayoutContent>{children}</KhachThueDashboardLayoutContent>
     </SessionProvider>
   );

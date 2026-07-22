@@ -18,5 +18,9 @@ public interface PhuongTienRepository extends JpaRepository<PhuongTien, UUID>, J
     
     boolean existsByMaPtAndChuTroId(String maPt, UUID chuTroId);
     
+    boolean existsByBienSoAndTrangThaiAndChuTroId(String bienSo, com.example.quanlyphongtro.entity.TrangThaiPhuongTien trangThai, UUID chuTroId);
+    
+    java.util.List<PhuongTien> findByPhongIdAndTrangThai(UUID phongId, com.example.quanlyphongtro.entity.TrangThaiPhuongTien trangThai);
+    
     // Custom spec query can be used for filtering by nhaTro, phong, trangThai, keyword
 }

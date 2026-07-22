@@ -134,15 +134,15 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 min-h-screen pb-10">
       {/* ── HEADER ── */}
-      <div className="flex items-center justify-end mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end mb-4 gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 role="combobox"
                 aria-expanded={openCombobox}
-                className="justify-between min-w-[200px] border-gray-300 text-gray-700 font-normal hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500"
+                className="justify-between w-full sm:min-w-[200px] border-gray-300 text-gray-700 font-normal hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500"
               >
                 {selectedToaNhaId === "all"
                   ? "Tất cả tòa nhà"

@@ -263,7 +263,17 @@ public class PhongService {
             return tang;
         }
         if (soTang != null) {
-            return tangRepository.findByNhaTroIdAndSoTangAndXoaLucIsNull(nhaTroId, soTang).orElse(null);
+            com.example.quanlyphongtro.entity.Tang t = tangRepository.findByNhaTroIdAndSoTangAndXoaLucIsNull(nhaTroId, soTang).orElse(null);
+            if (t == null) {
+                NhaTro nt = nhaTroRepository.findById(nhaTroId).orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+                t = new com.example.quanlyphongtro.entity.Tang();
+                t.setNhaTro(nt);
+                t.setSoTang(soTang);
+                t.setTenTang("Tầng " + soTang);
+                t.setThuTuHienThi(soTang);
+                t = tangRepository.saveAndFlush(t);
+            }
+            return t;
         }
         return null;
     }

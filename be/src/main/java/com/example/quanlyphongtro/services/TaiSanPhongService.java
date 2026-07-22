@@ -111,7 +111,10 @@ public class TaiSanPhongService {
 
     @Transactional
     public void deleteTaiSan(UUID id) {
-        taiSanPhongRepository.deleteById(id);
+        TaiSanPhong taiSan = taiSanPhongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay tai san"));
+        taiSan.setXoaLuc(java.time.ZonedDateTime.now());
+        taiSanPhongRepository.save(taiSan);
     }
 
     public TaiSanPhongDto mapToDto(TaiSanPhong entity) {
@@ -135,5 +138,96 @@ public class TaiSanPhongService {
                 .ghiChu(entity.getGhiChu())
                 .anhTaiSan(entity.getAnhTaiSan())
                 .build();
+    }
+
+    public String getImportTemplate() {
+        return "phongId,tenPhong,tenTaiSan,soLuong,giaTri,tinhTrang,ghiChu,anhTaiSan\n";
+    }
+
+    @Transactional(readOnly = true)
+    public com.example.quanlyphongtro.dto.TaiSanPhongImportPreviewResponse previewImport(org.springframework.web.multipart.MultipartFile file) {
+        UUID chuTroId = permissionService.currentUserId().orElseThrow(() -> new RuntimeException("Unauthorized"));
+        
+        List<com.example.quanlyphongtro.dto.TaiSanPhongImportRow> rows = new java.util.ArrayList<>();
+        int errorRows = 0;
+        int validRows = 0;
+        
+        try (java.io.BufferedReader fileReader = new java.io.BufferedReader(new java.io.InputStreamReader(file.getInputStream(), "UTF-8"));
+             org.apache.commons.csv.CSVParser csvParser = new org.apache.commons.csv.CSVParser(fileReader,
+                     org.apache.commons.csv.CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {
+
+            Iterable<org.apache.commons.csv.CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (org.apache.commons.csv.CSVRecord csvRecord : csvRecords) {
+                com.example.quanlyphongtro.dto.TaiSanPhongImportRow row = new com.example.quanlyphongtro.dto.TaiSanPhongImportRow();
+                try {
+                    row.setPhongId(csvRecord.isSet("phongId") ? csvRecord.get("phongId") : null);
+                    row.setTenPhong(csvRecord.isSet("tenPhong") ? csvRecord.get("tenPhong") : null);
+                    row.setTenTaiSan(csvRecord.isSet("tenTaiSan") ? csvRecord.get("tenTaiSan") : null);
+                    row.setSoLuong(csvRecord.isSet("soLuong") && !csvRecord.get("soLuong").isBlank() ? Integer.parseInt(csvRecord.get("soLuong")) : 0);
+                    row.setGiaTri(csvRecord.isSet("giaTri") && !csvRecord.get("giaTri").isBlank() ? new java.math.BigDecimal(csvRecord.get("giaTri")) : java.math.BigDecimal.ZERO);
+                    row.setTinhTrang(csvRecord.isSet("tinhTrang") ? csvRecord.get("tinhTrang") : null);
+                    row.setGhiChu(csvRecord.isSet("ghiChu") ? csvRecord.get("ghiChu") : null);
+                    row.setAnhTaiSan(csvRecord.isSet("anhTaiSan") ? csvRecord.get("anhTaiSan") : null);
+                    
+                    // Validate
+                    if (row.getPhongId() == null || row.getPhongId().isBlank()) throw new RuntimeException("Mã phòng (phongId) không được để trống");
+                    if (row.getTenTaiSan() == null || row.getTenTaiSan().isBlank()) throw new RuntimeException("Tên tài sản không được để trống");
+                    if (row.getSoLuong() <= 0) throw new RuntimeException("Số lượng phải lớn hơn 0");
+                    if (row.getGiaTri().compareTo(java.math.BigDecimal.ZERO) < 0) throw new RuntimeException("Giá trị không được âm");
+                    if (row.getTinhTrang() == null || row.getTinhTrang().isBlank()) throw new RuntimeException("Tình trạng không được để trống");
+                    
+                    // Verify phongId belongs to chuTro
+                    UUID pid;
+                    try {
+                        pid = UUID.fromString(row.getPhongId());
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Mã phòng không hợp lệ");
+                    }
+                    Phong phong = phongRepository.findById(pid).stream().filter(p -> p.getNhaTro() != null && p.getNhaTro().getChuTro().getId().equals(chuTroId)).findFirst().orElseThrow(() -> new RuntimeException("Không tìm thấy phòng " + row.getPhongId() + " hoặc không có quyền truy cập"));
+                    
+                    row.setTenPhong(phong.getTen());
+                    row.setValid(true);
+                    validRows++;
+                } catch (Exception e) {
+                    row.setValid(false);
+                    row.setErrorReason(e.getMessage());
+                    errorRows++;
+                }
+                rows.add(row);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi đọc file CSV: " + e.getMessage());
+        }
+        
+        return com.example.quanlyphongtro.dto.TaiSanPhongImportPreviewResponse.builder()
+                .rows(rows)
+                .totalRows(rows.size())
+                .validRows(validRows)
+                .errorRows(errorRows)
+                .build();
+    }
+
+    @Transactional
+    public void commitImport(com.example.quanlyphongtro.dto.TaiSanPhongImportCommitRequest request) {
+        UUID chuTroId = permissionService.currentUserId().orElseThrow(() -> new RuntimeException("Unauthorized"));
+        if (request.getRows() == null || request.getRows().isEmpty()) return;
+        
+        for (com.example.quanlyphongtro.dto.TaiSanPhongImportRow row : request.getRows()) {
+            if (!row.isValid()) continue;
+            UUID pid = UUID.fromString(row.getPhongId());
+            Phong phong = phongRepository.findById(pid).stream().filter(p -> p.getNhaTro() != null && p.getNhaTro().getChuTro().getId().equals(chuTroId)).findFirst().orElseThrow(() -> new RuntimeException("Không tìm thấy phòng " + row.getPhongId()));
+            
+            TaiSanPhong taiSan = TaiSanPhong.builder()
+                    .phong(phong)
+                    .tenTaiSan(row.getTenTaiSan())
+                    .soLuong(row.getSoLuong())
+                    .giaTri(row.getGiaTri())
+                    .tinhTrang(row.getTinhTrang())
+                    .ghiChu(row.getGhiChu())
+                    .anhTaiSan(row.getAnhTaiSan())
+                    .build();
+            taiSanPhongRepository.save(taiSan);
+        }
     }
 }

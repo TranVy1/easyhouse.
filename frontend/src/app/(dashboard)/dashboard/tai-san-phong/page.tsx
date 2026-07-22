@@ -18,6 +18,8 @@ import { DashboardKpiCard } from "@/components/dashboard/shared-ui"
 import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
 import { TaiSanPhongDataTable } from "./table"
 import { TaiSanPhongForm } from "./form"
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
+import { TaiSanPhongImportDialog } from "./TaiSanPhongImportDialog"
 
 export default function TaiSanPhongPage() {
   const { data: session } = useSession()
@@ -43,7 +45,12 @@ export default function TaiSanPhongPage() {
   const [totalPages, setTotalPages] = useState(1)
   
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<TaiSanPhong | null>(null)
+  
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<TaiSanPhong | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     document.title = "Quản lý Tài sản | EasyHouse"
@@ -142,10 +149,16 @@ export default function TaiSanPhongPage() {
     setIsFormOpen(true)
   }
 
-  const handleDelete = async (item: TaiSanPhong) => {
-    if (!confirm(`Bạn có chắc muốn xóa tài sản ${item.tenTaiSan}?`)) return
+  const handleDelete = (item: TaiSanPhong) => {
+    setItemToDelete(item)
+    setIsConfirmOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+    setIsDeleting(true)
     try {
-      const res = await fetch(`/api/tai-san-phong/${item.id || item._id}`, {
+      const res = await fetch(`/api/tai-san-phong/${itemToDelete.id || itemToDelete._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` }
       })
@@ -158,6 +171,10 @@ export default function TaiSanPhongPage() {
       }
     } catch (e: any) {
       toast.error(e.message || "Lỗi xóa tài sản")
+    } finally {
+      setIsDeleting(false)
+      setIsConfirmOpen(false)
+      setItemToDelete(null)
     }
   }
 
@@ -174,6 +191,16 @@ export default function TaiSanPhongPage() {
           <p className="text-muted-foreground">Kiểm soát trang thiết bị, nội thất ở tất cả các phòng.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href="/api/tai-san-phong/import/template" download>
+              <Download className="mr-2 h-4 w-4" />
+              Tải file mẫu
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+            <FileUp className="mr-2 h-4 w-4" />
+            Import CSV
+          </Button>
           <Button variant="outline" size="sm" onClick={() => fetchData(true)} disabled={loading || refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Làm mới
@@ -313,6 +340,27 @@ export default function TaiSanPhongPage() {
           onSuccess={handleFormSuccess}
         />
       )}
+
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa tài sản"
+        description={`Bạn có chắc muốn xóa tài sản ${itemToDelete?.tenTaiSan}? Thao tác này không thể hoàn tác.`}
+        confirmText="Xóa tài sản"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+      />
+
+      <TaiSanPhongImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onSuccess={() => {
+          setIsImportOpen(false)
+          fetchData(true)
+        }}
+        accessToken={session?.accessToken || ""}
+      />
     </div>
   )
 }

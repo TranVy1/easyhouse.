@@ -6,6 +6,7 @@ import com.example.quanlyphongtro.dto.TaiSanPhongDto;
 import com.example.quanlyphongtro.services.TaiSanPhongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,12 +36,12 @@ public class TaiSanPhongController {
     }
 
     @PostMapping("/phong/{phongId}")
-    public ApiResponse<TaiSanPhongDto> addTaiSanToPhong(@PathVariable UUID phongId, @RequestBody TaiSanPhongDto dto) {
+    public ApiResponse<TaiSanPhongDto> addTaiSanToPhong(@PathVariable UUID phongId, @Valid @RequestBody TaiSanPhongDto dto) {
         return ApiResponse.success(taiSanPhongService.addTaiSanToPhong(phongId, dto), "Thêm tài sản thành công");
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<TaiSanPhongDto> updateTaiSan(@PathVariable UUID id, @RequestBody TaiSanPhongDto dto) {
+    public ApiResponse<TaiSanPhongDto> updateTaiSan(@PathVariable UUID id, @Valid @RequestBody TaiSanPhongDto dto) {
         return ApiResponse.success(taiSanPhongService.updateTaiSan(id, dto), "Cập nhật tài sản thành công");
     }
 
@@ -48,5 +49,25 @@ public class TaiSanPhongController {
     public ApiResponse<Void> deleteTaiSan(@PathVariable UUID id) {
         taiSanPhongService.deleteTaiSan(id);
         return ApiResponse.success(null, "Xóa tài sản thành công");
+    }
+
+    @GetMapping("/import/template")
+    public org.springframework.http.ResponseEntity<String> getImportTemplate() {
+        String template = taiSanPhongService.getImportTemplate();
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tai-san-phong-template.csv\"")
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(template);
+    }
+
+    @PostMapping("/import/preview")
+    public ApiResponse<com.example.quanlyphongtro.dto.TaiSanPhongImportPreviewResponse> previewImport(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return ApiResponse.success(taiSanPhongService.previewImport(file), "Preview import thành công");
+    }
+
+    @PostMapping("/import/commit")
+    public ApiResponse<Void> commitImport(@RequestBody com.example.quanlyphongtro.dto.TaiSanPhongImportCommitRequest request) {
+        taiSanPhongService.commitImport(request);
+        return ApiResponse.success(null, "Import thành công");
     }
 }

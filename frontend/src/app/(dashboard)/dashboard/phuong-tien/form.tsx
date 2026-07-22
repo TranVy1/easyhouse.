@@ -448,6 +448,13 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
               />
             </div>
 
+            <div className="bg-amber-50 text-amber-600 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <p>
+                <strong>Lưu ý:</strong> Xe đầu tiên được miễn phí gửi. Từ xe thứ 2 trở đi sẽ tính phí gửi xe theo cấu hình của tòa nhà/hợp đồng khi lập hóa đơn.
+              </p>
+            </div>
+
             <div className="flex justify-end pt-4">
               {/* We don't have a specific submit button in the design screenshot, but we need one. */}
               <Button type="submit" className="bg-[#4FA7A0] hover:bg-[#3D8580] text-white px-8 h-11" disabled={form.formState.isSubmitting || isUploading}>

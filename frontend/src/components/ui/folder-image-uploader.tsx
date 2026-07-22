@@ -218,21 +218,24 @@ export function FolderImageUploader({
         },
       });
 
+      const json = await res.json();
       if (!res.ok) {
+        console.error('[FolderUploader] lookup-by-name error:', res.status, json);
         lookupCache.current[cacheKey] = null;
         return null;
       }
 
-      const json = await res.json();
       if (json.success && json.data?.found) {
         const room = { id: json.data.id as string, ten: json.data.ten as string };
         lookupCache.current[cacheKey] = room;
         return room;
       }
 
+      console.warn('[FolderUploader] room not found:', tenPhong, '| response:', json);
       lookupCache.current[cacheKey] = null;
       return null;
-    } catch {
+    } catch (e) {
+      console.error('[FolderUploader] lookup fetch failed:', e);
       lookupCache.current[cacheKey] = null;
       return null;
     }
@@ -241,23 +244,28 @@ export function FolderImageUploader({
   // ── Upload single image ────────────────────────────────
 
   const uploadImage = useCallback(async (img: ParsedImage, phongId: string): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', img.file, img.fileName);
-    formData.append('doiTuong', 'ROOM');
-    formData.append('doiTuongId', phongId);
-    formData.append('loaiFile', 'ROOM_IMAGE');
+    const fd = new FormData();
+    fd.append('file', img.file, img.fileName);
+    fd.append('doiTuong', 'ROOM');
+    fd.append('doiTuongId', phongId);
+    fd.append('loaiFile', 'ROOM_IMAGE');
 
     const res = await fetch('/api/media', {
       method: 'POST',
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: formData,
+      body: fd,
     });
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let json: any = {};
+    try { json = await res.json(); } catch { /* non-JSON body */ }
+
     if (!res.ok || !json.success) {
-      throw new Error(json.message || `HTTP ${res.status}`);
+      const detail = json.message || json.error || `HTTP ${res.status}`;
+      console.error('[FolderUploader] upload failed:', img.relativePath, '->', detail, json);
+      throw new Error(detail);
     }
 
     return (json.data?.url as string) ?? '';

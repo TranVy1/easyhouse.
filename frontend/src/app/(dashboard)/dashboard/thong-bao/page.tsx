@@ -55,6 +55,7 @@ import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { useCache } from '@/hooks/use-cache';
 import { unwrapPageData } from '@/lib/api-response';
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
 
 const getId = (value: unknown): string | undefined => {
   if (!value) return undefined;
@@ -85,6 +86,10 @@ export default function ThongBaoPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingThongBao, setEditingThongBao] = useState<ThongBao | null>(null);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -269,26 +274,35 @@ export default function ThongBaoPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
-      try {
-        const response = await fetch(`/api/thong-bao/${id}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const result = await response.json();
+  const handleDelete = (id: string) => {
+    setItemToDelete(id);
+    setIsConfirmOpen(true);
+  };
 
-        if (response.ok && result.success) {
-          clearCache();
-          setThongBaoList(prev => prev.filter(thongBao => thongBao._id !== id));
-          toast.success('Xóa thông báo thành công');
-        } else {
-          toast.error(result.message || 'Có lỗi xảy ra khi xóa thông báo');
-        }
-      } catch (error) {
-        console.error('Error deleting thong bao:', error);
-        toast.error('Có lỗi xảy ra khi xóa thông báo');
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/thong-bao/${itemToDelete}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        clearCache();
+        setThongBaoList(prev => prev.filter(thongBao => thongBao._id !== itemToDelete));
+        toast.success('Xóa thông báo thành công');
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra khi xóa thông báo');
       }
+    } catch (error) {
+      console.error('Error deleting thong bao:', error);
+      toast.error('Có lỗi xảy ra khi xóa thông báo');
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -778,6 +792,17 @@ export default function ThongBaoPage() {
           </div>
         )}
       </div>
+
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa thông báo"
+        description="Bạn có chắc chắn muốn xóa thông báo này? Thao tác này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

@@ -429,15 +429,15 @@ export function HoaDonDataTable({
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row sm:items-center py-4 gap-4 justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
           <Input
             placeholder="Lọc theo mã hóa đơn..."
             value={(table.getColumn("maHoaDon")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("maHoaDon")?.setFilterValue(event.target.value)
             }
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
           {table.getFilteredSelectedRowModel().rows.length > 0 && (() => {
             const selectedCount = table.getFilteredSelectedRowModel().rows.length;
@@ -459,7 +459,7 @@ export function HoaDonDataTable({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:ml-auto sm:w-auto">
               Cột <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

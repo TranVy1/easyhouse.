@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, SessionProvider } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,8 +37,7 @@ function KhachThueDangNhapContent() {
         toast.error(result.error);
       } else {
         toast.success('Đăng nhập thành công!');
-        router.push(callbackUrl);
-        router.refresh();
+        window.location.href = callbackUrl;
       }
     } catch (error) {
       console.error('Error logging in:', error);
@@ -133,9 +132,11 @@ function KhachThueDangNhapContent() {
 
 export default function KhachThueDangNhapPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" />}>
-      <KhachThueDangNhapContent />
-    </Suspense>
+    <SessionProvider basePath="/api/auth-tenant">
+      <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" />}>
+        <KhachThueDangNhapContent />
+      </Suspense>
+    </SessionProvider>
   );
 }
 

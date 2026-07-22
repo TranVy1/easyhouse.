@@ -34,8 +34,11 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
 
     @Query("SELECT p FROM Phong p WHERE p.nhaTro.id = :nhaTroId AND p.xoaLuc IS NULL " +
            "AND (LOWER(p.ten) = LOWER(:tenPhong) " +
-           "OR LOWER(p.ten) = LOWER(CONCAT('Phòng ', :tenPhong)) " +
-           "OR LOWER(p.ten) = LOWER(CONCAT('Phong ', :tenPhong)))")
+           "OR LOWER(p.ten) = LOWER(CONCAT('phòng ', :tenPhong)) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('phong ', :tenPhong)) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('p.', :tenPhong)) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('p', :tenPhong)) " +
+           "OR LOWER(p.ten) LIKE LOWER(CONCAT('%', :tenPhong)))")
     Optional<Phong> findByNhaTroIdAndTenPhongFuzzy(
             @Param("nhaTroId") UUID nhaTroId,
             @Param("tenPhong") String tenPhong);

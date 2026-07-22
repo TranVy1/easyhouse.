@@ -6,9 +6,12 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLRestriction;
+
 @Entity
 @EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
 @Table(name = "tai_san_phong")
+@SQLRestriction("xoa_luc IS NULL")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,4 +43,7 @@ public class TaiSanPhong {
 
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
+
+    @Column(name = "xoa_luc")
+    private ZonedDateTime xoaLuc;
 }

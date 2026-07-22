@@ -57,6 +57,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table"
 import { toast } from "sonner"
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -427,6 +428,10 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
   const { data: initialData, onDeleteMultiple, searchTerm, onSearchChange, statusFilter, onStatusChange, monthFilter, onMonthChange, yearFilter, onYearChange, getMonthOptions, getYearOptions, pageCount, totalElements, pagination: externalPagination, onPaginationChange, ...tableProps } = props
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
+  
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
+  const [itemsToDelete, setItemsToDelete] = React.useState<string[]>([])
+  
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -519,12 +524,17 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
       return
     }
     
-    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} hóa đơn đã chọn?`)) {
-      if (onDeleteMultiple) {
-        onDeleteMultiple(selectedIds)
-        setRowSelection({})
-      }
+    setItemsToDelete(selectedIds)
+    setIsConfirmOpen(true)
+  }
+
+  const confirmBulkDelete = () => {
+    if (onDeleteMultiple && itemsToDelete.length > 0) {
+      onDeleteMultiple(itemsToDelete)
+      setRowSelection({})
     }
+    setIsConfirmOpen(false)
+    setItemsToDelete([])
   }
 
   const selectedCount = table.getFilteredSelectedRowModel().rows.length
@@ -765,6 +775,16 @@ export function HoaDonDataTable(props: HoaDonDataTableProps) {
           </div>
         </div>
       </div>
+      
+      <ConfirmActionDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa hóa đơn"
+        description={`Bạn có chắc chắn muốn xóa ${itemsToDelete.length} hóa đơn đã chọn? Thao tác này không thể hoàn tác.`}
+        confirmText="Xóa"
+        variant="destructive"
+        onConfirm={confirmBulkDelete}
+      />
     </div>
   )
 }
