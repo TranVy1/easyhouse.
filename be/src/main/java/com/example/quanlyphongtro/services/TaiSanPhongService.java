@@ -21,6 +21,7 @@ public class TaiSanPhongService {
 
     private final TaiSanPhongRepository taiSanPhongRepository;
     private final PhongRepository phongRepository;
+    private final com.example.quanlyphongtro.repository.KhoTaiSanRepository khoTaiSanRepository;
     private final PermissionService permissionService;
 
     @Transactional(readOnly = true)
@@ -82,8 +83,25 @@ public class TaiSanPhongService {
     public TaiSanPhongDto addTaiSanToPhong(UUID phongId, TaiSanPhongDto dto) {
         Phong phong = phongRepository.findById(phongId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay phong"));
+                
+        com.example.quanlyphongtro.entity.KhoTaiSan khoTaiSan = null;
+        if (dto.getKhoTaiSanId() != null) {
+            khoTaiSan = khoTaiSanRepository.findById(dto.getKhoTaiSanId())
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay tai san trong kho"));
+            
+            if (khoTaiSan.getSoLuongKhaDung() < dto.getSoLuong()) {
+                throw new RuntimeException("Số lượng khả dụng trong kho không đủ");
+            }
+            khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() - dto.getSoLuong());
+            khoTaiSan.setSoLuongDaCapPhat(khoTaiSan.getSoLuongDaCapPhat() + dto.getSoLuong());
+            khoTaiSanRepository.save(khoTaiSan);
+        } else {
+            throw new RuntimeException("Vui lòng chọn tài sản từ kho");
+        }
+
         TaiSanPhong taiSan = TaiSanPhong.builder()
                 .phong(phong)
+                .khoTaiSan(khoTaiSan)
                 .tenTaiSan(dto.getTenTaiSan())
                 .soLuong(dto.getSoLuong())
                 .giaTri(dto.getGiaTri())
@@ -99,6 +117,25 @@ public class TaiSanPhongService {
     public TaiSanPhongDto updateTaiSan(UUID id, TaiSanPhongDto dto) {
         TaiSanPhong taiSan = taiSanPhongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay tai san"));
+                
+        if (taiSan.getKhoTaiSan() != null) {
+            int diff = dto.getSoLuong() - taiSan.getSoLuong();
+            com.example.quanlyphongtro.entity.KhoTaiSan khoTaiSan = taiSan.getKhoTaiSan();
+            
+            if (diff > 0) {
+                if (khoTaiSan.getSoLuongKhaDung() < diff) {
+                    throw new RuntimeException("Số lượng khả dụng trong kho không đủ để tăng thêm");
+                }
+                khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() - diff);
+                khoTaiSan.setSoLuongDaCapPhat(khoTaiSan.getSoLuongDaCapPhat() + diff);
+            } else if (diff < 0) {
+                int returnAmount = -diff;
+                khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() + returnAmount);
+                khoTaiSan.setSoLuongDaCapPhat(khoTaiSan.getSoLuongDaCapPhat() - returnAmount);
+            }
+            khoTaiSanRepository.save(khoTaiSan);
+        }
+
         taiSan.setTenTaiSan(dto.getTenTaiSan());
         taiSan.setSoLuong(dto.getSoLuong());
         taiSan.setGiaTri(dto.getGiaTri());
@@ -113,6 +150,14 @@ public class TaiSanPhongService {
     public void deleteTaiSan(UUID id) {
         TaiSanPhong taiSan = taiSanPhongRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay tai san"));
+                
+        if (taiSan.getKhoTaiSan() != null) {
+            com.example.quanlyphongtro.entity.KhoTaiSan khoTaiSan = taiSan.getKhoTaiSan();
+            khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() + taiSan.getSoLuong());
+            khoTaiSan.setSoLuongDaCapPhat(khoTaiSan.getSoLuongDaCapPhat() - taiSan.getSoLuong());
+            khoTaiSanRepository.save(khoTaiSan);
+        }
+
         taiSan.setXoaLuc(java.time.ZonedDateTime.now());
         taiSanPhongRepository.save(taiSan);
     }
@@ -137,6 +182,7 @@ public class TaiSanPhongService {
                 .tinhTrang(entity.getTinhTrang())
                 .ghiChu(entity.getGhiChu())
                 .anhTaiSan(entity.getAnhTaiSan())
+                .khoTaiSanId(entity.getKhoTaiSan() != null ? entity.getKhoTaiSan().getId() : null)
                 .build();
     }
 

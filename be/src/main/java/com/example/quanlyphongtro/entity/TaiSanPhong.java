@@ -46,4 +46,8 @@ public class TaiSanPhong {
 
     @Column(name = "xoa_luc")
     private ZonedDateTime xoaLuc;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kho_tai_san_id")
+    private KhoTaiSan khoTaiSan;
 }

@@ -116,6 +116,7 @@ public class KhoTaiSanService {
         // Add to TaiSanPhong
         TaiSanPhong taiSanPhong = TaiSanPhong.builder()
                 .phong(phong)
+                .khoTaiSan(khoTaiSan)
                 .tenTaiSan(khoTaiSan.getTenTaiSan())
                 .soLuong(request.getSoLuong())
                 .giaTri(request.getGiaTri())
@@ -152,9 +153,26 @@ public class KhoTaiSanService {
         
         khoTaiSanRepository.save(khoTaiSan);
 
-        // Note: Không tự động xóa TaiSanPhong vì không biết map chính xác record nào,
-        // người dùng phải tự xóa tài sản khỏi phòng hoặc tự ghi chú thêm vào tài sản phòng.
+        // Reduce or delete TaiSanPhong records
+        List<TaiSanPhong> roomAssets = taiSanPhongRepository.findByPhongId(phong.getId()).stream()
+                .filter(t -> t.getKhoTaiSan() != null && t.getKhoTaiSan().getId().equals(khoTaiSanId))
+                .filter(t -> t.getXoaLuc() == null)
+                .collect(Collectors.toList());
 
+        int remainingToRevoke = request.getSoLuong();
+        for (TaiSanPhong ts : roomAssets) {
+            if (remainingToRevoke <= 0) break;
+            if (ts.getSoLuong() <= remainingToRevoke) {
+                remainingToRevoke -= ts.getSoLuong();
+                ts.setXoaLuc(ZonedDateTime.now());
+                ts.setSoLuong(0);
+                taiSanPhongRepository.save(ts);
+            } else {
+                ts.setSoLuong(ts.getSoLuong() - remainingToRevoke);
+                remainingToRevoke = 0;
+                taiSanPhongRepository.save(ts);
+            }
+        }
         // Record history
         String loaiGD = request.getKhaDung() ? "THU_HOI_TOT" : "THU_HOI_HONG";
         recordHistory(khoTaiSan, phong, loaiGD, request.getSoLuong(), request.getGhiChu());

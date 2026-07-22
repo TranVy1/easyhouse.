@@ -32,6 +32,23 @@ public class NhaTroRequest {
     private List<GenerateRoomsRequest.CauTrucTangRequest> cauTrucTang;
     private List<String> tienNghiMacDinh;
 
+    private List<DichVuToaNhaRequest> dichVuList;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DichVuToaNhaRequest {
+        private String id;
+        private String ten;
+        private Boolean suDung;
+        private BigDecimal donGia;
+        private String donVi;
+        private String loaiTinhPhi;
+        private Boolean batBuoc;
+        private Boolean isCustom;
+    }
+
     @Data
     @Builder
     @NoArgsConstructor

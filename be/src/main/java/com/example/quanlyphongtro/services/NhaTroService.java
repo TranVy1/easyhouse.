@@ -50,6 +50,8 @@ public class NhaTroService {
     private final PermissionService permissionService;
     private final TienIchService tienIchService;
     private final JdbcTemplate jdbcTemplate;
+    private final com.example.quanlyphongtro.repository.CauHinhGiaRepository cauHinhGiaRepository;
+    private final com.example.quanlyphongtro.repository.DichVuRepository dichVuRepository;
 
     public PaginatedResponse<NhaTroResponse> getAllNhaTro(String search, int page, int limit) {
         UUID userId = permissionService.currentUserId().orElse(null);
@@ -99,6 +101,7 @@ public class NhaTroService {
         mapRequestToEntity(request, nt);
         NhaTro saved = nhaTroRepository.saveAndFlush(nt);
         generateRoomsFromCreateRequest(saved, request);
+        saveDichVuToaNha(saved, request.getDichVuList());
         return mapToResponse(saved);
     }
 
@@ -108,7 +111,11 @@ public class NhaTroService {
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         assertCanWrite(nt, permissionService.requireCurrentUserId());
         mapRequestToEntity(request, nt);
-        return mapToResponse(nhaTroRepository.save(nt));
+        NhaTro saved = nhaTroRepository.save(nt);
+        if (request.getDichVuList() != null) {
+            saveDichVuToaNha(saved, request.getDichVuList());
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -424,7 +431,22 @@ public class NhaTroService {
         int tong = (int) phongRepository.countByNhaTroIdAndXoaLucIsNull(nt.getId());
         int trong = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.AVAILABLE);
         int thue = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.RENTED);
-        return NhaTroResponse.fromEntity(nt, tong, trong, thue);
+        NhaTroResponse resp = NhaTroResponse.fromEntity(nt, tong, trong, thue);
+        
+        List<com.example.quanlyphongtro.entity.CauHinhGia> chgs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(nt.getId(), com.example.quanlyphongtro.entity.LoaiMucHoaDon.SERVICE);
+        if (!chgs.isEmpty()) {
+            List<NhaTroResponse.DichVuToaNhaResponse> dvList = chgs.stream().map(chg -> NhaTroResponse.DichVuToaNhaResponse.builder()
+                .id(chg.getDichVuId() != null ? chg.getDichVuId().toString() : "custom-" + chg.getId())
+                .ten(chg.getTenHienThi())
+                .suDung(true)
+                .donGia(chg.getDonGia())
+                .loaiTinhPhi(chg.getLoaiTinhPhi() != null ? chg.getLoaiTinhPhi().name() : "FIXED")
+                .isCustom(chg.getDichVuId() == null)
+                .build()
+            ).toList();
+            resp.setDichVuList(dvList);
+        }
+        return resp;
     }
 
     private void assertCanRead(NhaTro nhaTro, UUID userId) {
@@ -446,5 +468,40 @@ public class NhaTroService {
 
     private UUID ownerId(NhaTro nhaTro) {
         return nhaTro.getChuTro() != null ? nhaTro.getChuTro().getId() : null;
+    }
+
+    private void saveDichVuToaNha(NhaTro nt, List<NhaTroRequest.DichVuToaNhaRequest> dichVuList) {
+        if (dichVuList == null) return;
+        List<com.example.quanlyphongtro.entity.CauHinhGia> existing = cauHinhGiaRepository.findByNhaTroIdOrderByHieuLucTuDesc(nt.getId());
+        cauHinhGiaRepository.deleteAll(existing);
+
+        for (NhaTroRequest.DichVuToaNhaRequest req : dichVuList) {
+            com.example.quanlyphongtro.entity.CauHinhGia chg = com.example.quanlyphongtro.entity.CauHinhGia.builder()
+                .nhaTro(nt)
+                .loai(com.example.quanlyphongtro.entity.LoaiMucHoaDon.SERVICE)
+                .tenHienThi(req.getTen())
+                .donGia(req.getDonGia() != null ? req.getDonGia() : BigDecimal.ZERO)
+                .hieuLucTu(java.time.LocalDate.now())
+                .dangApDung(true)
+                .loaiTinhPhi(mapLoaiTinhPhi(req.getLoaiTinhPhi()))
+                .build();
+            
+            if (req.getId() != null && !Boolean.TRUE.equals(req.getIsCustom())) {
+                try {
+                    UUID dvId = UUID.fromString(req.getId());
+                    dichVuRepository.findById(dvId).ifPresent(dv -> chg.setDichVuId(dv.getId()));
+                } catch (Exception e) {}
+            }
+            cauHinhGiaRepository.save(chg);
+        }
+    }
+
+    private com.example.quanlyphongtro.entity.LoaiTinhPhi mapLoaiTinhPhi(String str) {
+        if (str == null) return com.example.quanlyphongtro.entity.LoaiTinhPhi.FIXED;
+        if (str.contains("Người") || str.contains("người")) return com.example.quanlyphongtro.entity.LoaiTinhPhi.PER_PERSON;
+        if (str.contains("Khối") || str.contains("khối")) return com.example.quanlyphongtro.entity.LoaiTinhPhi.PER_UNIT;
+        if (str.contains("Phòng") || str.contains("phòng")) return com.example.quanlyphongtro.entity.LoaiTinhPhi.PER_ROOM;
+        if (str.contains("Tùy") || str.contains("tùy")) return com.example.quanlyphongtro.entity.LoaiTinhPhi.FIXED;
+        return com.example.quanlyphongtro.entity.LoaiTinhPhi.FIXED;
     }
 }

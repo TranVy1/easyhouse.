@@ -44,11 +44,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Plus, 
-  Search, 
-  Edit,  
-  Building2, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Building2,
   DoorOpen,
   FileUp,
   Home,
@@ -97,8 +97,8 @@ const removeVietnameseTones = (str: string) => {
   result = result.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
   result = result.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
   result = result.replace(/Đ/g, "D");
-  result = result.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, ""); 
-  result = result.replace(/\u02C6|\u0306|\u031B/g, ""); 
+  result = result.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+  result = result.replace(/\u02C6|\u0306|\u031B/g, "");
   result = result.replace(/ + /g, " ");
   return result.trim().toLowerCase();
 };
@@ -153,7 +153,7 @@ export default function ToaNhaPage() {
     rows?: Array<{ dong: number; hopLe: boolean; tenToaNha?: string; maPhong?: string; loi?: string; hanhDong?: string }>;
   } | null>(null);
   const [importing, setImporting] = useState(false);
-  
+
   // Pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalElements, setTotalElements] = useState(0);
@@ -224,7 +224,7 @@ export default function ToaNhaPage() {
   const phongTrong = toaNhaList.reduce((sum, toaNha) => sum + (toaNha.phongTrong || 0), 0);
   const phongDangThue = toaNhaList.reduce((sum, toaNha) => sum + (toaNha.phongDangThue || 0), 0);
   const tyLeLapDay = calculateOccupancyRate(phongDangThue, tongPhong);
-  
+
   const lowOccupancyBuildings = getLowOccupancyBuildings(toaNhaList);
   const areaDistribution = toaNhaList.reduce((acc, curr) => {
     const quan = curr.diaChi?.quan || 'Khác';
@@ -249,7 +249,7 @@ export default function ToaNhaPage() {
         method: 'DELETE',
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -355,9 +355,9 @@ export default function ToaNhaPage() {
         <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
           <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
-               <div className="bg-blue-50 text-blue-500 p-3 rounded-full border border-blue-100 flex items-center justify-center">
-                 <Building2 className="w-6 h-6" />
-               </div>
+              <div className="bg-blue-50 text-blue-500 p-3 rounded-full border border-blue-100 flex items-center justify-center">
+                <Building2 className="w-6 h-6" />
+              </div>
             </div>
             <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
               <div className="text-2xl font-bold text-blue-600">{totalElements}</div>
@@ -368,9 +368,9 @@ export default function ToaNhaPage() {
         <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
           <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
-               <div className="bg-emerald-50 text-emerald-500 p-3 rounded-full border border-emerald-100 flex items-center justify-center">
-                 <Building2 className="w-6 h-6" />
-               </div>
+              <div className="bg-emerald-50 text-emerald-500 p-3 rounded-full border border-emerald-100 flex items-center justify-center">
+                <Building2 className="w-6 h-6" />
+              </div>
             </div>
             <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
               <div className="text-2xl font-bold text-emerald-600">{totalElements}</div>
@@ -381,9 +381,9 @@ export default function ToaNhaPage() {
         <Card className="shadow-sm border border-[#E8DCCB] rounded-xl">
           <CardContent className="p-4 flex flex-col justify-between h-24 relative overflow-hidden">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
-               <div className="bg-red-50 text-red-500 p-3 rounded-full border border-red-100 flex items-center justify-center">
-                 <Building2 className="w-6 h-6" />
-               </div>
+              <div className="bg-red-50 text-red-500 p-3 rounded-full border border-red-100 flex items-center justify-center">
+                <Building2 className="w-6 h-6" />
+              </div>
             </div>
             <div className="text-right z-10 w-full flex flex-col items-end justify-center h-full">
               <div className="text-2xl font-bold text-red-600">0</div>
@@ -434,7 +434,7 @@ export default function ToaNhaPage() {
               <Plus className="h-4 w-4" />
             </Button>
             <Button size="icon" variant="outline" className="border-amber-400 text-amber-500 hover:bg-amber-50 h-9 w-9">
-              <FileUp className="h-4 w-4 rotate-180" /> 
+              <FileUp className="h-4 w-4 rotate-180" />
             </Button>
             <Button size="icon" variant="outline" onClick={() => setIsImportOpen(true)} className="border-emerald-400 text-emerald-500 hover:bg-emerald-50 h-9 w-9">
               <FileUp className="h-4 w-4" />
@@ -506,7 +506,7 @@ export default function ToaNhaPage() {
                 {editingToaNha ? 'Cập nhật thông tin tòa nhà' : 'Nhập thông tin tòa nhà và cấu hình phòng ban đầu'}
               </DialogDescription>
             </DialogHeader>
-            <ToaNhaForm 
+            <ToaNhaForm
               key={editingToaNha?._id || 'new'}
               toaNha={editingToaNha}
               onClose={() => setIsDialogOpen(false)}
@@ -541,11 +541,11 @@ export default function ToaNhaPage() {
 }
 
 // Form component for adding/editing toa nha
-function ToaNhaForm({ 
-  toaNha, 
-  onClose, 
-  onSuccess 
-}: { 
+function ToaNhaForm({
+  toaNha,
+  onClose,
+  onSuccess
+}: {
   toaNha: ToaNha | null;
   onClose: () => void;
   onSuccess: () => void;
@@ -561,7 +561,7 @@ function ToaNhaForm({
     quan: toaNha?.diaChi.quan || '',
     thanhPho: toaNha?.diaChi.thanhPho || '',
     moTa: toaNha?.moTa || '',
-    tienNghiChung: toaNha?.tienNghiChung || [],
+    tienNghiChung: toaNha?.tienNghiChung || ['camera', 'baoVe', 'giuXe', 'sanPhoi', 'nhaVeSinhChung', 'khuBepChung'],
     cheDoTaoPhong: 'NONE',
     soTang: '6',
     soPhongMoiTang: '10',
@@ -572,11 +572,63 @@ function ToaNhaForm({
     tienNghiMacDinh: [] as string[],
   });
 
-  const [dichVuList, setDichVuList] = useState([
-    { id: 'dien', ten: 'Tiền Điện', suDung: true, donGia: 3900, donVi: 'đ / Kwh' },
-    { id: 'nuoc', ten: 'Tiền Nước', suDung: true, donGia: 25000, donVi: 'đ / m3' },
-    { id: 'rac', ten: 'Tiền Rác', suDung: false, donGia: 50000, donVi: 'đ / tháng' },
-  ]);
+  const [dichVuList, setDichVuList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    fetch('/api/dich-vu', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then(res => res.json())
+      .then((data: any) => {
+        if (data.success) {
+          const services = Array.isArray(data.data) ? data.data : (data.data?.data || data.data?.content || []);
+          let initialList = services.map((dv: any) => ({
+            id: dv._id || dv.id,
+            ten: dv.tenDichVu,
+            suDung: dv.batBuoc || false,
+            donGia: dv.donGiaMacDinh || 0,
+            donVi: dv.donVi || '',
+            loaiTinhPhi: dv.loaiTinhPhi || 'FIXED',
+            isCustom: false
+          }));
+
+          if (toaNha && (toaNha as any).dichVuList && Array.isArray((toaNha as any).dichVuList)) {
+             const buildingServices = (toaNha as any).dichVuList;
+             buildingServices.forEach((bService: any) => {
+                const existing = initialList.find((s: any) => s.id === bService.id);
+                if (existing) {
+                   existing.suDung = bService.suDung !== false;
+                   existing.donGia = bService.donGia;
+                   existing.loaiTinhPhi = bService.loaiTinhPhi;
+                   if (bService.donVi) existing.donVi = bService.donVi;
+                } else {
+                   initialList.push({
+                     id: bService.id,
+                     ten: bService.ten,
+                     suDung: bService.suDung !== false,
+                     donGia: bService.donGia,
+                     donVi: bService.donVi || '',
+                     loaiTinhPhi: bService.loaiTinhPhi || 'FIXED',
+                     isCustom: true
+                   });
+                }
+             });
+             // For any global service not in buildingServices, if it's editing an existing building, 
+             // it means it's turned off, unless it's batBuoc. But wait, if they turned it off, it's not in the DB.
+             // We should set suDung = false for those.
+             initialList.forEach((s: any) => {
+                 const inBuilding = buildingServices.find((b: any) => b.id === s.id);
+                 if (!inBuilding) {
+                     s.suDung = false; // Turn off if not in building's config
+                 }
+             });
+          }
+          setDichVuList(initialList);
+        }
+      })
+      .catch(err => console.error("Error fetching dich vu:", err));
+  }, [accessToken]);
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [newService, setNewService] = useState({
@@ -611,10 +663,10 @@ function ToaNhaForm({
     { soTang: '2', soPhong: '8', dienTichMacDinh: '22', giaThueMacDinh: '2700000', tienCocMacDinh: '2700000', soNguoiToiDa: '2' },
   ]);
 
-  const [provinces, setProvinces] = useState<{code: string, name: string}[]>([]);
-  const [districts, setDistricts] = useState<{code: string, name: string}[]>([]);
-  const [wards, setWards] = useState<{code: string, name: string}[]>([]);
-  
+  const [provinces, setProvinces] = useState<{ code: string, name: string }[]>([]);
+  const [districts, setDistricts] = useState<{ code: string, name: string }[]>([]);
+  const [wards, setWards] = useState<{ code: string, name: string }[]>([]);
+
   const [provinceCode, setProvinceCode] = useState<string>('');
   const [districtCode, setDistrictCode] = useState<string>('');
 
@@ -676,19 +728,19 @@ function ToaNhaForm({
               return normalized;
             };
             const target = normalizeStr(formData.thanhPho);
-            const p = data.find((x: {name: string, code: string}) => {
-               const name = normalizeStr(x.name);
-               return name === target || name.includes(target) || target.includes(name);
+            const p = data.find((x: { name: string, code: string }) => {
+              const name = normalizeStr(x.name);
+              return name === target || name.includes(target) || target.includes(name);
             });
             if (p) {
-               setProvinceCode(String(p.code));
-               setFormData(prev => ({ ...prev, thanhPho: p.name }));
+              setProvinceCode(String(p.code));
+              setFormData(prev => ({ ...prev, thanhPho: p.name }));
             }
           }
         }
       })
       .catch(err => console.error("Error fetching provinces:", err));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -718,7 +770,7 @@ function ToaNhaForm({
       setDistricts([]);
       setWards([]);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provinceCode]);
 
   useEffect(() => {
@@ -746,15 +798,15 @@ function ToaNhaForm({
     } else {
       setWards([]);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [districtCode]);
 
   const handleProvinceChange = (codeStr: string) => {
     const p = provinces.find(x => String(x.code) === codeStr);
     setProvinceCode(codeStr);
     setDistrictCode('');
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       thanhPho: p?.name || '',
       quan: '',
       phuong: ''
@@ -784,11 +836,9 @@ function ToaNhaForm({
   ];
 
   const tienNghiOptions = [
-    { value: 'wifi', label: 'WiFi' },
     { value: 'camera', label: 'Camera an ninh' },
     { value: 'baoVe', label: 'Bảo vệ 24/7' },
     { value: 'giuXe', label: 'Giữ xe' },
-    { value: 'thangMay', label: 'Thang máy' },
     { value: 'sanPhoi', label: 'Sân phơi' },
     { value: 'nhaVeSinhChung', label: 'Nhà vệ sinh chung' },
     { value: 'khuBepChung', label: 'Khu bếp chung' },
@@ -796,9 +846,9 @@ function ToaNhaForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
-    
+
     if (!toaNha && formData.cheDoTaoPhong !== 'NONE') {
       if (formData.cheDoTaoPhong === 'FIXED') {
         if (Number(formData.soTang) <= 0 || Number(formData.soPhongMoiTang) <= 0) {
@@ -893,7 +943,7 @@ function ToaNhaForm({
               errorMsg = "Lỗi hệ thống máy chủ (Internal Server Error). Vui lòng kiểm tra dữ liệu hoặc liên hệ admin.";
             }
           }
-        } catch (e) {}
+        } catch (e) { }
         toast.error(errorMsg);
       }
     } catch (error) {
@@ -907,7 +957,7 @@ function ToaNhaForm({
   const handleTienNghiChange = (tienNghi: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      tienNghiChung: checked 
+      tienNghiChung: checked
         ? [...prev.tienNghiChung, tienNghi]
         : prev.tienNghiChung.filter(t => t !== tienNghi)
     }));
@@ -1134,7 +1184,7 @@ function ToaNhaForm({
               className={inputClass}
             />
           </div>
-        
+
           <div className={fieldWrap}>
             <Label htmlFor="soNha" className={labelClass}>Số nhà</Label>
             <Input
@@ -1178,15 +1228,15 @@ function ToaNhaForm({
               <div className="px-6 py-4 space-y-5">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Tên dịch vụ</Label>
-                  <Input 
-                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]" 
-                    value={newService.ten} 
-                    onChange={e => setNewService(prev => ({...prev, ten: e.target.value}))} 
+                  <Input
+                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]"
+                    value={newService.ten}
+                    onChange={e => setNewService(prev => ({ ...prev, ten: e.target.value }))}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Loại tính phí</Label>
-                  <Select value={newService.loaiTinhPhi} onValueChange={val => setNewService(prev => ({...prev, loaiTinhPhi: val}))}>
+                  <Select value={newService.loaiTinhPhi} onValueChange={val => setNewService(prev => ({ ...prev, loaiTinhPhi: val }))}>
                     <SelectTrigger className="col-span-3 rounded-lg border-gray-300 focus:ring-1 focus:ring-[#009688]">
                       <SelectValue />
                     </SelectTrigger>
@@ -1199,21 +1249,21 @@ function ToaNhaForm({
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn vị tính</Label>
-                  <Input 
-                    placeholder="VD: kWh, m3, người, tháng" 
+                  <Input
+                    placeholder="VD: kWh, m3, người, tháng"
                     className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]"
-                    value={newService.donVi} 
-                    onChange={e => setNewService(prev => ({...prev, donVi: e.target.value}))} 
+                    value={newService.donVi}
+                    onChange={e => setNewService(prev => ({ ...prev, donVi: e.target.value }))}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn giá</Label>
                   <div className="col-span-3 relative">
-                    <Input 
+                    <Input
                       type="number"
                       className="rounded-lg border-[#009688] ring-1 ring-[#009688] focus-visible:ring-[#009688] font-medium pr-8"
-                      value={newService.donGia} 
-                      onChange={e => setNewService(prev => ({...prev, donGia: e.target.value}))} 
+                      value={newService.donGia}
+                      onChange={e => setNewService(prev => ({ ...prev, donGia: e.target.value }))}
                     />
                     <div className="absolute inset-y-0 right-0 flex flex-col justify-center pr-2">
                       <ChevronsUpDown className="h-4 w-4 text-gray-400" />
@@ -1223,11 +1273,11 @@ function ToaNhaForm({
                 <div className="grid grid-cols-4 items-center gap-4 pt-1">
                   <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Bắt buộc</Label>
                   <div className="col-span-3 flex items-center space-x-2">
-                    <Checkbox 
-                      id="bat-buoc" 
+                    <Checkbox
+                      id="bat-buoc"
                       className="border-gray-300 data-[state=checked]:border-[#009688] data-[state=checked]:bg-[#009688] rounded-sm h-5 w-5"
                       checked={newService.batBuoc}
-                      onCheckedChange={(checked) => setNewService(prev => ({...prev, batBuoc: checked === true}))}
+                      onCheckedChange={(checked) => setNewService(prev => ({ ...prev, batBuoc: checked === true }))}
                     />
                     <label htmlFor="bat-buoc" className="text-sm text-gray-700 cursor-pointer select-none">
                       Dịch vụ bắt buộc khi lập hợp đồng
@@ -1281,14 +1331,14 @@ function ToaNhaForm({
                   </td>
                   <td className="px-4 py-3 border-l border-[#E2D6C8] text-right text-[#5F7087]">
                     <div className="flex items-center justify-end gap-1">
-                      <Input 
-                        className="w-24 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium" 
-                        value={dv.donGia.toLocaleString('vi-VN')} 
+                      <Input
+                        className="w-24 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium"
+                        value={dv.donGia.toLocaleString('vi-VN')}
                         onChange={(e) => {
-                           const val = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
-                           const next = [...dichVuList];
-                           next[idx].donGia = val;
-                           setDichVuList(next);
+                          const val = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+                          const next = [...dichVuList];
+                          next[idx].donGia = val;
+                          setDichVuList(next);
                         }}
                       />
                       {(dv as any).isCustom ? (
@@ -1305,10 +1355,10 @@ function ToaNhaForm({
                         <span>{dv.donVi}</span>
                       )}
                       {(dv as any).isCustom && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
                           className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 ml-1"
                           onClick={() => {
                             setDichVuList(prev => prev.filter((_, i) => i !== idx));
@@ -1325,242 +1375,240 @@ function ToaNhaForm({
           </table>
         </div>
 
-      <div className={fieldWrap}>
-        <Label className={labelClass}>Tiện nghi chung</Label>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {tienNghiOptions.map((option) => (
-            <Label
-              key={option.value}
-              htmlFor={option.value}
-              className={cn(
-                "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]",
-                formData.tienNghiChung.includes(option.value)
-                  ? "border-[#4FA7A0] bg-[#E9F7F4] text-[#1F5F5B]"
-                  : "border-[#E2D6C8]"
-              )}
-            >
-              <Checkbox
-                id={option.value}
-                checked={formData.tienNghiChung.includes(option.value)}
-                onCheckedChange={(checked) => handleTienNghiChange(option.value, checked === true)}
-                className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
-              />
-              <span className="truncate">{option.label}</span>
-            </Label>
-          ))}
-        </div>
-      </div>
-
-      {!toaNha && (
-        <section className="space-y-4 rounded-2xl border border-[#D8EAE6] bg-[#EEF8F5] p-4 shadow-sm">
-          <div>
-            <Label className="text-sm font-bold text-[#243B5A]">Tạo phòng nhanh</Label>
-            <Select
-              value={formData.cheDoTaoPhong}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, cheDoTaoPhong: value }))}
-            >
-              <SelectTrigger className={cn(inputClass, "mt-2 w-full bg-white")}>
-                <SelectValue placeholder="Tạo tầng/phòng cố định" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NONE">Chỉ tạo tòa nhà</SelectItem>
-                <SelectItem value="FIXED">Tạo tầng/phòng cố định</SelectItem>
-                <SelectItem value="CUSTOM">Tùy chỉnh từng tầng (Tầng có số phòng khác nhau)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Gợi ý: Chọn &quot;Tùy chỉnh từng tầng&quot; nếu tầng 2 có 3 phòng, tầng 3 có 6 phòng,...
-            </p>
+        <div className={fieldWrap}>
+          <Label className={labelClass}>Tiện nghi chung</Label>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {tienNghiOptions.map((option) => (
+              <Label
+                key={option.value}
+                htmlFor={option.value}
+                className={cn(
+                  "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]",
+                  formData.tienNghiChung.includes(option.value)
+                    ? "border-[#4FA7A0] bg-[#E9F7F4] text-[#1F5F5B]"
+                    : "border-[#E2D6C8]"
+                )}
+              >
+                <Checkbox
+                  id={option.value}
+                  checked={formData.tienNghiChung.includes(option.value)}
+                  onCheckedChange={(checked) => handleTienNghiChange(option.value, checked === true)}
+                  className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
+                />
+                <span className="truncate">{option.label}</span>
+              </Label>
+            ))}
           </div>
+        </div>
 
-          {formData.cheDoTaoPhong === 'FIXED' && (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className={fieldWrap}>
-                <Label htmlFor="soTang" className={labelClass}>Số tầng</Label>
-                <Input id="soTang" type="number" min={1} value={formData.soTang} onChange={(e) => setFormData(prev => ({ ...prev, soTang: e.target.value }))} className={inputClass} />
-              </div>
-              <div className={fieldWrap}>
-                <Label htmlFor="soPhongMoiTang" className={labelClass}>Phòng mỗi tầng</Label>
-                <Input id="soPhongMoiTang" type="number" min={1} value={formData.soPhongMoiTang} onChange={(e) => setFormData(prev => ({ ...prev, soPhongMoiTang: e.target.value }))} className={inputClass} />
-              </div>
-              <div className={fieldWrap}>
-                <Label htmlFor="dienTichMacDinh" className={labelClass}>Diện tích mặc định</Label>
-                <Input id="dienTichMacDinh" type="number" min={1} value={formData.dienTichMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, dienTichMacDinh: e.target.value }))} className={inputClass} />
-              </div>
-              <div className={fieldWrap}>
-                <Label htmlFor="soNguoiToiDa" className={labelClass}>Số người tối đa</Label>
-                <Input id="soNguoiToiDa" type="number" min={1} value={formData.soNguoiToiDa} onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: e.target.value }))} className={inputClass} />
-              </div>
-              <div className={fieldWrap}>
-                <Label htmlFor="giaThueMacDinh" className={labelClass}>Giá thuê mặc định</Label>
-                <Input id="giaThueMacDinh" type="number" min={0} value={formData.giaThueMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, giaThueMacDinh: e.target.value }))} className={inputClass} />
-              </div>
-              <div className={fieldWrap}>
-                <Label htmlFor="tienCocMacDinh" className={labelClass}>Tiền cọc mặc định</Label>
-                <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} className={inputClass} />
-              </div>
-
-              <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087] md:col-span-2">
-                Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, Tên phòng dạng Phòng 101, Phòng 102...
-              </div>
+        {!toaNha && (
+          <section className="space-y-4 rounded-2xl border border-[#D8EAE6] bg-[#EEF8F5] p-4 shadow-sm">
+            <div>
+              <Label className="text-sm font-bold text-[#243B5A]">Tạo phòng nhanh</Label>
+              <Select
+                value={formData.cheDoTaoPhong}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, cheDoTaoPhong: value }))}
+              >
+                <SelectTrigger className={cn(inputClass, "mt-2 w-full bg-white")}>
+                  <SelectValue placeholder="Tạo tầng/phòng cố định" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">Chỉ tạo tòa nhà</SelectItem>
+                  <SelectItem value="FIXED">Tạo tầng/phòng cố định</SelectItem>
+                  <SelectItem value="CUSTOM">Tùy chỉnh từng tầng (Tầng có số phòng khác nhau)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Gợi ý: Chọn &quot;Tùy chỉnh từng tầng&quot; nếu tầng 2 có 3 phòng, tầng 3 có 6 phòng,...
+              </p>
             </div>
-          )}
 
-          {formData.cheDoTaoPhong === 'CUSTOM' && (
-            <div className="space-y-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Cấu hình số phòng, diện tích và giá riêng cho từng tầng.
-                  <br className="hidden sm:block" />
-                  <span className="text-blue-600 font-medium">Giải quyết vấn đề: Tầng 2 có 3 phòng, tầng 3 có 6 phòng,...</span>
+            {formData.cheDoTaoPhong === 'FIXED' && (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className={fieldWrap}>
+                  <Label htmlFor="soTang" className={labelClass}>Số tầng</Label>
+                  <Input id="soTang" type="number" min={1} value={formData.soTang} onChange={(e) => setFormData(prev => ({ ...prev, soTang: e.target.value }))} className={inputClass} />
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAutoFillCustomFloors}
-                  >
-                    Tự động điền {formData.soTang || 'N'} tầng
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCauTrucTang(prev => [
-                      ...prev,
-                      {
-                        soTang: String(prev.length + 1),
-                        soPhong: formData.soPhongMoiTang,
-                        dienTichMacDinh: formData.dienTichMacDinh,
-                        giaThueMacDinh: formData.giaThueMacDinh,
-                        tienCocMacDinh: formData.tienCocMacDinh,
-                        soNguoiToiDa: formData.soNguoiToiDa,
-                      },
-                    ])}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Thêm tầng
-                  </Button>
+                <div className={fieldWrap}>
+                  <Label htmlFor="soPhongMoiTang" className={labelClass}>Phòng mỗi tầng</Label>
+                  <Input id="soPhongMoiTang" type="number" min={1} value={formData.soPhongMoiTang} onChange={(e) => setFormData(prev => ({ ...prev, soPhongMoiTang: e.target.value }))} className={inputClass} />
+                </div>
+                <div className={fieldWrap}>
+                  <Label htmlFor="dienTichMacDinh" className={labelClass}>Diện tích mặc định</Label>
+                  <Input id="dienTichMacDinh" type="number" min={1} value={formData.dienTichMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, dienTichMacDinh: e.target.value }))} className={inputClass} />
+                </div>
+                <div className={fieldWrap}>
+                  <Label htmlFor="soNguoiToiDa" className={labelClass}>Số người tối đa</Label>
+                  <Input id="soNguoiToiDa" type="number" min={1} value={formData.soNguoiToiDa} onChange={(e) => setFormData(prev => ({ ...prev, soNguoiToiDa: e.target.value }))} className={inputClass} />
+                </div>
+                <div className={fieldWrap}>
+                  <Label htmlFor="giaThueMacDinh" className={labelClass}>Giá thuê mặc định</Label>
+                  <Input id="giaThueMacDinh" type="number" min={0} value={formData.giaThueMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, giaThueMacDinh: e.target.value }))} className={inputClass} />
+                </div>
+                <div className={fieldWrap}>
+                  <Label htmlFor="tienCocMacDinh" className={labelClass}>Tiền cọc mặc định</Label>
+                  <Input id="tienCocMacDinh" type="number" min={0} value={formData.tienCocMacDinh} onChange={(e) => setFormData(prev => ({ ...prev, tienCocMacDinh: e.target.value }))} className={inputClass} />
+                </div>
+
+                <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087] md:col-span-2">
+                  Dự kiến tạo {Number(formData.soTang || 0) * Number(formData.soPhongMoiTang || 0)} phòng, Tên phòng dạng Phòng 101, Phòng 102...
                 </div>
               </div>
+            )}
 
-              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 pb-2">
-                {cauTrucTang.map((floor, index) => (
-                  <div key={index} className="grid grid-cols-2 gap-2 rounded-md border p-3 md:grid-cols-7">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Tầng</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={floor.soTang}
-                        onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soTang: e.target.value } : item))}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Phòng</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={floor.soPhong}
-                        onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soPhong: e.target.value } : item))}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Diện tích</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={floor.dienTichMacDinh}
-                        onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, dienTichMacDinh: e.target.value } : item))}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1 md:col-span-2">
-                      <Label className="text-xs">Giá thuê</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={floor.giaThueMacDinh}
-                        onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, giaThueMacDinh: e.target.value } : item))}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Số người</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={floor.soNguoiToiDa}
-                        onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soNguoiToiDa: e.target.value } : item))}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={cauTrucTang.length <= 1}
-                        onClick={() => setCauTrucTang(prev => prev.filter((_, i) => i !== index))}
-                        className="w-full"
-                      >
-                        Xóa
-                      </Button>
-                    </div>
+            {formData.cheDoTaoPhong === 'CUSTOM' && (
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Cấu hình số phòng, diện tích và giá riêng cho từng tầng.
+                    <br className="hidden sm:block" />
+                    <span className="text-blue-600 font-medium">Giải quyết vấn đề: Tầng 2 có 3 phòng, tầng 3 có 6 phòng,...</span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleAutoFillCustomFloors}
+                    >
+                      Tự động điền {formData.soTang || 'N'} tầng
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCauTrucTang(prev => [
+                        ...prev,
+                        {
+                          soTang: String(prev.length + 1),
+                          soPhong: formData.soPhongMoiTang,
+                          dienTichMacDinh: formData.dienTichMacDinh,
+                          giaThueMacDinh: formData.giaThueMacDinh,
+                          tienCocMacDinh: formData.tienCocMacDinh,
+                          soNguoiToiDa: formData.soNguoiToiDa,
+                        },
+                      ])}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Thêm tầng
+                    </Button>
+                  </div>
+                </div>
 
-              <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087]">
-                Dự kiến tạo {cauTrucTang.reduce((sum, floor) => sum + Number(floor.soPhong || 0), 0)} phòng theo cấu trúc tùy chỉnh.
-              </div>
-            </div>
-          )}
+                <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 pb-2">
+                  {cauTrucTang.map((floor, index) => (
+                    <div key={index} className="grid grid-cols-2 gap-2 rounded-md border p-3 md:grid-cols-7">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tầng</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={floor.soTang}
+                          onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soTang: e.target.value } : item))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Phòng</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={floor.soPhong}
+                          onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soPhong: e.target.value } : item))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Diện tích</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={floor.dienTichMacDinh}
+                          onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, dienTichMacDinh: e.target.value } : item))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1 md:col-span-2">
+                        <Label className="text-xs">Giá thuê</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={floor.giaThueMacDinh}
+                          onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, giaThueMacDinh: e.target.value } : item))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Số người</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={floor.soNguoiToiDa}
+                          onChange={(e) => setCauTrucTang(prev => prev.map((item, i) => i === index ? { ...item, soNguoiToiDa: e.target.value } : item))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={cauTrucTang.length <= 1}
+                          onClick={() => setCauTrucTang(prev => prev.filter((_, i) => i !== index))}
+                          className="w-full"
+                        >
+                          Xóa
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-          {formData.cheDoTaoPhong !== 'NONE' && (
-            <div className="mt-3 space-y-2 rounded-2xl border border-dashed border-[#B9DCD7] bg-white/60 p-3">
-              <Label className="text-sm font-semibold text-[#243B5A]">Tiện nghi áp dụng cho tất cả các phòng mới sinh</Label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                {[
-                  { value: 'dieuhoa', label: 'Điều hòa' },
-                  { value: 'nonglanh', label: 'Nóng lạnh' },
-                  { value: 'tulanh', label: 'Tủ lạnh' },
-                  { value: 'giuong', label: 'Giường' },
-                  { value: 'tuquanao', label: 'Tủ quần áo' },
-                  { value: 'banlamviec', label: 'Bàn làm việc' },
-                  { value: 'ghe', label: 'Ghế' },
-                  { value: 'tivi', label: 'TV' },
-                  { value: 'wifi', label: 'WiFi' },
-                  { value: 'maygiat', label: 'Máy giặt' },
-                  { value: 'bep', label: 'Bếp' }
-                ].map((option) => (
-                  <Label key={option.value} htmlFor={`phong-tn-${option.value}`} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#E2D6C8] bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]">
-                    <Checkbox
-                      id={`phong-tn-${option.value}`}
-                      checked={formData.tienNghiMacDinh.includes(option.label)}
-                      onCheckedChange={(checked) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          tienNghiMacDinh: checked === true
-                            ? [...prev.tienNghiMacDinh, option.label]
-                            : prev.tienNghiMacDinh.filter(t => t !== option.label)
-                        }));
-                      }}
-                      className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
-                    />
-                    <span className="truncate">
-                      {option.label}
-                    </span>
-                  </Label>
-                ))}
+                <div className="rounded-xl border border-[#D8EAE6] bg-white/70 p-3 text-sm text-[#5F7087]">
+                  Dự kiến tạo {cauTrucTang.reduce((sum, floor) => sum + Number(floor.soPhong || 0), 0)} phòng theo cấu trúc tùy chỉnh.
+                </div>
               </div>
-            </div>
-          )}
-        </section>
-      )}
+            )}
+
+            {formData.cheDoTaoPhong !== 'NONE' && (
+              <div className="mt-3 space-y-2 rounded-2xl border border-dashed border-[#B9DCD7] bg-white/60 p-3">
+                <Label className="text-sm font-semibold text-[#243B5A]">Tiện nghi áp dụng cho tất cả các phòng mới sinh</Label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {[
+                    { value: 'dieuhoa', label: 'Điều hòa' },
+                    { value: 'nonglanh', label: 'Nóng lạnh' },
+                    { value: 'giuong', label: 'Giường' },
+                    { value: 'tuquanao', label: 'Tủ quần áo' },
+                    { value: 'banlamviec', label: 'Bàn làm việc' },
+                    { value: 'ghe', label: 'Ghế' },
+                    { value: 'tivi', label: 'TV' },
+                    { value: 'maygiat', label: 'Máy giặt' },
+                    { value: 'bep', label: 'Bếp' }
+                  ].map((option) => (
+                    <Label key={option.value} htmlFor={`phong-tn-${option.value}`} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#E2D6C8] bg-white/80 px-3 py-2 text-sm font-medium text-[#243B5A] transition hover:border-[#4FA7A0]/60 hover:bg-[#F1FAF8]">
+                      <Checkbox
+                        id={`phong-tn-${option.value}`}
+                        checked={formData.tienNghiMacDinh.includes(option.label)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tienNghiMacDinh: checked === true
+                              ? [...prev.tienNghiMacDinh, option.label]
+                              : prev.tienNghiMacDinh.filter(t => t !== option.label)
+                          }));
+                        }}
+                        className="border-[#C9BDAF] data-[state=checked]:border-[#4FA7A0] data-[state=checked]:bg-[#4FA7A0]"
+                      />
+                      <span className="truncate">
+                        {option.label}
+                      </span>
+                    </Label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       <DialogFooter className="flex-shrink-0 gap-2 border-t border-[#E8DCCB]/80 bg-[#FFFBF5]/95 px-5 py-4 backdrop-blur sm:flex-row sm:justify-end sm:px-6">
