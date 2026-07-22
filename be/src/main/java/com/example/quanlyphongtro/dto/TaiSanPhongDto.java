@@ -36,4 +36,5 @@ public class TaiSanPhongDto {
     private UUID nhaTroId;
     private String tenNhaTro;
     private String tenPhong;
+    private UUID khoTaiSanId;
 }

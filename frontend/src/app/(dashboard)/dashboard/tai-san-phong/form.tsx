@@ -46,6 +46,7 @@ export function TaiSanPhongForm({ open, onOpenChange, initialData, toaNhas, onSu
 
   const [formData, setFormData] = useState({
     phongId: initialData?.phongId || "",
+    khoTaiSanId: initialData?.khoTaiSanId || "",
     tenTaiSan: initialData?.tenTaiSan || "",
     soLuong: initialData?.soLuong || 1,
     giaTri: initialData?.giaTri || 0,
@@ -80,6 +81,51 @@ export function TaiSanPhongForm({ open, onOpenChange, initialData, toaNhas, onSu
     }
     fetchPhongs()
   }, [nhaTroId, accessToken])
+
+  const [khoTaiSans, setKhoTaiSans] = useState<any[]>([])
+  const [isLoadingKho, setIsLoadingKho] = useState(false)
+
+  useEffect(() => {
+    if (!nhaTroId || !accessToken) {
+      setKhoTaiSans([])
+      return
+    }
+    const fetchKho = async () => {
+      setIsLoadingKho(true)
+      try {
+        const res = await fetch(`/api/kho-tai-san/nha-tro/${nhaTroId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        const json = await res.json()
+        if (json.success) {
+          setKhoTaiSans(Array.isArray(json.data) ? json.data : [])
+        } else {
+          setKhoTaiSans([])
+        }
+      } catch (e) {
+        console.error("Lỗi tải danh sách kho tài sản:", e)
+        setKhoTaiSans([])
+      } finally {
+        setIsLoadingKho(false)
+      }
+    }
+    fetchKho()
+  }, [nhaTroId, accessToken])
+
+  const handleSelectKhoTaiSan = (khoId: string) => {
+    const selected = khoTaiSans.find(k => k.id === khoId || k._id === khoId)
+    if (selected) {
+      setFormData(prev => ({
+        ...prev,
+        khoTaiSanId: selected.id || selected._id,
+        tenTaiSan: selected.tenTaiSan,
+        giaTri: selected.giaTri || 0,
+        tinhTrang: selected.tinhTrang || "Mới",
+        anhTaiSan: selected.hinhAnh || ""
+      }))
+      setPreviewUrl(selected.hinhAnh || "")
+    }
+  }
 
   const handleImageUpload = async (file: File) => {
     if (!file) return
@@ -125,8 +171,8 @@ export function TaiSanPhongForm({ open, onOpenChange, initialData, toaNhas, onSu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.tenTaiSan || !formData.phongId) {
-      toast.error("Vui lòng nhập tên tài sản và chọn phòng")
+    if (!formData.khoTaiSanId || !formData.phongId) {
+      toast.error("Vui lòng chọn tài sản từ kho và chọn phòng")
       return
     }
 
@@ -220,15 +266,29 @@ export function TaiSanPhongForm({ open, onOpenChange, initialData, toaNhas, onSu
             </div>
           </div>
 
-          {/* Tên tài sản */}
+          {/* Tài sản từ kho */}
           <div className="space-y-2">
-            <Label htmlFor="tenTaiSan">Tên tài sản <span className="text-red-500">*</span></Label>
-            <Input
-              id="tenTaiSan"
-              value={formData.tenTaiSan}
-              onChange={(e) => setFormData(prev => ({ ...prev, tenTaiSan: e.target.value }))}
-              placeholder="VD: Tủ lạnh, Máy giặt..."
-            />
+            <Label>Tài sản từ kho <span className="text-red-500">*</span></Label>
+            <Select
+              value={formData.khoTaiSanId}
+              onValueChange={handleSelectKhoTaiSan}
+              disabled={!!initialData || !nhaTroId || isLoadingKho}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={isLoadingKho ? "Đang tải..." : "Chọn tài sản từ kho"} />
+              </SelectTrigger>
+              <SelectContent>
+                {khoTaiSans.map((k) => (
+                  <SelectItem 
+                    key={String(k.id || k._id)} 
+                    value={String(k.id || k._id)}
+                    disabled={k.soLuongKhaDung <= 0}
+                  >
+                    {k.tenTaiSan} (Khả dụng: {k.soLuongKhaDung})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Số lượng & Giá trị */}

@@ -23,6 +23,23 @@ public class NhaTroResponse {
     private int tongSoPhong;
     private int phongTrong;
     private int phongDangThue;
+    
+    private List<DichVuToaNhaResponse> dichVuList;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DichVuToaNhaResponse {
+        private String id;
+        private String ten;
+        private Boolean suDung;
+        private java.math.BigDecimal donGia;
+        private String donVi;
+        private String loaiTinhPhi;
+        private Boolean batBuoc;
+        private Boolean isCustom;
+    }
 
     @JsonProperty("ngayTao")
     private LocalDateTime taoLuc;

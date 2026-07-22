@@ -724,6 +724,7 @@ export interface TaiSanPhong {
   id?: string;
   _id?: string;
   phongId?: string;
+  khoTaiSanId?: string;
   tenPhong?: string;
   nhaTroId?: string;
   tenNhaTro?: string;
