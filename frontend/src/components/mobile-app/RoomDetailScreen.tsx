@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import {
   ArrowLeft, Share2, Heart, MapPin, Wifi, Wind, Car,
-  ShieldCheck, ChevronDown, ChevronUp, Star, CheckCircle2
+  ShieldCheck, ChevronDown, ChevronUp, Star, CheckCircle2, ExternalLink, Navigation
 } from "lucide-react";
 import { DatLichHenDialog } from "@/components/ui/dat-lich-hen-dialog";
 
@@ -70,6 +70,13 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
     : roomPriceRaw || "Liên hệ";
 
   const roomLocation = roomData.nhaTro?.diaChi || roomData.toaNha?.diaChi || roomData.location || "Chưa cập nhật địa chỉ";
+  const hasRoomLocation = Boolean(roomData.nhaTro?.diaChi || roomData.toaNha?.diaChi || roomData.location);
+  const googleMapsEmbedUrl = hasRoomLocation
+    ? `https://www.google.com/maps?q=${encodeURIComponent(roomLocation)}&z=16&output=embed`
+    : null;
+  const googleMapsDirectionsUrl = hasRoomLocation
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(roomLocation)}`
+    : null;
   const roomArea = roomData.dienTich ? `${roomData.dienTich}m²` : "Chưa rõ";
   const images = (roomData.anhList && roomData.anhList.length > 0)
     ? roomData.anhList
@@ -224,18 +231,34 @@ export function RoomDetailScreen({ onBack, roomId }: RoomDetailScreenProps) {
                 <span className="w-1.5 h-4 bg-[#243B5A] rounded-full" />
                 Vị trí địa lý
               </h2>
-              <div className="relative rounded-2xl overflow-hidden h-44 bg-slate-200 border border-[#E8DED2] shadow-xs">
-                <img
-                  src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&h=300&fit=crop&auto=format"
-                  alt="Bản đồ"
-                  className="w-full h-full object-cover opacity-70"
-                />
-                <div className="absolute inset-0 bg-[#243B5A]/10 flex items-center justify-center p-4">
-                  <div className="bg-[#FFFDF8] rounded-xl px-4 py-2.5 flex items-center gap-2.5 shadow-lg border border-[#E8DED2] max-w-sm">
-                    <MapPin size={18} className="text-[#FF5A3D] shrink-0" />
-                    <span className="text-xs font-semibold text-[#243B5A] truncate">{roomLocation}</span>
+              <div className="relative rounded-2xl overflow-hidden h-56 sm:h-72 bg-slate-100 border border-[#E8DED2] shadow-xs">
+                {googleMapsEmbedUrl ? (
+                  <iframe
+                    src={googleMapsEmbedUrl}
+                    title={`Bản đồ vị trí ${roomLocation}`}
+                    className="h-full w-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm text-[#6B7A8C]">
+                    <MapPin size={24} className="text-[#FF5A3D]" />
+                    <span>Chủ nhà chưa cập nhật địa chỉ để hiển thị bản đồ.</span>
                   </div>
-                </div>
+                )}
+                {googleMapsDirectionsUrl && (
+                  <a
+                    href={googleMapsDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-[#FFFDF8] px-3 py-2 text-xs font-bold text-[#243B5A] shadow-md transition-colors hover:bg-[#F8F3EC]"
+                  >
+                    <Navigation size={14} className="text-[#FF5A3D]" />
+                    Chỉ đường
+                    <ExternalLink size={13} />
+                  </a>
+                )}
               </div>
             </div>
 

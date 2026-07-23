@@ -30,14 +30,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Coins, 
-  Building2, 
-  Calendar, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Coins,
+  Building2,
+  Calendar,
   Info,
   RefreshCw,
   DollarSign,
@@ -62,17 +62,14 @@ import { unwrapPageData } from '@/lib/api-response';
 import { useSession } from 'next-auth/react';
 
 // Map LoaiMucHoaDon enums to Vietnamese labels
-const LOAI_MUC_LABEL: Record<LoaiMucHoaDon, string> = {
-  ROOM: 'Tiền phòng',
+const LOAI_MUC_LABEL: Partial<Record<LoaiMucHoaDon, string>> = {
   ELECTRICITY: 'Tiền điện',
   WATER: 'Tiền nước',
   INTERNET: 'Internet',
-  GARBAGE: 'Tiền rác',
+  GARBAGE: 'Tiền vệ sinh',
   PARKING: 'Gửi xe',
   SERVICE: 'Dịch vụ khác',
   MAINTENANCE: 'Chi phí bảo trì',
-  DEBT: 'Nợ cũ',
-  DISCOUNT: 'Giảm giá',
   OTHER: 'Khác',
 };
 
@@ -96,7 +93,7 @@ export default function CauHinhGiaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
-  
+
   // Pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalElements, setTotalElements] = useState(0);
@@ -228,7 +225,7 @@ export default function CauHinhGiaPage() {
   const filteredConfigs = cauHinhGiaList.filter((config) => {
     const matchesSearch = config.tenHienThi.toLowerCase().includes(searchTerm.toLowerCase()) ||
       LOAI_MUC_LABEL[config.loai]?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
     return matchesSearch;
   });
 
@@ -287,7 +284,7 @@ export default function CauHinhGiaPage() {
           <div className="cau-hinh-gia-hero__insight">
             {hasPriceConfigs ? (
               <span>
-                Hiện có <strong className="mx-1">{activeConfigs.length} cấu hình giá</strong> đang áp dụng, 
+                Hiện có <strong className="mx-1">{activeConfigs.length} cấu hình giá</strong> đang áp dụng,
                 <strong className="mx-1">{pendingConfigs.length} cấu hình</strong> chờ hiệu lực trong kỳ tới.
               </span>
             ) : (
@@ -542,7 +539,7 @@ export default function CauHinhGiaPage() {
                 </Table>
               </div>
             )}
-            
+
             <div className="flex items-center justify-between p-4 border-t">
               <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
                 Hiển thị {filteredConfigs.length} / {totalElements} cấu hình
@@ -613,7 +610,7 @@ export default function CauHinhGiaPage() {
                 </div>
               </div>
             </div>
-            
+
           </CardContent>
         </DashboardCard>
       </div>
@@ -720,8 +717,8 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
       {/* NhaTro / ToaNha Selector (Disabled on edit) */}
       <div className="space-y-1">
         <Label htmlFor="form-nhaTroId" className="text-xs font-semibold">Tòa nhà áp dụng</Label>
-        <Select 
-          value={formData.nhaTroId} 
+        <Select
+          value={formData.nhaTroId}
           onValueChange={(val) => setFormData(prev => ({ ...prev, nhaTroId: val }))}
           disabled={!!config}
         >
@@ -741,8 +738,8 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
       {/* Item Type (loai) */}
       <div className="space-y-1">
         <Label htmlFor="form-loai" className="text-xs font-semibold">Loại mục thanh toán</Label>
-        <Select 
-          value={formData.loai} 
+        <Select
+          value={formData.loai}
           onValueChange={(val) => setFormData(prev => ({ ...prev, loai: val as LoaiMucHoaDon }))}
         >
           <SelectTrigger className="w-full text-xs h-9">
@@ -793,8 +790,8 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         {/* Charge type (loaiTinhPhi) */}
         <div className="space-y-1">
           <Label htmlFor="form-loaiTinhPhi" className="text-xs font-semibold">Phương thức tính phí</Label>
-          <Select 
-            value={formData.loaiTinhPhi} 
+          <Select
+            value={formData.loaiTinhPhi}
             onValueChange={(val) => setFormData(prev => ({ ...prev, loaiTinhPhi: val as LoaiTinhPhi }))}
           >
             <SelectTrigger className="w-full text-xs h-9">

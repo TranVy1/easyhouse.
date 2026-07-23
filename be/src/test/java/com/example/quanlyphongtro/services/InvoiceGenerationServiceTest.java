@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,6 +105,24 @@ class InvoiceGenerationServiceTest {
         InvoiceCandidateResponse candidate = response.getCandidates().get(0);
         assertEquals("EXISTS", candidate.getStatus());
         assertTrue(candidate.getWarnings().get(0).contains("đã có hóa đơn"));
+    }
+
+    @Test
+    void previewProratesRentForAContractStartingDuringTheBillingMonth() {
+        activeContract.setNgayBatDau(LocalDate.of(2026, 6, 20));
+        activeContract.setNgayKetThuc(LocalDate.of(2026, 12, 31));
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.getAllAccessibleNhaTroIds(userId)).thenReturn(List.of(nhaTroId));
+        when(permissionService.isAdmin(userId)).thenReturn(false);
+        when(hopDongRepository.findAllActive()).thenReturn(List.of(activeContract));
+        when(hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(activeContract.getId(), 2026, 6))
+                .thenReturn(Optional.empty());
+        when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(activeContract.getId())).thenReturn(List.of());
+        when(hoaDonRepository.findByHopDongIdAndXoaLucIsNull(activeContract.getId())).thenReturn(List.of());
+
+        InvoiceGenerationPreviewResponse response = service.preview(nhaTroId, 6, 2026, false);
+
+        assertEquals(new BigDecimal("1100000.00"), response.getCandidates().get(0).getEstimatedAmount());
     }
 
     @Test

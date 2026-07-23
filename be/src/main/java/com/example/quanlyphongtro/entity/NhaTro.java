@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -35,6 +36,15 @@ public class NhaTro {
     private String moTa;
     private String tienNghiChung;
     private String noiQuy;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal viDo;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal kinhDo;
+
+    private String googlePlaceId;
+    private String diaChiDaChuanHoa;
 
     @Column(nullable = false)
     private String trangThai = "ACTIVE";

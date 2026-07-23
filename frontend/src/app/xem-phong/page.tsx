@@ -21,6 +21,8 @@ import {
   Square, 
   Eye,
   ArrowLeft,
+  LocateFixed,
+  ExternalLink,
 } from 'lucide-react';
 import { Phong, ToaNha } from '@/types';
 import { toast } from 'sonner';
@@ -28,6 +30,7 @@ import Link from 'next/link';
 import { ImageCarousel } from '@/components/ui/image-carousel';
 
 type ToaNhaRef = string | { tenToaNha?: string };
+type UserLocation = { viDo: number; kinhDo: number };
 
 const getToaNhaTen = (toaNha: ToaNhaRef) => {
   if (typeof toaNha === 'object' && toaNha?.tenToaNha) {
@@ -49,6 +52,8 @@ export default function XemPhongPage() {
   const [page, setPage] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [radiusKm, setRadiusKm] = useState('5');
   const fetchPhong = useCallback(async (
     toaNhaFilter = '',
     searchFilter = '',
@@ -56,18 +61,28 @@ export default function XemPhongPage() {
     maxGiaFilter = '',
     minDienTichFilter = '',
     requestedPage = 1,
+    location: UserLocation | null = null,
+    radiusFilter = '5',
   ) => {
     try {
       setLoading(true);
       setError('');
-      const params = new URLSearchParams({ page: requestedPage.toString(), limit: '12' });
+      const params = new URLSearchParams({ limit: '12' });
+      if (location) {
+        params.append('viDo', location.viDo.toString());
+        params.append('kinhDo', location.kinhDo.toString());
+        params.append('radiusKm', radiusFilter);
+      } else {
+        params.append('page', requestedPage.toString());
+      }
       if (toaNhaFilter && toaNhaFilter !== 'all') params.append('toaNha', toaNhaFilter);
       if (searchFilter) params.append('search', searchFilter);
       if (minGiaFilter) params.append('minGia', minGiaFilter);
       if (maxGiaFilter) params.append('maxGia', maxGiaFilter);
       if (minDienTichFilter) params.append('minDienTich', minDienTichFilter);
       
-      const response = await fetch(`/api/public/phong?${params.toString()}`);
+      const endpoint = location ? '/api/public/phong/gan-nhat' : '/api/public/phong';
+      const response = await fetch(`${endpoint}?${params.toString()}`);
       const result = await response.json();
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Không tải được danh sách phòng');
@@ -84,6 +99,28 @@ export default function XemPhongPage() {
       setLoading(false);
     }
   }, []);
+
+  const findNearbyRooms = () => {
+    if (!navigator.geolocation) {
+      const message = 'Trình duyệt không hỗ trợ xác định vị trí.';
+      setError(message);
+      toast.error(message);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setPage(1);
+        setUserLocation({ viDo: position.coords.latitude, kinhDo: position.coords.longitude });
+        toast.success('Đã dùng vị trí của bạn để tìm phòng gần nhất.');
+      },
+      () => {
+        const message = 'Cần cho phép truy cập vị trí để tìm phòng gần bạn.';
+        setError(message);
+        toast.error(message);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
+  };
 
   const fetchToaNha = useCallback(async () => {
     try {
@@ -112,14 +149,14 @@ export default function XemPhongPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich]);
+  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich, radiusKm]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page);
+      fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page, userLocation, radiusKm);
     }, 350);
     return () => clearTimeout(timer);
-  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich, page, fetchPhong]);
+  }, [selectedToaNha, searchTerm, minGia, maxGia, minDienTich, page, userLocation, radiusKm, fetchPhong]);
 
   // Auto-open phong details when phong parameter is in URL
   useEffect(() => {
@@ -312,13 +349,36 @@ export default function XemPhongPage() {
                   </div>
                 </div>
 
+                <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#4FA7A0]/20 bg-[#E6F3F1]/60 p-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-[#243B5A]">Gợi ý phòng gần nhất</p>
+                    <p className="text-xs text-[#6B7A8C]">Cho phép vị trí để sắp xếp phòng trống theo khoảng cách thực tế.</p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Select value={radiusKm} onValueChange={setRadiusKm}>
+                      <SelectTrigger className="h-10 w-full bg-white sm:w-[130px]">
+                        <SelectValue placeholder="Bán kính" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">Trong 2 km</SelectItem>
+                        <SelectItem value="5">Trong 5 km</SelectItem>
+                        <SelectItem value="10">Trong 10 km</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" onClick={findNearbyRooms} className="bg-[#267D76] hover:bg-[#1f665f]">
+                      <LocateFixed className="mr-2 h-4 w-4" />
+                      {userLocation ? 'Cập nhật vị trí' : 'Tìm gần tôi'}
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Results summary */}
                 <div className="mt-6 pt-6 border-t border-[#E8DED2]/50">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-[#6B7A8C]">
                       Hiển thị <span className="font-semibold text-[#243B5A]">{filteredPhong.length}</span> trong <span className="font-semibold text-[#243B5A]">{totalElements}</span> phòng trống phù hợp
                     </p>
-                    {(searchTerm || selectedToaNha || minGia || maxGia || minDienTich) && (
+                    {(searchTerm || selectedToaNha || minGia || maxGia || minDienTich || userLocation) && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -328,6 +388,7 @@ export default function XemPhongPage() {
                           setMinGia('');
                           setMaxGia('');
                           setMinDienTich('');
+                          setUserLocation(null);
                         }}
                         className="text-xs text-[#6B7A8C] hover:text-[#243B5A] hover:bg-slate-100"
                       >
@@ -366,7 +427,7 @@ export default function XemPhongPage() {
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-red-700">{error}</p>
-              <Button variant="outline" size="sm" onClick={() => fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page)}>
+              <Button variant="outline" size="sm" onClick={() => fetchPhong(selectedToaNha, searchTerm.trim(), minGia, maxGia, minDienTich, page, userLocation, radiusKm)}>
                 Thử lại
               </Button>
             </CardContent>
@@ -432,6 +493,12 @@ export default function XemPhongPage() {
                     <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
                     {phong.soNguoiToiDa} người
                   </span>
+                  {phong.khoangCachKm !== undefined && (
+                    <span className="flex items-center font-medium text-[#267D76]">
+                      <LocateFixed className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                      {phong.khoangCachKm.toLocaleString('vi-VN')} km
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
 
@@ -457,7 +524,8 @@ export default function XemPhongPage() {
                   </div>
                 )}
 
-                <Link href={`/phong/${phong._id || phong.id}`} className="w-full block">
+                <div className="flex gap-2">
+                <Link href={`/phong/${phong._id || phong.id}`} className="block flex-1">
                   <Button 
                     size="sm"
                     className="w-full rounded-2xl bg-[#243B5A] text-white border-0 shadow-lg shadow-[#243B5A]/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#4FA7A0] hover:shadow-xl group"
@@ -466,6 +534,19 @@ export default function XemPhongPage() {
                     Xem chi tiết
                   </Button>
                 </Link>
+                  {phong.viDo !== undefined && phong.kinhDo !== undefined && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${phong.viDo},${phong.kinhDo}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Chỉ đường trên Google Maps"
+                    >
+                      <Button type="button" size="sm" variant="outline" className="h-full rounded-2xl">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

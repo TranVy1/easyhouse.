@@ -97,7 +97,6 @@ interface FolderImageUploaderProps {
 // Helpers
 // ─────────────────────────────────────────────────────────
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic'];
 const MAX_FILE_MB = 10;
 
 function parseFolderFiles(files: FileList): ParsedImage[] {
@@ -109,8 +108,9 @@ function parseFolderFiles(files: FileList): ParsedImage[] {
 
     if (!relativePath) continue;
 
-    // Filter by image type
-    if (!ACCEPTED_TYPES.includes(file.type)) continue;
+    // Filter by image type (check file.type or file extension)
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|heic|bmp)$/i.test(file.name);
+    if (!isImage) continue;
 
     // Filter by size
     if (file.size > MAX_FILE_MB * 1024 * 1024) continue;

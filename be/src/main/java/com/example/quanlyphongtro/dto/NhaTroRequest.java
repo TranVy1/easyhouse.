@@ -20,6 +20,11 @@ public class NhaTroRequest {
 
     private String moTa;
 
+    private BigDecimal viDo;
+    private BigDecimal kinhDo;
+    private String googlePlaceId;
+    private String diaChiDaChuanHoa;
+
     private List<String> tienNghiChung;
 
     private String cheDoTaoPhong;

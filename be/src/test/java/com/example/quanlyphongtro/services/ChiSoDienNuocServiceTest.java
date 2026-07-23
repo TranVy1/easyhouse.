@@ -19,6 +19,7 @@ import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.AuditLogRepository;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,6 +135,29 @@ class ChiSoDienNuocServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req));
         assertEquals("Trang thai nay chi duoc cap nhat boi quy trinh lap hoa don hoac huy", error.getMessage());
+    }
+
+    @Test
+    void createRejectsRoomWithoutAnActiveContract() {
+        UUID phongId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Phong phong = Phong.builder().id(phongId).build();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(userId);
+        when(permissionService.canWritePhong(userId, phongId)).thenReturn(true);
+        when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, null, null, null))
+                .thenReturn(Optional.empty());
+        when(hopDongRepository.findRoomOccupyingContracts(phongId, List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE)))
+                .thenReturn(List.of());
+
+        ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
+        req.setPhongId(phongId);
+        req.setChiSoCu(100);
+        req.setChiSoMoi(110);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req));
+        assertEquals("Chỉ có thể ghi chỉ số cho phòng đang có hợp đồng hiệu lực", error.getMessage());
     }
 
     @Test

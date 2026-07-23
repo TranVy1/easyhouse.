@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -178,6 +179,40 @@ class HoaDonServiceTest {
     }
 
     @Test
+    void createProratesFirstMonthRentFromTheContractStartDate() {
+        stubCanWriteInvoice();
+        hopDong.setNgayBatDau(LocalDate.of(2026, 5, 20));
+
+        HoaDonRequest request = new HoaDonRequest();
+        request.setHopDong(hopDongId);
+        request.setThang(5);
+        request.setNam(2026);
+        // The UI may still submit the monthly price; the server must calculate the partial month itself.
+        request.setTienPhong(BigDecimal.valueOf(3_000_000));
+
+        when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
+        when(hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(hopDongId, 2026, 5))
+                .thenReturn(Optional.empty());
+        when(hoaDonRepository.save(any(HoaDon.class))).thenAnswer(invocation -> {
+            HoaDon hoaDon = invocation.getArgument(0);
+            if (hoaDon.getId() == null) hoaDon.setId(UUID.randomUUID());
+            return hoaDon;
+        });
+        when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)).thenReturn(List.of());
+        when(chiTietHoaDonRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        HoaDonResponse response = service.create(request);
+
+        assertEquals(new BigDecimal("1161290.32"), response.getTienPhong());
+        assertEquals(new BigDecimal("1161290.32"), response.getTongTien());
+        assertEquals("Tiền phòng 12/31 ngày", response.getChiTiet().stream()
+                .filter(item -> "ROOM".equals(item.getLoai()))
+                .findFirst()
+                .orElseThrow()
+                .getMoTa());
+    }
+
+    @Test
     void createRejectsDuplicateContractMonth() {
         stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
@@ -191,6 +226,87 @@ class HoaDonServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
         assertEquals("Hợp đồng đã có hóa đơn trong kỳ 5/2026", error.getMessage());
+    }
+
+    @Test
+    void getLatestReadingUsesTheRecordedPairForTheInvoicePeriod() {
+        when(permissionService.requireCurrentUserId()).thenReturn(ownerId);
+        when(permissionService.isAdmin(ownerId)).thenReturn(true);
+        when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
+
+        ChiSoDienNuoc electricity = ChiSoDienNuoc.builder()
+                .phong(hopDong.getPhong())
+                .hopDong(hopDong)
+                .loai(LoaiChiSo.ELECTRICITY)
+                .kyNam(2026)
+                .kyThang(5)
+                .chiSoCu(50)
+                .chiSoMoi(95)
+                .trangThai(TrangThaiChiSo.CONFIRMED)
+                .build();
+        ChiSoDienNuoc water = ChiSoDienNuoc.builder()
+                .phong(hopDong.getPhong())
+                .hopDong(hopDong)
+                .loai(LoaiChiSo.WATER)
+                .kyNam(2026)
+                .kyThang(5)
+                .chiSoCu(20)
+                .chiSoMoi(28)
+                .trangThai(TrangThaiChiSo.DRAFT)
+                .build();
+
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, LoaiChiSo.ELECTRICITY, 2026, 5))
+                .thenReturn(Optional.of(electricity));
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, LoaiChiSo.WATER, 2026, 5))
+                .thenReturn(Optional.of(water));
+        when(chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, LoaiChiSo.ELECTRICITY))
+                .thenReturn(List.of(electricity));
+        when(chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, LoaiChiSo.WATER))
+                .thenReturn(List.of(water));
+        when(hoaDonRepository.findLatestByHopDong(hopDongId)).thenReturn(List.of());
+        when(hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hopDongId)).thenReturn(List.of());
+
+        Map<String, Object> result = service.getLatestReading(hopDongId, 5, 2026);
+
+        assertEquals(50, result.get("chiSoDienBanDau"));
+        assertEquals(95, result.get("chiSoDienCuoiKy"));
+        assertEquals(20, result.get("chiSoNuocBanDau"));
+        assertEquals(28, result.get("chiSoNuocCuoiKy"));
+        assertEquals(true, result.get("coChiSoDienKyNay"));
+        assertEquals(true, result.get("coChiSoNuocKyNay"));
+    }
+
+    @Test
+    void createBillsOnlyVehiclesAfterTheFirstVehicleOfEachTenant() {
+        stubCanWriteInvoice();
+        HoaDonRequest request = new HoaDonRequest();
+        request.setHopDong(hopDongId);
+        request.setThang(5);
+        request.setNam(2026);
+
+        when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
+        when(hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(hopDongId, 2026, 5))
+                .thenReturn(Optional.empty());
+        when(hoaDonRepository.save(any(HoaDon.class))).thenAnswer(invocation -> {
+            HoaDon hoaDon = invocation.getArgument(0);
+            if (hoaDon.getId() == null) hoaDon.setId(UUID.randomUUID());
+            return hoaDon;
+        });
+        when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)).thenReturn(List.of());
+        when(phuongTienRepository.findByPhongIdAndTrangThai(phongId, TrangThaiPhuongTien.HIEU_LUC))
+                .thenReturn(List.of(vehicle("XE-1"), vehicle("XE-2"), vehicle("XE-3")));
+        when(cauHinhGiaRepository.findApplicable(eq(nhaTroId), eq(LoaiMucHoaDon.PARKING), any(LocalDate.class)))
+                .thenReturn(List.of(price(LoaiMucHoaDon.PARKING, BigDecimal.valueOf(100_000))));
+        when(chiTietHoaDonRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        HoaDonResponse response = service.create(request);
+
+        assertEquals(BigDecimal.valueOf(3_200_000), response.getTongTien());
+        assertEquals(BigDecimal.valueOf(2), response.getChiTiet().stream()
+                .filter(item -> "PARKING".equals(item.getLoai()))
+                .findFirst()
+                .orElseThrow()
+                .getSoLuong());
     }
 
     @Test
@@ -277,6 +393,20 @@ class HoaDonServiceTest {
                 .tenHienThi(loai.name())
                 .hieuLucTu(LocalDate.of(2026, 1, 1))
                 .dangApDung(true)
+                .build();
+    }
+
+    private PhuongTien vehicle(String maPt) {
+        return PhuongTien.builder()
+                .id(UUID.randomUUID())
+                .maPt(maPt)
+                .loaiXe("Xe máy")
+                .bienSo(maPt)
+                .khachThue(hopDong.getKhachThue())
+                .phong(hopDong.getPhong())
+                .nhaTro(hopDong.getPhong().getNhaTro())
+                .chuTro(hopDong.getPhong().getNhaTro().getChuTro())
+                .trangThai(TrangThaiPhuongTien.HIEU_LUC)
                 .build();
     }
 }

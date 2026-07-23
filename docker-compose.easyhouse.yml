@@ -15,6 +15,8 @@ services:
     volumes:
       - easyhouse_postgres_data:/var/lib/postgresql/data
       - ./sql/init-db.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
+      - ./sql/migrations/20260724_fix_generated_room_name_encoding.sql:/docker-entrypoint-initdb.d/01-fix-room-name-encoding.sql:ro
+      - ./sql/migrations/20260724_prorate_partial_month_rent.sql:/docker-entrypoint-initdb.d/02-prorate-partial-month-rent.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s

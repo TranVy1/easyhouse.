@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.dto;
 import com.example.quanlyphongtro.entity.NhaTro;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,10 @@ public class NhaTroResponse {
     private String tenToaNha;
     private DiaChiResponse diaChi;
     private String moTa;
+    private BigDecimal viDo;
+    private BigDecimal kinhDo;
+    private String googlePlaceId;
+    private String diaChiDaChuanHoa;
     private List<String> tienNghiChung;
     private String noiQuy;
     private String trangThai;
@@ -68,6 +73,8 @@ public class NhaTroResponse {
                         .thanhPho(nt.getThanhPho() != null ? nt.getThanhPho() : "")
                         .build())
                 .moTa(nt.getMoTa())
+                .viDo(nt.getViDo()).kinhDo(nt.getKinhDo())
+                .googlePlaceId(nt.getGooglePlaceId()).diaChiDaChuanHoa(nt.getDiaChiDaChuanHoa())
                 .tienNghiChung(nt.getTienNghiChung() != null && !nt.getTienNghiChung().isEmpty() 
                         ? java.util.Arrays.asList(nt.getTienNghiChung().split(",")) 
                         : java.util.Collections.emptyList())

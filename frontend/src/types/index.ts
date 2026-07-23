@@ -50,7 +50,23 @@ export type LoaiMucHoaDon =
   | 'MAINTENANCE'
   | 'DEBT'
   | 'DISCOUNT'
-  | 'OTHER';
+  | 'OTHER'
+  | 'BALCONY'
+  | 'TRASH'
+  | 'AIR_CONDITIONER'
+  | 'WASHING_MACHINE'
+  | 'REFRIGERATOR'
+  | 'WATER_HEATER'
+  | 'BED'
+  | 'WARDROBE'
+  | 'TABLE_CHAIR'
+  | 'KITCHEN'
+  | 'KITCHEN_SHELF'
+  | 'CLEANING'
+  | 'LAUNDRY'
+  | 'SMART_LOCK'
+  | 'SECURITY_CAMERA'
+  | 'DEPOSIT';
 
 export type TrangThaiThanhToan = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
 export type PhuongThucThanhToanDb = 'CASH' | 'BANK_TRANSFER' | 'VIETQR' | 'MOMO' | 'ZALOPAY' | 'OTHER';
@@ -148,6 +164,10 @@ export interface ToaNha {
   quan?: string;
   thanhPho?: string;
   moTa?: string;
+  viDo?: number;
+  kinhDo?: number;
+  googlePlaceId?: string;
+  diaChiDaChuanHoa?: string;
   anhToaNha: string[];
   tongSoPhong: number;
   phongTrong?: number;
@@ -220,6 +240,9 @@ export interface Phong {
   nhaTroId?: ID;
   toaNha: ToaNhaRef;
   tenNhaTro?: string;
+  viDo?: number;
+  kinhDo?: number;
+  khoangCachKm?: number;
   ten?: string;
   maPhong: string;
   khuVuc?: string;

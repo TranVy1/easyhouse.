@@ -92,11 +92,12 @@ public class InvoiceGenerationService {
             
             BigDecimal estimatedAmount = BigDecimal.ZERO;
             if ("READY".equals(status)) {
-                estimatedAmount = estimatedAmount.add(hd.getGiaThueHopDong() != null ? hd.getGiaThueHopDong() : BigDecimal.ZERO);
-                
-                List<DichVuHopDong> services = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hd.getId());
                 LocalDate startOfMonth = LocalDate.of(kyNam, kyThang, 1);
                 LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
+                estimatedAmount = estimatedAmount.add(HoaDonService.calculateProratedRoomRent(
+                        hd.getGiaThueHopDong(), hd, startOfMonth, endOfMonth));
+
+                List<DichVuHopDong> services = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hd.getId());
                 
                 for (DichVuHopDong service : services) {
                     LocalDate serviceStart = service.getBatDauTu();

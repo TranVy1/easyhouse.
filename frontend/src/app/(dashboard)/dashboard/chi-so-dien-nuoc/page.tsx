@@ -84,6 +84,14 @@ const blankForm = (): ReadingFormData => ({
 
 const readingId = (item: ChiSoDienNuoc) => item._id || item.id || ""
 
+const roomId = (room: Phong) => String(room._id || room.id || "")
+
+const buildingId = (room: Phong) => String(
+  (room.toaNha as any)?._id || (room.toaNha as any)?.id || room.nhaTroId || "",
+)
+
+const isRentedRoom = (room: Phong) => room.trangThai === "RENTED" || room.trangThai === "dangThue"
+
 const roomName = (item: ChiSoDienNuoc) => {
   if (typeof item.phong === "object" && item.phong !== null) {
     return item.phong.maPhong || item.phong.ten || "Chưa xác định"
@@ -187,6 +195,7 @@ export default function ChiSoDienNuocPage() {
           sort: "kyNam,desc",
         })
         if (filters.phongId !== "all") params.set("phongId", filters.phongId)
+        if (filters.toaNhaId !== "all") params.set("nhaTroId", filters.toaNhaId)
         if (filters.loai !== "all") params.set("loai", filters.loai)
         if (filters.trangThai !== "all") params.set("trangThai", filters.trangThai)
         if (filters.kyThang !== "all") params.set("kyThang", filters.kyThang)
@@ -236,6 +245,13 @@ export default function ChiSoDienNuocPage() {
     [data],
   )
 
+  const rentableRoomsForForm = useMemo(() => {
+    const selectedRoomId = editing
+      ? String(typeof editing.phong === "string" ? editing.phong : editing.phong?._id || editing.phong?.id || "")
+      : ""
+    return rooms.filter((room) => isRentedRoom(room) || roomId(room) === selectedRoomId)
+  }, [editing, rooms])
+
   const periodLabel = filters.kyThang !== "all" && filters.kyNam !== "all"
     ? `Tháng ${filters.kyThang}/${filters.kyNam}`
     : ""
@@ -255,7 +271,7 @@ export default function ChiSoDienNuocPage() {
       ...blankForm(),
       kyThang: filters.kyThang === "all" ? today.getMonth() + 1 : Number(filters.kyThang),
       kyNam: filters.kyNam === "all" ? today.getFullYear() : Number(filters.kyNam),
-      toaNhaId: "",
+      toaNhaId: filters.toaNhaId === "all" ? "" : filters.toaNhaId,
       phongId: filters.phongId === "all" ? "" : filters.phongId,
       loai: filters.loai === "WATER" ? "WATER" : "ELECTRICITY",
     })
@@ -656,12 +672,12 @@ export default function ChiSoDienNuocPage() {
                 <Select value={formData.phongId} onValueChange={(value) => setFormData((current) => ({ ...current, phongId: value }))} disabled={Boolean(editing) || !formData.toaNhaId}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="Chọn phòng" /></SelectTrigger>
                   <SelectContent>
-                    {rooms.filter(room => {
-                        const tId = (room.toaNha as any)?._id || (room.toaNha as any)?.id || room.nhaTroId;
-                        return String(tId) === String(formData.toaNhaId);
-                    }).map((room) => <SelectItem key={room._id || room.id} value={room._id || room.id || ""}>{room.maPhong}</SelectItem>)}
+                    {rentableRoomsForForm
+                      .filter((room) => buildingId(room) === String(formData.toaNhaId))
+                      .map((room) => <SelectItem key={roomId(room)} value={roomId(room)}>{room.maPhong}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {!editing ? <p className="text-xs text-muted-foreground">Chỉ hiển thị phòng đang có hợp đồng hiệu lực.</p> : null}
               </div>
               <div className="space-y-2">
                 <Label>Loại chỉ số</Label>

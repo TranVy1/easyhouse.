@@ -7,6 +7,6 @@ credentials/
 /apk/
 /be/node_modules/
 /frontend/node_modules/
-
+/toanha/
 
 *.zip

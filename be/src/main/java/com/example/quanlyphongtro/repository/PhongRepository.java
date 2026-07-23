@@ -36,9 +36,9 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
            "AND (LOWER(p.ten) = LOWER(:tenPhong) " +
            "OR LOWER(p.ten) = LOWER(CONCAT('phòng ', :tenPhong)) " +
            "OR LOWER(p.ten) = LOWER(CONCAT('phong ', :tenPhong)) " +
+           "OR LOWER(p.ten) = LOWER(CONCAT('p. ', :tenPhong)) " +
            "OR LOWER(p.ten) = LOWER(CONCAT('p.', :tenPhong)) " +
-           "OR LOWER(p.ten) = LOWER(CONCAT('p', :tenPhong)) " +
-           "OR LOWER(p.ten) LIKE LOWER(CONCAT('%', :tenPhong)))")
+           "OR LOWER(p.ten) = LOWER(CONCAT('p', :tenPhong)))")
     Optional<Phong> findByNhaTroIdAndTenPhongFuzzy(
             @Param("nhaTroId") UUID nhaTroId,
             @Param("tenPhong") String tenPhong);
@@ -80,4 +80,20 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
             @Param("maxGia") java.math.BigDecimal maxGia,
             @Param("minDienTich") java.math.BigDecimal minDienTich,
             Pageable pageable);
+
+    @Query("SELECT p FROM Phong p JOIN FETCH p.nhaTro nt " +
+           "WHERE p.xoaLuc IS NULL AND nt.xoaLuc IS NULL " +
+           "AND p.trangThai = com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE " +
+           "AND nt.viDo IS NOT NULL AND nt.kinhDo IS NOT NULL " +
+           "AND (cast(:nhaTroId as uuid) IS NULL OR nt.id = :nhaTroId) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(p.ten) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(nt.ten) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(nt.diaChi) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))) " +
+           "AND (cast(:minGia as bigdecimal) IS NULL OR p.giaHienTai >= :minGia) " +
+           "AND (cast(:maxGia as bigdecimal) IS NULL OR p.giaHienTai <= :maxGia) " +
+           "AND (cast(:minDienTich as bigdecimal) IS NULL OR p.dienTich >= :minDienTich)")
+    List<Phong> findPublicNearbyCandidates(
+            @Param("nhaTroId") UUID nhaTroId,
+            @Param("search") String search,
+            @Param("minGia") java.math.BigDecimal minGia,
+            @Param("maxGia") java.math.BigDecimal maxGia,
+            @Param("minDienTich") java.math.BigDecimal minDienTich);
 }

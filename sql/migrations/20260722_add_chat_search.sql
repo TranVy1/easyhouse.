@@ -31,7 +31,7 @@ IMMUTABLE
 PARALLEL SAFE
 STRICT
 AS $$
-    SELECT lower(unaccent('unaccent', $1))
+    SELECT lower(public.unaccent('public.unaccent'::regdictionary, $1))
 $$;
 
 -- ----------------------------------------------------------------------------

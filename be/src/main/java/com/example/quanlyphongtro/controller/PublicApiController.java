@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/public")
@@ -44,6 +44,21 @@ public class PublicApiController {
             @RequestParam(defaultValue = "10") int limit) {
         
         return ApiResponse.success(phongService.getPublicAllPhong(toaNha, search, minGia, maxGia, minDienTich, page, limit));
+    }
+
+    @GetMapping("/phong/gan-nhat")
+    public ApiResponse<com.example.quanlyphongtro.dto.PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse>> getNearbyPhong(
+            @RequestParam BigDecimal viDo,
+            @RequestParam BigDecimal kinhDo,
+            @RequestParam(defaultValue = "5") BigDecimal radiusKm,
+            @RequestParam(required = false) String toaNha,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) BigDecimal minGia,
+            @RequestParam(required = false) BigDecimal maxGia,
+            @RequestParam(required = false) BigDecimal minDienTich,
+            @RequestParam(defaultValue = "12") int limit) {
+        return ApiResponse.success(phongService.getPublicNearbyPhong(
+                viDo, kinhDo, radiusKm, toaNha, search, minGia, maxGia, minDienTich, limit));
     }
 
     @GetMapping("/phong/{id}")

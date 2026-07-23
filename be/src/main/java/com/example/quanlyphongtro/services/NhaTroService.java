@@ -245,6 +245,10 @@ public class NhaTroService {
             target.setPhuong(source.getPhuong());
             target.setQuan(source.getQuan());
             target.setThanhPho(source.getThanhPho());
+            target.setViDo(source.getViDo());
+            target.setKinhDo(source.getKinhDo());
+            target.setGooglePlaceId(source.getGooglePlaceId());
+            target.setDiaChiDaChuanHoa(source.getDiaChiDaChuanHoa());
         }
         target.setMoTa(request.getMoTa() != null ? request.getMoTa() : source.getMoTa());
         if (Boolean.TRUE.equals(request.getCloneTienNghiChung())) target.setTienNghiChung(source.getTienNghiChung());
@@ -264,6 +268,11 @@ public class NhaTroService {
     private void mapRequestToEntity(NhaTroRequest request, NhaTro nt) {
         if (request.getTenToaNha() != null) nt.setTen(request.getTenToaNha());
         if (request.getMoTa() != null) nt.setMoTa(request.getMoTa());
+        if (request.getViDo() != null) nt.setViDo(request.getViDo());
+        if (request.getKinhDo() != null) nt.setKinhDo(request.getKinhDo());
+        if (request.getGooglePlaceId() != null) nt.setGooglePlaceId(request.getGooglePlaceId());
+        if (request.getDiaChiDaChuanHoa() != null) nt.setDiaChiDaChuanHoa(request.getDiaChiDaChuanHoa());
+        validateLocation(nt.getViDo(), nt.getKinhDo());
         if (request.getTienNghiChung() != null) {
             nt.setTienNghiChung(String.join(",", request.getTienNghiChung()));
         }
@@ -288,6 +297,15 @@ public class NhaTroService {
             nt.setPhuong(request.getDiaChi().getPhuong());
             nt.setQuan(request.getDiaChi().getQuan());
             nt.setThanhPho(request.getDiaChi().getThanhPho());
+        }
+    }
+
+    private void validateLocation(BigDecimal viDo, BigDecimal kinhDo) {
+        if (viDo == null && kinhDo == null) return;
+        if (viDo == null || kinhDo == null || viDo.compareTo(BigDecimal.valueOf(-90)) < 0
+                || viDo.compareTo(BigDecimal.valueOf(90)) > 0 || kinhDo.compareTo(BigDecimal.valueOf(-180)) < 0
+                || kinhDo.compareTo(BigDecimal.valueOf(180)) > 0) {
+            throw new RuntimeException("Tọa độ nhà trọ không hợp lệ");
         }
     }
 

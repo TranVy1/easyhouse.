@@ -75,7 +75,7 @@ function MainApp() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#F8F3EC]">
-      <div className="mx-auto w-full max-w-[1440px] px-0 md:px-4 lg:px-8">
+      <div className="mx-auto w-full px-0 md:px-4 lg:px-8">
         <div className="w-full">{renderContent()}</div>
 
         {viewingRoom === null && (

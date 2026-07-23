@@ -10,7 +10,10 @@ import {
   Phone,
   ArrowLeft,
   Star,
-  ZoomIn
+  ZoomIn,
+  MapPin,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -30,7 +33,7 @@ interface PublicPhongDetail {
   moTa?: string;
   anhList: string[];
   tienIchList: string[];
-  nhaTro?: { tenNhaTro?: string };
+  nhaTro?: { tenNhaTro?: string; diaChi?: string };
 }
 
 export default function PhongDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -101,6 +104,14 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
     chen: 'Chén',
     bat: 'Bát',
   };
+
+  const roomLocation = phong?.nhaTro?.diaChi?.trim();
+  const googleMapsEmbedUrl = roomLocation
+    ? `https://www.google.com/maps?q=${encodeURIComponent(roomLocation)}&z=16&output=embed`
+    : null;
+  const googleMapsDirectionsUrl = roomLocation
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(roomLocation)}`
+    : null;
 
   if (loading) {
     return (
@@ -252,6 +263,46 @@ export default function PhongDetailPage({ params }: { params: Promise<{ id: stri
                 </CardContent>
               </Card>
             )}
+
+            <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
+                  <MapPin className="h-5 w-5 text-[#FF5A3D]" />
+                  Vị trí địa lý
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                {googleMapsEmbedUrl ? (
+                  <>
+                    <div className="relative h-64 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                      <iframe
+                        src={googleMapsEmbedUrl}
+                        title={`Bản đồ ${roomLocation}`}
+                        className="h-full w-full border-0"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="flex items-start gap-2 text-sm text-slate-600">
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A3D]" />
+                        {roomLocation}
+                      </p>
+                      <a href={googleMapsDirectionsUrl!} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                          <Navigation className="mr-2 h-4 w-4" />
+                          Chỉ đường
+                          <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                        </Button>
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-slate-500">Chủ nhà chưa cập nhật địa chỉ để hiển thị bản đồ.</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-4 md:space-y-6">

@@ -24,6 +24,9 @@ public class PublicPhongSummaryResponse {
     private UUID nhaTroId;
     private String tenNhaTro;
     private String diaChiNhaTro;
+    private BigDecimal viDo;
+    private BigDecimal kinhDo;
+    private BigDecimal khoangCachKm;
     private List<String> tienIchNoiBat;
     private String moTa;
     private List<String> anhList;
@@ -46,6 +49,8 @@ public class PublicPhongSummaryResponse {
                 .nhaTroId(ntId)
                 .tenNhaTro(tenNt)
                 .diaChiNhaTro(diaChiNt)
+                .viDo(phong.getNhaTro() != null ? phong.getNhaTro().getViDo() : null)
+                .kinhDo(phong.getNhaTro() != null ? phong.getNhaTro().getKinhDo() : null)
                 .tienIchNoiBat(tienIchList)
                 .moTa(phong.getMoTa())
                 .anhList(anhList)

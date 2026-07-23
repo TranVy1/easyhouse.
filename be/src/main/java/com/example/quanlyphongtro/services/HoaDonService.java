@@ -17,7 +17,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -257,15 +259,31 @@ public class HoaDonService {
         Map<String, Object> result = new HashMap<>();
         result.put("isFirstInvoice", true);
         result.put("chiSoDienBanDau", 0);
+        result.put("chiSoDienCuoiKy", 0);
         result.put("chiSoNuocBanDau", 0);
+        result.put("chiSoNuocCuoiKy", 0);
+        result.put("coChiSoDienKyNay", false);
+        result.put("coChiSoNuocKyNay", false);
 
         HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
         if (hd != null && hd.getPhong() != null) {
             assertCanReadHopDong(hd, permissionService.requireCurrentUserId());
-            Optional<Integer> latestElectric = latestReading(hd.getId(), LoaiChiSo.ELECTRICITY);
-            Optional<Integer> latestWater = latestReading(hd.getId(), LoaiChiSo.WATER);
-            result.put("chiSoDienBanDau", latestElectric.orElse(hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0));
-            result.put("chiSoNuocBanDau", latestWater.orElse(hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0));
+            Optional<ChiSoDienNuoc> electricThisPeriod = readingForPeriod(hd, LoaiChiSo.ELECTRICITY, thang, nam);
+            Optional<ChiSoDienNuoc> waterThisPeriod = readingForPeriod(hd, LoaiChiSo.WATER, thang, nam);
+            Optional<Integer> latestElectric = latestReadingBeforePeriod(hd.getId(), LoaiChiSo.ELECTRICITY, thang, nam);
+            Optional<Integer> latestWater = latestReadingBeforePeriod(hd.getId(), LoaiChiSo.WATER, thang, nam);
+
+            int dienBanDau = electricThisPeriod.map(ChiSoDienNuoc::getChiSoCu)
+                    .orElse(latestElectric.orElse(defaultMeterReading(hd.getChiSoDienBanDau())));
+            int nuocBanDau = waterThisPeriod.map(ChiSoDienNuoc::getChiSoCu)
+                    .orElse(latestWater.orElse(defaultMeterReading(hd.getChiSoNuocBanDau())));
+
+            result.put("chiSoDienBanDau", dienBanDau);
+            result.put("chiSoDienCuoiKy", electricThisPeriod.map(ChiSoDienNuoc::getChiSoMoi).orElse(dienBanDau));
+            result.put("chiSoNuocBanDau", nuocBanDau);
+            result.put("chiSoNuocCuoiKy", waterThisPeriod.map(ChiSoDienNuoc::getChiSoMoi).orElse(nuocBanDau));
+            result.put("coChiSoDienKyNay", electricThisPeriod.isPresent());
+            result.put("coChiSoNuocKyNay", waterThisPeriod.isPresent());
             if (latestElectric.isPresent() || latestWater.isPresent()) {
                 result.put("isFirstInvoice", false);
             }
@@ -433,6 +451,10 @@ public class HoaDonService {
     private List<ChiTietHoaDon> buildLineItems(HoaDonRequest req, HoaDon hoaDon, InvoiceContext ctx) {
         if (req.getChiTietHoaDon() != null) {
             List<ChiTietHoaDon> manualItems = buildManualLineItems(req, hoaDon);
+            if (manualItems.stream().anyMatch(item -> item.getLoai() == LoaiMucHoaDon.PARKING)) {
+                throw new RuntimeException("Phí gửi xe được hệ thống tự tính theo số xe của từng người thuê");
+            }
+            manualItems.addAll(buildParkingFeeLines(hoaDon, ctx));
             if (manualItems.isEmpty()) {
                 throw new RuntimeException("Hóa đơn phải có ít nhất một dòng chi tiết");
             }
@@ -440,8 +462,8 @@ public class HoaDonService {
         }
 
         List<ChiTietHoaDon> items = new ArrayList<>();
-        addLine(items, hoaDon, null, null, LoaiMucHoaDon.ROOM, "Tiá»n phÃ²ng", BigDecimal.ONE,
-                req.getTienPhong() != null ? req.getTienPhong() : resolveRoomPrice(ctx));
+        addLine(items, hoaDon, null, null, LoaiMucHoaDon.ROOM, roomChargeDescription(ctx), BigDecimal.ONE,
+                resolveRoomPrice(ctx));
 
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.ELECTRICITY, LoaiMucHoaDon.ELECTRICITY,
                 req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), req.getTienDien(),
@@ -506,7 +528,7 @@ public class HoaDonService {
             // Find parking fee in CauHinhGia or DichVuHopDong
             BigDecimal parkingFee = resolveParkingFee(ctx);
             if (parkingFee.compareTo(BigDecimal.ZERO) > 0) {
-                addLine(lines, hoaDon, null, null, LoaiMucHoaDon.SERVICE, "Phí gửi xe (" + billableCount + " chiếc)", BigDecimal.valueOf(billableCount), parkingFee);
+                addLine(lines, hoaDon, null, null, LoaiMucHoaDon.PARKING, "Phí gửi xe (" + billableCount + " chiếc)", BigDecimal.valueOf(billableCount), parkingFee);
             }
         }
         
@@ -514,25 +536,16 @@ public class HoaDonService {
     }
     
     private BigDecimal resolveParkingFee(InvoiceContext ctx) {
-        // First check contract specific services
+        // Ưu tiên đơn giá dịch vụ đã gắn với hợp đồng, nếu còn hiệu lực trong kỳ hóa đơn.
         List<DichVuHopDong> services = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(ctx.hopDong().getId());
         for (DichVuHopDong svc : services) {
-            if (svc.getDichVu() != null && svc.getDichVu().getTenDichVu() != null && 
-                svc.getDichVu().getTenDichVu().toLowerCase(Locale.ROOT).contains("gửi xe")) {
+            if (svc.getDichVu() != null && isParkingServiceName(svc.getDichVu().getTenDichVu())
+                    && isServiceActiveInPeriod(svc, ctx.tuNgay(), ctx.denNgay())) {
                 return svc.getDonGiaApDung() != null ? svc.getDonGiaApDung() : BigDecimal.ZERO;
             }
         }
-        
-        // Then check building configs
-        List<CauHinhGia> configs = cauHinhGiaRepository.findByNhaTroIdOrderByHieuLucTuDesc(ctx.phong().getNhaTro().getId());
-        for (CauHinhGia cfg : configs) {
-            if (Boolean.TRUE.equals(cfg.getDangApDung()) && cfg.getTenHienThi() != null && 
-                cfg.getTenHienThi().toLowerCase(Locale.ROOT).contains("gửi xe")) {
-                return cfg.getDonGia() != null ? cfg.getDonGia() : BigDecimal.ZERO;
-            }
-        }
-        
-        return BigDecimal.ZERO;
+
+        return findApplicablePrice(ctx, LoaiMucHoaDon.PARKING);
     }
 
     private List<ChiTietHoaDon> buildManualLineItems(HoaDonRequest req, HoaDon hoaDon) {
@@ -592,13 +605,55 @@ public class HoaDonService {
         if (ctx.hopDong().getId() == null || ctx.tuNgay() == null) {
             return contractPrice;
         }
-        return phuLucHopDongRepository.findByHopDongIdOrderByNgayHieuLucDescTaoLucDesc(ctx.hopDong().getId()).stream()
+        BigDecimal monthlyPrice = phuLucHopDongRepository.findByHopDongIdOrderByNgayHieuLucDescTaoLucDesc(ctx.hopDong().getId()).stream()
                 .filter(phuLuc -> phuLuc.getGiaThueMoi() != null)
                 .filter(phuLuc -> phuLuc.getNgayHieuLuc() != null && !phuLuc.getNgayHieuLuc().isAfter(ctx.tuNgay()))
                 .map(PhuLucHopDong::getGiaThueMoi)
                 .map(this::defaultMoney)
                 .findFirst()
                 .orElse(contractPrice);
+        return calculateProratedRoomRent(monthlyPrice, ctx.hopDong(), ctx.tuNgay(), ctx.denNgay());
+    }
+
+    public static BigDecimal calculateProratedRoomRent(BigDecimal monthlyPrice, HopDong hopDong,
+            LocalDate tuNgay, LocalDate denNgay) {
+        if (monthlyPrice == null || monthlyPrice.compareTo(BigDecimal.ZERO) <= 0
+                || hopDong == null || tuNgay == null || denNgay == null) {
+            return BigDecimal.ZERO;
+        }
+        LocalDate occupiedStart = hopDong.getNgayBatDau() != null && hopDong.getNgayBatDau().isAfter(tuNgay)
+                ? hopDong.getNgayBatDau() : tuNgay;
+        LocalDate contractEnd = effectiveContractEnd(hopDong);
+        LocalDate occupiedEnd = contractEnd != null && contractEnd.isBefore(denNgay) ? contractEnd : denNgay;
+        if (occupiedEnd.isBefore(occupiedStart)) {
+            return BigDecimal.ZERO;
+        }
+        long occupiedDays = ChronoUnit.DAYS.between(occupiedStart, occupiedEnd) + 1;
+        int daysInMonth = YearMonth.from(tuNgay).lengthOfMonth();
+        if (occupiedDays == daysInMonth) {
+            return monthlyPrice;
+        }
+        return monthlyPrice.multiply(BigDecimal.valueOf(occupiedDays))
+                .divide(BigDecimal.valueOf(daysInMonth), 2, RoundingMode.HALF_UP);
+    }
+
+    private String roomChargeDescription(InvoiceContext ctx) {
+        LocalDate occupiedStart = ctx.hopDong().getNgayBatDau() != null && ctx.hopDong().getNgayBatDau().isAfter(ctx.tuNgay())
+                ? ctx.hopDong().getNgayBatDau() : ctx.tuNgay();
+        LocalDate contractEnd = effectiveContractEnd(ctx.hopDong());
+        LocalDate occupiedEnd = contractEnd != null && contractEnd.isBefore(ctx.denNgay()) ? contractEnd : ctx.denNgay();
+        if (occupiedEnd.isBefore(occupiedStart)) return "Tiền phòng";
+        long occupiedDays = ChronoUnit.DAYS.between(occupiedStart, occupiedEnd) + 1;
+        int daysInMonth = YearMonth.from(ctx.tuNgay()).lengthOfMonth();
+        return occupiedDays == daysInMonth ? "Tiền phòng" : "Tiền phòng " + occupiedDays + "/" + daysInMonth + " ngày";
+    }
+
+    private static LocalDate effectiveContractEnd(HopDong hopDong) {
+        LocalDate scheduledEnd = hopDong.getNgayKetThuc();
+        LocalDate actualEnd = hopDong.getNgayKetThucThucTe();
+        if (scheduledEnd == null) return actualEnd;
+        if (actualEnd == null) return scheduledEnd;
+        return actualEnd.isBefore(scheduledEnd) ? actualEnd : scheduledEnd;
     }
 
     private List<ChiTietHoaDon> buildContractServiceLines(HoaDon hoaDon, InvoiceContext ctx) {
@@ -609,7 +664,7 @@ public class HoaDonService {
         for (DichVuHopDong service : services) {
             if (!isServiceActiveInPeriod(service, ctx.tuNgay(), ctx.denNgay())) continue;
             String ten = service.getDichVu() != null ? service.getDichVu().getTenDichVu() : "Dá»‹ch vá»¥";
-            if (isMeterServiceName(ten)) continue;
+            if (isMeterServiceName(ten) || isParkingServiceName(ten)) continue;
             BigDecimal soLuong = resolveServiceQuantity(service, ctx.hopDong(), ctx.tuNgay(), ctx.denNgay());
             addLine(items, hoaDon, service.getDichVu() != null ? service.getDichVu().getId() : null, null,
                     LoaiMucHoaDon.SERVICE, ten, soLuong, service.getDonGiaApDung());
@@ -737,6 +792,10 @@ public class HoaDonService {
                 || containsNormalized(name, "nuoc") || containsNormalized(name, "water");
     }
 
+    private boolean isParkingServiceName(String name) {
+        return containsNormalized(name, "gui xe") || containsNormalized(name, "parking");
+    }
+
     private boolean containsNormalized(String value, String keyword) {
         if (value == null || keyword == null) return false;
         String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
@@ -757,12 +816,29 @@ public class HoaDonService {
         }
     }
 
-    private Optional<Integer> latestReading(UUID hopDongId, LoaiChiSo loai) {
+    private Optional<ChiSoDienNuoc> readingForPeriod(HopDong hopDong, LoaiChiSo loai, int thang, int nam) {
+        return chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(
+                        hopDong.getPhong().getId(), loai, nam, thang)
+                .filter(item -> item.getTrangThai() != TrangThaiChiSo.CANCELLED)
+                .filter(item -> item.getHopDong() == null || hopDong.getId().equals(item.getHopDong().getId()));
+    }
+
+    private Optional<Integer> latestReadingBeforePeriod(UUID hopDongId, LoaiChiSo loai, int thang, int nam) {
         return chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, loai).stream()
                 .filter(item -> item.getTrangThai() != TrangThaiChiSo.CANCELLED)
+                .filter(item -> isBeforeBillingPeriod(item, thang, nam))
                 .map(ChiSoDienNuoc::getChiSoMoi)
                 .filter(Objects::nonNull)
                 .findFirst();
+    }
+
+    private boolean isBeforeBillingPeriod(ChiSoDienNuoc item, int thang, int nam) {
+        return item.getKyNam() != null && item.getKyThang() != null
+                && (item.getKyNam() < nam || (item.getKyNam() == nam && item.getKyThang() < thang));
+    }
+
+    private int defaultMeterReading(Integer reading) {
+        return reading != null ? reading : 0;
     }
 
     private void ensureInvoicePeriodAvailable(UUID hopDongId, int kyNam, int kyThang, UUID excludeId) {

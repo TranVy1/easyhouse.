@@ -560,6 +560,9 @@ function ToaNhaForm({
     phuong: toaNha?.diaChi.phuong || '',
     quan: toaNha?.diaChi.quan || '',
     thanhPho: toaNha?.diaChi.thanhPho || '',
+    viDo: toaNha?.viDo?.toString() || '',
+    kinhDo: toaNha?.kinhDo?.toString() || '',
+    googlePlaceId: toaNha?.googlePlaceId || '',
     moTa: toaNha?.moTa || '',
     tienNghiChung: toaNha?.tienNghiChung || ['camera', 'baoVe', 'giuXe', 'sanPhoi', 'nhaVeSinhChung', 'khuBepChung'],
     cheDoTaoPhong: 'NONE',
@@ -594,35 +597,35 @@ function ToaNhaForm({
           }));
 
           if (toaNha && (toaNha as any).dichVuList && Array.isArray((toaNha as any).dichVuList)) {
-             const buildingServices = (toaNha as any).dichVuList;
-             buildingServices.forEach((bService: any) => {
-                const existing = initialList.find((s: any) => s.id === bService.id);
-                if (existing) {
-                   existing.suDung = bService.suDung !== false;
-                   existing.donGia = bService.donGia;
-                   existing.loaiTinhPhi = bService.loaiTinhPhi;
-                   if (bService.donVi) existing.donVi = bService.donVi;
-                } else {
-                   initialList.push({
-                     id: bService.id,
-                     ten: bService.ten,
-                     suDung: bService.suDung !== false,
-                     donGia: bService.donGia,
-                     donVi: bService.donVi || '',
-                     loaiTinhPhi: bService.loaiTinhPhi || 'FIXED',
-                     isCustom: true
-                   });
-                }
-             });
-             // For any global service not in buildingServices, if it's editing an existing building, 
-             // it means it's turned off, unless it's batBuoc. But wait, if they turned it off, it's not in the DB.
-             // We should set suDung = false for those.
-             initialList.forEach((s: any) => {
-                 const inBuilding = buildingServices.find((b: any) => b.id === s.id);
-                 if (!inBuilding) {
-                     s.suDung = false; // Turn off if not in building's config
-                 }
-             });
+            const buildingServices = (toaNha as any).dichVuList;
+            buildingServices.forEach((bService: any) => {
+              const existing = initialList.find((s: any) => s.id === bService.id);
+              if (existing) {
+                existing.suDung = bService.suDung !== false;
+                existing.donGia = bService.donGia;
+                existing.loaiTinhPhi = bService.loaiTinhPhi;
+                if (bService.donVi) existing.donVi = bService.donVi;
+              } else {
+                initialList.push({
+                  id: bService.id,
+                  ten: bService.ten,
+                  suDung: bService.suDung !== false,
+                  donGia: bService.donGia,
+                  donVi: bService.donVi || '',
+                  loaiTinhPhi: bService.loaiTinhPhi || 'FIXED',
+                  isCustom: true
+                });
+              }
+            });
+            // For any global service not in buildingServices, if it's editing an existing building, 
+            // it means it's turned off, unless it's batBuoc. But wait, if they turned it off, it's not in the DB.
+            // We should set suDung = false for those.
+            initialList.forEach((s: any) => {
+              const inBuilding = buildingServices.find((b: any) => b.id === s.id);
+              if (!inBuilding) {
+                s.suDung = false; // Turn off if not in building's config
+              }
+            });
           }
           setDichVuList(initialList);
         }
@@ -883,6 +886,9 @@ function ToaNhaForm({
           soNha: formData.soNha,
         },
         moTa: formData.moTa,
+        viDo: formData.viDo === '' ? undefined : Number(formData.viDo),
+        kinhDo: formData.kinhDo === '' ? undefined : Number(formData.kinhDo),
+        googlePlaceId: formData.googlePlaceId || undefined,
         tienNghiChung: formData.tienNghiChung,
         ...(toaNha || formData.cheDoTaoPhong === 'NONE' ? {} : formData.cheDoTaoPhong === 'CUSTOM' ? {
           cheDoTaoPhong: 'CUSTOM',
@@ -996,7 +1002,7 @@ function ToaNhaForm({
               className={inputClass}
             />
           </div>
-          <div className={fieldWrap}>
+          {/* <div className={fieldWrap}>
             <Label htmlFor="maToa" className={labelClass}>Tên viết tắt/Mã tòa</Label>
             <Input
               id="maToa"
@@ -1005,7 +1011,7 @@ function ToaNhaForm({
               placeholder="Nhập mã viết tắt..."
               className={inputClass}
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Thông tin địa chỉ */}
@@ -1198,6 +1204,25 @@ function ToaNhaForm({
           </div>
         </div>
 
+        <section className="mt-4 rounded-xl border border-[#D8EAE6] bg-[#EEF8F5] p-4">
+          <p className="text-sm font-semibold text-[#243B5A]">Vị trí Google Maps</p>
+          <p className="mt-1 text-xs text-[#6D7B8E]">Nhập tọa độ của tòa nhà để phòng trống có thể xuất hiện trong gợi ý gần nhất.</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className={fieldWrap}>
+              <Label htmlFor="viDo" className={labelClass}>Vĩ độ</Label>
+              <Input id="viDo" type="number" step="any" min="-90" max="90" value={formData.viDo} onChange={(e) => setFormData(prev => ({ ...prev, viDo: e.target.value }))} placeholder="10.7769" className={inputClass} />
+            </div>
+            <div className={fieldWrap}>
+              <Label htmlFor="kinhDo" className={labelClass}>Kinh độ</Label>
+              <Input id="kinhDo" type="number" step="any" min="-180" max="180" value={formData.kinhDo} onChange={(e) => setFormData(prev => ({ ...prev, kinhDo: e.target.value }))} placeholder="106.7009" className={inputClass} />
+            </div>
+            <div className={fieldWrap}>
+              <Label htmlFor="googlePlaceId" className={labelClass}>Google Place ID (nếu có)</Label>
+              <Input id="googlePlaceId" value={formData.googlePlaceId} onChange={(e) => setFormData(prev => ({ ...prev, googlePlaceId: e.target.value }))} placeholder="Chọn từ Google Maps" className={inputClass} />
+            </div>
+          </div>
+        </section>
+
         <div className={fieldWrap}>
           <Label htmlFor="moTa" className={labelClass}>Mô tả</Label>
           <Textarea
@@ -1209,171 +1234,7 @@ function ToaNhaForm({
           />
         </div>
 
-        {/* Dịch vụ toà nhà */}
-        <div className="mt-6 mb-2 flex items-center justify-between border-b border-[#E2D6C8] pb-2">
-          <span className="font-semibold text-[#243B5A]">Dịch vụ toà nhà</span>
-          <Dialog open={isServiceModalOpen} onOpenChange={setIsServiceModalOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" size="sm" className="bg-[#111827] text-white hover:bg-gray-800 h-8 rounded-md text-xs px-3">
-                <Plus className="w-3 h-3 mr-1" /> Thêm dịch vụ mới
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-0">
-              <div className="px-6 py-5 pb-4">
-                <DialogTitle className="text-xl font-bold text-[#1f2937]">Thêm dịch vụ mới</DialogTitle>
-                <DialogDescription className="text-sm text-gray-500 mt-1">
-                  Điền thông tin dịch vụ vào form bên dưới.
-                </DialogDescription>
-              </div>
-              <div className="px-6 py-4 space-y-5">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Tên dịch vụ</Label>
-                  <Input
-                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]"
-                    value={newService.ten}
-                    onChange={e => setNewService(prev => ({ ...prev, ten: e.target.value }))}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Loại tính phí</Label>
-                  <Select value={newService.loaiTinhPhi} onValueChange={val => setNewService(prev => ({ ...prev, loaiTinhPhi: val }))}>
-                    <SelectTrigger className="col-span-3 rounded-lg border-gray-300 focus:ring-1 focus:ring-[#009688]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cố định">Cố định</SelectItem>
-                      <SelectItem value="Theo đồng hồ">Theo đồng hồ</SelectItem>
-                      <SelectItem value="Theo người">Theo người</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn vị tính</Label>
-                  <Input
-                    placeholder="VD: kWh, m3, người, tháng"
-                    className="col-span-3 rounded-lg border-gray-300 focus-visible:ring-1 focus-visible:ring-[#009688]"
-                    value={newService.donVi}
-                    onChange={e => setNewService(prev => ({ ...prev, donVi: e.target.value }))}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Đơn giá</Label>
-                  <div className="col-span-3 relative">
-                    <Input
-                      type="number"
-                      className="rounded-lg border-[#009688] ring-1 ring-[#009688] focus-visible:ring-[#009688] font-medium pr-8"
-                      value={newService.donGia}
-                      onChange={e => setNewService(prev => ({ ...prev, donGia: e.target.value }))}
-                    />
-                    <div className="absolute inset-y-0 right-0 flex flex-col justify-center pr-2">
-                      <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4 pt-1">
-                  <Label className="text-left font-semibold text-gray-700 text-sm col-span-1">Bắt buộc</Label>
-                  <div className="col-span-3 flex items-center space-x-2">
-                    <Checkbox
-                      id="bat-buoc"
-                      className="border-gray-300 data-[state=checked]:border-[#009688] data-[state=checked]:bg-[#009688] rounded-sm h-5 w-5"
-                      checked={newService.batBuoc}
-                      onCheckedChange={(checked) => setNewService(prev => ({ ...prev, batBuoc: checked === true }))}
-                    />
-                    <label htmlFor="bat-buoc" className="text-sm text-gray-700 cursor-pointer select-none">
-                      Dịch vụ bắt buộc khi lập hợp đồng
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
-                <Button type="button" variant="outline" className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-5" onClick={() => setIsServiceModalOpen(false)}>Hủy</Button>
-                <Button type="button" className="rounded-xl bg-[#009688] hover:bg-[#00897B] text-white h-10 px-5 font-semibold" onClick={handleSaveService}>Lưu</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="border border-[#E2D6C8] rounded-xl overflow-hidden bg-white/50">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-[#F8F3EC] border-b border-[#E2D6C8] text-[#243B5A]">
-              <tr>
-                <th className="px-4 py-3 font-semibold w-24 text-center">Sử dụng</th>
-                <th className="px-4 py-3 font-semibold border-l border-[#E2D6C8]">Tên dịch vụ</th>
-                <th className="px-4 py-3 font-semibold border-l border-[#E2D6C8] text-right">Đơn giá</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E2D6C8]">
-              {dichVuList.map((dv, idx) => (
-                <tr key={dv.id} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 text-center align-middle">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={dv.suDung} onChange={(e) => {
-                        const next = [...dichVuList];
-                        next[idx].suDung = e.target.checked;
-                        setDichVuList(next);
-                      }} />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4FA7A0]"></div>
-                    </label>
-                  </td>
-                  <td className="px-4 py-3 border-l border-[#E2D6C8] font-medium text-[#243B5A]">
-                    {(dv as any).isCustom ? (
-                      <Input
-                        className="h-8 text-sm bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium"
-                        value={dv.ten}
-                        onChange={(e) => {
-                          const next = [...dichVuList];
-                          next[idx].ten = e.target.value;
-                          setDichVuList(next);
-                        }}
-                      />
-                    ) : (
-                      dv.ten
-                    )}
-                  </td>
-                  <td className="px-4 py-3 border-l border-[#E2D6C8] text-right text-[#5F7087]">
-                    <div className="flex items-center justify-end gap-1">
-                      <Input
-                        className="w-24 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0 font-medium"
-                        value={dv.donGia.toLocaleString('vi-VN')}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
-                          const next = [...dichVuList];
-                          next[idx].donGia = val;
-                          setDichVuList(next);
-                        }}
-                      />
-                      {(dv as any).isCustom ? (
-                        <Input
-                          className="w-20 h-8 text-right bg-transparent border-0 focus-visible:ring-0 shadow-none p-0"
-                          value={dv.donVi}
-                          onChange={(e) => {
-                            const next = [...dichVuList];
-                            next[idx].donVi = e.target.value;
-                            setDichVuList(next);
-                          }}
-                        />
-                      ) : (
-                        <span>{dv.donVi}</span>
-                      )}
-                      {(dv as any).isCustom && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 ml-1"
-                          onClick={() => {
-                            setDichVuList(prev => prev.filter((_, i) => i !== idx));
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
 
         <div className={fieldWrap}>
           <Label className={labelClass}>Tiện nghi chung</Label>

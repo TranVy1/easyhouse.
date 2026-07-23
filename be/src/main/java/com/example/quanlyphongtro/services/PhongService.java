@@ -16,6 +16,9 @@ import com.example.quanlyphongtro.repository.TaiSanPhongRepository;
 import com.example.quanlyphongtro.entity.TaiSanPhong;
 import com.example.quanlyphongtro.dto.TaiSanPhongDto;
 import java.time.ZonedDateTime;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -92,6 +95,62 @@ public class PhongService {
                 .toList();
         return PaginatedResponse.of(pageResult, mappedList);
     }
+
+    public PaginatedResponse<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> getPublicNearbyPhong(
+            BigDecimal viDo, BigDecimal kinhDo, BigDecimal radiusKm, String nhaTroId, String search,
+            BigDecimal minGia, BigDecimal maxGia, BigDecimal minDienTich, int limit) {
+        validateCoordinates(viDo, kinhDo);
+        if (radiusKm == null || radiusKm.compareTo(BigDecimal.ZERO) <= 0 || radiusKm.compareTo(BigDecimal.valueOf(100)) > 0) {
+            throw new RuntimeException("Bán kính tìm kiếm phải từ lớn hơn 0 đến 100 km");
+        }
+
+        UUID nid = parseUuid(nhaTroId);
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        List<NearbyPhong> nearby = phongRepository.findPublicNearbyCandidates(
+                        nid, search, minGia, maxGia, minDienTich)
+                .stream()
+                .map(phong -> new NearbyPhong(phong, calculateDistanceKm(viDo, kinhDo,
+                        phong.getNhaTro().getViDo(), phong.getNhaTro().getKinhDo())))
+                .filter(item -> item.khoangCachKm().compareTo(radiusKm) <= 0)
+                .sorted(Comparator.comparing(NearbyPhong::khoangCachKm))
+                .limit(safeLimit)
+                .toList();
+
+        List<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse> data = nearby.stream()
+                .map(item -> {
+                    Phong phong = item.phong();
+                    List<String> urls = mediaService.listUrls(LoaiDoiTuongMedia.ROOM, phong.getId(), MediaService.ROOM_IMAGE);
+                    com.example.quanlyphongtro.dto.PublicPhongSummaryResponse response =
+                            com.example.quanlyphongtro.dto.PublicPhongSummaryResponse.fromEntity(
+                                    phong, urls.stream().findFirst().orElse(null), tienIchService.listByPhong(phong.getId()), urls);
+                    response.setKhoangCachKm(item.khoangCachKm());
+                    return response;
+                })
+                .toList();
+        return PaginatedResponse.<com.example.quanlyphongtro.dto.PublicPhongSummaryResponse>builder()
+                .data(data).total(data.size()).page(1).limit(safeLimit).totalPages(1).build();
+    }
+
+    private void validateCoordinates(BigDecimal viDo, BigDecimal kinhDo) {
+        if (viDo == null || kinhDo == null || viDo.compareTo(BigDecimal.valueOf(-90)) < 0
+                || viDo.compareTo(BigDecimal.valueOf(90)) > 0 || kinhDo.compareTo(BigDecimal.valueOf(-180)) < 0
+                || kinhDo.compareTo(BigDecimal.valueOf(180)) > 0) {
+            throw new RuntimeException("Tọa độ vị trí không hợp lệ");
+        }
+    }
+
+    private BigDecimal calculateDistanceKm(BigDecimal fromLat, BigDecimal fromLng, BigDecimal toLat, BigDecimal toLng) {
+        double lat1 = Math.toRadians(fromLat.doubleValue());
+        double lat2 = Math.toRadians(toLat.doubleValue());
+        double deltaLat = lat2 - lat1;
+        double deltaLng = Math.toRadians(toLng.doubleValue() - fromLng.doubleValue());
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+        double distance = 2 * 6371.0088 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return BigDecimal.valueOf(distance).setScale(1, RoundingMode.HALF_UP);
+    }
+
+    private record NearbyPhong(Phong phong, BigDecimal khoangCachKm) {}
 
     public com.example.quanlyphongtro.dto.PublicPhongDetailResponse getPublicPhongById(UUID id) {
         Phong phong = phongRepository.findByIdAndXoaLucIsNull(id)

@@ -125,6 +125,12 @@ public class ChiSoDienNuocService {
         }
         assertManualStatusAllowed(request.getTrangThai());
 
+        List<HopDong> activeContracts = hopDongRepository.findRoomOccupyingContracts(
+                phong.getId(), List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE));
+        if (activeContracts.isEmpty()) {
+            throw new RuntimeException("Chỉ có thể ghi chỉ số cho phòng đang có hợp đồng hiệu lực");
+        }
+
         ChiSoDienNuoc chiSo = new ChiSoDienNuoc();
         chiSo.setPhong(phong);
 
@@ -135,13 +141,12 @@ public class ChiSoDienNuocService {
             if (!permissionService.canWriteHopDong(userId, hopDong.getId())) {
                 throw new RuntimeException("Khong co quyen thay doi hop dong nay");
             }
+            if (hopDong.getTrangThai() != com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE) {
+                throw new RuntimeException("Chỉ có thể ghi chỉ số cho hợp đồng đang hiệu lực");
+            }
             chiSo.setHopDong(hopDong);
         } else {
-            // Find active contract for the room
-            List<HopDong> activeContracts = hopDongRepository.findRoomOccupyingContracts(phong.getId(), List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE));
-            if (!activeContracts.isEmpty()) {
-                chiSo.setHopDong(activeContracts.get(0));
-            }
+            chiSo.setHopDong(activeContracts.get(0));
         }
 
         chiSo.setLoai(request.getLoai());

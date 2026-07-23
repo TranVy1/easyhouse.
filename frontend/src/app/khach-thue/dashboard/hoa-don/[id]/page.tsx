@@ -9,8 +9,52 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, FileText, Clock, Banknote, Settings, Printer, Share2, Phone, CheckCircle2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { HoaDon, ThanhToan } from '@/types';
+import { ChiTietHoaDon, HoaDon, ThanhToan } from '@/types';
 import Link from 'next/link';
+
+const invoiceLineLabels: Record<string, string> = {
+  ROOM: 'Tiền thuê nhà',
+  ELECTRICITY: 'Tiền điện',
+  WATER: 'Tiền nước',
+  SERVICE: 'Phí dịch vụ',
+  INTERNET: 'Internet',
+  GARBAGE: 'Phí rác',
+  PARKING: 'Phí gửi xe',
+  MAINTENANCE: 'Phí bảo trì',
+  DEBT: 'Công nợ',
+  DISCOUNT: 'Giảm trừ',
+  DEPOSIT: 'Tiền cọc hợp đồng',
+  BALCONY: 'Phí ban công',
+  TRASH: 'Phí rác',
+  AIR_CONDITIONER: 'Điều hòa',
+  WASHING_MACHINE: 'Máy giặt',
+  REFRIGERATOR: 'Tủ lạnh',
+  WATER_HEATER: 'Bình nóng lạnh',
+  BED: 'Giường',
+  WARDROBE: 'Tủ quần áo',
+  TABLE_CHAIR: 'Bàn ghế',
+  KITCHEN: 'Bếp',
+  KITCHEN_SHELF: 'Kệ bếp',
+  CLEANING: 'Vệ sinh',
+  LAUNDRY: 'Giặt là',
+  SMART_LOCK: 'Khóa thông minh',
+  SECURITY_CAMERA: 'Camera an ninh',
+  OTHER: 'Khoản thu khác',
+};
+
+const meterUnits: Record<string, string> = {
+  ELECTRICITY: 'kWh',
+  WATER: 'm³',
+};
+
+const toNumber = (value: unknown) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const formatQuantity = (value: unknown) => new Intl.NumberFormat('vi-VN', {
+  maximumFractionDigits: 2,
+}).format(toNumber(value));
 
 export default function TenantInvoiceDetailPage() {
   const { id } = useParams();
@@ -142,19 +186,24 @@ export default function TenantInvoiceDetailPage() {
     ? new Date(String(invoice.hanTra || invoice.hanThanhToan)).toLocaleDateString('vi-VN')
     : '---';
 
-  // Fallback for services if not array
-  const phiDichVu = Array.isArray(invoice.phiDichVu) ? invoice.phiDichVu : [];
-  const totalDichVu = phiDichVu.reduce((sum: number, p: any) => sum + (p.gia || 0), 0);
+  const invoiceItems = (invoice.chiTietHoaDon?.length
+    ? invoice.chiTietHoaDon
+    : invoice.chiTiet || []) as ChiTietHoaDon[];
 
-  const soDienSD = Math.max(0, (invoice.chiSoDienCuoiKy || 0) - (invoice.chiSoDienBanDau || 0));
-  const soNuocSD = Math.max(0, (invoice.chiSoNuocCuoiKy || 0) - (invoice.chiSoNuocBanDau || 0));
+  const getMeterReadings = (item: ChiTietHoaDon) => {
+    const isElectricity = item.loai === 'ELECTRICITY';
+    const isWater = item.loai === 'WATER';
+    if (!isElectricity && !isWater) return null;
 
-  // Determine what services exist
-  const hasDien = (invoice.tienDien || 0) > 0;
-  const hasNuoc = (invoice.tienNuoc || 0) > 0;
-  const hasOtherDichVu = phiDichVu.length > 0;
-  const hasAnyServiceSection = hasDien || hasNuoc || hasOtherDichVu;
-  const overallServiceTotal = (invoice.tienDien || 0) + (invoice.tienNuoc || 0) + totalDichVu;
+    const oldReading = isElectricity ? invoice.chiSoDienBanDau : invoice.chiSoNuocBanDau;
+    const newReading = isElectricity ? invoice.chiSoDienCuoiKy : invoice.chiSoNuocCuoiKy;
+    if (oldReading !== null && oldReading !== undefined && newReading !== null && newReading !== undefined) {
+      return { oldReading, newReading };
+    }
+
+    const range = item.moTa?.match(/(\d+)\s*-\s*(\d+)\s*$/);
+    return range ? { oldReading: Number(range[1]), newReading: Number(range[2]) } : null;
+  };
 
   return (
     <div className="bg-[#F6F7F9] min-h-screen pb-24 md:pb-8 font-sans">
@@ -216,142 +265,55 @@ export default function TenantInvoiceDetailPage() {
               </div>
             </div>
 
-            {/* Tiền thuê nhà */}
-            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.some((c: any) => c.loai === 'TIEN_PHONG') ? (
-              invoice.chiTietHoaDon.filter((c: any) => c.loai === 'TIEN_PHONG').map((c: any, idx: number) => (
-                <div key={idx} className="flex items-start justify-between py-3 border-t border-gray-100">
-                  <div>
-                    <p className="text-[15px] font-semibold text-gray-800">Tiền thuê nhà</p>
-                    <p className="text-[14px] font-bold text-gray-900 mt-1">{c.moTa}</p>
-                    {c.soLuong > 1 && (
-                      <p className="text-[12px] text-gray-500 mt-1">{c.soLuong} × {formatCurrency(c.donGia)}</p>
+            <div className="border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <h3 className="text-[15px] font-bold text-gray-900">Bảng chi tiết các khoản thu</h3>
+                <p className="text-[12px] text-gray-500 mt-0.5">Chỉ số áp dụng cho tiền điện và tiền nước.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-[13px]">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-3 text-left font-semibold">Khoản thu</th>
+                      <th className="px-3 py-3 text-right font-semibold">Chỉ số cũ</th>
+                      <th className="px-3 py-3 text-right font-semibold">Chỉ số mới</th>
+                      <th className="px-3 py-3 text-right font-semibold">Đã dùng / SL</th>
+                      <th className="px-3 py-3 text-right font-semibold">Đơn giá</th>
+                      <th className="px-4 py-3 text-right font-semibold">Thành tiền</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {invoiceItems.length > 0 ? invoiceItems.map((item, index) => {
+                      const readings = getMeterReadings(item);
+                      const unit = meterUnits[item.loai] || '';
+                      const label = invoiceLineLabels[item.loai] || item.loai || 'Khoản thu khác';
+                      const showDescription = !readings && item.moTa
+                        && item.moTa.trim().toLocaleLowerCase('vi-VN') !== label.toLocaleLowerCase('vi-VN');
+
+                      return (
+                        <tr key={item._id || item.id || `${item.loai}-${index}`} className="align-top hover:bg-slate-50/70">
+                          <td className="px-4 py-3.5">
+                            <p className="font-semibold text-gray-900">{label}</p>
+                            {showDescription && <p className="mt-1 text-[12px] text-gray-500">{item.moTa}</p>}
+                          </td>
+                          <td className="px-3 py-3.5 text-right text-gray-700">{readings ? formatQuantity(readings.oldReading) : '—'}</td>
+                          <td className="px-3 py-3.5 text-right text-gray-700">{readings ? formatQuantity(readings.newReading) : '—'}</td>
+                          <td className="px-3 py-3.5 text-right font-medium text-gray-900">
+                            {formatQuantity(item.soLuong)}{unit ? ` ${unit}` : ''}
+                          </td>
+                          <td className="px-3 py-3.5 text-right text-gray-700">{formatCurrency(toNumber(item.donGia))}</td>
+                          <td className="px-4 py-3.5 text-right font-bold text-gray-900">{formatCurrency(toNumber(item.thanhTien))}</td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Chưa có dòng chi tiết cho hóa đơn này.</td>
+                      </tr>
                     )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(c.thanhTien)}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-start justify-between py-3 border-t border-gray-100">
-                <div>
-                  <p className="text-[15px] font-semibold text-gray-800">Tiền thuê nhà</p>
-                  <p className="text-[14px] text-gray-500 mt-1">1 tháng</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                  <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienPhong || 0)}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Thu tiền cọc */}
-            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.some((c: any) => c.loai === 'TIEN_COC') && (
-              <>
-                <div className="h-[1px] bg-gray-100 w-full" />
-                {invoice.chiTietHoaDon.filter((c: any) => c.loai === 'TIEN_COC').map((c: any, idx: number) => (
-                  <div key={idx} className="flex items-start justify-between py-3">
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-800">Thu tiền cọc</p>
-                      {c.moTa && c.moTa !== 'Thu tiền cọc' && <p className="text-[14px] text-gray-500 mt-1">{c.moTa}</p>}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                      <p className="text-[16px] font-bold text-gray-900">{formatCurrency(c.thanhTien)}</p>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-
-            {/* Tiền điện */}
-            <div className="flex justify-between items-start py-4 border-t border-gray-100">
-              <div>
-                <p className="text-[15px] font-bold text-gray-900">Tiền điện</p>
-                <p className="text-[13px] text-gray-500 mt-0.5 mb-1.5">Số mới: {invoice.chiSoDienCuoiKy || 0} - Số cũ: {invoice.chiSoDienBanDau || 0}</p>
-                {invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_DIEN') ? (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
-                    {invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_DIEN')?.soLuong} KWh x {formatCurrency(invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_DIEN')?.donGia || 0).replace(' đ', '')}đ
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
-                    {soDienSD} KWh
-                  </span>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienDien || 0)}</p>
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            {/* Tiền nước */}
-            <div className="flex justify-between items-start py-4 border-t border-gray-100">
-              <div>
-                <p className="text-[15px] font-bold text-gray-900">Tiền nước</p>
-                {(invoice.chiSoNuocCuoiKy > 0 || invoice.chiSoNuocBanDau > 0) && (
-                  <p className="text-[13px] text-gray-500 mt-0.5 mb-1.5">Số mới: {invoice.chiSoNuocCuoiKy || 0} - Số cũ: {invoice.chiSoNuocBanDau || 0}</p>
-                )}
-                {invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_NUOC') ? (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
-                    {invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_NUOC')?.soLuong} khối x {formatCurrency(invoice.chiTietHoaDon!.find((c: any) => c.loai === 'TIEN_NUOC')?.donGia || 0).replace(' đ', '')}đ
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
-                    {soNuocSD} khối
-                  </span>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                <p className="text-[16px] font-bold text-gray-900">{formatCurrency(invoice.tienNuoc || 0)}</p>
-              </div>
-            </div>
-
-            {/* Dịch vụ khác */}
-            {phiDichVu.map((phi: any, i: number) => {
-              const matchChiTiet = invoice.chiTietHoaDon?.find((c: any) => c.loai === 'TIEN_DICH_VU' && c.moTa?.includes(phi.ten));
-              return (
-                <div key={i} className="flex justify-between items-start py-4 border-t border-gray-100">
-                  <div>
-                    <p className="text-[15px] font-bold text-gray-900">{phi.ten}</p>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
-                      {matchChiTiet?.moTa || 'Phí dịch vụ'}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
-                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(phi.gia || 0)}</p>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="h-[1px] bg-gray-200 w-full" />
-
-            {/* Other line items from chiTietHoaDon just in case */}
-            {invoice.chiTietHoaDon && invoice.chiTietHoaDon.filter((c: any) => c.loai !== 'TIEN_PHONG' && c.loai !== 'TIEN_DIEN' && c.loai !== 'TIEN_NUOC' && c.loai !== 'TIEN_DICH_VU').map((item, idx) => (
-              <div key={idx} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
-                <div>
-                  <p className="text-[15px] font-medium text-gray-800">{item.moTa}</p>
-                  {item.soLuong > 1 && (
-                    <span className="inline-block mt-1.5 text-[12px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                      {item.soLuong} × {formatCurrency(item.donGia)}
-                    </span>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-[13px] text-gray-500">Thành tiền</p>
-                  <p className="text-[17px] font-bold text-gray-900 mt-1">{formatCurrency(item.thanhTien)}</p>
-                </div>
-              </div>
-            ))}
 
             <div className="flex flex-col items-end pb-5 pt-3">
               <p className="text-[14px] text-gray-600 mb-1.5">Tổng cộng kỳ này</p>

@@ -56,6 +56,34 @@ const getKhachThueName = (khachThueId: string | KhachThue, khachThueList: KhachT
   return 'N/A';
 };
 
+const calculateProratedRent = (hopDong: HopDong, thang: number, nam: number) => {
+  const monthlyRent = Number(hopDong.giaThue || 0);
+  if (!monthlyRent) return 0;
+
+  const monthStart = new Date(nam, thang - 1, 1);
+  const monthEnd = new Date(nam, thang, 0);
+  const toLocalDate = (value?: string | Date) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? null
+      : new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+  const contractStart = toLocalDate(hopDong.ngayBatDau);
+  const scheduledEnd = toLocalDate(hopDong.ngayKetThuc);
+  const actualEnd = toLocalDate(hopDong.ngayKetThucThucTe);
+  const contractEnd = scheduledEnd && actualEnd
+    ? (scheduledEnd < actualEnd ? scheduledEnd : actualEnd)
+    : scheduledEnd || actualEnd;
+
+  const occupiedStart = contractStart && contractStart > monthStart ? contractStart : monthStart;
+  const occupiedEnd = contractEnd && contractEnd < monthEnd ? contractEnd : monthEnd;
+  if (occupiedEnd < occupiedStart) return 0;
+
+  const occupiedDays = Math.floor((occupiedEnd.getTime() - occupiedStart.getTime()) / 86_400_000) + 1;
+  return Math.round((monthlyRent * occupiedDays / monthEnd.getDate()) * 100) / 100;
+};
+
 export default function ThemMoiHoaDonPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -109,9 +137,13 @@ export default function ThemMoiHoaDonPage() {
   const [newPhiDichVu, setNewPhiDichVu] = useState({ ten: '', gia: 0 });
   const [readingSource, setReadingSource] = useState<{
     chiSoDienBanDau: number;
+    chiSoDienCuoiKy: number;
     chiSoNuocBanDau: number;
+    chiSoNuocCuoiKy: number;
     isFirstInvoice: boolean;
     lastInvoiceMonth: string | null;
+    coChiSoDienKyNay?: boolean;
+    coChiSoNuocKyNay?: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -155,14 +187,21 @@ export default function ThemMoiHoaDonPage() {
         if (data.success) {
           console.log('Latest electricity reading:', data.data);
           setFormData(prev => {
-            const isFirst = data.data.isFirstInvoice;
             // Nếu là hóa đơn đầu tiên, giữ lại chỉ số ban đầu đã set từ hợp đồng
-            const chiSoDien = isFirst && prev.chiSoDienBanDau > 0 ? prev.chiSoDienBanDau : (data.data.chiSoDienBanDau || 0);
-            const chiSoNuoc = isFirst && prev.chiSoNuocBanDau > 0 ? prev.chiSoNuocBanDau : (data.data.chiSoNuocBanDau || 0);
+            const chiSoDien = Number(data.data.chiSoDienBanDau) || 0;
+            const chiSoNuoc = Number(data.data.chiSoNuocBanDau) || 0;
+            const chiSoDienCuoiKy = Number.isFinite(Number(data.data.chiSoDienCuoiKy))
+              ? Number(data.data.chiSoDienCuoiKy)
+              : chiSoDien;
+            const chiSoNuocCuoiKy = Number.isFinite(Number(data.data.chiSoNuocCuoiKy))
+              ? Number(data.data.chiSoNuocCuoiKy)
+              : chiSoNuoc;
             return {
               ...prev,
               chiSoDienBanDau: chiSoDien,
+              chiSoDienCuoiKy,
               chiSoNuocBanDau: chiSoNuoc,
+              chiSoNuocCuoiKy,
               soDuDauKy: data.data.soDuDauKy || 0,
             };
           });
@@ -199,10 +238,12 @@ export default function ThemMoiHoaDonPage() {
           ...prev,
           phong: phongId,
           khachThue: khachThueId,
-          tienPhong: selectedHopDong.giaThue,
+          tienPhong: calculateProratedRent(selectedHopDong, prev.thang, prev.nam),
           phiDichVu: selectedHopDong.phiDichVu || [],
           chiSoDienBanDau: selectedHopDong.chiSoDienBanDau || 0,
+          chiSoDienCuoiKy: selectedHopDong.chiSoDienBanDau || 0,
           chiSoNuocBanDau: selectedHopDong.chiSoNuocBanDau || 0,
+          chiSoNuocCuoiKy: selectedHopDong.chiSoNuocBanDau || 0,
         }));
         
         fetchLatestElectricityReading(formData.hopDong, formData.thang, formData.nam);
@@ -237,8 +278,12 @@ export default function ThemMoiHoaDonPage() {
     );
     const totalPhiDichVu = filteredPhiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
 
-    const soDien = formData.resetCongTo ? formData.soKwhThucTe : (formData.chiSoDienCuoiKy - formData.chiSoDienBanDau);
-    const soNuoc = formData.resetCongTo ? formData.soKhoiNuocThucTe : (formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau);
+    const soDien = Math.max(0, formData.resetCongTo
+      ? formData.soKwhThucTe
+      : formData.chiSoDienCuoiKy - formData.chiSoDienBanDau);
+    const soNuoc = Math.max(0, formData.resetCongTo
+      ? formData.soKhoiNuocThucTe
+      : formData.chiSoNuocCuoiKy - formData.chiSoNuocBanDau);
     
     const tienDienTinh = soDien * giaDien;
     const tienNuocTinh = soNuoc * giaNuoc;
@@ -248,8 +293,8 @@ export default function ThemMoiHoaDonPage() {
     
     setFormData(prev => ({
       ...prev,
-      soDien: Math.max(0, soDien),
-      soNuoc: Math.max(0, soNuoc),
+      soDien,
+      soNuoc,
       tienDien: tienDienTinh,
       tienNuoc: tienNuocTinh,
       tongTien: total,
