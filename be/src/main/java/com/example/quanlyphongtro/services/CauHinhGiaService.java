@@ -99,7 +99,6 @@ public class CauHinhGiaService {
                 .nhaTro(nhaTro)
                 .dichVuId(request.getDichVuId())
                 .loai(parseLoai(request.getLoai(), true))
-                .tenHienThi(request.getTenHienThi().trim())
                 .loaiTinhPhi(parseLoaiTinhPhi(request.getLoaiTinhPhi()))
                 .donGia(request.getDonGia())
                 .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
@@ -130,7 +129,6 @@ public class CauHinhGiaService {
                 .nhaTro(nhaTro)
                 .dichVuId(request.getDichVuId() != null ? request.getDichVuId() : oldEntity.getDichVuId())
                 .loai(request.getLoai() != null ? parseLoai(request.getLoai(), true) : oldEntity.getLoai())
-                .tenHienThi(request.getTenHienThi() != null && !request.getTenHienThi().isBlank() ? request.getTenHienThi().trim() : oldEntity.getTenHienThi())
                 .loaiTinhPhi(request.getLoaiTinhPhi() != null ? parseLoaiTinhPhi(request.getLoaiTinhPhi()) : oldEntity.getLoaiTinhPhi())
                 .donGia(request.getDonGia() != null ? request.getDonGia() : oldEntity.getDonGia())
                 .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
@@ -220,7 +218,7 @@ public class CauHinhGiaService {
             // Neu loai dich vu giong nhau (nhung la loai OTHER) thi phai check dichVuId giong nhau
             if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
                 if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
-                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
+
             }
             
             LocalDate start1 = entity.getHieuLucTu() != null ? entity.getHieuLucTu() : LocalDate.MIN;

@@ -20,8 +20,6 @@ public class CauHinhGiaRequest {
     @NotBlank(message = "Vui lòng chọn loại cấu hình giá")
     private String loai;
 
-    @NotBlank(message = "Vui lòng nhập tên hiển thị")
-    private String tenHienThi;
 
     private String loaiTinhPhi;
 

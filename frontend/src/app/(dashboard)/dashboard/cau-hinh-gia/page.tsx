@@ -226,8 +226,7 @@ export default function CauHinhGiaPage() {
 
   // Filter configurations for search (client-side search only, server-side filtering handled above)
   const filteredConfigs = cauHinhGiaList.filter((config) => {
-    const matchesSearch = config.tenHienThi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      LOAI_MUC_LABEL[config.loai]?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = LOAI_MUC_LABEL[config.loai]?.toLowerCase().includes(searchTerm.toLowerCase());
       
     return matchesSearch;
   });
@@ -471,7 +470,7 @@ export default function CauHinhGiaPage() {
                 <Table className="text-xs md:text-sm">
                   <TableHeader>
                     <TableRow className="bg-[#F8F3EC]/70 hover:bg-[#F8F3EC]/70">
-                      <TableHead className="font-semibold text-[#243B5A]">Tên hiển thị</TableHead>
+
                       <TableHead className="font-semibold text-[#243B5A]">Loại mục</TableHead>
                       <TableHead className="font-semibold text-[#243B5A]">Đơn giá</TableHead>
                       <TableHead className="font-semibold text-[#243B5A]">Cách tính phí</TableHead>
@@ -483,7 +482,7 @@ export default function CauHinhGiaPage() {
                   <TableBody>
                     {filteredConfigs.map((config) => (
                       <TableRow key={config._id || config.id} className="hover:bg-[#F8F3EC]/30">
-                        <TableCell className="font-medium text-[#243B5A]">{config.tenHienThi}</TableCell>
+
                         <TableCell>
                           <Badge variant="outline" className="font-normal text-xs bg-[#F8F3EC] text-[#243B5A] border-[#E8DED2]">
                             {LOAI_MUC_LABEL[config.loai] || config.loai}
@@ -644,7 +643,6 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
   const [formData, setFormData] = useState({
     nhaTroId: config?.nhaTroId || toaNhaId || '',
     loai: config?.loai || 'ROOM',
-    tenHienThi: config?.tenHienThi || '',
     loaiTinhPhi: config?.loaiTinhPhi || 'FIXED',
     donGia: config?.donGia !== undefined ? String(config.donGia) : '',
     hieuLucTu: config?.hieuLucTu ? String(config.hieuLucTu) : getTodayString(),
@@ -660,10 +658,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
       toast.error('Vui lòng chọn tòa nhà');
       return;
     }
-    if (!formData.tenHienThi.trim()) {
-      toast.error('Vui lòng nhập tên hiển thị');
-      return;
-    }
+
     const priceNum = Number(formData.donGia);
     if (isNaN(priceNum) || priceNum < 0) {
       toast.error('Đơn giá không hợp lệ (phải >= 0)');
@@ -675,7 +670,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
       const payload = {
         nhaTroId: formData.nhaTroId,
         loai: formData.loai,
-        tenHienThi: formData.tenHienThi.trim(),
+
         loaiTinhPhi: formData.loaiTinhPhi,
         donGia: priceNum,
         hieuLucTu: formData.hieuLucTu,
@@ -758,18 +753,6 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         </Select>
       </div>
 
-      {/* Display Name */}
-      <div className="space-y-1">
-        <Label htmlFor="form-tenHienThi" className="text-xs font-semibold">Tên hiển thị trên hóa đơn</Label>
-        <Input
-          id="form-tenHienThi"
-          placeholder="Ví dụ: Tiền điện (sinh hoạt), Tiền nước sạch..."
-          value={formData.tenHienThi}
-          onChange={(e) => setFormData(prev => ({ ...prev, tenHienThi: e.target.value }))}
-          className="text-xs h-9"
-          required
-        />
-      </div>
 
       <div className="grid grid-cols-2 gap-3">
         {/* Price / Rate */}

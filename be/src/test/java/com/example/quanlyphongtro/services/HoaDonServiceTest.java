@@ -274,7 +274,7 @@ class HoaDonServiceTest {
                 .id(UUID.randomUUID())
                 .loai(loai)
                 .donGia(donGia)
-                .tenHienThi(loai.name())
+
                 .hieuLucTu(LocalDate.of(2026, 1, 1))
                 .dangApDung(true)
                 .build();

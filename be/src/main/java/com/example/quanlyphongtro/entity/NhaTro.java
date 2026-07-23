@@ -38,6 +38,9 @@ public class NhaTro {
 
     @Column(nullable = false)
     private String trangThai = "ACTIVE";
+    
+    private String tenDaiDienBenA;
+    private Integer soXeMienPhi = 1;
 
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;

@@ -30,9 +30,6 @@ public class CauHinhGia {
     @Column(nullable = false)
     private LoaiMucHoaDon loai;
 
-    @Column(nullable = false)
-    private String tenHienThi;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LoaiTinhPhi loaiTinhPhi = LoaiTinhPhi.FIXED;

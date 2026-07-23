@@ -57,7 +57,7 @@ public interface CauHinhGiaRepository extends JpaRepository<CauHinhGia, UUID>, J
               and c.dangApDung = true
               and c.hieuLucTu <= :ngayApDung
               and (c.hieuLucDen is null or c.hieuLucDen >= :ngayApDung)
-            order by c.tenHienThi asc, c.hieuLucTu desc
+            order by c.hieuLucTu desc
             """)
     List<CauHinhGia> findApplicableServices(
             @Param("nhaTroId") UUID nhaTroId,

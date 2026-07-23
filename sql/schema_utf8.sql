@@ -1050,7 +1050,6 @@ CREATE TABLE public.cau_hinh_gia (
     nha_tro_id uuid NOT NULL,
     dich_vu_id uuid,
     loai character varying(255) NOT NULL,
-    ten_hien_thi character varying(255) NOT NULL,
     loai_tinh_phi character varying(255) DEFAULT 'FIXED'::public.loai_tinh_phi NOT NULL,
     don_gia numeric(38,2) NOT NULL,
     hieu_luc_tu date DEFAULT CURRENT_DATE NOT NULL,
@@ -1620,6 +1619,8 @@ CREATE TABLE public.nha_tro (
     tien_nghi_chung text,
     noi_quy text,
     trang_thai character varying(30) DEFAULT 'ACTIVE'::character varying NOT NULL,
+    ten_dai_dien_ben_a character varying(255),
+    so_xe_mien_phi integer DEFAULT 1,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
     xoa_luc timestamp with time zone

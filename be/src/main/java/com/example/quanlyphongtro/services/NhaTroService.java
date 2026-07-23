@@ -264,6 +264,8 @@ public class NhaTroService {
     private void mapRequestToEntity(NhaTroRequest request, NhaTro nt) {
         if (request.getTenToaNha() != null) nt.setTen(request.getTenToaNha());
         if (request.getMoTa() != null) nt.setMoTa(request.getMoTa());
+        if (request.getTenDaiDienBenA() != null) nt.setTenDaiDienBenA(request.getTenDaiDienBenA());
+        if (request.getSoXeMienPhi() != null) nt.setSoXeMienPhi(request.getSoXeMienPhi());
         if (request.getTienNghiChung() != null) {
             nt.setTienNghiChung(String.join(",", request.getTienNghiChung()));
         }
@@ -437,7 +439,7 @@ public class NhaTroService {
         if (!chgs.isEmpty()) {
             List<NhaTroResponse.DichVuToaNhaResponse> dvList = chgs.stream().map(chg -> NhaTroResponse.DichVuToaNhaResponse.builder()
                 .id(chg.getDichVuId() != null ? chg.getDichVuId().toString() : "custom-" + chg.getId())
-                .ten(chg.getTenHienThi())
+                .ten(chg.getLoai() != null ? chg.getLoai().name() : "Dịch vụ")
                 .suDung(true)
                 .donGia(chg.getDonGia())
                 .loaiTinhPhi(chg.getLoaiTinhPhi() != null ? chg.getLoaiTinhPhi().name() : "FIXED")
@@ -479,7 +481,7 @@ public class NhaTroService {
             com.example.quanlyphongtro.entity.CauHinhGia chg = com.example.quanlyphongtro.entity.CauHinhGia.builder()
                 .nhaTro(nt)
                 .loai(com.example.quanlyphongtro.entity.LoaiMucHoaDon.SERVICE)
-                .tenHienThi(req.getTen())
+
                 .donGia(req.getDonGia() != null ? req.getDonGia() : BigDecimal.ZERO)
                 .hieuLucTu(java.time.LocalDate.now())
                 .dangApDung(true)

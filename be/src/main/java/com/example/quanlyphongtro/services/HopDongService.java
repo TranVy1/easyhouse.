@@ -487,7 +487,7 @@ public class HopDongService {
             DichVu dichVu = dichVuRepository.findById(config.getDichVuId()).orElse(null);
             options.put(config.getDichVuId(), HopDongDichVuOptionResponse.builder()
                     .dichVuId(config.getDichVuId())
-                    .ten(config.getTenHienThi())
+                    .ten(dichVu != null ? dichVu.getTenDichVu() : config.getLoai().name())
                     .loaiTinhPhi(config.getLoaiTinhPhi() != null ? config.getLoaiTinhPhi().name() : null)
                     .donVi(dichVu != null ? dichVu.getDonVi() : null)
                     .donGiaMacDinh(config.getDonGia())

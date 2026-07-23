@@ -477,30 +477,9 @@ public class HoaDonService {
         List<PhuongTien> activeVehicles = phuongTienRepository.findByPhongIdAndTrangThai(ctx.phong().getId(), TrangThaiPhuongTien.HIEU_LUC);
         if (activeVehicles.isEmpty()) return lines;
         
-        // Group by tenant
-        Map<UUID, List<PhuongTien>> vehiclesByTenant = new HashMap<>();
-        for (PhuongTien pt : activeVehicles) {
-            if (pt.getKhachThue() != null) {
-                vehiclesByTenant.computeIfAbsent(pt.getKhachThue().getId(), k -> new ArrayList<>()).add(pt);
-            } else {
-                // If no tenant specified, assume it belongs to the primary tenant
-                vehiclesByTenant.computeIfAbsent(ctx.khachThue().getId(), k -> new ArrayList<>()).add(pt);
-            }
-        }
-        
-        int billableCount = 0;
-        for (List<PhuongTien> pts : vehiclesByTenant.values()) {
-            pts.sort((v1, v2) -> {
-                if (v1.getCreatedAt() == null && v2.getCreatedAt() == null) return 0;
-                if (v1.getCreatedAt() == null) return 1;
-                if (v2.getCreatedAt() == null) return -1;
-                return v1.getCreatedAt().compareTo(v2.getCreatedAt());
-            });
-            // First vehicle is free, the rest are billable
-            if (pts.size() > 1) {
-                billableCount += (pts.size() - 1);
-            }
-        }
+        int soXeMienPhi = ctx.phong().getNhaTro().getSoXeMienPhi() != null ? ctx.phong().getNhaTro().getSoXeMienPhi() : 0;
+        int totalVehicles = activeVehicles.size();
+        int billableCount = Math.max(0, totalVehicles - soXeMienPhi);
         
         if (billableCount > 0) {
             // Find parking fee in CauHinhGia or DichVuHopDong
@@ -517,8 +496,7 @@ public class HoaDonService {
         // First check contract specific services
         List<DichVuHopDong> services = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(ctx.hopDong().getId());
         for (DichVuHopDong svc : services) {
-            if (svc.getDichVu() != null && svc.getDichVu().getTenDichVu() != null && 
-                svc.getDichVu().getTenDichVu().toLowerCase(Locale.ROOT).contains("gửi xe")) {
+            if (svc.getLoaiTinhPhi() == LoaiTinhPhi.PER_VEHICLE) {
                 return svc.getDonGiaApDung() != null ? svc.getDonGiaApDung() : BigDecimal.ZERO;
             }
         }
@@ -526,8 +504,7 @@ public class HoaDonService {
         // Then check building configs
         List<CauHinhGia> configs = cauHinhGiaRepository.findByNhaTroIdOrderByHieuLucTuDesc(ctx.phong().getNhaTro().getId());
         for (CauHinhGia cfg : configs) {
-            if (Boolean.TRUE.equals(cfg.getDangApDung()) && cfg.getTenHienThi() != null && 
-                cfg.getTenHienThi().toLowerCase(Locale.ROOT).contains("gửi xe")) {
+            if (Boolean.TRUE.equals(cfg.getDangApDung()) && cfg.getLoaiTinhPhi() == LoaiTinhPhi.PER_VEHICLE) {
                 return cfg.getDonGia() != null ? cfg.getDonGia() : BigDecimal.ZERO;
             }
         }

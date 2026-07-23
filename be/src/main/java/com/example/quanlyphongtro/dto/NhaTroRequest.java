@@ -19,6 +19,9 @@ public class NhaTroRequest {
     private DiaChiRequest diaChi;
 
     private String moTa;
+    
+    private String tenDaiDienBenA;
+    private Integer soXeMienPhi;
 
     private List<String> tienNghiChung;
 

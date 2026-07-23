@@ -20,6 +20,8 @@ public class NhaTroResponse {
     private List<String> tienNghiChung;
     private String noiQuy;
     private String trangThai;
+    private String tenDaiDienBenA;
+    private Integer soXeMienPhi;
     private int tongSoPhong;
     private int phongTrong;
     private int phongDangThue;
@@ -71,7 +73,10 @@ public class NhaTroResponse {
                 .tienNghiChung(nt.getTienNghiChung() != null && !nt.getTienNghiChung().isEmpty() 
                         ? java.util.Arrays.asList(nt.getTienNghiChung().split(",")) 
                         : java.util.Collections.emptyList())
-                .noiQuy(nt.getNoiQuy()).trangThai(nt.getTrangThai())
+                .noiQuy(nt.getNoiQuy())
+                .trangThai(nt.getTrangThai())
+                .tenDaiDienBenA(nt.getTenDaiDienBenA())
+                .soXeMienPhi(nt.getSoXeMienPhi())
                 .tongSoPhong(tongSoPhong).phongTrong(phongTrong).phongDangThue(phongDangThue)
                 .taoLuc(tl).capNhatLuc(cl).build();
     }

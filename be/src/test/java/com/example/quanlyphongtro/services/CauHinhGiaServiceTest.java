@@ -64,7 +64,7 @@ class CauHinhGiaServiceTest {
         req.setNhaTroId(nhaTroId);
         req.setLoai("ELECTRICITY");
         req.setDonGia(BigDecimal.valueOf(3500));
-        req.setTenHienThi("Dien");
+
 
         assertThrows(RuntimeException.class, () -> service.create(req));
     }
@@ -94,7 +94,7 @@ class CauHinhGiaServiceTest {
         req.setNhaTroId(nhaTroId);
         req.setLoai("ELECTRICITY");
         req.setDonGia(BigDecimal.valueOf(3500));
-        req.setTenHienThi("Dien");
+
         req.setHieuLucTu(LocalDate.of(2026, 5, 1));
 
         RuntimeException err = assertThrows(RuntimeException.class, () -> service.create(req));

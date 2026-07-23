@@ -22,7 +22,6 @@ public class CauHinhGiaResponse {
     private String tenNhaTro;
     private UUID dichVuId;
     private String loai;
-    private String tenHienThi;
     private String loaiTinhPhi;
     private BigDecimal donGia;
     private LocalDate hieuLucTu;
@@ -44,7 +43,6 @@ public class CauHinhGiaResponse {
                 .tenNhaTro(entity.getNhaTro() != null ? entity.getNhaTro().getTen() : null)
                 .dichVuId(entity.getDichVuId())
                 .loai(entity.getLoai() != null ? entity.getLoai().name() : null)
-                .tenHienThi(entity.getTenHienThi())
                 .loaiTinhPhi(entity.getLoaiTinhPhi() != null ? entity.getLoaiTinhPhi().name() : null)
                 .donGia(entity.getDonGia())
                 .hieuLucTu(entity.getHieuLucTu())

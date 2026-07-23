@@ -633,7 +633,7 @@ export interface CauHinhGia {
   nhaTroId: ID;
   dichVuId?: ID;
   loai: LoaiMucHoaDon;
-  tenHienThi: string;
+
   loaiTinhPhi: LoaiTinhPhi;
   donGia: number;
   hieuLucTu: DateLike;
