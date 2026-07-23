@@ -61,6 +61,8 @@ public class HopDongRequest {
     private Integer ngayThanhToan;
     private Boolean tuDongGiaHan;
     
+    private Boolean dongMotCocMot;
+    
     @Min(value = 0, message = "Chỉ số điện ban đầu không được âm")
     private Integer chiSoDienBanDau;
     

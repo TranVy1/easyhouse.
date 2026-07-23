@@ -34,6 +34,7 @@ public class HopDongResponse {
     @JsonProperty("ngayThanhToan")
     private Integer ngayThanhToanHangThang;
     private Boolean tuDongGiaHan;
+    private Boolean dongMotCocMot;
     private Integer chiSoDienBanDau;
     private Integer chiSoNuocBanDau;
     @JsonProperty("dieuKhoan")
@@ -118,6 +119,7 @@ public class HopDongResponse {
                 .chuKyThanhToan(mapChuKy(hd.getChuKyThanhToan()))
                 .ngayThanhToanHangThang(hd.getNgayThanhToanHangThang())
                 .tuDongGiaHan(hd.getTuDongGiaHan())
+                .dongMotCocMot(hd.getDongMotCocMot())
                 .chiSoDienBanDau(hd.getChiSoDienBanDau())
                 .chiSoNuocBanDau(hd.getChiSoNuocBanDau())
                 .noiDungHopDong(hd.getNoiDungHopDong() != null ? hd.getNoiDungHopDong() : "")

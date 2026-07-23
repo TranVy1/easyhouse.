@@ -61,6 +61,10 @@ public class HopDong {
     @Column(nullable = false)
     private Boolean tuDongGiaHan = false;
 
+    @Column(name = "dong_mot_coc_mot", nullable = false)
+    @Builder.Default
+    private Boolean dongMotCocMot = false;
+
     private Integer chiSoDienBanDau;
     private Integer chiSoNuocBanDau;
     

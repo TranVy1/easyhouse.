@@ -569,13 +569,24 @@ public class HoaDonService {
         if (ctx.hopDong().getId() == null || ctx.tuNgay() == null) {
             return contractPrice;
         }
-        return phuLucHopDongRepository.findByHopDongIdOrderByNgayHieuLucDescTaoLucDesc(ctx.hopDong().getId()).stream()
+        BigDecimal monthlyPrice = phuLucHopDongRepository.findByHopDongIdOrderByNgayHieuLucDescTaoLucDesc(ctx.hopDong().getId()).stream()
                 .filter(phuLuc -> phuLuc.getGiaThueMoi() != null)
                 .filter(phuLuc -> phuLuc.getNgayHieuLuc() != null && !phuLuc.getNgayHieuLuc().isAfter(ctx.tuNgay()))
                 .map(PhuLucHopDong::getGiaThueMoi)
                 .map(this::defaultMoney)
                 .findFirst()
                 .orElse(contractPrice);
+                
+        if (ctx.denNgay() != null) {
+            long daysOccupied = java.time.temporal.ChronoUnit.DAYS.between(ctx.tuNgay(), ctx.denNgay()) + 1;
+            int daysInMonth = ctx.tuNgay().lengthOfMonth();
+            if (daysOccupied > 0 && daysOccupied < daysInMonth) {
+                return monthlyPrice.multiply(BigDecimal.valueOf(daysOccupied))
+                        .divide(BigDecimal.valueOf(daysInMonth), 0, java.math.RoundingMode.HALF_UP);
+            }
+        }
+        
+        return monthlyPrice;
     }
 
     private List<ChiTietHoaDon> buildContractServiceLines(HoaDon hoaDon, InvoiceContext ctx) {
