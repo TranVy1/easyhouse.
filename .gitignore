@@ -10,3 +10,6 @@ credentials/
 /toanha/
 
 *.zip
+
+*.tar
+*.tar.gz

@@ -1,0 +1,47 @@
+package com.example.quanlyphongtro.repository;
+
+import com.example.quanlyphongtro.entity.KhachThue;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface KhachThueRepository extends JpaRepository<KhachThue, UUID> {
+    Optional<KhachThue> findByNguoiDungId(UUID nguoiDungId);
+    List<KhachThue> findByChuTroIdAndXoaLucIsNull(UUID chuTroId);
+    List<KhachThue> findByXoaLucIsNullOrderByTaoLucDesc();
+    List<KhachThue> findByDangHoatDongTrueAndXoaLucIsNull();
+    long countByDangHoatDongTrueAndXoaLucIsNull();
+    Optional<KhachThue> findByChuTroIdAndSoCccd(UUID chuTroId, String soCccd);
+
+    @Query("SELECT DISTINCT k FROM KhachThue k " +
+           "LEFT JOIN HopDong hd ON hd.khachThue = k AND hd.trangThai = com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE AND hd.xoaLuc IS NULL " +
+           "LEFT JOIN hd.phong p " +
+           "WHERE k.xoaLuc IS NULL " +
+           "AND (:isAdmin = true " +
+           "     OR k.nguoiDung.id = :userId " +
+           "     OR k.chuTro.id = :userId " +
+           "     OR p.nhaTro.id IN :nhaTroIds) " +
+           "AND (cast(:trangThai as string) IS NULL OR " +
+           "    (cast(:trangThai as string) = 'dangThue' AND hd.id IS NOT NULL) OR " +
+           "    (cast(:trangThai as string) = 'daKetThuc' AND hd.id IS NULL)) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.soDienThoai, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.soCccd, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.queQuan, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "    OR LOWER(COALESCE(k.email, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+    Page<KhachThue> findAllAccessible(
+            @Param("isAdmin") boolean isAdmin,
+            @Param("userId") UUID userId,
+            @Param("nhaTroIds") List<UUID> nhaTroIds,
+            @Param("trangThai") String trangThai,
+            @Param("search") String search,
+            Pageable pageable);
+}

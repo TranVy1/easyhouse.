@@ -1,0 +1,27 @@
+services:
+  backend:
+    env_file:
+      - ./deploy/cloudflare.env
+    environment:
+      APP_FRONTEND_BASE_URL: https://mc4vn.net
+      CORS_ALLOWED_ORIGINS: https://mc4vn.net,https://api.mc4vn.net
+      VNPAY_RETURN_URL: https://mc4vn.net/thanh-toan/vnpay-return
+
+  frontend:
+    env_file:
+      - ./deploy/cloudflare.env
+    environment:
+      BACKEND_URL: http://backend:8080
+      NEXTAUTH_URL: https://mc4vn.net
+      NEXTAUTH_SECRET: ltHr/DftdYoadNP5U+HHmUsdbuRCUyEx1hhpVOgXk1CF6JVrNWzlo9ei1ONP8LaK
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    env_file:
+      - ./deploy/cloudflare.env
+    command: tunnel --no-autoupdate run
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - easyhouse_network

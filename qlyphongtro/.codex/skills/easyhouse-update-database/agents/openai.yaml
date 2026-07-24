@@ -1,0 +1,4 @@
+interface:
+  display_name: "EasyHouse Update Database"
+  short_description: "Restore EasyHouse Docker database"
+  default_prompt: "Use $easyhouse-update-database to restore sql/db.sql into the local Docker database and show the admin login."

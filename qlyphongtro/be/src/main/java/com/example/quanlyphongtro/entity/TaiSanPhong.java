@@ -1,0 +1,53 @@
+package com.example.quanlyphongtro.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.SQLRestriction;
+
+@Entity
+@EntityListeners(com.example.quanlyphongtro.entity.listener.TimestampEntityListener.class)
+@Table(name = "tai_san_phong")
+@SQLRestriction("xoa_luc IS NULL")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class TaiSanPhong {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phong_id", nullable = false)
+    private Phong phong;
+
+    @Column(nullable = false)
+    private String tenTaiSan;
+
+    @Column(nullable = false)
+    private Integer soLuong;
+
+    @Column(nullable = false)
+    private BigDecimal giaTri;
+
+    @Column(nullable = false)
+    private String tinhTrang;
+
+    private String ghiChu;
+
+    private String anhTaiSan;
+
+    private ZonedDateTime taoLuc;
+    private ZonedDateTime capNhatLuc;
+
+    @Column(name = "xoa_luc")
+    private ZonedDateTime xoaLuc;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kho_tai_san_id")
+    private KhoTaiSan khoTaiSan;
+}

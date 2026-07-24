@@ -15,7 +15,8 @@ import java.util.UUID;
  * Cac su kien phu di theo chieu client -> server qua WebSocket.
  *
  * Chi nhung thu PHU DU moi di duong nay. Viec gui tin nhan van qua REST POST vi
- * REST da co san validate, chong gui trung bang maClient, va tra ve so_thu_tu cho
+ * REST da co san validate, chong gui trung bang maClient, va tra ve so_thu_tu
+ * cho
  * client dung cho optimistic UI. Cang it duong ghi du lieu thi cang it cho sai.
  */
 @Controller
@@ -24,13 +25,17 @@ public class ChatWebSocketController {
 
     private final TinNhanService tinNhanService;
 
-    /** Bao "dang go" cho nhung nguoi con lai. Khong ghi DB, mat khi restart la binh thuong. */
+    /**
+     * Bao "dang go" cho nhung nguoi con lai. Khong ghi DB, mat khi restart la binh
+     * thuong.
+     */
     @MessageMapping("/hoi-thoai/{hoiThoaiId}/dang-go")
     public void dangGo(@DestinationVariable UUID hoiThoaiId,
-                       @Payload DangGoPayload payload,
-                       Principal principal) {
+            @Payload DangGoPayload payload,
+            Principal principal) {
         UUID nguoiDungId = layNguoiDungId(principal);
-        if (nguoiDungId == null) return;
+        if (nguoiDungId == null)
+            return;
         tinNhanService.baoDangGo(hoiThoaiId, nguoiDungId, payload != null && payload.dangGo());
     }
 

@@ -1,0 +1,949 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { useSession } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { useCache } from '@/hooks/use-cache';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardCard } from "@/components/dashboard/shared-ui";
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  AlertTriangle, 
+  Calendar,
+  Users,
+  Eye,
+  CheckCircle,
+  Clock,
+  RefreshCw,
+  Home,
+  Wrench
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { SuCo, Phong,  KhachThue, 
+  HopDong, 
+  LoaiSuCo, 
+  UuTien, 
+  TrangThaiSuCo 
+} from '@/types';
+import { SuCoImageUpload } from '@/components/ui/su-co-image-upload';
+import { SuCoDataTable } from './table';
+import { unwrapPageData } from '@/lib/api-response';
+
+export default function SuCoPage() {
+  const accessToken = useSession()?.data?.accessToken;
+  const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
+    suCoList: SuCo[];
+    phongList: Phong[];
+    khachThueList: KhachThue[];
+    hopDongList: HopDong[];
+  }>({ key: 'su-co-data', duration: 0 }); // Không cache dữ liệu sự cố để đảm bảo cập nhật liên tục
+  
+  const [suCoList, setSuCoList] = useState<SuCo[]>([]);
+  const [phongList, setPhongList] = useState<Phong[]>([]);
+  const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
+  const [hopDongList, setHopDongList] = useState<HopDong[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSuCo, setEditingSuCo] = useState<SuCo | null>(null);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  useEffect(() => {
+    document.title = 'Quản lý Sự cố';
+  }, []);
+
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    try {
+      setLoading(true);
+      
+      if (!forceRefresh) {
+        const cachedData = getCache();
+        if (cachedData) {
+          setSuCoList(cachedData.suCoList || []);
+          setPhongList(cachedData.phongList || []);
+          setKhachThueList(cachedData.khachThueList || []);
+          setHopDongList(cachedData.hopDongList || []);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Fetch sự cố từ API
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString()
+      });
+      if (statusFilter && statusFilter !== 'all') params.append('trangThai', statusFilter);
+      if (typeFilter && typeFilter !== 'all') params.append('loaiSuCo', typeFilter);
+      if (priorityFilter && priorityFilter !== 'all') params.append('mucDoUuTien', priorityFilter);
+      
+      const suCoResponse = await fetch(`/api/su-co?${params.toString()}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const suCoData = await suCoResponse.json();
+      const suCos = suCoData.success ? (Array.isArray(suCoData.data) ? suCoData.data : (suCoData.data?.data || [])) : [];
+      setSuCoList(suCos);
+      
+      if (suCoData.success && suCoData.data && !Array.isArray(suCoData.data)) {
+        setTotalElements(suCoData.data.total || 0);
+        setTotalPages(suCoData.data.totalPages || 0);
+      } else {
+        setTotalElements(suCos.length);
+        setTotalPages(1);
+      }
+
+      // Fetch phòng từ API
+      const phongResponse = await fetch('/api/phong?page=1&limit=100&simple=true', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const phongData = await phongResponse.json();
+      const phongs = phongData.success ? unwrapPageData<Phong>(phongData.data) : [];
+      setPhongList(phongs);
+
+      // Fetch khách thuê từ API
+      const khachThueResponse = await fetch('/api/khach-thue?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const khachThueData = await khachThueResponse.json();
+      const khachThues = khachThueData.success ? unwrapPageData<KhachThue>(khachThueData.data) : [];
+      setKhachThueList(khachThues);
+
+      // Fetch hợp đồng từ API
+      const hopDongResponse = await fetch('/api/hop-dong?page=1&limit=100', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const hopDongData = await hopDongResponse.json();
+      const hopDongs = hopDongData.success ? unwrapPageData<HopDong>(hopDongData.data) : [];
+      setHopDongList(hopDongs);
+      
+      setCache({
+        suCoList: suCos,
+        phongList: phongs,
+        khachThueList: khachThues,
+        hopDongList: hopDongs,
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setSuCoList([]);
+      setPhongList([]);
+      setKhachThueList([]);
+      setHopDongList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, getCache, setCache, pagination.pageIndex, pagination.pageSize, statusFilter, typeFilter, priorityFilter]);
+
+  useEffect(() => {
+    fetchData(false);
+  }, [fetchData, statusFilter, typeFilter, priorityFilter, pagination.pageIndex, pagination.pageSize]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchData(true);
+    setIsRefreshing(false);
+    toast.success('Đã tải dữ liệu mới nhất');
+  };
+
+  useEffect(() => {
+    // Reset pagination when filter changes
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [statusFilter, typeFilter, priorityFilter]);
+
+  const filteredSuCo = suCoList.filter(suCo => {
+    const matchesSearch = suCo.tieuDe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         suCo.moTa?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesSearch;
+  });
+  const pendingIssues = suCoList.filter(s => s.trangThai === 'PENDING').length;
+  const inProgressIssues = suCoList.filter(s => s.trangThai === 'IN_PROGRESS').length;
+  const resolvedIssues = suCoList.filter(s => s.trangThai === 'RESOLVED').length;
+  const urgentIssues = suCoList.filter(s => s.mucDoUuTien === 'khan_cap').length;
+  const highPriorityIssues = suCoList.filter(s => s.mucDoUuTien === 'cao').length;
+  const totalIssueCount = totalElements || suCoList.length;
+  const issueStatusBadgeText = urgentIssues > 0
+    ? 'Có sự cố cần xử lý gấp'
+    : pendingIssues > 0
+      ? 'Cần tiếp nhận sự cố'
+      : 'Sự cố ổn định';
+  const issueStatusBadgeClass = urgentIssues > 0
+    ? 'is-danger'
+    : pendingIssues > 0
+      ? ''
+      : 'is-stable';
+  const pendingToneClass = urgentIssues > 0 ? 'is-red' : pendingIssues > 0 ? 'is-orange' : 'is-teal';
+  const inProgressToneClass = inProgressIssues > 0 ? 'is-orange' : 'is-neutral';
+  const resolvedToneClass = resolvedIssues > 0 ? 'is-teal' : 'is-neutral';
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Badge variant="destructive">Mới</Badge>;
+      case 'IN_PROGRESS':
+        return <Badge variant="secondary">Đang xử lý</Badge>;
+      case 'RESOLVED':
+        return <Badge variant="default">Đã xong</Badge>;
+      case 'CANCELLED':
+        return <Badge variant="outline">Đã hủy</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'dien_nuoc':
+        return <Badge variant="secondary">Điện nước</Badge>;
+      case 'noi_that':
+        return <Badge variant="outline">Nội thất</Badge>;
+      case 've_sinh':
+        return <Badge variant="outline">Vệ sinh</Badge>;
+      case 'an_ninh':
+        return <Badge variant="outline">An ninh</Badge>;
+      case 'khac':
+        return <Badge variant="outline">Khác</Badge>;
+      default:
+        return <Badge variant="outline">{type}</Badge>;
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'thap':
+        return <Badge variant="outline">Thấp</Badge>;
+      case 'trung_binh':
+        return <Badge variant="secondary">Trung bình</Badge>;
+      case 'cao':
+        return <Badge variant="destructive">Cao</Badge>;
+      case 'khan_cap':
+        return <Badge variant="destructive">Khẩn cấp</Badge>;
+      default:
+        return <Badge variant="outline">{priority}</Badge>;
+    }
+  };
+
+  const getKhachThueName = (khachThue: string | { hoTen: string }) => {
+    if (typeof khachThue === 'string') {
+      const khachThueObj = khachThueList.find(k => k._id === khachThue);
+      return khachThueObj?.hoTen || 'Không xác định';
+    }
+    return khachThue?.hoTen || 'Không xác định';
+  };
+
+  const handleEdit = (suCo: SuCo) => {
+    setEditingSuCo(suCo);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/su-co/${id}`, {
+        method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        clearCache();
+        setSuCoList(prev => prev.filter(suCo => suCo._id !== id));
+        toast.success('Hủy sự cố thành công');
+      } else {
+        console.error('Error deleting su co:', result.message);
+        toast.error('Có lỗi xảy ra: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error deleting su co:', error);
+      toast.error('Có lỗi xảy ra khi hủy sự cố');
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/su-co/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          trangThai: newStatus,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuCoList(prev => prev.map(suCo => {
+          if (suCo._id === id) {
+            return result.data;
+          }
+          return suCo;
+        }));
+        clearCache(); // Xóa cache để đảm bảo dữ liệu đồng bộ
+        toast.success('Cập nhật trạng thái thành công');
+      } else {
+        console.error('Error updating status:', result.message);
+        toast.error('Có lỗi xảy ra: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+        </div>
+        <div className="h-96 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 md:space-y-6">
+      <section className="su-co-hero">
+        <div className="su-co-hero__content">
+          <div className="su-co-hero__eyebrow">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            <span>QUẢN LÝ SỰ CỐ</span>
+          </div>
+
+          <div className="su-co-hero__title-row">
+            <h1>Quản lý sự cố</h1>
+            <span className={`su-co-hero__status-badge ${issueStatusBadgeClass}`}>
+              {issueStatusBadgeText}
+            </span>
+          </div>
+
+          <p>Theo dõi, tiếp nhận và xử lý các sự cố phát sinh từ khách thuê trong một nơi.</p>
+
+          {totalIssueCount > 0 && (
+            <div className="su-co-hero__insight">
+              <span>
+                Hiện có <strong className="mx-1">{pendingIssues} sự cố mới</strong> cần tiếp nhận trên tổng <strong className="mx-1">{totalIssueCount} sự cố</strong> được ghi nhận.
+              </span>
+            </div>
+          )}
+
+          <div className="su-co-hero__chips" aria-label="Tóm tắt trạng thái sự cố">
+            <span className="su-co-hero__chip">{totalIssueCount} sự cố</span>
+            <span className="su-co-hero__chip">{pendingIssues} mới</span>
+            <span className="su-co-hero__chip">{inProgressIssues} đang xử lý</span>
+            <span className="su-co-hero__chip">{resolvedIssues} đã xong</span>
+            {highPriorityIssues > 0 && <span className="su-co-hero__chip">{highPriorityIssues} ưu tiên cao</span>}
+          </div>
+
+          <div className="su-co-hero__workflow" aria-label="Quy trình xử lý sự cố">
+            <span>Tiếp nhận</span>
+            <span aria-hidden="true">→</span>
+            <span>Phân công</span>
+            <span aria-hidden="true">→</span>
+            <span>Xử lý</span>
+            <span aria-hidden="true">→</span>
+            <span>Hoàn tất</span>
+          </div>
+
+
+        </div>
+
+        <div className="su-co-hero__actions">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="su-co-hero__button su-co-hero__button-secondary"
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                onClick={() => setEditingSuCo(null)}
+                className="su-co-hero__button su-co-hero__button-primary"
+              >
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Báo cáo sự cố</span>
+                <span className="sm:hidden">Báo cáo</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[95vw] md:w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingSuCo ? 'Chỉnh sửa sự cố' : 'Báo cáo sự cố mới'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingSuCo ? 'Cập nhật thông tin sự cố' : 'Nhập thông tin sự cố mới'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <SuCoForm
+                suCo={editingSuCo}
+                phongList={phongList}
+                hopDongList={hopDongList}
+                getKhachThueName={getKhachThueName}
+                onClose={() => setIsDialogOpen(false)}
+                onSuccess={() => {
+                  clearCache();
+                  setIsDialogOpen(false);
+                  fetchData(true);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
+
+      {/* Thống kê sự cố - Stats Section */}
+      <section className="mt-6 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="su-co-hero__stat-card is-navy">
+            <div className="su-co-hero__stat-top">
+              <span>Tổng sự cố</span>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{totalIssueCount}</strong>
+            <small>Toàn bộ sự cố được ghi nhận</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${pendingToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Mới</span>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{pendingIssues}</strong>
+            <small>Chưa được tiếp nhận xử lý</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${inProgressToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Đang xử lý</span>
+              <Clock className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{inProgressIssues}</strong>
+            <small>Đang được phân công xử lý</small>
+          </div>
+          <div className={`su-co-hero__stat-card ${resolvedToneClass}`}>
+            <div className="su-co-hero__stat-top">
+              <span>Đã xong</span>
+              <CheckCircle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <strong>{resolvedIssues}</strong>
+            <small>Sự cố đã hoàn tất</small>
+          </div>
+        </div>
+      </section>
+
+      {/* Desktop Table */}
+      <DashboardCard className="hidden md:block overflow-hidden">
+        <CardHeader className="border-b bg-[#F2E8DC]/70 pb-4">
+          <CardTitle className="text-lg text-[#243B5A]">Danh sách sự cố</CardTitle>
+          <CardDescription>
+            {filteredSuCo.length} sự cố được tìm thấy
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <SuCoDataTable
+            data={filteredSuCo}
+            phongList={phongList}
+            khachThueList={khachThueList}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            typeFilter={typeFilter}
+            onTypeChange={setTypeFilter}
+            priorityFilter={priorityFilter}
+            onPriorityChange={setPriorityFilter}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          />
+        </CardContent>
+      </DashboardCard>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Danh sách sự cố</h2>
+          <span className="text-sm text-gray-500">{filteredSuCo.length} sự cố</span>
+        </div>
+        
+        {/* Mobile Filters */}
+        <div className="space-y-2 mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm sự cố..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
+                <SelectItem value="PENDING" className="text-sm">Mới</SelectItem>
+                <SelectItem value="IN_PROGRESS" className="text-sm">Đang xử lý</SelectItem>
+                <SelectItem value="RESOLVED" className="text-sm">Đã xong</SelectItem>
+                <SelectItem value="CANCELLED" className="text-sm">Đã hủy</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
+                <SelectItem value="dien_nuoc" className="text-sm">Điện nước</SelectItem>
+                <SelectItem value="noi_that" className="text-sm">Nội thất</SelectItem>
+                <SelectItem value="ve_sinh" className="text-sm">Vệ sinh</SelectItem>
+                <SelectItem value="an_ninh" className="text-sm">An ninh</SelectItem>
+                <SelectItem value="khac" className="text-sm">Khác</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Ưu tiên" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-sm">Tất cả</SelectItem>
+                <SelectItem value="thap" className="text-sm">Thấp</SelectItem>
+                <SelectItem value="trung_binh" className="text-sm">Trung bình</SelectItem>
+                <SelectItem value="cao" className="text-sm">Cao</SelectItem>
+                <SelectItem value="khan_cap" className="text-sm">Khẩn cấp</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Mobile Card List */}
+        <div className="space-y-3">
+          {filteredSuCo.map((suCo) => {
+            const phongInfo = typeof suCo.phong === 'object' ? suCo.phong : phongList.find(p => p._id === suCo.phong);
+            const khachThueInfo = typeof suCo.khachThue === 'object' ? suCo.khachThue : khachThueList.find(k => k._id === suCo.khachThue);
+            
+            return (
+              <Card key={suCo._id} className="p-4">
+                <div className="space-y-3">
+                  {/* Header with title and status */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{suCo.tieuDe}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Home className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-600 truncate">
+                          {phongInfo?.maPhong || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1 items-end">
+                      {getStatusBadge(suCo.trangThai)}
+                      {getPriorityBadge(suCo.mucDoUuTien)}
+                    </div>
+                  </div>
+
+                  {/* Reporter and type info */}
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3 w-3 text-gray-400" />
+                      <span className="text-gray-600 truncate">
+                        {khachThueInfo?.hoTen || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-3 w-3 text-gray-400" />
+                      <span className="text-gray-600">{getTypeBadge(suCo.loaiSuCo)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <span>Báo cáo: {new Date(suCo.ngayBaoCao).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="border-t pt-2">
+                    <p className="text-xs text-gray-600 line-clamp-2">{suCo.moTa}</p>
+                  </div>
+
+                  {/* Images */}
+                  {suCo.anhSuCo && suCo.anhSuCo.length > 0 && (
+                    <div className="pt-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 gap-1 text-xs w-full">
+                            <Eye className="h-3 w-3" />
+                            Xem {suCo.anhSuCo.length} ảnh đính kèm
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl w-[95vw]">
+                          <DialogHeader>
+                            <DialogTitle>Ảnh sự cố đính kèm</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4 mt-4 max-h-[60vh] overflow-y-auto p-1">
+                            {suCo.anhSuCo.map((img, i) => (
+                              <div key={i} className="relative aspect-square rounded-md overflow-hidden border">
+                                <Image src={img} alt={`Ảnh ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 320px" className="object-cover" />
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(suCo)}
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(suCo._id!)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {filteredSuCo.length === 0 && (
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">Không có sự cố nào</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Form component for adding/editing su co
+function SuCoForm({ 
+  suCo, 
+  phongList,
+  hopDongList,
+  getKhachThueName,
+  onClose, 
+  onSuccess 
+}: { 
+  suCo: SuCo | null;
+  phongList: Phong[];
+  hopDongList: HopDong[];
+  getKhachThueName: (khachThue: string | { hoTen: string }) => string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const accessToken = useSession()?.data?.accessToken;
+  const [formData, setFormData] = useState<{
+    phongId: string | undefined;
+    khachThueId: string;
+    tieuDe: string;
+    moTa: string;
+    loaiSuCo: LoaiSuCo;
+    uuTien: UuTien;
+    trangThai: TrangThaiSuCo;
+    ghiChuChuNha: string;
+  }>({
+    phongId: typeof suCo?.phong === 'object' ? suCo.phong._id : (suCo?.phong as string || undefined),
+    khachThueId: (typeof suCo?.nguoiBaoCao === 'object' ? suCo.nguoiBaoCao._id : (typeof suCo?.khachThue === 'object' ? suCo.khachThue._id : suCo?.khachThue)) as string || '',
+    tieuDe: suCo?.tieuDe || '',
+    moTa: suCo?.moTa || '',
+    loaiSuCo: suCo?.loaiSuCo || 'dien_nuoc',
+    uuTien: suCo?.mucDoUuTien || 'trung_binh',
+    trangThai: suCo?.trangThai || 'PENDING',
+    ghiChuChuNha: suCo?.ghiChuXuLy || suCo?.ghiChuChuNha || '',
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPhong, setSelectedPhong] = useState<Phong | null>(null);
+  const [images, setImages] = useState<string[]>(suCo?.anhSuCo || []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation: phải chọn phòng và có khách thuê
+    if (!formData.phongId) {
+      toast.error('Vui lòng chọn phòng');
+      return;
+    }
+    
+    if (!formData.khachThueId) {
+      toast.error('Không tìm thấy khách thuê cho phòng này. Vui lòng kiểm tra hợp đồng.');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      // Prepare data for API - match SuCoRequest DTO
+      const submitData = {
+        phongId: formData.phongId,
+        khachThueId: formData.khachThueId,
+        tieuDe: formData.tieuDe,
+        moTa: formData.moTa,
+        loaiSuCo: formData.loaiSuCo,
+        uuTien: formData.uuTien,
+        trangThai: suCo ? formData.trangThai : undefined,
+        ghiChuChuNha: formData.ghiChuChuNha,
+        anhSuCo: images,
+      };
+
+      const url = suCo ? `/api/su-co/${suCo._id}` : '/api/su-co';
+      const method = suCo ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(suCo ? 'Cập nhật sự cố thành công' : 'Báo cáo sự cố thành công');
+        onSuccess();
+      } else {
+        console.error('Error submitting form:', result.message);
+        toast.error('Có lỗi xảy ra: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Có lỗi xảy ra khi gửi form');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
+  const handlePhongChange = async (phongId: string) => {
+    setFormData(prev => ({ ...prev, phongId: phongId }));
+    
+    // Tìm thông tin phòng được chọn
+    const phong = phongList.find(p => p._id === phongId);
+    setSelectedPhong(phong || null);
+    
+    if (phong) {
+      // Tìm hợp đồng đang hoạt động cho phòng này
+      const hopDongHoatDong = hopDongList.find(hd => {
+        const hdPhongId = typeof hd.phong === 'object' ? (hd.phong as { _id?: string })._id : hd.phong;
+        return hdPhongId === phongId && (hd.trangThai === 'hoatDong' || hd.trangThai === 'ACTIVE');
+      });
+      
+      if (hopDongHoatDong && hopDongHoatDong.nguoiDaiDien) {
+        const nguoiDaiDienId = typeof hopDongHoatDong.nguoiDaiDien === 'object' 
+          ? (hopDongHoatDong.nguoiDaiDien as { _id?: string })._id 
+          : hopDongHoatDong.nguoiDaiDien;
+        setFormData(prev => ({ ...prev, khachThueId: nguoiDaiDienId || '' }));
+      } else {
+        setFormData(prev => ({ ...prev, khachThueId: '' }));
+      }
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="phong" className="text-xs md:text-sm">Phòng</Label>
+          <Select value={formData.phongId as string} onValueChange={handlePhongChange}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Chọn phòng" />
+            </SelectTrigger>
+            <SelectContent>
+              {phongList.filter(p => p.trangThai === 'dangThue' || p.trangThai === 'RENTED' || p._id === formData.phongId).map((phong) => (
+                <SelectItem key={phong._id} value={phong._id!} className="text-sm">
+                  {phong.maPhong}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="khachThue" className="text-xs md:text-sm">Khách thuê</Label>
+          {formData.khachThueId ? (
+            <div className="p-3 bg-gray-50 rounded-md border">
+              <div className="text-sm font-medium">
+                {getKhachThueName(formData.khachThueId)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {selectedPhong && `Phòng ${selectedPhong.maPhong}`}
+              </div>
+              <div className="text-xs text-green-600 mt-1">
+                ✓ Tự động lấy từ hợp đồng đang hoạt động
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
+              <div className="text-sm text-yellow-800">
+                Vui lòng chọn phòng để tự động lấy thông tin khách thuê
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="tieuDe" className="text-xs md:text-sm">Tiêu đề</Label>
+        <Input
+          id="tieuDe"
+          value={formData.tieuDe}
+          onChange={(e) => setFormData(prev => ({ ...prev, tieuDe: e.target.value }))}
+          placeholder="Nhập tiêu đề sự cố"
+          required
+          className="text-sm"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="moTa" className="text-xs md:text-sm">Mô tả chi tiết</Label>
+        <Textarea
+          id="moTa"
+          value={formData.moTa}
+          onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
+          rows={4}
+          placeholder="Mô tả chi tiết về sự cố..."
+          required
+          className="text-sm"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="loaiSuCo" className="text-xs md:text-sm">Loại sự cố</Label>
+          <Select value={formData.loaiSuCo} onValueChange={(value) => setFormData(prev => ({ ...prev, loaiSuCo: value as SuCo['loaiSuCo'] }))}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Chọn loại sự cố" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="dien_nuoc" className="text-sm">Điện nước</SelectItem>
+              <SelectItem value="noi_that" className="text-sm">Nội thất</SelectItem>
+              <SelectItem value="ve_sinh" className="text-sm">Vệ sinh</SelectItem>
+              <SelectItem value="an_ninh" className="text-sm">An ninh</SelectItem>
+              <SelectItem value="khac" className="text-sm">Khác</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="uuTien" className="text-xs md:text-sm">Mức độ ưu tiên</Label>
+          <Select value={formData.uuTien} onValueChange={(value) => setFormData(prev => ({ ...prev, uuTien: value as SuCo['mucDoUuTien'] }))}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Chọn mức độ ưu tiên" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="thap" className="text-sm">Thấp</SelectItem>
+              <SelectItem value="trung_binh" className="text-sm">Trung bình</SelectItem>
+              <SelectItem value="cao" className="text-sm">Cao</SelectItem>
+              <SelectItem value="khan_cap" className="text-sm">Khẩn cấp</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {suCo && (
+        <div className="space-y-2">
+          <Label htmlFor="trangThai" className="text-xs md:text-sm">Trạng thái</Label>
+          <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as SuCo['trangThai'] }))}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING" className="text-sm">Mới</SelectItem>
+              <SelectItem value="IN_PROGRESS" className="text-sm">Đang xử lý</SelectItem>
+              <SelectItem value="RESOLVED" className="text-sm">Đã xong</SelectItem>
+              <SelectItem value="CANCELLED" className="text-sm">Đã hủy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {suCo && (formData.trangThai === 'IN_PROGRESS' || formData.trangThai === 'RESOLVED') && (
+        <div className="space-y-2">
+          <Label htmlFor="ghiChuChuNha" className="text-xs md:text-sm">Ghi chú xử lý</Label>
+          <Textarea
+            id="ghiChuChuNha"
+            value={formData.ghiChuChuNha}
+            onChange={(e) => setFormData(prev => ({ ...prev, ghiChuChuNha: e.target.value }))}
+            rows={3}
+            placeholder="Ghi chú về quá trình xử lý..."
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      <SuCoImageUpload
+        images={images}
+        onImagesChange={setImages}
+        maxImages={5}
+      />
+
+      <DialogFooter className="flex-col sm:flex-row gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto">
+          Hủy
+        </Button>
+        <Button type="submit" size="sm" disabled={isSubmitting} className="w-full sm:w-auto">
+          {isSubmitting ? 'Đang xử lý...' : (suCo ? 'Cập nhật' : 'Báo cáo')}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
