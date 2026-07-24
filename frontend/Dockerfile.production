@@ -1,0 +1,37 @@
+FROM node:22-alpine AS dependencies
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+ARG BACKEND_URL=http://backend:8080
+ENV BACKEND_URL=$BACKEND_URL
+# NEXT_PUBLIC_* variables are compiled into browser JavaScript by `next build`.
+# Keep the WebSocket endpoint available at build time, not only at container start.
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+
+USER node
+EXPOSE 3000
+
+CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0"]

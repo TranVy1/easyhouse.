@@ -1,0 +1,5 @@
+ ./easyhouse.sh start
+  ./easyhouse.sh stop
+  ./easyhouse.sh restart
+  ./easyhouse.sh status
+  ./easyhouse.sh logs

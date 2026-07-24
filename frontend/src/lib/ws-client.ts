@@ -20,8 +20,8 @@ type Handler = (payload: unknown) => void;
 
 const WS_URL =
   process.env.NEXT_PUBLIC_WS_URL ||
-  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'ws://localhost:8080/ws'
+  (typeof window !== 'undefined'
+    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`
     : '');
 
 /** Backoff luỹ thừa: 1s → 2s → 4s … tối đa 30s, để không dội bom server khi nó đang chết. */

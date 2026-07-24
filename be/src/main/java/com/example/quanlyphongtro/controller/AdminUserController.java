@@ -1,3 +1,4 @@
+
 package com.example.quanlyphongtro.controller;
 
 import com.example.quanlyphongtro.dto.AdminUserRequest;
@@ -25,7 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("@permissionService.isAdmin(authentication.principal)")
 public class AdminUserController {
 
     private final UserService userService;
@@ -78,7 +79,8 @@ public class AdminUserController {
     }
 
     @PostMapping("/{id}/buildings")
-    public ApiResponse<Void> assignBuildings(@PathVariable UUID id, @RequestBody UserBuildingAssignmentRequest request) {
+    public ApiResponse<Void> assignBuildings(@PathVariable UUID id,
+            @RequestBody UserBuildingAssignmentRequest request) {
         try {
             userService.assignBuildings(id, request);
             return ApiResponse.success(null, "Gán tòa nhà thành công");
