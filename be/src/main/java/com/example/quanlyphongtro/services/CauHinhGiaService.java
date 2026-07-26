@@ -33,7 +33,8 @@ public class CauHinhGiaService {
     private final CauHinhGiaRepository cauHinhGiaRepository;
     private final NhaTroRepository nhaTroRepository;
 
-    public PaginatedResponse<CauHinhGiaResponse> getAll(UUID nhaTroId, String loaiRaw, Boolean dangApDung, Pageable pageable) {
+    public PaginatedResponse<CauHinhGiaResponse> getAll(UUID nhaTroId, String loaiRaw, Boolean dangApDung,
+            Pageable pageable) {
         LoaiMucHoaDon loai = parseLoai(loaiRaw, false);
         UUID userId = permissionService.requireCurrentUserId();
         List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
@@ -108,7 +109,7 @@ public class CauHinhGiaService {
                 .build();
 
         validateMoney(entity.getDonGia());
-        
+
         if (Boolean.TRUE.equals(entity.getDangApDung())) {
             deactivateExistingConfigs(entity, null);
         }
@@ -135,8 +136,11 @@ public class CauHinhGiaService {
                 .nhaTro(nhaTro)
                 .dichVuId(request.getDichVuId() != null ? request.getDichVuId() : oldEntity.getDichVuId())
                 .loai(request.getLoai() != null ? parseLoai(request.getLoai(), true) : oldEntity.getLoai())
-                .tenHienThi(request.getTenHienThi() != null && !request.getTenHienThi().isBlank() ? request.getTenHienThi().trim() : oldEntity.getTenHienThi())
-                .loaiTinhPhi(request.getLoaiTinhPhi() != null ? parseLoaiTinhPhi(request.getLoaiTinhPhi()) : oldEntity.getLoaiTinhPhi())
+                .tenHienThi(request.getTenHienThi() != null && !request.getTenHienThi().isBlank()
+                        ? request.getTenHienThi().trim()
+                        : oldEntity.getTenHienThi())
+                .loaiTinhPhi(request.getLoaiTinhPhi() != null ? parseLoaiTinhPhi(request.getLoaiTinhPhi())
+                        : oldEntity.getLoaiTinhPhi())
                 .donGia(request.getDonGia() != null ? request.getDonGia() : oldEntity.getDonGia())
                 .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
                 .hieuLucDen(request.getHieuLucDen() != null ? request.getHieuLucDen() : oldEntity.getHieuLucDen())
@@ -179,7 +183,8 @@ public class CauHinhGiaService {
 
     private LoaiMucHoaDon parseLoai(String value, boolean required) {
         if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
-            if (required) throw new RuntimeException("Loại cấu hình giá không hợp lệ");
+            if (required)
+                throw new RuntimeException("Loại cấu hình giá không hợp lệ");
             return null;
         }
         try {
@@ -213,10 +218,12 @@ public class CauHinhGiaService {
     }
 
     private void deactivateExistingConfigs(CauHinhGia entity, UUID excludeId) {
-        if (entity.getNhaTro() == null || entity.getLoai() == null) return;
-        List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
-                entity.getNhaTro().getId(), entity.getLoai());
-        
+        if (entity.getNhaTro() == null || entity.getLoai() == null)
+            return;
+        List<CauHinhGia> activeConfigs = cauHinhGiaRepository
+                .findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
+                        entity.getNhaTro().getId(), entity.getLoai());
+
         for (CauHinhGia existing : activeConfigs) {
             if (excludeId != null && existing.getId().equals(excludeId)) {
                 existing.setDangApDung(false);
@@ -230,12 +237,15 @@ public class CauHinhGiaService {
                 cauHinhGiaRepository.save(existing);
                 continue;
             }
-            
+
             if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
-                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
-                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
+                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId()))
+                    continue;
+                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null
+                        && !entity.getTenHienThi().equals(existing.getTenHienThi()))
+                    continue;
             }
-            
+
             // Deactivate other matching configs
             existing.setDangApDung(false);
             LocalDate newDen = entity.getHieuLucTu().minusDays(1);
@@ -250,30 +260,40 @@ public class CauHinhGiaService {
     }
 
     private void validateOverlap(CauHinhGia entity, UUID excludeId) {
-        if (!Boolean.TRUE.equals(entity.getDangApDung())) return;
-        if (entity.getNhaTro() == null || entity.getLoai() == null) return;
-        
-        List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
-                entity.getNhaTro().getId(), entity.getLoai());
+        if (!Boolean.TRUE.equals(entity.getDangApDung()))
+            return;
+        if (entity.getNhaTro() == null || entity.getLoai() == null)
+            return;
+
+        List<CauHinhGia> activeConfigs = cauHinhGiaRepository
+                .findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
+                        entity.getNhaTro().getId(), entity.getLoai());
 
         for (CauHinhGia existing : activeConfigs) {
-            if (entity.getId() != null && entity.getId().equals(existing.getId())) continue;
-            if (excludeId != null && existing.getId().equals(excludeId)) continue;
-            if (Boolean.FALSE.equals(existing.getDangApDung())) continue;
+            if (entity.getId() != null && entity.getId().equals(existing.getId()))
+                continue;
+            if (excludeId != null && existing.getId().equals(excludeId))
+                continue;
+            if (Boolean.FALSE.equals(existing.getDangApDung()))
+                continue;
 
             if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
-                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
-                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
+                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId()))
+                    continue;
+                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null
+                        && !entity.getTenHienThi().equals(existing.getTenHienThi()))
+                    continue;
             }
-            
+
             LocalDate start1 = entity.getHieuLucTu() != null ? entity.getHieuLucTu() : LocalDate.MIN;
             LocalDate end1 = entity.getHieuLucDen() != null ? entity.getHieuLucDen() : LocalDate.MAX;
-            
+
             LocalDate start2 = existing.getHieuLucTu() != null ? existing.getHieuLucTu() : LocalDate.MIN;
             LocalDate end2 = existing.getHieuLucDen() != null ? existing.getHieuLucDen() : LocalDate.MAX;
-            
+
             if (!start1.isAfter(end2) && !start2.isAfter(end1)) {
-                throw new RuntimeException("Cấu hình giá bị trùng lặp thời gian áp dụng với một cấu hình khác cùng loại");
+                throw new RuntimeException(
+                        "Cấu hình giá bị trùng lặp thời gian áp dụng với một cấu hình khác cùng loại");
             }
         }
     }
@@ -284,14 +304,16 @@ public class CauHinhGiaService {
     private com.example.quanlyphongtro.services.PermissionService permissionService;
 
     private void logAudit(CauHinhGia chg, String hanhDong) {
-        if (auditLogRepository == null) return;
+        if (auditLogRepository == null)
+            return;
         com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
-            .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
-            .hanhDong(hanhDong)
-            .bangTacDong("cau_hinh_gia")
-            .banGhiId(chg.getId())
-            .taoLuc(java.time.ZonedDateTime.now())
-            .build();
+                .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder()
+                        .id(permissionService.requireCurrentUserId()).build())
+                .hanhDong(hanhDong)
+                .bangTacDong("cau_hinh_gia")
+                .banGhiId(chg.getId())
+                .taoLuc(java.time.ZonedDateTime.now())
+                .build();
         auditLogRepository.save(log);
     }
 
