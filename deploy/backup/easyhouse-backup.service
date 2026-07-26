@@ -1,0 +1,14 @@
+[Unit]
+Description=EasyHouse backup source and PostgreSQL to encrypted Google Drive
+Wants=docker.service network-online.target
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/home
+ExecStart=/home/scripts/backup-to-google-drive.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

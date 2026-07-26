@@ -4,6 +4,8 @@
 *.key
 secrets/
 credentials/
+/deploy/backup/backup.env
+/backups/
 /apk/
 /be/node_modules/
 /frontend/node_modules/
