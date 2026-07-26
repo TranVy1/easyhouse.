@@ -108,7 +108,12 @@ public class CauHinhGiaService {
                 .build();
 
         validateMoney(entity.getDonGia());
-        validateOverlap(entity);
+        
+        if (Boolean.TRUE.equals(entity.getDangApDung())) {
+            deactivateExistingConfigs(entity, null);
+        }
+
+        validateOverlap(entity, null);
         CauHinhGia saved = cauHinhGiaRepository.save(entity);
         logAudit(saved, "CREATE");
         return CauHinhGiaResponse.fromEntity(saved);
@@ -142,18 +147,10 @@ public class CauHinhGiaService {
         validateDateRange(newEntity.getHieuLucTu(), newEntity.getHieuLucDen());
 
         if (Boolean.TRUE.equals(oldEntity.getDangApDung())) {
-            oldEntity.setDangApDung(false);
-            LocalDate newDen = newEntity.getHieuLucTu().minusDays(1);
-            if (oldEntity.getHieuLucTu() != null && newDen.isBefore(oldEntity.getHieuLucTu())) {
-                newDen = oldEntity.getHieuLucTu();
-            }
-            if (oldEntity.getHieuLucDen() == null || oldEntity.getHieuLucDen().isAfter(newDen)) {
-                oldEntity.setHieuLucDen(newDen);
-            }
-            cauHinhGiaRepository.save(oldEntity);
+            deactivateExistingConfigs(newEntity, oldEntity.getId());
         }
 
-        validateOverlap(newEntity);
+        validateOverlap(newEntity, oldEntity.getId());
         CauHinhGia saved = cauHinhGiaRepository.save(newEntity);
         logAudit(saved, "UPDATE_VERSION");
         return CauHinhGiaResponse.fromEntity(saved);
@@ -215,17 +212,55 @@ public class CauHinhGiaService {
         }
     }
 
-    private void validateOverlap(CauHinhGia entity) {
+    private void deactivateExistingConfigs(CauHinhGia entity, UUID excludeId) {
+        if (entity.getNhaTro() == null || entity.getLoai() == null) return;
+        List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
+                entity.getNhaTro().getId(), entity.getLoai());
+        
+        for (CauHinhGia existing : activeConfigs) {
+            if (excludeId != null && existing.getId().equals(excludeId)) {
+                existing.setDangApDung(false);
+                LocalDate newDen = entity.getHieuLucTu().minusDays(1);
+                if (existing.getHieuLucTu() != null && newDen.isBefore(existing.getHieuLucTu())) {
+                    newDen = existing.getHieuLucTu();
+                }
+                if (existing.getHieuLucDen() == null || existing.getHieuLucDen().isAfter(newDen)) {
+                    existing.setHieuLucDen(newDen);
+                }
+                cauHinhGiaRepository.save(existing);
+                continue;
+            }
+            
+            if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
+                if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
+                if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
+            }
+            
+            // Deactivate other matching configs
+            existing.setDangApDung(false);
+            LocalDate newDen = entity.getHieuLucTu().minusDays(1);
+            if (existing.getHieuLucTu() != null && newDen.isBefore(existing.getHieuLucTu())) {
+                newDen = existing.getHieuLucTu();
+            }
+            if (existing.getHieuLucDen() == null || existing.getHieuLucDen().isAfter(newDen)) {
+                existing.setHieuLucDen(newDen);
+            }
+            cauHinhGiaRepository.save(existing);
+        }
+    }
+
+    private void validateOverlap(CauHinhGia entity, UUID excludeId) {
         if (!Boolean.TRUE.equals(entity.getDangApDung())) return;
         if (entity.getNhaTro() == null || entity.getLoai() == null) return;
         
-        // Validate overlap cho tat ca loai can doc quyen
         List<CauHinhGia> activeConfigs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
                 entity.getNhaTro().getId(), entity.getLoai());
 
         for (CauHinhGia existing : activeConfigs) {
             if (entity.getId() != null && entity.getId().equals(existing.getId())) continue;
-            // Neu loai dich vu giong nhau (nhung la loai OTHER) thi phai check dichVuId giong nhau
+            if (excludeId != null && existing.getId().equals(excludeId)) continue;
+            if (Boolean.FALSE.equals(existing.getDangApDung())) continue;
+
             if (entity.getLoai() == LoaiMucHoaDon.OTHER || entity.getLoai() == LoaiMucHoaDon.SERVICE) {
                 if (entity.getDichVuId() != null && !entity.getDichVuId().equals(existing.getDichVuId())) continue;
                 if (entity.getTenHienThi() != null && existing.getTenHienThi() != null && !entity.getTenHienThi().equals(existing.getTenHienThi())) continue;
