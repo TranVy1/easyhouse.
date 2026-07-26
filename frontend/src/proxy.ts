@@ -1,5 +1,8 @@
 import { withAuth, NextRequestWithAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { sessionCookie } from '@/lib/auth-config';
+
+const adminSessionCookie = sessionCookie('easyhouse.admin.session-token');
 
 export default withAuth(
   function proxy(req: NextRequestWithAuth) {
@@ -33,6 +36,12 @@ export default withAuth(
     });
   },
   {
+    // Keep withAuth in sync with authOptions.cookies.sessionToken. Without
+    // this, production middleware looks for the default cookie instead of
+    // __Host-easyhouse.admin.session-token and redirects valid admins away.
+    cookies: {
+      sessionToken: { name: adminSessionCookie.name },
+    },
     callbacks: {
       authorized: ({ token, req }) => {
         const role = typeof token?.role === 'string'
