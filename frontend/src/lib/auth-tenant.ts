@@ -1,5 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import { requireNextAuthSecret, sessionCookie } from '@/lib/auth-config';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 
@@ -46,7 +48,7 @@ export const authTenantOptions: NextAuthOptions = {
               accessToken: token,
               refreshToken: refreshToken || '',
               emailVerified: true,
-              accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
+              accessTokenExpires: Date.now() + 15 * 60 * 1000,
               requirePasswordChange: result.data.requirePasswordChange || false,
             };
           }
@@ -63,6 +65,9 @@ export const authTenantOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  cookies: {
+    sessionToken: sessionCookie('easyhouse.tenant.session-token'),
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -73,9 +78,16 @@ export const authTenantOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
         token.emailVerified = user.emailVerified as boolean | undefined;
         token.accessTokenExpires = user.accessTokenExpires;
+        token.sessionVersion = '2';
         token.requirePasswordChange = user.requirePasswordChange;
       }
-      return token;
+      if (token.sessionVersion === '2'
+          && typeof token.accessTokenExpires === 'number'
+          && Date.now() < token.accessTokenExpires) {
+        return token;
+      }
+
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token) {
@@ -95,10 +107,10 @@ export const authTenantOptions: NextAuthOptions = {
     signIn: '/khach-thue/dang-nhap',
     error: '/khach-thue/dang-nhap',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'secret-key-qlyphongtro',
+  secret: requireNextAuthSecret(),
 };
 
-async function refreshAccessToken(token: Record<string, unknown>) {
+async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
       method: 'POST',
@@ -114,7 +126,8 @@ async function refreshAccessToken(token: Record<string, unknown>) {
         ...token,
         accessToken: data.token,
         refreshToken: data.refreshToken ?? token.refreshToken,
-        accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
+        accessTokenExpires: Date.now() + 15 * 60 * 1000,
+        sessionVersion: '2',
         error: undefined,
       };
     }

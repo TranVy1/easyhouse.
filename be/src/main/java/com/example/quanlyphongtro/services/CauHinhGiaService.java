@@ -143,8 +143,12 @@ public class CauHinhGiaService {
 
         if (Boolean.TRUE.equals(oldEntity.getDangApDung())) {
             oldEntity.setDangApDung(false);
-            if (oldEntity.getHieuLucDen() == null || oldEntity.getHieuLucDen().isAfter(newEntity.getHieuLucTu().minusDays(1))) {
-                oldEntity.setHieuLucDen(newEntity.getHieuLucTu().minusDays(1));
+            LocalDate newDen = newEntity.getHieuLucTu().minusDays(1);
+            if (oldEntity.getHieuLucTu() != null && newDen.isBefore(oldEntity.getHieuLucTu())) {
+                newDen = oldEntity.getHieuLucTu();
+            }
+            if (oldEntity.getHieuLucDen() == null || oldEntity.getHieuLucDen().isAfter(newDen)) {
+                oldEntity.setHieuLucDen(newDen);
             }
             cauHinhGiaRepository.save(oldEntity);
         }
@@ -161,7 +165,11 @@ public class CauHinhGiaService {
         checkWritePermission(entity.getNhaTro());
         entity.setDangApDung(false);
         if (entity.getHieuLucDen() == null) {
-            entity.setHieuLucDen(LocalDate.now());
+            LocalDate den = LocalDate.now();
+            if (entity.getHieuLucTu() != null && den.isBefore(entity.getHieuLucTu())) {
+                den = entity.getHieuLucTu();
+            }
+            entity.setHieuLucDen(den);
         }
         CauHinhGia saved = cauHinhGiaRepository.save(entity);
         logAudit(saved, "DEACTIVATE");

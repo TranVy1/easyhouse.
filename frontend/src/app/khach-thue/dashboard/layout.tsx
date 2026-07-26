@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
+import { revokeBackendSession } from '@/lib/auth-logout';
 import { Button } from '@/components/ui/button';
 import { Home, FileText, AlertCircle, User, LogOut, Menu, X, Bell, ScrollText, LayoutDashboard, Building, Moon, Sun, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -262,7 +263,11 @@ function KhachThueDashboardLayoutContent({
   }, [status, session, pathname, router]);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/khach-thue/dang-nhap' });
+    try {
+      await revokeBackendSession(session?.accessToken);
+    } finally {
+      await signOut({ callbackUrl: '/khach-thue/dang-nhap' });
+    }
     toast.success('Đã đăng xuất');
   };
 

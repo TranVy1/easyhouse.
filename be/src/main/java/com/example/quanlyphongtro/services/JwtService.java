@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -45,7 +48,7 @@ public class JwtService {
     public String generateAccessToken(UUID userId, String email, String role) {
         return Jwts.builder()
                 .subject(userId.toString())
-                .claims(Map.of("email", email, "role", role))
+                .claims(Map.of("email", email, "role", role, "tokenType", "access"))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTtlMs))
                 .signWith(key)
@@ -58,6 +61,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(userId.toString())
                 .id(UUID.randomUUID().toString())
+                .claim("tokenType", "refresh")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTtlMs))
                 .signWith(key)
@@ -90,7 +94,30 @@ public class JwtService {
         return claims.get("role", String.class);
     }
 
+    public boolean isAccessToken(Claims claims) {
+        return "access".equals(claims.get("tokenType", String.class));
+    }
+
+    public boolean isRefreshToken(Claims claims) {
+        return "refresh".equals(claims.get("tokenType", String.class));
+    }
+
     public Date getRefreshExpiration() {
         return new Date(System.currentTimeMillis() + refreshTtlMs);
+    }
+
+    /**
+     * Returns the value stored for a refresh token. Refresh JWTs include a
+     * random identifier, so a SHA-256 digest is safe to persist and prevents
+     * a database leak from becoming an immediately usable session leak.
+     */
+    public String hashRefreshToken(String token) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is not available", exception);
+        }
     }
 }

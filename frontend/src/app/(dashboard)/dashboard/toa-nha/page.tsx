@@ -1206,19 +1206,56 @@ function ToaNhaForm({
 
         <section className="mt-4 rounded-xl border border-[#D8EAE6] bg-[#EEF8F5] p-4">
           <p className="text-sm font-semibold text-[#243B5A]">Vị trí Google Maps</p>
-          <p className="mt-1 text-xs text-[#6D7B8E]">Nhập tọa độ của tòa nhà để phòng trống có thể xuất hiện trong gợi ý gần nhất.</p>
-          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <p className="mt-1 text-xs text-[#6D7B8E]">Dán link Google Maps để tự động trích xuất tọa độ.</p>
+          <div className="mt-3 space-y-3">
             <div className={fieldWrap}>
-              <Label htmlFor="viDo" className={labelClass}>Vĩ độ</Label>
-              <Input id="viDo" type="number" step="any" min="-90" max="90" value={formData.viDo} onChange={(e) => setFormData(prev => ({ ...prev, viDo: e.target.value }))} placeholder="10.7769" className={inputClass} />
+              <Label htmlFor="mapLink" className={labelClass}>Link Google Maps</Label>
+              <Input 
+                id="mapLink" 
+                onChange={(e) => {
+                  const url = e.target.value;
+                  const regex1 = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+                  const match1 = url.match(regex1);
+                  if (match1) {
+                    setFormData(prev => ({ ...prev, viDo: match1[1], kinhDo: match1[2] }));
+                    return;
+                  }
+                  const regex2 = /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/;
+                  const match2 = url.match(regex2);
+                  if (match2) {
+                    setFormData(prev => ({ ...prev, viDo: match2[1], kinhDo: match2[2] }));
+                    return;
+                  }
+                  const regex3 = /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/;
+                  const match3 = url.match(regex3);
+                  if (match3) {
+                    setFormData(prev => ({ ...prev, viDo: match3[1], kinhDo: match3[2] }));
+                    return;
+                  }
+                  const regex4 = /^(-?\d+\.\d+)[\s,]+(-?\d+\.\d+)$/;
+                  const match4 = url.trim().match(regex4);
+                  if (match4) {
+                    setFormData(prev => ({ ...prev, viDo: match4[1], kinhDo: match4[2] }));
+                    return;
+                  }
+                }} 
+                placeholder="Dán link Google Maps (VD: https://www.google.com/maps/.../@10.7769,106.7009,15z)" 
+                className={inputClass} 
+              />
             </div>
-            <div className={fieldWrap}>
-              <Label htmlFor="kinhDo" className={labelClass}>Kinh độ</Label>
-              <Input id="kinhDo" type="number" step="any" min="-180" max="180" value={formData.kinhDo} onChange={(e) => setFormData(prev => ({ ...prev, kinhDo: e.target.value }))} placeholder="106.7009" className={inputClass} />
-            </div>
-            <div className={fieldWrap}>
-              <Label htmlFor="googlePlaceId" className={labelClass}>Google Place ID (nếu có)</Label>
-              <Input id="googlePlaceId" value={formData.googlePlaceId} onChange={(e) => setFormData(prev => ({ ...prev, googlePlaceId: e.target.value }))} placeholder="Chọn từ Google Maps" className={inputClass} />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className={fieldWrap}>
+                <Label htmlFor="viDo" className={labelClass}>Vĩ độ</Label>
+                <Input id="viDo" type="number" step="any" min="-90" max="90" value={formData.viDo} onChange={(e) => setFormData(prev => ({ ...prev, viDo: e.target.value }))} placeholder="10.7769" className={cn(inputClass, "bg-gray-50")} />
+              </div>
+              <div className={fieldWrap}>
+                <Label htmlFor="kinhDo" className={labelClass}>Kinh độ</Label>
+                <Input id="kinhDo" type="number" step="any" min="-180" max="180" value={formData.kinhDo} onChange={(e) => setFormData(prev => ({ ...prev, kinhDo: e.target.value }))} placeholder="106.7009" className={cn(inputClass, "bg-gray-50")} />
+              </div>
+              <div className={fieldWrap}>
+                <Label htmlFor="googlePlaceId" className={labelClass}>Google Place ID</Label>
+                <Input id="googlePlaceId" value={formData.googlePlaceId} onChange={(e) => setFormData(prev => ({ ...prev, googlePlaceId: e.target.value }))} placeholder="Chưa có" className={inputClass} />
+              </div>
             </div>
           </div>
         </section>

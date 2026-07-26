@@ -25,6 +25,7 @@ declare module 'next-auth' {
     refreshToken?: string;
     emailVerified?: boolean;
     accessTokenExpires?: number;
+    sessionVersion?: string;
     requirePasswordChange?: boolean;
   }
 }
@@ -38,6 +39,7 @@ declare module 'next-auth/jwt' {
     refreshToken?: string;
     emailVerified?: boolean;
     accessTokenExpires?: number;
+    sessionVersion?: string;
     error?: string;
     requirePasswordChange?: boolean;
   }
