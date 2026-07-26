@@ -15,6 +15,8 @@ ENV BACKEND_URL=$BACKEND_URL
 # Keep the WebSocket endpoint available at build time, not only at container start.
 ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+# Provide a dummy NEXTAUTH_SECRET for build step to satisfy NextAuth initialization check
+ENV NEXTAUTH_SECRET=fallback_secret_for_build_step_only_12345
 
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
