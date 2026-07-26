@@ -1,4 +1,0 @@
-interface:
-  display_name: "CodeGraph Search"
-  short_description: "Search source relationships with CodeGraph"
-  default_prompt: "Use $codegraph-search to map this code flow before making changes."
