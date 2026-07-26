@@ -1,6 +1,7 @@
 "use client"
 
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
+import { revokeBackendSession } from "@/lib/auth-logout"
 import {
   ChevronsUpDown,
   LogOut,
@@ -40,9 +41,14 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { data: session } = useSession()
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/dang-nhap' })
+    try {
+      await revokeBackendSession(session?.accessToken)
+    } finally {
+      await signOut({ callbackUrl: '/dang-nhap' })
+    }
   }
 
   // Lấy chữ cái đầu của tên để làm avatar fallback

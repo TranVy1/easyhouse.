@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { revokeBackendSession } from "@/lib/auth-logout";
 import type { Session } from "next-auth";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
@@ -1089,7 +1090,13 @@ export function ProfileScreen({ onOpenChat, onBack }: { onOpenChat: () => void; 
                 </button>
               )}
               <button
-                onClick={() => signOut({ callbackUrl: '/dang-nhap' })}
+                onClick={async () => {
+                  try {
+                    await revokeBackendSession(session?.accessToken);
+                  } finally {
+                    await signOut({ callbackUrl: '/dang-nhap' });
+                  }
+                }}
                 className="flex w-full items-center gap-3 rounded-2xl border border-[#F2A45B]/20 bg-[#F2A45B]/10 px-4 py-3 text-sm font-extrabold text-[#A13C33] transition hover:bg-[#F2A45B]/20"
               >
                 <LogOut size={16} />

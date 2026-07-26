@@ -194,14 +194,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshTokenValue) {
+        refreshTokenRepository.deleteExpired();
+
         // Validate the JWT signature of the refresh token
         Claims claims = jwtService.parseToken(refreshTokenValue);
-        if (claims == null) {
+        if (claims == null || !jwtService.isRefreshToken(claims)) {
             throw new RuntimeException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
         // Check that the refresh token exists in DB (not revoked)
-        RefreshToken stored = refreshTokenRepository.findByToken(refreshTokenValue)
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(jwtService.hashRefreshToken(refreshTokenValue))
                 .orElseThrow(() -> new RuntimeException("Refresh token không tồn tại hoặc đã bị thu hồi"));
 
         if (stored.getNgayHetHan().isBefore(ZonedDateTime.now())) {
@@ -210,6 +212,10 @@ public class AuthService {
         }
 
         NguoiDung user = stored.getNguoiDung();
+        if (user.getXoaLuc() != null || user.getTrangThai() == TrangThaiNguoiDung.BANNED) {
+            refreshTokenRepository.delete(stored);
+            throw new RuntimeException("Tài khoản không còn đủ điều kiện để đăng nhập");
+        }
         String role = resolveRole(user);
         String newAccessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), role);
 
@@ -513,7 +519,7 @@ public class AuthService {
         String tokenValue = jwtService.generateRefreshToken(user.getId());
         RefreshToken rt = RefreshToken.builder()
                 .nguoiDung(user)
-                .token(tokenValue)
+                .tokenHash(jwtService.hashRefreshToken(tokenValue))
                 .ngayHetHan(jwtService.getRefreshExpiration()
                         .toInstant().atZone(ZoneId.systemDefault()))
                 .build();

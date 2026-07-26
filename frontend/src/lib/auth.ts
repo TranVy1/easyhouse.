@@ -1,5 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import { requireNextAuthSecret, sessionCookie } from '@/lib/auth-config';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 
@@ -46,7 +48,7 @@ export const authOptions: NextAuthOptions = {
               refreshToken: user.refreshToken || '',
               emailVerified: user.emailVerified ?? true,
               requirePasswordChange: user.requirePasswordChange || false,
-              accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
+              accessTokenExpires: Date.now() + 15 * 60 * 1000,
             };
           }
           
@@ -98,7 +100,7 @@ export const authOptions: NextAuthOptions = {
               accessToken: token,
               refreshToken: refreshToken || '',
               emailVerified: true,
-              accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
+              accessTokenExpires: Date.now() + 15 * 60 * 1000,
               requirePasswordChange: result.data.requirePasswordChange || false,
             };
           }
@@ -115,6 +117,10 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days – matches refresh token lifetime
   },
+  cookies: {
+    // Admin and tenant sessions share one host but must never share a cookie.
+    sessionToken: sessionCookie('easyhouse.admin.session-token'),
+  },
   callbacks: {
     async jwt({ token, user }) {
       // Initial sign-in: copy user data to token
@@ -126,11 +132,17 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
         token.emailVerified = user.emailVerified as boolean | undefined;
         token.accessTokenExpires = user.accessTokenExpires;
+        token.sessionVersion = '2';
         token.requirePasswordChange = user.requirePasswordChange;
       }
 
-      // Always return token for now, avoid RefreshAccessTokenError bug
-      return token;
+      if (token.sessionVersion === '2'
+          && typeof token.accessTokenExpires === 'number'
+          && Date.now() < token.accessTokenExpires) {
+        return token;
+      }
+
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token) {
@@ -151,14 +163,14 @@ export const authOptions: NextAuthOptions = {
     signIn: '/dang-nhap',
     error: '/dang-nhap',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'secret-key-qlyphongtro',
+  secret: requireNextAuthSecret(),
 };
 
 /**
  * Refresh the access token using the stored refresh token.
  * If refresh fails, force re-login by setting error flag.
  */
-async function refreshAccessToken(token: Record<string, unknown>) {
+async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
       method: 'POST',
@@ -174,7 +186,8 @@ async function refreshAccessToken(token: Record<string, unknown>) {
         ...token,
         accessToken: data.token,
         refreshToken: data.refreshToken ?? token.refreshToken,
-        accessTokenExpires: Date.now() + 10 * 60 * 60 * 1000,
+        accessTokenExpires: Date.now() + 15 * 60 * 1000,
+        sessionVersion: '2',
         error: undefined,
       };
     }

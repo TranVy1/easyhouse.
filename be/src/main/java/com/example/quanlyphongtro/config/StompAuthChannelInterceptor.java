@@ -70,7 +70,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         }
 
         Claims claims = jwtService.parseToken(token);
-        if (claims == null) {
+        if (claims == null || !jwtService.isAccessToken(claims)) {
             // parseToken tra null khi token sai chu ky hoac het han.
             throw new MessageDeliveryException("Token khong hop le hoac da het han");
         }

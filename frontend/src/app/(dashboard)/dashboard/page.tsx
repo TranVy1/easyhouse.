@@ -195,9 +195,11 @@ export default function DashboardPage() {
               </Command>
             </PopoverContent>
           </Popover>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-            <Plus className="w-4 h-4 mr-1" />
-            Tòa nhà
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Link href="/dashboard/toa-nha">
+              <Plus className="w-4 h-4 mr-1" />
+              Tòa nhà
+            </Link>
           </Button>
         </div>
       </div>

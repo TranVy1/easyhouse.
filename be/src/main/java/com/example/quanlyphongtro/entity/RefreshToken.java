@@ -21,8 +21,12 @@ public class RefreshToken {
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    /**
+     * SHA-256 digest of the refresh token. The raw token is returned once to
+     * the client and must never be persisted in plaintext.
+     */
+    @Column(name = "token", nullable = false, unique = true)
+    private String tokenHash;
 
     @Column(nullable = false)
     private ZonedDateTime ngayHetHan;
