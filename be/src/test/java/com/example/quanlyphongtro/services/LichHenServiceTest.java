@@ -32,6 +32,9 @@ class LichHenServiceTest {
     @Mock private PhongRepository phongRepository;
     @Mock private PermissionService permissionService;
     @Mock private AuditLogRepository auditLogRepository;
+    @Mock private ThongBaoService thongBaoService;
+    @Mock private EmailService emailService;
+    @Mock private MediaService mediaService;
 
     @InjectMocks
     private LichHenService service;

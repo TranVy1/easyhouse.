@@ -103,6 +103,28 @@ class ThanhToanServiceTest {
     }
 
     @Test
+    void createRejectsAmountAboveInvoiceBalance() {
+        UUID adminId = UUID.randomUUID();
+        UUID hoaDonId = UUID.randomUUID();
+        HoaDon hoaDon = invoice(UUID.randomUUID(), UUID.randomUUID(), null);
+        hoaDon.setId(hoaDonId);
+        ThanhToanRequest request = new ThanhToanRequest();
+        request.setHoaDonId(hoaDonId);
+        request.setSoTien(BigDecimal.valueOf(1_000_001));
+
+        when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
+        when(hoaDonRepository.findByIdForUpdate(hoaDonId)).thenReturn(Optional.of(hoaDon));
+        when(thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId)).thenReturn(List.of());
+        when(permissionService.requireCurrentUserId()).thenReturn(adminId);
+        when(permissionService.canWriteNhaTro(adminId, hoaDon.getPhong().getNhaTro().getId(),
+                hoaDon.getPhong().getNhaTro().getChuTro().getId())).thenReturn(true);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
+
+        assertEquals("So tien thanh toan vuot qua so con phai thu: 1000000", error.getMessage());
+    }
+
+    @Test
     void getAllPassesNormalizedPaymentFiltersToRepository() {
         UUID userId = UUID.randomUUID();
         when(permissionService.requireCurrentUserId()).thenReturn(userId);

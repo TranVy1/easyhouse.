@@ -211,6 +211,26 @@ class ChatPermissionServiceTest {
         assertTrue(chatPermissionService.danhBa(khachThueNhaA, null).isEmpty());
     }
 
+    @Test
+    void danhBaAdminBaoGomKhachThueCuaMoiNhaTro() {
+        UUID adminId = UUID.randomUUID();
+        NguoiDung chuTro = NguoiDung.builder().id(chuTroNhaA).hoTen("Chu tro A").build();
+        NguoiDung khachThue = NguoiDung.builder().id(khachThueNhaA).hoTen("Khach thue A").build();
+        NhaTro nhaTro = NhaTro.builder().id(nhaA).chuTro(chuTro).build();
+
+        when(permissionService.isAdmin(adminId)).thenReturn(true);
+        when(nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc()).thenReturn(List.of(nhaTro));
+        when(nhaTroRepository.findAllById(List.of(nhaA))).thenReturn(List.of(nhaTro));
+        when(nguoiDungNhaTroRepository.findByNhaTroIdIn(List.of(nhaA))).thenReturn(List.of());
+        when(hopDongRepository.findNguoiDungKhachThueDangThue(List.of(nhaA))).thenReturn(List.of(khachThue));
+
+        List<NguoiLienHeResponse> danhBa = chatPermissionService.danhBa(adminId, "Khach");
+
+        assertEquals(1, danhBa.size());
+        assertEquals(khachThueNhaA, danhBa.get(0).getNguoiDungId());
+        assertEquals("TENANT", danhBa.get(0).getVaiTro());
+    }
+
     private CuocTroChuyen hoiThoai(UUID id) {
         return CuocTroChuyen.builder()
                 .id(id)

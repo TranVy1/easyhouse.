@@ -4,6 +4,9 @@ services:
   backend:
     environment:
       APP_FRONTEND_BASE_URL: https://easyhouse.site
+      # The browser reaches the API through the same HTTPS origin. Keep only
+      # canonical production origins here so WebSocket/CORS checks reject HTTP.
+      CORS_ALLOWED_ORIGINS: https://easyhouse.site,https://www.easyhouse.site
       VNPAY_RETURN_URL: https://easyhouse.site/api/vnpay/vnpay-return
 
   frontend:

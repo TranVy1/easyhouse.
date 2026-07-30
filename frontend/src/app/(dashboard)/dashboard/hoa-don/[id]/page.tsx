@@ -96,7 +96,8 @@ export default function ChinhSuaHoaDonPage() {
     tongTien: 0,
     daThanhToan: 0,
     conLai: 0,
-    trangThai: 'chuaThanhToan' as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan',
+    soDuCo: 0,
+    trangThai: 'chuaThanhToan' as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan' | 'PAID' | 'OVERPAID',
     hanThanhToan: '',
     ghiChu: '',
     resetCongTo: false,
@@ -146,7 +147,8 @@ export default function ChinhSuaHoaDonPage() {
             phiDichVu: hoaDonItem.phiDichVu || [],
             tongTien: hoaDonItem.tongTien || 0,
             daThanhToan: hoaDonItem.daThanhToan || 0,
-            conLai: hoaDonItem.conLai || 0,
+            conLai: Math.max(0, hoaDonItem.conLai || 0),
+            soDuCo: Math.max(0, hoaDonItem.soDuCo || 0),
             trangThai: hoaDonItem.trangThai || 'chuaThanhToan',
             hanThanhToan: hoaDonItem.hanThanhToan ?
               (typeof hoaDonItem.hanThanhToan === 'string' ? (hoaDonItem.hanThanhToan as string).split('T')[0] :
@@ -211,7 +213,7 @@ export default function ChinhSuaHoaDonPage() {
     const tienNuocTinh = soNuoc * giaNuoc;
 
     const total = formData.tienPhong + tienDienTinh + tienNuocTinh + totalPhiDichVu;
-    const conLai = total - formData.daThanhToan;
+    const soDu = total - formData.daThanhToan;
 
     setFormData(prev => ({
       ...prev,
@@ -220,7 +222,8 @@ export default function ChinhSuaHoaDonPage() {
       tienDien: tienDienTinh,
       tienNuoc: tienNuocTinh,
       tongTien: total,
-      conLai: conLai
+      conLai: Math.max(0, soDu),
+      soDuCo: Math.max(0, -soDu)
     }));
   }, [
     formData.tienPhong,
@@ -384,6 +387,8 @@ export default function ChinhSuaHoaDonPage() {
     chuaThanhToan: { label: 'Chưa thu', color: '#D97706', bg: '#FEF3C7' },
     daThanhToanMotPhan: { label: 'Thu một phần', color: '#2563EB', bg: '#DBEAFE' },
     daThanhToan: { label: 'Đã thu xong', color: '#16A34A', bg: '#DCFCE7' },
+    PAID: { label: 'Đã thu xong', color: '#16A34A', bg: '#DCFCE7' },
+    OVERPAID: { label: 'Dư có', color: '#0F766E', bg: '#CCFBF1' },
     quaHan: { label: 'Quá hạn', color: '#DC2626', bg: '#FEE2E2' },
   };
   const tsConf = trangThaiConfig[formData.trangThai] || trangThaiConfig.chuaThanhToan;
@@ -602,7 +607,11 @@ export default function ChinhSuaHoaDonPage() {
           </div>
           <div className="text-right">
             <p className="text-[14px] text-gray-800 font-medium mb-1">Tổng phải thu</p>
-            {formData.trangThai === 'daThanhToan' || (formData.trangThai as string) === 'PAID' ? (
+            {formData.soDuCo > 0 || (formData.trangThai as string) === 'OVERPAID' ? (
+              <span className="text-[14px] font-semibold text-[#0F766E]">
+                Dư có {fmt(formData.soDuCo)}
+              </span>
+            ) : formData.trangThai === 'daThanhToan' || (formData.trangThai as string) === 'PAID' ? (
               <span className="text-[14px] font-semibold text-[#16A34A] flex items-center justify-end gap-1.5">
                 <CheckCircle2 className="h-4 w-4" />
                 Đã thu xong

@@ -58,9 +58,9 @@ class SecurityConfigTest {
     }
 
     @Test
-    void publicInvoiceUuidRequiresAuthentication() throws Exception {
+    void publicInvoiceUuidIsAvailableForInvoiceQrLinks() throws Exception {
         mockMvc.perform(get("/api/hoa-don-public/" + UUID.randomUUID()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

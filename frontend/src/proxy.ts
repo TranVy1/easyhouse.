@@ -1,27 +1,38 @@
 import { withAuth, NextRequestWithAuth } from 'next-auth/middleware';
+import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import { sessionCookie } from '@/lib/auth-config';
 
 const adminSessionCookie = sessionCookie('easyhouse.admin.session-token');
+const tenantSessionCookie = sessionCookie('easyhouse.tenant.session-token');
+
+const isNextAuthEndpoint = (pathname: string) =>
+  pathname.startsWith('/api/auth/') || pathname.startsWith('/api/auth-tenant/');
 
 export default withAuth(
-  function proxy(req: NextRequestWithAuth) {
+  async function proxy(req: NextRequestWithAuth) {
     const requestHeaders = new Headers(req.headers);
     const accessToken = req.nextauth.token?.accessToken;
-    const role = typeof req.nextauth.token?.role === 'string'
-      ? req.nextauth.token.role.replace(/^ROLE_/, '').toUpperCase()
+
+    const isTenantDashboard = req.nextUrl.pathname.startsWith('/khach-thue/dashboard');
+    const tenantToken = isTenantDashboard
+      ? await getToken({
+          req,
+          secret: process.env.NEXTAUTH_SECRET,
+          cookieName: tenantSessionCookie.name,
+        })
+      : null;
+    const tenantRole = typeof tenantToken?.role === 'string'
+      ? tenantToken.role.replace(/^ROLE_/, '').toUpperCase()
       : '';
 
-    if (
-      req.nextUrl.pathname.startsWith('/khach-thue/dashboard') &&
-      (!req.nextauth.token || role !== 'TENANT')
-    ) {
+    if (isTenantDashboard && (!tenantToken || tenantRole !== 'TENANT')) {
       return NextResponse.redirect(new URL('/khach-thue/dang-nhap', req.url));
     }
 
     if (
       req.nextUrl.pathname.startsWith('/api/') &&
-      !req.nextUrl.pathname.startsWith('/api/auth/') &&
+      !isNextAuthEndpoint(req.nextUrl.pathname) &&
       !requestHeaders.has('Authorization') &&
       typeof accessToken === 'string' &&
       accessToken.length > 0

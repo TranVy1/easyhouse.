@@ -46,6 +46,7 @@ public class HopDongService {
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
     private final PermissionService permissionService;
     private final JdbcTemplate jdbcTemplate;
+    private final KhachThueService khachThueService;
 
     @org.springframework.beans.factory.annotation.Autowired
     @org.springframework.context.annotation.Lazy
@@ -123,6 +124,7 @@ public class HopDongService {
         assertManualStatusAllowed(trangThai);
         validateRoomCanContract(phong, trangThai);
         validateTenantBelongsToRoomOwner(kt, phong);
+        kt = khachThueService.ensureTaiKhoanDangNhap(kt);
         BigDecimal giaThue = firstMoney(req.getGiaThueHopDong(), req.getGiaThue(), phong.getGiaHienTai());
         BigDecimal tienCoc = firstMoney(req.getTienCoc(), phong.getTienCocMacDinh(), BigDecimal.ZERO);
         TrangThaiCocHopDong trangThaiCocVal = parseCocStatus(req.getTrangThaiCoc());
@@ -387,6 +389,7 @@ public class HopDongService {
         ensureContractCodeAvailable(hd.getMaHopDong(), hd.getId());
         validateRoomCanContract(hd.getPhong(), hd.getTrangThai());
         validateTenantBelongsToRoomOwner(hd.getKhachThue(), hd.getPhong());
+        hd.setKhachThue(khachThueService.ensureTaiKhoanDangNhap(hd.getKhachThue()));
         validateContractPayload(hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getGiaThueHopDong(), hd.getTienCoc(),
                 hd.getNgayThanhToanHangThang());
         validateInitialReadings(hd.getChiSoDienBanDau(), hd.getChiSoNuocBanDau());
@@ -435,6 +438,7 @@ public class HopDongService {
 
         validateRoomCanContract(hd.getPhong(), TrangThaiHopDong.ACTIVE);
         validateTenantBelongsToRoomOwner(hd.getKhachThue(), hd.getPhong());
+        hd.setKhachThue(khachThueService.ensureTaiKhoanDangNhap(hd.getKhachThue()));
         validateContractPayload(hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getGiaThueHopDong(), hd.getTienCoc(),
                 hd.getNgayThanhToanHangThang());
         ensureNoOverlappingOccupancy(hd.getPhong().getId(), hd.getNgayBatDau(), hd.getNgayKetThuc(), hd.getId(),

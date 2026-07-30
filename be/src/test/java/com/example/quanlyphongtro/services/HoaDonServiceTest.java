@@ -352,7 +352,7 @@ class HoaDonServiceTest {
         when(permissionService.canReadNhaTro(userId, nhaTroId, ownerId)).thenReturn(false);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.getById(hoaDonId));
-        assertEquals("Ban khong co quyen xem hoa don nay", error.getMessage());
+        assertEquals("Bạn không có quyền xem hóa đơn này", error.getMessage());
     }
 
     @Test

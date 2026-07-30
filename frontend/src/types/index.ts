@@ -448,6 +448,7 @@ export interface HoaDon {
   daThanhToan: number;
   soDuCuoiKy?: number;
   conLai: number;
+  soDuCo?: number;
   trangThai: TrangThaiHoaDon;
   hanTra?: DateLike;
   hanThanhToan: DateLike;

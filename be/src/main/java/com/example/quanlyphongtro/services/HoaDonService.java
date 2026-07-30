@@ -467,10 +467,10 @@ public class HoaDonService {
 
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.ELECTRICITY, LoaiMucHoaDon.ELECTRICITY,
                 req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), req.getTienDien(),
-                Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKwhThucTe() : null, "Tiá»n Ä‘iá»‡n");
+                Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKwhThucTe() : null, "Tiền điện");
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.WATER, LoaiMucHoaDon.WATER,
                 req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(), req.getTienNuoc(),
-                Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKhoiNuocThucTe() : null, "Tiá»n nÆ°á»›c");
+                Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKhoiNuocThucTe() : null, "Tiền nước");
 
         List<ChiTietHoaDon> contractServiceLines = buildContractServiceLines(hoaDon, ctx);
         if (!contractServiceLines.isEmpty()) {

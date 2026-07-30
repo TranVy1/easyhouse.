@@ -41,6 +41,12 @@ class ContractDocumentServiceTest {
     @Mock
     private CloudinaryService cloudinaryService;
     @Mock
+    private TaiSanPhongRepository taiSanPhongRepository;
+    @Mock
+    private TienIchService tienIchService;
+    @Mock
+    private ThongBaoService thongBaoService;
+    @Mock
     private PermissionService permissionService;
     @Mock
     private JdbcTemplate jdbcTemplate;

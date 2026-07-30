@@ -109,12 +109,13 @@ public class CauHinhGiaService {
                 .build();
 
         validateMoney(entity.getDonGia());
+        validateDateRange(entity.getHieuLucTu(), entity.getHieuLucDen());
+        validateOverlap(entity, null);
 
         if (Boolean.TRUE.equals(entity.getDangApDung())) {
             deactivateExistingConfigs(entity, null);
         }
 
-        validateOverlap(entity, null);
         CauHinhGia saved = cauHinhGiaRepository.save(entity);
         logAudit(saved, "CREATE");
         return CauHinhGiaResponse.fromEntity(saved);
@@ -149,12 +150,12 @@ public class CauHinhGiaService {
 
         validateMoney(newEntity.getDonGia());
         validateDateRange(newEntity.getHieuLucTu(), newEntity.getHieuLucDen());
+        validateOverlap(newEntity, oldEntity.getId());
 
         if (Boolean.TRUE.equals(oldEntity.getDangApDung())) {
             deactivateExistingConfigs(newEntity, oldEntity.getId());
         }
 
-        validateOverlap(newEntity, oldEntity.getId());
         CauHinhGia saved = cauHinhGiaRepository.save(newEntity);
         logAudit(saved, "UPDATE_VERSION");
         return CauHinhGiaResponse.fromEntity(saved);
@@ -225,7 +226,10 @@ public class CauHinhGiaService {
                         entity.getNhaTro().getId(), entity.getLoai());
 
         for (CauHinhGia existing : activeConfigs) {
-            if (excludeId != null && existing.getId().equals(excludeId)) {
+            if (existing == null) {
+                continue;
+            }
+            if (excludeId != null && excludeId.equals(existing.getId())) {
                 existing.setDangApDung(false);
                 LocalDate newDen = entity.getHieuLucTu().minusDays(1);
                 if (existing.getHieuLucTu() != null && newDen.isBefore(existing.getHieuLucTu())) {
@@ -270,9 +274,12 @@ public class CauHinhGiaService {
                         entity.getNhaTro().getId(), entity.getLoai());
 
         for (CauHinhGia existing : activeConfigs) {
+            if (existing == null) {
+                continue;
+            }
             if (entity.getId() != null && entity.getId().equals(existing.getId()))
                 continue;
-            if (excludeId != null && existing.getId().equals(excludeId))
+            if (excludeId != null && excludeId.equals(existing.getId()))
                 continue;
             if (Boolean.FALSE.equals(existing.getDangApDung()))
                 continue;

@@ -59,6 +59,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        if (!"LANDLORD".equalsIgnoreCase(request.getVaiTro())) {
+            throw new RuntimeException("Dang ky cong khai chi danh cho chu tro");
+        }
         // Validate uniqueness
         if (nguoiDungRepository.existsByEmail(request.getEmail().toLowerCase())) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống");
@@ -131,6 +134,10 @@ public class AuthService {
         if (user.getTrangThai() == TrangThaiNguoiDung.BANNED) {
             saveLoginHistory(user, user.getEmail(), false, ipAddress, userAgent, "Tài khoản đã bị cấm");
             throw new RuntimeException("Tài khoản đã bị cấm");
+        }
+
+        if (user.getTrangThai() != TrangThaiNguoiDung.ACTIVE) {
+            throw new RuntimeException("Vui long xac thuc email truoc khi dang nhap");
         }
 
         // Verify password

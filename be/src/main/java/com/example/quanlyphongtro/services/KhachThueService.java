@@ -221,6 +221,50 @@ public class KhachThueService {
         khachThueRepository.save(kt);
     }
 
+    @Transactional
+    public KhachThue ensureTaiKhoanDangNhap(KhachThue khachThue) {
+        if (khachThue == null) {
+            throw new RuntimeException("Khong tim thay khach thue");
+        }
+        if (khachThue.getNguoiDung() != null) {
+            NguoiDung nguoiDung = khachThue.getNguoiDung();
+            if (nguoiDung.getMatKhau() == null || nguoiDung.getMatKhau().isBlank()) {
+                nguoiDung.setMatKhau(passwordEncoder.encode("123456"));
+                nguoiDungRepository.save(nguoiDung);
+            }
+            return khachThue;
+        }
+        if (khachThue.getSoDienThoai() == null || khachThue.getSoDienThoai().isBlank()) {
+            throw new RuntimeException("Khach dai dien phai co so dien thoai de tao tai khoan dang nhap");
+        }
+
+        String soDienThoai = khachThue.getSoDienThoai().trim();
+        NguoiDung nguoiDung = nguoiDungRepository.findBySoDienThoai(soDienThoai).orElse(null);
+        if (nguoiDung == null) {
+            String email = khachThue.getEmail();
+            if (email == null || email.isBlank()) {
+                email = "tenant_" + soDienThoai + "@easyhouse.local";
+            }
+            nguoiDung = NguoiDung.builder()
+                    .id(UUID.randomUUID())
+                    .hoTen(khachThue.getHoTen())
+                    .soDienThoai(soDienThoai)
+                    .email(email)
+                    .matKhau(passwordEncoder.encode("123456"))
+                    .trangThai(com.example.quanlyphongtro.entity.TrangThaiNguoiDung.ACTIVE)
+                    .soLanDangNhapSai(0)
+                    .soCccd(khachThue.getSoCccd())
+                    .ngaySinh(khachThue.getNgaySinh())
+                    .gioiTinh(khachThue.getGioiTinh())
+                    .diaChi(khachThue.getDiaChi())
+                    .queQuan(khachThue.getQueQuan())
+                    .build();
+            nguoiDung = nguoiDungRepository.save(nguoiDung);
+        }
+        khachThue.setNguoiDung(nguoiDung);
+        return khachThueRepository.save(khachThue);
+    }
+
     private NguoiDung resolveOwnerForCreate(KhachThueRequest req, UUID currentUserId) {
         UUID ownerId = req.getChuTroId();
         if (ownerId != null && permissionService.isAdmin(currentUserId)) {

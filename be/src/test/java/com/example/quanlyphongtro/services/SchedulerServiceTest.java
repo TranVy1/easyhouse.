@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ class SchedulerServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(schedulerService, "debtReminderService", debtReminderService);
         mockChuTro = NguoiDung.builder().id(UUID.randomUUID()).email("owner@easyhouse.local").hoTen("Chủ nhà A").build();
         mockNhaTro = NhaTro.builder().id(UUID.randomUUID()).ten("Nhà trọ A").chuTro(mockChuTro).build();
         mockPhong = Phong.builder().id(UUID.randomUUID()).ten("Phòng 101").nhaTro(mockNhaTro).build();

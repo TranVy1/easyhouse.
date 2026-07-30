@@ -33,6 +33,7 @@ public class HoaDonResponse {
     private BigDecimal daThanhToan;
     private BigDecimal soDuCuoiKy;
     private BigDecimal conLai;
+    private BigDecimal soDuCo;
     private String trangThai;
     private LocalDate hanTra;
     private LocalDate hanThanhToan;
@@ -133,7 +134,9 @@ public class HoaDonResponse {
         }
         BigDecimal tongTien = defaultMoney(hd.getTongTien());
         BigDecimal daTra = defaultMoney(hd.getDaTra());
-        BigDecimal conLai = hd.getSoDuCuoiKy() != null ? hd.getSoDuCuoiKy() : tongTien.subtract(daTra);
+        BigDecimal rawBalance = hd.getSoDuCuoiKy() != null ? hd.getSoDuCuoiKy() : tongTien.subtract(daTra);
+        BigDecimal conLai = rawBalance.max(BigDecimal.ZERO);
+        BigDecimal soDuCo = rawBalance.compareTo(BigDecimal.ZERO) < 0 ? rawBalance.abs() : BigDecimal.ZERO;
 
         return HoaDonResponse.builder()
                 .id(hd.getId())
@@ -154,6 +157,7 @@ public class HoaDonResponse {
                 .daThanhToan(daTra)
                 .soDuCuoiKy(hd.getSoDuCuoiKy())
                 .conLai(conLai)
+                .soDuCo(soDuCo)
                 .trangThai(hd.getTrangThai() != null ? hd.getTrangThai().name() : null)
                 .hanTra(hd.getHanTra())
                 .hanThanhToan(hd.getHanTra())

@@ -130,10 +130,14 @@ public class ThanhToanService {
             throw new RuntimeException("KhÃ´ng thá»ƒ thanh toÃ¡n hÃ³a Ä‘Æ¡n Ä‘Ã£ xÃ³a hoáº·c Ä‘Ã£ há»§y");
         }
 
+        hoaDon = hoaDonRepository.findByIdForUpdate(hoaDon.getId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+
         TrangThaiThanhToan status = TrangThaiThanhToan.SUCCESS;
         if (req.getTrangThai() != null) {
             status = parseTrangThai(req.getTrangThai());
         }
+        validatePaymentAmount(hoaDon, req.getSoTien(), status, null);
 
         ThanhToan tt = ThanhToan.builder()
                 .hoaDon(hoaDon)
@@ -171,9 +175,12 @@ public class ThanhToanService {
         if (thanhToanRepository.findByExternalTransactionId(externalId).isPresent()) {
             throw new RuntimeException("Giao dich nay da tao thanh toan");
         }
+        HoaDon lockedInvoice = hoaDonRepository.findByIdForUpdate(hoaDon.getId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+        validatePaymentAmount(lockedInvoice, transaction.getSoTien(), TrangThaiThanhToan.SUCCESS, null);
         ThanhToan payment = ThanhToan.builder()
-                .hoaDon(hoaDon)
-                .khachThue(hoaDon.getKhachThue())
+                .hoaDon(lockedInvoice)
+                .khachThue(lockedInvoice.getKhachThue())
                 .soTien(transaction.getSoTien())
                 .phuongThucThanhToan(PhuongThucThanhToan.VIETQR)
                 .maThamChieu(transaction.getMaGiaoDich())
@@ -184,7 +191,7 @@ public class ThanhToanService {
                 .ghiChu("VietQR manual match")
                 .build();
         ThanhToan saved = thanhToanRepository.save(payment);
-        recalculate(hoaDon.getId());
+        recalculate(lockedInvoice.getId());
         logAudit(saved, "MANUAL_MATCH");
     }
 
@@ -218,6 +225,12 @@ public class ThanhToanService {
         if (req.getNgayThanhToan() != null) tt.setNgayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()));
         if (req.getGhiChu() != null) tt.setGhiChu(req.getGhiChu());
         if (req.getTrangThai() != null) tt.setTrangThai(parseTrangThai(req.getTrangThai()));
+
+        HoaDon lockedInvoice = hoaDonRepository.findByIdForUpdate(tt.getHoaDon().getId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay hoa don"));
+        tt.setHoaDon(lockedInvoice);
+        tt.setKhachThue(lockedInvoice.getKhachThue());
+        validatePaymentAmount(lockedInvoice, tt.getSoTien(), tt.getTrangThai(), tt.getId());
 
         if (oldIsDeposit) {
             adjustDeposit(oldHoaDon, oldSoTien, false);
@@ -278,6 +291,24 @@ public class ThanhToanService {
                 hopDong.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
                 hopDongRepository.save(hopDong);
             }
+        }
+    }
+
+    private void validatePaymentAmount(HoaDon hoaDon, BigDecimal soTien, TrangThaiThanhToan trangThai, UUID excludePaymentId) {
+        if (trangThai != TrangThaiThanhToan.SUCCESS) return;
+        if (soTien == null || soTien.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("So tien thanh toan phai lon hon 0");
+        }
+        BigDecimal paid = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDon.getId()).stream()
+                .filter(thanhToan -> thanhToan.getTrangThai() == TrangThaiThanhToan.SUCCESS)
+                .filter(thanhToan -> excludePaymentId == null || !excludePaymentId.equals(thanhToan.getId()))
+                .map(ThanhToan::getSoTien)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = hoaDon.getTongTien() != null ? hoaDon.getTongTien() : BigDecimal.ZERO;
+        BigDecimal conPhaiThu = total.subtract(paid).max(BigDecimal.ZERO);
+        if (soTien.compareTo(conPhaiThu) > 0) {
+            throw new RuntimeException("So tien thanh toan vuot qua so con phai thu: " + conPhaiThu);
         }
     }
 

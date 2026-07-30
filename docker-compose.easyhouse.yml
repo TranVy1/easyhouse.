@@ -110,7 +110,9 @@ services:
       - ./frontend:/app
       - easyhouse_node_modules:/app/node_modules
       - easyhouse_next_cache:/app/.next
-    command: npm run dev -- --hostname 0.0.0.0
+    # /app/node_modules is a named volume. Install from the lockfile at startup
+    # so a fresh or previously cached volume cannot omit newly added packages.
+    command: sh -c "npm ci --legacy-peer-deps && rm -rf .next/* .next/.[!.]* .next/..?* && npm run dev -- --hostname 0.0.0.0"
     networks:
       - easyhouse_network
 

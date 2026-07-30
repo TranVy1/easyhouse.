@@ -120,6 +120,8 @@ class CauHinhGiaServiceTest {
         when(cauHinhGiaRepository.findById(id)).thenReturn(Optional.of(oldEntity));
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(permissionService.canWriteNhaTro(userId, nhaTroId, null)).thenReturn(true);
+        when(cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(
+                nhaTroId, LoaiMucHoaDon.ELECTRICITY)).thenReturn(List.of(oldEntity));
         when(cauHinhGiaRepository.save(any(CauHinhGia.class))).thenAnswer(i -> i.getArgument(0));
 
         CauHinhGiaRequest req = new CauHinhGiaRequest();

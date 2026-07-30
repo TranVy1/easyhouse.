@@ -48,6 +48,7 @@ class HopDongServiceTest {
     @Mock private ChiTietHoaDonRepository chiTietHoaDonRepository;
     @Mock private PermissionService permissionService;
     @Mock private JdbcTemplate jdbcTemplate;
+    @Mock private KhachThueService khachThueService;
 
     private HopDongService service;
 
@@ -64,7 +65,8 @@ class HopDongServiceTest {
                 hoaDonRepository,
                 chiTietHoaDonRepository,
                 permissionService,
-                jdbcTemplate
+                jdbcTemplate,
+                khachThueService
         );
     }
 

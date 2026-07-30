@@ -175,7 +175,10 @@ public class ChatPermissionService {
      * @param tuKhoa loc theo ten hoac so dien thoai, co the null
      */
     public List<NguoiLienHeResponse> danhBa(UUID nguoiDungId, String tuKhoa) {
-        List<UUID> nhaTroIds = new ArrayList<>(nhaTroCuaNguoiDung(nguoiDungId));
+        boolean isAdmin = permissionService.isAdmin(nguoiDungId);
+        List<UUID> nhaTroIds = isAdmin
+                ? nhaTroRepository.findByXoaLucIsNullOrderByTaoLucDesc().stream().map(NhaTro::getId).toList()
+                : new ArrayList<>(nhaTroCuaNguoiDung(nguoiDungId));
         if (nhaTroIds.isEmpty()) return List.of();
 
         // LinkedHashMap giu thu tu uu tien: chu tro -> nhan vien -> khach thue,

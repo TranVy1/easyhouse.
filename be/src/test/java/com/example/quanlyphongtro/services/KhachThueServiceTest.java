@@ -72,6 +72,24 @@ class KhachThueServiceTest {
     }
 
     @Test
+    void ensureTaiKhoanDangNhapCreatesAccountForContractRepresentative() {
+        KhachThue khachThue = KhachThue.builder()
+                .id(UUID.randomUUID())
+                .hoTen("Nguyen Van A")
+                .soDienThoai("0900000000")
+                .build();
+        when(nguoiDungRepository.findBySoDienThoai("0900000000")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("123456")).thenReturn("encodedPassword");
+        when(nguoiDungRepository.save(any(NguoiDung.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(khachThueRepository.save(any(KhachThue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        KhachThue saved = service.ensureTaiKhoanDangNhap(khachThue);
+
+        assertEquals("0900000000", saved.getNguoiDung().getSoDienThoai());
+        assertEquals("encodedPassword", saved.getNguoiDung().getMatKhau());
+    }
+
+    @Test
     void getByIdRejectsUnauthorizedUser() {
         UUID userId = UUID.randomUUID();
         UUID ownerId = UUID.randomUUID();

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, MailCheck, ArrowLeft } from 'lucide-react';
 
@@ -20,9 +19,6 @@ const registerSchema = z.object({
   matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   xacNhanMatKhau: z.string(),
   soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
-  vaiTro: z.enum(['ADMIN', 'TENANT'], {
-    error: 'Vui lòng chọn vai trò',
-  }),
 }).refine((data) => data.matKhau === data.xacNhanMatKhau, {
   message: 'Mật khẩu xác nhận không khớp',
   path: ['xacNhanMatKhau'],
@@ -41,13 +37,9 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      vaiTro: 'ADMIN',
-    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -66,7 +58,7 @@ export default function RegisterPage() {
           email: data.email,
           matKhau: data.matKhau,
           soDienThoai: data.soDienThoai,
-          vaiTro: data.vaiTro,
+          vaiTro: 'LANDLORD',
         }),
       });
 
@@ -235,26 +227,6 @@ export default function RegisterPage() {
                     <p className="text-xs text-red-500 font-bold ml-1">{errors.xacNhanMatKhau.message}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Vai trò */}
-              <div className="space-y-2">
-                <Label htmlFor="vaiTro" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Bạn là</Label>
-                <Select
-                  defaultValue="ADMIN"
-                  onValueChange={(value) => setValue('vaiTro', value as 'ADMIN' | 'TENANT')}
-                >
-                  <SelectTrigger className="h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25">
-                    <SelectValue placeholder="Chọn vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ADMIN">Chủ trọ / Quản lý</SelectItem>
-                    <SelectItem value="TENANT">Người thuê / Khách thuê</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.vaiTro && (
-                  <p className="text-xs text-red-500 font-bold ml-1">{errors.vaiTro.message}</p>
-                )}
               </div>
 
               <div className="pt-4">
