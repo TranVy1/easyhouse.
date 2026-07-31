@@ -1,0 +1,470 @@
+;
+; Archive created at 2026-07-30 20:09:02 UTC
+;     dbname: postgres
+;     TOC Entries: 460
+;     Compression: -1
+;     Dump Version: 1.14-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 14.23
+;     Dumped by pg_dump version: 14.23
+;
+;
+; Selected TOC Entries:
+;
+2; 3079 18779 EXTENSION - btree_gist 
+4725; 0 0 COMMENT - EXTENSION btree_gist 
+3; 3079 19402 EXTENSION - pg_trgm 
+4726; 0 0 COMMENT - EXTENSION pg_trgm 
+4; 3079 19483 EXTENSION - unaccent 
+4727; 0 0 COMMENT - EXTENSION unaccent 
+1121; 1247 19491 TYPE public appointment_status postgres
+1124; 1247 19500 TYPE public booking_deposit_status postgres
+1127; 1247 19510 TYPE public calc_type postgres
+1130; 1247 19518 TYPE public contract_deposit_status postgres
+1133; 1247 19526 TYPE public contract_status postgres
+1136; 1247 19536 TYPE public invoice_item_type postgres
+1139; 1247 19550 TYPE public invoice_status postgres
+1142; 1247 19558 TYPE public kenh_thong_bao postgres
+1145; 1247 19572 TYPE public loai_chi_so postgres
+1148; 1247 19578 TYPE public loai_cuoc_tro_chuyen postgres
+1151; 1247 19590 TYPE public loai_doi_tuong_media postgres
+1154; 1247 19612 TYPE public loai_muc_hoa_don postgres
+1157; 1247 19638 TYPE public loai_su_co_enum postgres
+1160; 1247 19652 TYPE public loai_thong_bao postgres
+1163; 1247 19668 TYPE public loai_tin_nhan postgres
+1166; 1247 19678 TYPE public loai_tinh_phi postgres
+1169; 1247 19690 TYPE public maintenance_status postgres
+1172; 1247 19700 TYPE public media_entity_type postgres
+1175; 1247 19714 TYPE public nen_tang_push postgres
+1178; 1247 19722 TYPE public phuong_thuc_thanh_toan postgres
+1181; 1247 19740 TYPE public room_status postgres
+1184; 1247 19748 TYPE public trang_thai_bao_cao postgres
+1187; 1247 19758 TYPE public trang_thai_chi_so postgres
+1190; 1247 19768 TYPE public trang_thai_coc_hop_dong postgres
+1193; 1247 19780 TYPE public trang_thai_cuoc_tro_chuyen postgres
+1196; 1247 19788 TYPE public trang_thai_dat_coc postgres
+1199; 1247 19800 TYPE public trang_thai_hoa_don postgres
+1202; 1247 19816 TYPE public trang_thai_hop_dong postgres
+1205; 1247 19830 TYPE public trang_thai_lich_hen postgres
+1208; 1247 19842 TYPE public trang_thai_nguoi_dung postgres
+1211; 1247 19850 TYPE public trang_thai_phong postgres
+1214; 1247 19862 TYPE public trang_thai_phuong_tien postgres
+1217; 1247 19868 TYPE public trang_thai_su_co postgres
+1220; 1247 19878 TYPE public trang_thai_thanh_toan postgres
+1223; 1247 19890 TYPE public user_status postgres
+1226; 1247 19898 TYPE public uu_tien_enum postgres
+1229; 1247 19908 TYPE public vai_tro_he_thong postgres
+1232; 1247 19918 TYPE public vai_tro_thanh_vien_chat postgres
+490; 1255 19925 FUNCTION public can_access_nha_tro(uuid) postgres
+491; 1255 19926 FUNCTION public cap_nhat_thoi_gian() postgres
+492; 1255 19927 FUNCTION public cap_nhat_trang_thai_hoa_don() postgres
+493; 1255 19928 FUNCTION public clone_cau_truc_toa_nha(uuid, uuid) postgres
+494; 1255 19929 FUNCTION public f_khong_dau(text) postgres
+495; 1255 19930 FUNCTION public is_admin() postgres
+496; 1255 19931 FUNCTION public recalc_hoa_don_from_chi_tiet() postgres
+497; 1255 19932 FUNCTION public recalc_hoa_don_from_thanh_toan() postgres
+498; 1255 19933 FUNCTION public sinh_phong_toa_nha(uuid, integer, integer, numeric, numeric, numeric, integer) postgres
+499; 1255 19934 FUNCTION public tao_lich_thanh_toan_hang_thang(uuid) postgres
+500; 1255 19935 FUNCTION public update_invoice_status_on_payment() postgres
+501; 1255 19936 FUNCTION public update_updated_at_column() postgres
+212; 1259 19937 TABLE public audit_log postgres
+213; 1259 19944 TABLE public bank_transaction postgres
+214; 1259 19953 TABLE public bao_cao_tin_nhan postgres
+215; 1259 19961 TABLE public cau_hinh_gia postgres
+216; 1259 19974 TABLE public chan_nguoi_dung postgres
+217; 1259 19980 TABLE public chi_so_dien_nuoc postgres
+218; 1259 19993 TABLE public chi_tiet_hoa_don postgres
+219; 1259 20002 TABLE public chu_tro postgres
+220; 1259 20009 TABLE public contract_signature postgres
+221; 1259 20014 TABLE public cuoc_tro_chuyen postgres
+222; 1259 20023 TABLE public dang_ky_push postgres
+223; 1259 20030 TABLE public dat_coc_phong postgres
+224; 1259 20041 TABLE public debt_reminder_log postgres
+225; 1259 20048 TABLE public dich_vu postgres
+226; 1259 20060 TABLE public dich_vu_hop_dong postgres
+227; 1259 20068 TABLE public email_verification_token postgres
+228; 1259 20073 TABLE public file_media postgres
+229; 1259 20081 TABLE public hoa_don postgres
+230; 1259 20100 TABLE public hop_dong postgres
+231; 1259 20119 TABLE public invoice_generation_batch postgres
+232; 1259 20124 TABLE public invoice_generation_log postgres
+233; 1259 20131 TABLE public khach_thue postgres
+234; 1259 20140 TABLE public kho_tai_san postgres
+235; 1259 20152 TABLE public lich_hen postgres
+236; 1259 20162 TABLE public lich_su_hoa_don postgres
+237; 1259 20169 TABLE public lich_su_kho_tai_san postgres
+238; 1259 20176 TABLE public lich_thanh_toan postgres
+239; 1259 20188 TABLE public login_history postgres
+240; 1259 20195 TABLE public meter_anomaly_alert postgres
+241; 1259 20202 TABLE public nguoi_dung postgres
+242; 1259 20215 TABLE public nguoi_dung_nha_tro postgres
+243; 1259 20224 TABLE public nguoi_dung_vai_tro postgres
+244; 1259 20228 TABLE public nha_tro postgres
+245; 1259 20239 TABLE public phong postgres
+246; 1259 20254 TABLE public phong_tien_ich postgres
+247; 1259 20258 TABLE public phu_luc_hop_dong postgres
+248; 1259 20265 TABLE public phuong_tien postgres
+249; 1259 20274 TABLE public refresh_token postgres
+250; 1259 20281 TABLE public su_co postgres
+251; 1259 20295 TABLE public tai_san_phong postgres
+252; 1259 20300 TABLE public tang postgres
+253; 1259 20309 TABLE public thanh_toan postgres
+254; 1259 20320 TABLE public thanh_vien_cuoc_tro_chuyen postgres
+4728; 0 0 COMMENT public COLUMN thanh_vien_cuoc_tro_chuyen.tat_thong_bao postgres
+4729; 0 0 COMMENT public COLUMN thanh_vien_cuoc_tro_chuyen.luu_tru postgres
+4730; 0 0 COMMENT public COLUMN thanh_vien_cuoc_tro_chuyen.an_den_seq postgres
+4731; 0 0 COMMENT public COLUMN thanh_vien_cuoc_tro_chuyen.tat_thong_bao_den postgres
+255; 1259 20333 TABLE public thanh_vien_hop_dong postgres
+256; 1259 20345 TABLE public thong_bao postgres
+257; 1259 20356 TABLE public thong_bao_nguoi_nhan postgres
+258; 1259 20363 TABLE public tien_ich postgres
+259; 1259 20368 TABLE public tin_nhan postgres
+4732; 0 0 COMMENT public COLUMN tin_nhan.ghim_luc postgres
+4733; 0 0 COMMENT public COLUMN tin_nhan.nguoi_ghim_id postgres
+4734; 0 0 COMMENT public COLUMN tin_nhan.chuyen_tiep_tu_id postgres
+260; 1259 20378 SEQUENCE public tin_nhan_so_thu_tu_seq postgres
+4735; 0 0 SEQUENCE OWNED BY public tin_nhan_so_thu_tu_seq postgres
+261; 1259 20379 VIEW public v_so_do_toa_nha postgres
+262; 1259 20384 VIEW public v_thong_ke_toa_nha postgres
+263; 1259 20389 TABLE public vai_tro postgres
+264; 1259 20396 TABLE public yeu_cau_o_ghep postgres
+4154; 2604 20401 DEFAULT public tin_nhan so_thu_tu postgres
+4667; 0 19937 TABLE DATA public audit_log postgres
+4668; 0 19944 TABLE DATA public bank_transaction postgres
+4669; 0 19953 TABLE DATA public bao_cao_tin_nhan postgres
+4670; 0 19961 TABLE DATA public cau_hinh_gia postgres
+4671; 0 19974 TABLE DATA public chan_nguoi_dung postgres
+4672; 0 19980 TABLE DATA public chi_so_dien_nuoc postgres
+4673; 0 19993 TABLE DATA public chi_tiet_hoa_don postgres
+4674; 0 20002 TABLE DATA public chu_tro postgres
+4675; 0 20009 TABLE DATA public contract_signature postgres
+4676; 0 20014 TABLE DATA public cuoc_tro_chuyen postgres
+4677; 0 20023 TABLE DATA public dang_ky_push postgres
+4678; 0 20030 TABLE DATA public dat_coc_phong postgres
+4679; 0 20041 TABLE DATA public debt_reminder_log postgres
+4680; 0 20048 TABLE DATA public dich_vu postgres
+4681; 0 20060 TABLE DATA public dich_vu_hop_dong postgres
+4682; 0 20068 TABLE DATA public email_verification_token postgres
+4683; 0 20073 TABLE DATA public file_media postgres
+4684; 0 20081 TABLE DATA public hoa_don postgres
+4685; 0 20100 TABLE DATA public hop_dong postgres
+4686; 0 20119 TABLE DATA public invoice_generation_batch postgres
+4687; 0 20124 TABLE DATA public invoice_generation_log postgres
+4688; 0 20131 TABLE DATA public khach_thue postgres
+4689; 0 20140 TABLE DATA public kho_tai_san postgres
+4690; 0 20152 TABLE DATA public lich_hen postgres
+4691; 0 20162 TABLE DATA public lich_su_hoa_don postgres
+4692; 0 20169 TABLE DATA public lich_su_kho_tai_san postgres
+4693; 0 20176 TABLE DATA public lich_thanh_toan postgres
+4694; 0 20188 TABLE DATA public login_history postgres
+4695; 0 20195 TABLE DATA public meter_anomaly_alert postgres
+4696; 0 20202 TABLE DATA public nguoi_dung postgres
+4697; 0 20215 TABLE DATA public nguoi_dung_nha_tro postgres
+4698; 0 20224 TABLE DATA public nguoi_dung_vai_tro postgres
+4699; 0 20228 TABLE DATA public nha_tro postgres
+4700; 0 20239 TABLE DATA public phong postgres
+4701; 0 20254 TABLE DATA public phong_tien_ich postgres
+4702; 0 20258 TABLE DATA public phu_luc_hop_dong postgres
+4703; 0 20265 TABLE DATA public phuong_tien postgres
+4704; 0 20274 TABLE DATA public refresh_token postgres
+4705; 0 20281 TABLE DATA public su_co postgres
+4706; 0 20295 TABLE DATA public tai_san_phong postgres
+4707; 0 20300 TABLE DATA public tang postgres
+4708; 0 20309 TABLE DATA public thanh_toan postgres
+4709; 0 20320 TABLE DATA public thanh_vien_cuoc_tro_chuyen postgres
+4710; 0 20333 TABLE DATA public thanh_vien_hop_dong postgres
+4711; 0 20345 TABLE DATA public thong_bao postgres
+4712; 0 20356 TABLE DATA public thong_bao_nguoi_nhan postgres
+4713; 0 20363 TABLE DATA public tien_ich postgres
+4714; 0 20368 TABLE DATA public tin_nhan postgres
+4716; 0 20389 TABLE DATA public vai_tro postgres
+4717; 0 20396 TABLE DATA public yeu_cau_o_ghep postgres
+4736; 0 0 SEQUENCE SET public tin_nhan_so_thu_tu_seq postgres
+4158; 2606 20403 CONSTRAINT public audit_log audit_log_pkey postgres
+4161; 2606 20405 CONSTRAINT public bank_transaction bank_transaction_ma_giao_dich_key postgres
+4163; 2606 20407 CONSTRAINT public bank_transaction bank_transaction_pkey postgres
+4165; 2606 20409 CONSTRAINT public bao_cao_tin_nhan bao_cao_tin_nhan_pkey postgres
+4170; 2606 20411 CONSTRAINT public cau_hinh_gia cau_hinh_gia_pkey postgres
+4173; 2606 20413 CONSTRAINT public chan_nguoi_dung chan_nguoi_dung_pkey postgres
+4178; 2606 20415 CONSTRAINT public chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_loai_ky_nam_ky_thang_key postgres
+4180; 2606 20417 CONSTRAINT public chi_so_dien_nuoc chi_so_dien_nuoc_pkey postgres
+4183; 2606 20419 CONSTRAINT public chi_tiet_hoa_don chi_tiet_hoa_don_pkey postgres
+4186; 2606 20421 CONSTRAINT public chu_tro chu_tro_nguoi_dung_id_key postgres
+4188; 2606 20423 CONSTRAINT public chu_tro chu_tro_pkey postgres
+4190; 2606 20425 CONSTRAINT public chu_tro chu_tro_so_cccd_key postgres
+4192; 2606 20427 CONSTRAINT public contract_signature contract_signature_pkey postgres
+4194; 2606 20429 CONSTRAINT public cuoc_tro_chuyen cuoc_tro_chuyen_khoa_duy_nhat_key postgres
+4196; 2606 20431 CONSTRAINT public cuoc_tro_chuyen cuoc_tro_chuyen_pkey postgres
+4200; 2606 20433 CONSTRAINT public dang_ky_push dang_ky_push_pkey postgres
+4205; 2606 20435 CONSTRAINT public dat_coc_phong dat_coc_phong_pkey postgres
+4208; 2606 20437 CONSTRAINT public debt_reminder_log debt_reminder_log_pkey postgres
+4210; 2606 20439 CONSTRAINT public dich_vu dich_vu_chu_tro_id_ten_dich_vu_key postgres
+4214; 2606 20441 CONSTRAINT public dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_dich_vu_id_bat_dau_tu_key postgres
+4216; 2606 20443 CONSTRAINT public dich_vu_hop_dong dich_vu_hop_dong_pkey postgres
+4212; 2606 20445 CONSTRAINT public dich_vu dich_vu_pkey postgres
+4219; 2606 20447 CONSTRAINT public email_verification_token email_verification_token_pkey postgres
+4221; 2606 20449 CONSTRAINT public email_verification_token email_verification_token_token_key postgres
+4236; 2606 20451 CONSTRAINT public hop_dong excl_hop_dong_phong_active_overlap postgres
+4223; 2606 20453 CONSTRAINT public file_media file_media_pkey postgres
+4226; 2606 20455 CONSTRAINT public hoa_don hoa_don_hop_dong_id_ky_nam_ky_thang_key postgres
+4228; 2606 20457 CONSTRAINT public hoa_don hoa_don_ma_hoa_don_key postgres
+4230; 2606 20459 CONSTRAINT public hoa_don hoa_don_pkey postgres
+4238; 2606 20461 CONSTRAINT public hop_dong hop_dong_ma_hop_dong_key postgres
+4240; 2606 20463 CONSTRAINT public hop_dong hop_dong_pkey postgres
+4244; 2606 20465 CONSTRAINT public invoice_generation_batch invoice_generation_batch_pkey postgres
+4246; 2606 20467 CONSTRAINT public invoice_generation_log invoice_generation_log_pkey postgres
+4250; 2606 20469 CONSTRAINT public khach_thue khach_thue_chu_tro_id_so_cccd_key postgres
+4252; 2606 20471 CONSTRAINT public khach_thue khach_thue_nguoi_dung_id_key postgres
+4254; 2606 20473 CONSTRAINT public khach_thue khach_thue_pkey postgres
+4256; 2606 20475 CONSTRAINT public kho_tai_san kho_tai_san_pkey postgres
+4259; 2606 20477 CONSTRAINT public lich_hen lich_hen_pkey postgres
+4261; 2606 20479 CONSTRAINT public lich_su_hoa_don lich_su_hoa_don_pkey postgres
+4263; 2606 20481 CONSTRAINT public lich_su_kho_tai_san lich_su_kho_tai_san_pkey postgres
+4267; 2606 20483 CONSTRAINT public lich_thanh_toan lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key postgres
+4269; 2606 20485 CONSTRAINT public lich_thanh_toan lich_thanh_toan_pkey postgres
+4272; 2606 20487 CONSTRAINT public login_history login_history_pkey postgres
+4274; 2606 20489 CONSTRAINT public meter_anomaly_alert meter_anomaly_alert_pkey postgres
+4278; 2606 20491 CONSTRAINT public nguoi_dung nguoi_dung_email_key postgres
+4287; 2606 20493 CONSTRAINT public nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_nha_tro_id_vai_tro_key postgres
+4289; 2606 20495 CONSTRAINT public nguoi_dung_nha_tro nguoi_dung_nha_tro_pkey postgres
+4280; 2606 20497 CONSTRAINT public nguoi_dung nguoi_dung_pkey postgres
+4282; 2606 20499 CONSTRAINT public nguoi_dung nguoi_dung_so_cccd_key postgres
+4284; 2606 20501 CONSTRAINT public nguoi_dung nguoi_dung_so_dien_thoai_key postgres
+4291; 2606 20503 CONSTRAINT public nguoi_dung_vai_tro nguoi_dung_vai_tro_pkey postgres
+4295; 2606 20505 CONSTRAINT public nha_tro nha_tro_pkey postgres
+4301; 2606 20507 CONSTRAINT public phong phong_nha_tro_id_ten_key postgres
+4303; 2606 20509 CONSTRAINT public phong phong_pkey postgres
+4305; 2606 20511 CONSTRAINT public phong_tien_ich phong_tien_ich_pkey postgres
+4307; 2606 20513 CONSTRAINT public phu_luc_hop_dong phu_luc_hop_dong_pkey postgres
+4309; 2606 20515 CONSTRAINT public phuong_tien phuong_tien_ma_pt_key postgres
+4311; 2606 20517 CONSTRAINT public phuong_tien phuong_tien_pkey postgres
+4313; 2606 20519 CONSTRAINT public refresh_token refresh_token_pkey postgres
+4315; 2606 20521 CONSTRAINT public refresh_token refresh_token_token_key postgres
+4318; 2606 20523 CONSTRAINT public su_co su_co_pkey postgres
+4320; 2606 20525 CONSTRAINT public tai_san_phong tai_san_phong_pkey postgres
+4323; 2606 20527 CONSTRAINT public tang tang_nha_tro_id_id_key postgres
+4325; 2606 20529 CONSTRAINT public tang tang_nha_tro_id_so_tang_key postgres
+4327; 2606 20531 CONSTRAINT public tang tang_pkey postgres
+4331; 2606 20533 CONSTRAINT public thanh_toan thanh_toan_external_transaction_id_key postgres
+4333; 2606 20535 CONSTRAINT public thanh_toan thanh_toan_pkey postgres
+4336; 2606 20537 CONSTRAINT public thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_pkey postgres
+4341; 2606 20539 CONSTRAINT public thanh_vien_hop_dong thanh_vien_hop_dong_pkey postgres
+4346; 2606 20541 CONSTRAINT public thong_bao_nguoi_nhan thong_bao_nguoi_nhan_pkey postgres
+4348; 2606 20543 CONSTRAINT public thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_nguoi_dung_id_key postgres
+4343; 2606 20545 CONSTRAINT public thong_bao thong_bao_pkey postgres
+4350; 2606 20547 CONSTRAINT public tien_ich tien_ich_pkey postgres
+4352; 2606 20549 CONSTRAINT public tien_ich tien_ich_ten_key postgres
+4359; 2606 20551 CONSTRAINT public tin_nhan tin_nhan_pkey postgres
+4361; 2606 20553 CONSTRAINT public tin_nhan tin_nhan_so_thu_tu_key postgres
+4168; 2606 20555 CONSTRAINT public bao_cao_tin_nhan uq_bao_cao_tin_nhan postgres
+4176; 2606 20557 CONSTRAINT public chan_nguoi_dung uq_chan_nguoi_dung postgres
+4203; 2606 20559 CONSTRAINT public dang_ky_push uq_dang_ky_push_endpoint postgres
+4338; 2606 20561 CONSTRAINT public thanh_vien_cuoc_tro_chuyen uq_thanh_vien_cuoc_tro_chuyen postgres
+4364; 2606 20563 CONSTRAINT public vai_tro vai_tro_pkey postgres
+4366; 2606 20565 CONSTRAINT public vai_tro vai_tro_ten_key postgres
+4368; 2606 20567 CONSTRAINT public yeu_cau_o_ghep yeu_cau_o_ghep_pkey postgres
+4159; 1259 20568 INDEX public idx_audit_log_target postgres
+4166; 1259 20569 INDEX public idx_bao_cao_cho_xu_ly postgres
+4171; 1259 20570 INDEX public idx_cau_hinh_gia_nha_tro postgres
+4174; 1259 20571 INDEX public idx_chan_theo_nguoi_bi_chan postgres
+4181; 1259 20572 INDEX public idx_chi_so_phong_ky postgres
+4184; 1259 20573 INDEX public idx_cthd_hoa_don postgres
+4197; 1259 20574 INDEX public idx_cuoc_tro_chuyen_nha_tro postgres
+4198; 1259 20575 INDEX public idx_cuoc_tro_chuyen_tin_cuoi postgres
+4201; 1259 20576 INDEX public idx_dang_ky_push_nguoi_dung postgres
+4206; 1259 20577 INDEX public idx_dat_coc_phong postgres
+4217; 1259 20578 INDEX public idx_dvhd_hop_dong postgres
+4224; 1259 20579 INDEX public idx_file_media_target postgres
+4231; 1259 20580 INDEX public idx_hoa_don_hop_dong_ky postgres
+4232; 1259 20581 INDEX public idx_hoa_don_khach_thue postgres
+4233; 1259 20582 INDEX public idx_hoa_don_phong postgres
+4234; 1259 20583 INDEX public idx_hoa_don_status_due postgres
+4241; 1259 20584 INDEX public idx_hop_dong_khach_thue postgres
+4242; 1259 20585 INDEX public idx_hop_dong_phong_status_dates postgres
+4247; 1259 20586 INDEX public idx_khach_thue_chu_tro postgres
+4248; 1259 20587 INDEX public idx_khach_thue_sdt postgres
+4257; 1259 20588 INDEX public idx_lich_hen_phong_time postgres
+4264; 1259 20589 INDEX public idx_lich_thanh_toan_han postgres
+4265; 1259 20590 INDEX public idx_lich_thanh_toan_hop_dong postgres
+4270; 1259 20591 INDEX public idx_login_history_user_time postgres
+4285; 1259 20592 INDEX public idx_ndnt_nha_tro_user postgres
+4275; 1259 20593 INDEX public idx_nguoi_dung_email postgres
+4276; 1259 20594 INDEX public idx_nguoi_dung_trang_thai postgres
+4292; 1259 20595 INDEX public idx_nha_tro_chu_tro postgres
+4293; 1259 20596 INDEX public idx_nha_tro_location_active postgres
+4296; 1259 20597 INDEX public idx_phong_nha_tro postgres
+4297; 1259 20598 INDEX public idx_phong_nha_tro_tang postgres
+4298; 1259 20599 INDEX public idx_phong_tang_id postgres
+4299; 1259 20600 INDEX public idx_phong_trang_thai postgres
+4316; 1259 20601 INDEX public idx_su_co_phong_status postgres
+4321; 1259 20602 INDEX public idx_tang_nha_tro_so_tang postgres
+4328; 1259 20603 INDEX public idx_thanh_toan_hoa_don postgres
+4329; 1259 20604 INDEX public idx_thanh_toan_ref postgres
+4334; 1259 20605 INDEX public idx_thanh_vien_nguoi_dung postgres
+4344; 1259 20606 INDEX public idx_thong_bao_recipient postgres
+4353; 1259 20607 INDEX public idx_tin_nhan_co_lien_ket postgres
+4354; 1259 20608 INDEX public idx_tin_nhan_dinh_kem postgres
+4355; 1259 20609 INDEX public idx_tin_nhan_ghim postgres
+4356; 1259 20610 INDEX public idx_tin_nhan_hoi_thoai_seq postgres
+4357; 1259 20611 INDEX public idx_tin_nhan_noi_dung_trgm postgres
+4339; 1259 20612 INDEX public idx_tvhd_hop_dong postgres
+4362; 1259 20613 INDEX public uq_tin_nhan_ma_client postgres
+4470; 2620 20614 TRIGGER public cau_hinh_gia trg_cau_hinh_gia_cap_nhat postgres
+4471; 2620 20615 TRIGGER public chi_so_dien_nuoc trg_chi_so_cap_nhat postgres
+4473; 2620 20616 TRIGGER public chu_tro trg_chu_tro_cap_nhat postgres
+4472; 2620 20617 TRIGGER public chi_tiet_hoa_don trg_cthd_recalc postgres
+4474; 2620 20618 TRIGGER public dich_vu trg_dich_vu_cap_nhat postgres
+4475; 2620 20619 TRIGGER public hoa_don trg_hoa_don_cap_nhat postgres
+4476; 2620 20620 TRIGGER public hoa_don trg_hoa_don_status postgres
+4477; 2620 20621 TRIGGER public hop_dong trg_hop_dong_cap_nhat postgres
+4478; 2620 20622 TRIGGER public khach_thue trg_khach_thue_cap_nhat postgres
+4479; 2620 20623 TRIGGER public lich_hen trg_lich_hen_cap_nhat postgres
+4480; 2620 20624 TRIGGER public nguoi_dung trg_nguoi_dung_cap_nhat postgres
+4481; 2620 20625 TRIGGER public nha_tro trg_nha_tro_cap_nhat postgres
+4482; 2620 20626 TRIGGER public phong trg_phong_cap_nhat postgres
+4483; 2620 20627 TRIGGER public su_co trg_su_co_cap_nhat postgres
+4484; 2620 20628 TRIGGER public thanh_toan trg_thanh_toan_recalc postgres
+4485; 2620 20629 TRIGGER public thanh_vien_hop_dong trg_thanh_vien_cap_nhat postgres
+4486; 2620 20630 TRIGGER public thong_bao trg_thong_bao_cap_nhat postgres
+4369; 2606 20631 FK CONSTRAINT public audit_log audit_log_nguoi_dung_id_fkey postgres
+4370; 2606 20636 FK CONSTRAINT public bank_transaction bank_transaction_hoa_don_id_fkey postgres
+4371; 2606 20641 FK CONSTRAINT public bank_transaction bank_transaction_nha_tro_id_fkey postgres
+4372; 2606 20646 FK CONSTRAINT public bao_cao_tin_nhan bao_cao_tin_nhan_cuoc_tro_chuyen_id_fkey postgres
+4373; 2606 20651 FK CONSTRAINT public bao_cao_tin_nhan bao_cao_tin_nhan_nguoi_bao_cao_id_fkey postgres
+4374; 2606 20656 FK CONSTRAINT public bao_cao_tin_nhan bao_cao_tin_nhan_nguoi_xu_ly_id_fkey postgres
+4375; 2606 20661 FK CONSTRAINT public bao_cao_tin_nhan bao_cao_tin_nhan_tin_nhan_id_fkey postgres
+4376; 2606 20666 FK CONSTRAINT public cau_hinh_gia cau_hinh_gia_dich_vu_id_fkey postgres
+4377; 2606 20671 FK CONSTRAINT public cau_hinh_gia cau_hinh_gia_nha_tro_id_fkey postgres
+4378; 2606 20676 FK CONSTRAINT public chan_nguoi_dung chan_nguoi_dung_nguoi_bi_chan_id_fkey postgres
+4379; 2606 20681 FK CONSTRAINT public chan_nguoi_dung chan_nguoi_dung_nguoi_chan_id_fkey postgres
+4380; 2606 20686 FK CONSTRAINT public chi_so_dien_nuoc chi_so_dien_nuoc_hop_dong_id_fkey postgres
+4381; 2606 20691 FK CONSTRAINT public chi_so_dien_nuoc chi_so_dien_nuoc_nguoi_ghi_id_fkey postgres
+4382; 2606 20696 FK CONSTRAINT public chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_fkey postgres
+4383; 2606 20701 FK CONSTRAINT public chi_tiet_hoa_don chi_tiet_hoa_don_chi_so_dien_nuoc_id_fkey postgres
+4384; 2606 20706 FK CONSTRAINT public chi_tiet_hoa_don chi_tiet_hoa_don_dich_vu_id_fkey postgres
+4385; 2606 20711 FK CONSTRAINT public chi_tiet_hoa_don chi_tiet_hoa_don_hoa_don_id_fkey postgres
+4387; 2606 20716 FK CONSTRAINT public cuoc_tro_chuyen cuoc_tro_chuyen_nguoi_tao_id_fkey postgres
+4388; 2606 20721 FK CONSTRAINT public cuoc_tro_chuyen cuoc_tro_chuyen_nha_tro_id_fkey postgres
+4389; 2606 20726 FK CONSTRAINT public cuoc_tro_chuyen cuoc_tro_chuyen_tang_id_fkey postgres
+4390; 2606 20731 FK CONSTRAINT public dang_ky_push dang_ky_push_nguoi_dung_id_fkey postgres
+4391; 2606 20736 FK CONSTRAINT public dat_coc_phong dat_coc_phong_hop_dong_id_fkey postgres
+4392; 2606 20741 FK CONSTRAINT public dat_coc_phong dat_coc_phong_khach_thue_id_fkey postgres
+4393; 2606 20746 FK CONSTRAINT public dat_coc_phong dat_coc_phong_phong_id_fkey postgres
+4396; 2606 20751 FK CONSTRAINT public dich_vu dich_vu_chu_tro_id_fkey postgres
+4397; 2606 20756 FK CONSTRAINT public dich_vu_hop_dong dich_vu_hop_dong_dich_vu_id_fkey postgres
+4398; 2606 20761 FK CONSTRAINT public dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_fkey postgres
+4399; 2606 20766 FK CONSTRAINT public email_verification_token email_verification_token_nguoi_dung_id_fkey postgres
+4400; 2606 20771 FK CONSTRAINT public file_media file_media_nguoi_tai_len_id_fkey postgres
+4423; 2606 20776 FK CONSTRAINT public meter_anomaly_alert fk_anomaly_chi_so postgres
+4424; 2606 20781 FK CONSTRAINT public meter_anomaly_alert fk_anomaly_hop_dong postgres
+4425; 2606 20786 FK CONSTRAINT public meter_anomaly_alert fk_anomaly_phong postgres
+4426; 2606 20791 FK CONSTRAINT public meter_anomaly_alert fk_anomaly_resolved_by postgres
+4386; 2606 20796 FK CONSTRAINT public chi_tiet_hoa_don fk_cthd_su_co postgres
+4394; 2606 20801 FK CONSTRAINT public dat_coc_phong fk_dat_coc_hop_dong postgres
+4395; 2606 20806 FK CONSTRAINT public dat_coc_phong fk_dat_coc_nguoi_xac_nhan postgres
+4406; 2606 20811 FK CONSTRAINT public invoice_generation_batch fk_invoice_batch_nguoi_tao postgres
+4407; 2606 20816 FK CONSTRAINT public invoice_generation_batch fk_invoice_batch_nha_tro postgres
+4408; 2606 20821 FK CONSTRAINT public invoice_generation_log fk_invoice_log_batch postgres
+4409; 2606 20826 FK CONSTRAINT public invoice_generation_log fk_invoice_log_hoa_don postgres
+4410; 2606 20831 FK CONSTRAINT public invoice_generation_log fk_invoice_log_hop_dong postgres
+4462; 2606 20836 FK CONSTRAINT public tin_nhan fk_tin_nhan_chuyen_tiep_tu postgres
+4463; 2606 20841 FK CONSTRAINT public tin_nhan fk_tin_nhan_nguoi_ghim postgres
+4468; 2606 20846 FK CONSTRAINT public yeu_cau_o_ghep fk_ycog_hop_dong postgres
+4469; 2606 20851 FK CONSTRAINT public yeu_cau_o_ghep fk_ycog_khach_thue postgres
+4401; 2606 20856 FK CONSTRAINT public hoa_don hoa_don_hop_dong_id_fkey postgres
+4402; 2606 20861 FK CONSTRAINT public hoa_don hoa_don_khach_thue_id_fkey postgres
+4403; 2606 20866 FK CONSTRAINT public hoa_don hoa_don_phong_id_fkey postgres
+4404; 2606 20871 FK CONSTRAINT public hop_dong hop_dong_khach_thue_id_fkey postgres
+4405; 2606 20876 FK CONSTRAINT public hop_dong hop_dong_phong_id_fkey postgres
+4411; 2606 20881 FK CONSTRAINT public khach_thue khach_thue_chu_tro_id_fkey postgres
+4412; 2606 20886 FK CONSTRAINT public khach_thue khach_thue_nguoi_dung_id_fkey postgres
+4413; 2606 20891 FK CONSTRAINT public kho_tai_san kho_tai_san_nha_tro_id_fkey postgres
+4414; 2606 20896 FK CONSTRAINT public lich_hen lich_hen_nguoi_dung_id_fkey postgres
+4415; 2606 20901 FK CONSTRAINT public lich_hen lich_hen_phong_id_fkey postgres
+4416; 2606 20906 FK CONSTRAINT public lich_su_hoa_don lich_su_hoa_don_hoa_don_id_fkey postgres
+4417; 2606 20911 FK CONSTRAINT public lich_su_hoa_don lich_su_hoa_don_nguoi_thay_doi_id_fkey postgres
+4418; 2606 20916 FK CONSTRAINT public lich_su_kho_tai_san lich_su_kho_tai_san_kho_tai_san_id_fkey postgres
+4419; 2606 20921 FK CONSTRAINT public lich_su_kho_tai_san lich_su_kho_tai_san_phong_id_fkey postgres
+4420; 2606 20926 FK CONSTRAINT public lich_thanh_toan lich_thanh_toan_hoa_don_id_fkey postgres
+4421; 2606 20931 FK CONSTRAINT public lich_thanh_toan lich_thanh_toan_hop_dong_id_fkey postgres
+4422; 2606 20936 FK CONSTRAINT public login_history login_history_nguoi_dung_id_fkey postgres
+4427; 2606 20941 FK CONSTRAINT public nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_fkey postgres
+4428; 2606 20946 FK CONSTRAINT public nguoi_dung_nha_tro nguoi_dung_nha_tro_nha_tro_id_fkey postgres
+4429; 2606 20951 FK CONSTRAINT public nguoi_dung_vai_tro nguoi_dung_vai_tro_nguoi_dung_id_fkey postgres
+4430; 2606 20956 FK CONSTRAINT public nguoi_dung_vai_tro nguoi_dung_vai_tro_vai_tro_id_fkey postgres
+4431; 2606 20961 FK CONSTRAINT public nha_tro nha_tro_chu_tro_id_fkey postgres
+4432; 2606 20966 FK CONSTRAINT public phong phong_nha_tro_id_fkey postgres
+4433; 2606 20971 FK CONSTRAINT public phong phong_nha_tro_id_tang_id_fkey postgres
+4434; 2606 20976 FK CONSTRAINT public phong phong_tang_id_fkey postgres
+4435; 2606 20981 FK CONSTRAINT public phong_tien_ich phong_tien_ich_phong_id_fkey postgres
+4436; 2606 20986 FK CONSTRAINT public phong_tien_ich phong_tien_ich_tien_ich_id_fkey postgres
+4437; 2606 20991 FK CONSTRAINT public phu_luc_hop_dong phu_luc_hop_dong_hop_dong_id_fkey postgres
+4438; 2606 20996 FK CONSTRAINT public phu_luc_hop_dong phu_luc_hop_dong_nguoi_tao_id_fkey postgres
+4439; 2606 21001 FK CONSTRAINT public phuong_tien phuong_tien_chu_tro_id_fkey postgres
+4440; 2606 21006 FK CONSTRAINT public phuong_tien phuong_tien_khach_thue_id_fkey postgres
+4441; 2606 21011 FK CONSTRAINT public phuong_tien phuong_tien_nha_tro_id_fkey postgres
+4442; 2606 21016 FK CONSTRAINT public phuong_tien phuong_tien_phong_id_fkey postgres
+4443; 2606 21021 FK CONSTRAINT public refresh_token refresh_token_nguoi_dung_id_fkey postgres
+4444; 2606 21026 FK CONSTRAINT public su_co su_co_khach_thue_id_fkey postgres
+4445; 2606 21031 FK CONSTRAINT public su_co su_co_nguoi_bao_id_fkey postgres
+4446; 2606 21036 FK CONSTRAINT public su_co su_co_nguoi_phu_trach_id_fkey postgres
+4447; 2606 21041 FK CONSTRAINT public su_co su_co_phong_id_fkey postgres
+4448; 2606 21046 FK CONSTRAINT public tai_san_phong tai_san_phong_kho_tai_san_id_fkey postgres
+4449; 2606 21051 FK CONSTRAINT public tai_san_phong tai_san_phong_phong_id_fkey postgres
+4450; 2606 21056 FK CONSTRAINT public tang tang_nha_tro_id_fkey postgres
+4451; 2606 21061 FK CONSTRAINT public thanh_toan thanh_toan_hoa_don_id_fkey postgres
+4452; 2606 21066 FK CONSTRAINT public thanh_toan thanh_toan_khach_thue_id_fkey postgres
+4453; 2606 21071 FK CONSTRAINT public thanh_toan thanh_toan_nguoi_ghi_nhan_id_fkey postgres
+4454; 2606 21076 FK CONSTRAINT public thanh_toan thanh_toan_nguoi_thanh_toan_id_fkey postgres
+4455; 2606 21081 FK CONSTRAINT public thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_cuoc_tro_chuyen_id_fkey postgres
+4456; 2606 21086 FK CONSTRAINT public thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_nguoi_dung_id_fkey postgres
+4457; 2606 21091 FK CONSTRAINT public thanh_vien_hop_dong thanh_vien_hop_dong_hop_dong_id_fkey postgres
+4458; 2606 21096 FK CONSTRAINT public thanh_vien_hop_dong thanh_vien_hop_dong_khach_thue_id_fkey postgres
+4459; 2606 21101 FK CONSTRAINT public thong_bao thong_bao_nguoi_gui_id_fkey postgres
+4460; 2606 21106 FK CONSTRAINT public thong_bao_nguoi_nhan thong_bao_nguoi_nhan_nguoi_dung_id_fkey postgres
+4461; 2606 21111 FK CONSTRAINT public thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_fkey postgres
+4464; 2606 21116 FK CONSTRAINT public tin_nhan tin_nhan_cuoc_tro_chuyen_id_fkey postgres
+4465; 2606 21121 FK CONSTRAINT public tin_nhan tin_nhan_file_media_id_fkey postgres
+4466; 2606 21126 FK CONSTRAINT public tin_nhan tin_nhan_nguoi_gui_id_fkey postgres
+4467; 2606 21131 FK CONSTRAINT public tin_nhan tin_nhan_tra_loi_cho_id_fkey postgres
+4628; 0 19937 ROW SECURITY public audit_log postgres
+4629; 0 19944 ROW SECURITY public bank_transaction postgres
+4630; 0 19961 ROW SECURITY public cau_hinh_gia postgres
+4631; 0 19980 ROW SECURITY public chi_so_dien_nuoc postgres
+4632; 0 19993 ROW SECURITY public chi_tiet_hoa_don postgres
+4633; 0 20002 ROW SECURITY public chu_tro postgres
+4634; 0 20009 ROW SECURITY public contract_signature postgres
+4635; 0 20030 ROW SECURITY public dat_coc_phong postgres
+4636; 0 20041 ROW SECURITY public debt_reminder_log postgres
+4637; 0 20048 ROW SECURITY public dich_vu postgres
+4638; 0 20060 ROW SECURITY public dich_vu_hop_dong postgres
+4639; 0 20068 ROW SECURITY public email_verification_token postgres
+4640; 0 20073 ROW SECURITY public file_media postgres
+4641; 0 20081 ROW SECURITY public hoa_don postgres
+4642; 0 20100 ROW SECURITY public hop_dong postgres
+4643; 0 20119 ROW SECURITY public invoice_generation_batch postgres
+4644; 0 20124 ROW SECURITY public invoice_generation_log postgres
+4645; 0 20131 ROW SECURITY public khach_thue postgres
+4646; 0 20152 ROW SECURITY public lich_hen postgres
+4647; 0 20162 ROW SECURITY public lich_su_hoa_don postgres
+4648; 0 20176 ROW SECURITY public lich_thanh_toan postgres
+4649; 0 20188 ROW SECURITY public login_history postgres
+4650; 0 20195 ROW SECURITY public meter_anomaly_alert postgres
+4651; 0 20202 ROW SECURITY public nguoi_dung postgres
+4652; 0 20215 ROW SECURITY public nguoi_dung_nha_tro postgres
+4653; 0 20224 ROW SECURITY public nguoi_dung_vai_tro postgres
+4654; 0 20228 ROW SECURITY public nha_tro postgres
+4655; 0 20239 ROW SECURITY public phong postgres
+4656; 0 20254 ROW SECURITY public phong_tien_ich postgres
+4657; 0 20258 ROW SECURITY public phu_luc_hop_dong postgres
+4658; 0 20274 ROW SECURITY public refresh_token postgres
+4659; 0 20281 ROW SECURITY public su_co postgres
+4660; 0 20300 ROW SECURITY public tang postgres
+4661; 0 20309 ROW SECURITY public thanh_toan postgres
+4662; 0 20333 ROW SECURITY public thanh_vien_hop_dong postgres
+4663; 0 20345 ROW SECURITY public thong_bao postgres
+4664; 0 20356 ROW SECURITY public thong_bao_nguoi_nhan postgres
+4665; 0 20363 ROW SECURITY public tien_ich postgres
+4666; 0 20389 ROW SECURITY public vai_tro postgres
