@@ -14,9 +14,11 @@ services:
       - "54322:5432"
     volumes:
       - easyhouse_postgres_data:/var/lib/postgresql/data
-      - ./sql/init-db.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
-      - ./sql/migrations/20260724_fix_generated_room_name_encoding.sql:/docker-entrypoint-initdb.d/01-fix-room-name-encoding.sql:ro
-      - ./sql/migrations/20260724_prorate_partial_month_rent.sql:/docker-entrypoint-initdb.d/02-prorate-partial-month-rent.sql:ro
+      # Must be a real, complete schema-and-data dump.  The former
+      # sql/init-db.sql path had become an empty directory, so a new volume
+      # could start without any EasyHouse data.
+      - ./sql/easyhouse-after-fix.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
+      - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/01-expand-refresh-token.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
