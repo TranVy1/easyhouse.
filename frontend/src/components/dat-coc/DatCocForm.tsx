@@ -73,11 +73,11 @@ export function DatCocForm({ datCoc, onClose, onSuccess }: { datCoc?: any, onClo
         },
         body: JSON.stringify(data)
       });
-      if (res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      if (res.ok && payload.success !== false) {
         onSuccess();
       } else {
-        const err = await res.json();
-        alert(err.message || 'Lỗi lưu đặt cọc');
+        alert(payload.message || 'Lỗi lưu đặt cọc');
       }
     } catch (e) {
       console.error(e);

@@ -65,6 +65,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 import { ToaNha } from '@/types';
 import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
@@ -293,6 +294,21 @@ export default function ToaNhaPage() {
       .filter(Boolean);
   };
 
+  const downloadImportTemplate = () => {
+    const rows = [['ten_toa_nha', 'dia_chi', 'tang', 'ma_phong', 'dien_tich', 'gia_thue', 'tien_coc', 'so_nguoi_toi_da'], ['Tòa A', '123 Nguyễn Trãi', 1, '101', 20, 2500000, 2500000, 2]];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), 'ToaNha');
+    XLSX.writeFile(workbook, 'mau-import-toa-nha.xlsx');
+  };
+
+  const readImportFile = async (file: File) => {
+    const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as unknown[][];
+    setImportText(rows.map(row => row.map(cell => String(cell ?? '').trim()).join('\t')).join('\n'));
+    setImportPreview(null);
+  };
+
   const runImport = async (mode: 'preview' | 'confirm') => {
     const rows = parseImportRows();
     if (rows.length === 0) {
@@ -433,10 +449,10 @@ export default function ToaNhaPage() {
             <Button size="icon" onClick={() => { setEditingToaNha(null); setIsDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 text-white">
               <Plus className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="outline" className="border-amber-400 text-amber-500 hover:bg-amber-50 h-9 w-9">
+            <Button size="icon" variant="outline" onClick={downloadImportTemplate} title="Tải file Excel mẫu" className="border-amber-400 text-amber-500 hover:bg-amber-50 h-9 w-9">
               <FileUp className="h-4 w-4 rotate-180" />
             </Button>
-            <Button size="icon" variant="outline" onClick={() => setIsImportOpen(true)} className="border-emerald-400 text-emerald-500 hover:bg-emerald-50 h-9 w-9">
+            <Button size="icon" variant="outline" onClick={() => setIsImportOpen(true)} title="Nhập từ Excel" className="border-emerald-400 text-emerald-500 hover:bg-emerald-50 h-9 w-9">
               <FileUp className="h-4 w-4" />
             </Button>
             <Button size="icon" variant="outline" className="border-blue-500 text-white bg-blue-600 hover:bg-blue-700 h-9 w-9">
@@ -458,6 +474,7 @@ export default function ToaNhaPage() {
               <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
                 Thứ tự cột: <b>ten_toa_nha</b>, <b>dia_chi</b>, <b>tang</b>, <b>ma_phong</b>, <b>dien_tich</b>, <b>gia_thue</b>, <b>tien_coc</b>, <b>so_nguoi_toi_da</b>.
               </div>
+              <Input type="file" accept=".xlsx,.xls,.csv" onChange={async (e) => { const file = e.target.files?.[0]; if (file) await readImportFile(file); }} />
               <Textarea
                 value={importText}
                 onChange={(e) => setImportText(e.target.value)}

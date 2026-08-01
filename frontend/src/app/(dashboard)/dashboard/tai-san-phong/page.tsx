@@ -20,6 +20,7 @@ import { TaiSanPhongDataTable } from "./table"
 import { TaiSanPhongForm } from "./form"
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 import { TaiSanPhongImportDialog } from "./TaiSanPhongImportDialog"
+import * as XLSX from "xlsx"
 
 export default function TaiSanPhongPage() {
   const { data: session } = useSession()
@@ -144,6 +145,13 @@ export default function TaiSanPhongPage() {
     setIsFormOpen(true)
   }
 
+  const downloadTemplate = () => {
+    const rows = [["phongId", "tenPhong", "tenTaiSan", "soLuong", "giaTri", "tinhTrang", "ghiChu", "anhTaiSan"]]
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "TaiSanPhong")
+    XLSX.writeFile(workbook, "mau-import-tai-san-phong.xlsx")
+  }
+
   const handleEdit = (item: TaiSanPhong) => {
     setEditingItem(item)
     setIsFormOpen(true)
@@ -191,11 +199,9 @@ export default function TaiSanPhongPage() {
           <p className="text-muted-foreground">Kiểm soát trang thiết bị, nội thất ở tất cả các phòng.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <a href="/api/tai-san-phong/import/template" download>
-              <Download className="mr-2 h-4 w-4" />
-              Tải file mẫu
-            </a>
+          <Button variant="outline" size="sm" onClick={downloadTemplate}>
+            <Download className="mr-2 h-4 w-4" />
+            Tải Excel mẫu
           </Button>
           <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
             <FileUp className="mr-2 h-4 w-4" />

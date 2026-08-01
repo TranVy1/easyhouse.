@@ -51,8 +51,11 @@ export default function DatCocPage() {
         },
         body: payload ? JSON.stringify(payload) : undefined
       });
-      if (res.ok) {
+      const result = await res.json().catch(() => ({}));
+      if (res.ok && result.success !== false) {
         fetchDatCocs();
+      } else {
+        alert(result.message || 'Không thể cập nhật đặt cọc');
       }
     } catch (e) {
       console.error(e);

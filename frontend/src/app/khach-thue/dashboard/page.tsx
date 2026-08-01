@@ -116,6 +116,7 @@ export default function KhachThueDashboardPage() {
   const tenantName = khachThue?.hoTen || session?.user?.name || 'khách thuê';
 
   const quickActions = [
+    { title: 'Tổng quan các phòng', icon: SearchX, href: '/xem-phong', color: 'text-[#267D76]', bg: 'bg-[#4FA7A0]/10', hover: 'hover:border-[#4FA7A0]/30 hover:bg-[#4FA7A0]/5' },
     { title: 'Xem hóa đơn', icon: FileText, href: '/khach-thue/dashboard/hoa-don', color: 'text-blue-600', bg: 'bg-blue-50', hover: 'hover:border-blue-200 hover:bg-blue-50/50' },
     { title: 'Gửi sự cố', icon: AlertCircle, href: '/khach-thue/dashboard/su-co', color: 'text-orange-600', bg: 'bg-orange-50', hover: 'hover:border-orange-200 hover:bg-orange-50/50' },
     { title: 'Xem hợp đồng', icon: FileText, href: '/khach-thue/dashboard/hop-dong', color: 'text-[#4FA7A0]', bg: 'bg-[#4FA7A0]/10', hover: 'hover:border-[#4FA7A0]/30 hover:bg-[#4FA7A0]/5' },

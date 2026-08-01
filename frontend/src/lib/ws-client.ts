@@ -21,7 +21,14 @@ type Handler = (payload: unknown) => void;
 const WS_URL =
   process.env.NEXT_PUBLIC_WS_URL ||
   (typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`
+    ? (() => {
+        // Next.js rewrites không proxy được WebSocket; luôn nối thẳng backend.
+        const configured = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+        if (configured) return configured.replace(/^http/, 'ws').replace(/\/$/, '') + '/ws';
+        return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+          ? 'ws://localhost:8080/ws'
+          : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+      })()
     : '');
 
 /** Backoff luỹ thừa: 1s → 2s → 4s … tối đa 30s, để không dội bom server khi nó đang chết. */

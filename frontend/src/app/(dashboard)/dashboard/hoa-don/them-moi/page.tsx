@@ -767,16 +767,12 @@ export default function ThemMoiHoaDonPage() {
                             min="0"
                             value={formData.chiSoDienBanDau}
                             onChange={(e) => {
-                              const value = Math.max(0, parseInt(e.target.value) || 0);
-                              setFormData(prev => {
-                                // Nếu chỉ số ban đầu > chỉ số cuối kỳ, cập nhật chỉ số cuối kỳ
-                                const newChiSoCuoiKy = Math.max(prev.chiSoDienCuoiKy, value);
-                                return { 
-                                  ...prev, 
-                                  chiSoDienBanDau: value,
-                                  chiSoDienCuoiKy: newChiSoCuoiKy
-                                };
-                              });
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                              const value = Math.max(0, val);
+                              setFormData(prev => ({
+                                ...prev,
+                                chiSoDienBanDau: value
+                              }));
                             }}
                             className="h-8 w-20 text-center"
                             placeholder="0"
@@ -789,10 +785,9 @@ export default function ThemMoiHoaDonPage() {
                             min="0"
                             value={formData.chiSoDienCuoiKy}
                             onChange={(e) => {
-                              const value = Math.max(0, parseInt(e.target.value) || 0);
-                              // Đảm bảo chỉ số cuối >= chỉ số đầu
-                              const finalValue = Math.max(value, formData.chiSoDienBanDau);
-                              setFormData(prev => ({ ...prev, chiSoDienCuoiKy: finalValue }));
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                              const value = Math.max(0, val);
+                              setFormData(prev => ({ ...prev, chiSoDienCuoiKy: value }));
                             }}
                             className="h-8 w-20 text-center"
                             placeholder="0"
@@ -857,16 +852,12 @@ export default function ThemMoiHoaDonPage() {
                             min="0"
                             value={formData.chiSoNuocBanDau}
                             onChange={(e) => {
-                              const value = Math.max(0, parseInt(e.target.value) || 0);
-                              setFormData(prev => {
-                                // Nếu chỉ số ban đầu > chỉ số cuối kỳ, cập nhật chỉ số cuối kỳ
-                                const newChiSoCuoiKy = Math.max(prev.chiSoNuocCuoiKy, value);
-                                return { 
-                                  ...prev, 
-                                  chiSoNuocBanDau: value,
-                                  chiSoNuocCuoiKy: newChiSoCuoiKy
-                                };
-                              });
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                              const value = Math.max(0, val);
+                              setFormData(prev => ({
+                                ...prev,
+                                chiSoNuocBanDau: value
+                              }));
                             }}
                             className="h-8 w-20 text-center"
                             placeholder="0"
@@ -879,10 +870,9 @@ export default function ThemMoiHoaDonPage() {
                             min="0"
                             value={formData.chiSoNuocCuoiKy}
                             onChange={(e) => {
-                              const value = Math.max(0, parseInt(e.target.value) || 0);
-                              // Đảm bảo chỉ số cuối >= chỉ số đầu
-                              const finalValue = Math.max(value, formData.chiSoNuocBanDau);
-                              setFormData(prev => ({ ...prev, chiSoNuocCuoiKy: finalValue }));
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                              const value = Math.max(0, val);
+                              setFormData(prev => ({ ...prev, chiSoNuocCuoiKy: value }));
                             }}
                             className="h-8 w-20 text-center"
                             placeholder="0"

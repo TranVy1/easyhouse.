@@ -31,7 +31,7 @@ public class VNPayController {
     /**
      * API: Tạo link thanh toán VNPAY.
      *
-     * Frontend gọi: GET /api/vnpay/create-payment-url?hoaDonId=<UUID>&amount=<long>
+     * Frontend gọi: GET /api/vnpay/create-payment-url?hoaDonId=<UUID>
      * Response: { success: true, data: "https://sandbox.vnpayment.vn/..." }
      * Frontend redirect window.location.href = data.data
      *
@@ -45,12 +45,11 @@ public class VNPayController {
     @GetMapping("/create-payment-url")
     public ApiResponse<String> createPaymentUrl(
             @RequestParam UUID hoaDonId,
-            @RequestParam long amount,
             HttpServletRequest request) {
 
-        log.info("Tạo link thanh toán - hoaDonId={}, amount={}", hoaDonId, amount);
+        log.info("Tạo link thanh toán - hoaDonId={}", hoaDonId);
         String ipAddress = VNPayConfig.getIpAddress(request);
-        String paymentUrl = vnPayService.createPaymentUrl(hoaDonId, amount, ipAddress);
+        String paymentUrl = vnPayService.createPaymentUrl(hoaDonId, ipAddress);
         return ApiResponse.success(paymentUrl, "Tạo link thanh toán thành công");
     }
 

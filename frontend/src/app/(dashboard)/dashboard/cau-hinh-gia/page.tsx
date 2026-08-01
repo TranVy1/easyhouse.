@@ -642,7 +642,9 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
     nhaTroId: config?.nhaTroId || toaNhaId || '',
     loai: config?.loai || 'ROOM',
     tenHienThi: config?.tenHienThi || '',
-    loaiTinhPhi: config?.loaiTinhPhi || 'FIXED',
+    loaiTinhPhi: config?.loai === 'ELECTRICITY' || config?.loai === 'WATER'
+      ? 'PER_UNIT'
+      : config?.loaiTinhPhi || 'FIXED',
     donGia: config?.donGia !== undefined ? String(config.donGia) : '',
     hieuLucTu: config?.hieuLucTu ? String(config.hieuLucTu) : getTodayString(),
     hieuLucDen: config?.hieuLucDen ? String(config.hieuLucDen) : '',
@@ -650,6 +652,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const isMeterConfig = formData.loai === 'ELECTRICITY' || formData.loai === 'WATER';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -673,7 +676,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         nhaTroId: formData.nhaTroId,
         loai: formData.loai,
         tenHienThi: formData.tenHienThi.trim(),
-        loaiTinhPhi: formData.loaiTinhPhi,
+        loaiTinhPhi: isMeterConfig ? 'PER_UNIT' : formData.loaiTinhPhi,
         donGia: priceNum,
         hieuLucTu: formData.hieuLucTu,
         hieuLucDen: formData.hieuLucDen || null,
@@ -740,7 +743,11 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
         <Label htmlFor="form-loai" className="text-xs font-semibold">Loại mục thanh toán</Label>
         <Select
           value={formData.loai}
-          onValueChange={(val) => setFormData(prev => ({ ...prev, loai: val as LoaiMucHoaDon }))}
+          onValueChange={(val) => setFormData(prev => ({
+            ...prev,
+            loai: val as LoaiMucHoaDon,
+            loaiTinhPhi: val === 'ELECTRICITY' || val === 'WATER' ? 'PER_UNIT' : prev.loaiTinhPhi,
+          }))}
         >
           <SelectTrigger className="w-full text-xs h-9">
             <SelectValue placeholder="Chọn loại mục" />
@@ -793,6 +800,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
           <Select
             value={formData.loaiTinhPhi}
             onValueChange={(val) => setFormData(prev => ({ ...prev, loaiTinhPhi: val as LoaiTinhPhi }))}
+            disabled={isMeterConfig}
           >
             <SelectTrigger className="w-full text-xs h-9">
               <SelectValue />
@@ -805,6 +813,7 @@ function CauHinhGiaForm({ config, toaNhaId, toaNhaList, onClose, onSuccess }: Fo
               ))}
             </SelectContent>
           </Select>
+          {isMeterConfig && <p className="text-[11px] text-muted-foreground">Điện và nước luôn tính theo chỉ số sử dụng.</p>}
         </div>
       </div>
 

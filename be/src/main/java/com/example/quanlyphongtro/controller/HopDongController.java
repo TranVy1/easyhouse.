@@ -80,8 +80,8 @@ public class HopDongController {
 
     @PostMapping("/{id}/generate-pdf")
     public ResponseEntity<ApiResponse<HopDongResponse>> generatePdf(@PathVariable UUID id) {
-        HopDong hd = contractDocumentService.generatePdf(id);
-        return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Sinh tài liệu PDF thành công"));
+        contractDocumentService.generatePdf(id);
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id), "Sinh tài liệu PDF thành công"));
     }
 
     @PostMapping("/{id}/sign")
@@ -103,8 +103,8 @@ public class HopDongController {
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<HopDongResponse>> rejectContract(
             @PathVariable UUID id, @RequestBody ContractSignRequest request) {
-        HopDong hd = contractDocumentService.rejectContract(id, request);
-        return ResponseEntity.ok(ApiResponse.success(HopDongResponse.fromEntity(hd), "Từ chối ký hợp đồng thành công"));
+        contractDocumentService.rejectContract(id, request);
+        return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id), "Từ chối ký hợp đồng thành công"));
     }
 
     @GetMapping("/{id}/signatures")

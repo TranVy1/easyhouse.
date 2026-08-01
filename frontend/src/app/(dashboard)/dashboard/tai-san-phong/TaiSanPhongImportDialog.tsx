@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertCircle, CheckCircle2, FileUp, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import * as XLSX from "xlsx"
 
 interface ImportRow {
   phongId: string
@@ -55,7 +56,14 @@ export function TaiSanPhongImportDialog({ open, onOpenChange, onSuccess, accessT
 
     setLoading(true)
     const formData = new FormData()
-    formData.append("file", file)
+    let uploadFile = file
+    if (/\.(xlsx|xls)$/i.test(file.name)) {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const csv = XLSX.utils.sheet_to_csv(sheet)
+      uploadFile = new File([csv], file.name.replace(/\.(xlsx|xls)$/i, ".csv"), { type: "text/csv" })
+    }
+    formData.append("file", uploadFile)
 
     try {
       const res = await fetch("/api/tai-san-phong/import/preview", {
@@ -126,7 +134,7 @@ export function TaiSanPhongImportDialog({ open, onOpenChange, onSuccess, accessT
           <div className="flex items-center gap-4 mb-6">
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="csv_file">Chọn file CSV</Label>
-              <Input id="csv_file" type="file" accept=".csv" onChange={handleFileChange} />
+              <Input id="csv_file" type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} />
             </div>
             <Button onClick={handlePreview} disabled={!file || loading} className="mt-5">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

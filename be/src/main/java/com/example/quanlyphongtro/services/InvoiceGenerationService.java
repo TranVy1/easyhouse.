@@ -77,8 +77,12 @@ public class InvoiceGenerationService {
             }
             
             if ("READY".equals(status)) {
-                boolean missingElectric = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.ELECTRICITY, kyNam, kyThang).isEmpty();
-                boolean missingWater = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.WATER, kyNam, kyThang).isEmpty();
+                Optional<ChiSoDienNuoc> electricReading = chiSoDienNuocRepository
+                        .findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.ELECTRICITY, kyNam, kyThang);
+                Optional<ChiSoDienNuoc> waterReading = chiSoDienNuocRepository
+                        .findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.WATER, kyNam, kyThang);
+                boolean missingElectric = !isUsableReading(electricReading, requireConfirmedReadings);
+                boolean missingWater = !isUsableReading(waterReading, requireConfirmedReadings);
                 
                 if (missingElectric || missingWater) {
                     if (Boolean.TRUE.equals(requireConfirmedReadings)) {
@@ -120,7 +124,7 @@ public class InvoiceGenerationService {
                 }
                 
                 Optional<ChiSoDienNuoc> electric = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.ELECTRICITY, kyNam, kyThang);
-                if (electric.isPresent()) {
+                if (isUsableReading(electric, requireConfirmedReadings)) {
                     int tieuThu = electric.get().getChiSoMoi() - electric.get().getChiSoCu();
                     if (tieuThu > 0) {
                         BigDecimal electricPrice = findMeterPrice(hd, phong.getNhaTro().getId(), LoaiMucHoaDon.ELECTRICITY, startOfMonth);
@@ -129,7 +133,7 @@ public class InvoiceGenerationService {
                 }
                 
                 Optional<ChiSoDienNuoc> water = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phong.getId(), LoaiChiSo.WATER, kyNam, kyThang);
-                if (water.isPresent()) {
+                if (isUsableReading(water, requireConfirmedReadings)) {
                     int tieuThu = water.get().getChiSoMoi() - water.get().getChiSoCu();
                     if (tieuThu > 0) {
                         BigDecimal waterPrice = findMeterPrice(hd, phong.getNhaTro().getId(), LoaiMucHoaDon.WATER, startOfMonth);
@@ -242,13 +246,13 @@ public class InvoiceGenerationService {
                 req.setTrangThai("chuaThanhToan");
                 
                 Optional<ChiSoDienNuoc> electric = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(hd.getPhong().getId(), LoaiChiSo.ELECTRICITY, kyNam, kyThang);
-                if (electric.isPresent()) {
+                if (isUsableReading(electric, requireConfirmedReadings)) {
                     req.setChiSoDienBanDau(electric.get().getChiSoCu());
                     req.setChiSoDienCuoiKy(electric.get().getChiSoMoi());
                 }
                 
                 Optional<ChiSoDienNuoc> water = chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(hd.getPhong().getId(), LoaiChiSo.WATER, kyNam, kyThang);
-                if (water.isPresent()) {
+                if (isUsableReading(water, requireConfirmedReadings)) {
                     req.setChiSoNuocBanDau(water.get().getChiSoCu());
                     req.setChiSoNuocCuoiKy(water.get().getChiSoMoi());
                 }
@@ -308,6 +312,14 @@ public class InvoiceGenerationService {
                 .toLowerCase(java.util.Locale.ROOT);
         return normalized.contains("dien") || normalized.contains("electricity")
                 || normalized.contains("nuoc") || normalized.contains("water");
+    }
+
+    private boolean isUsableReading(Optional<ChiSoDienNuoc> reading, Boolean requireConfirmedReadings) {
+        if (reading.isEmpty() || reading.get().getTrangThai() == TrangThaiChiSo.CANCELLED) {
+            return false;
+        }
+        return !Boolean.TRUE.equals(requireConfirmedReadings)
+                || reading.get().getTrangThai() == TrangThaiChiSo.CONFIRMED;
     }
 
     private long countActiveMembers(HopDong hopDong, LocalDate tuNgay, LocalDate denNgay) {

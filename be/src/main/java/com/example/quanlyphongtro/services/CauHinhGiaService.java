@@ -96,12 +96,13 @@ public class CauHinhGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà trọ"));
         checkWritePermission(nhaTro);
 
+        LoaiMucHoaDon loai = parseLoai(request.getLoai(), true);
         CauHinhGia entity = CauHinhGia.builder()
                 .nhaTro(nhaTro)
                 .dichVuId(request.getDichVuId())
-                .loai(parseLoai(request.getLoai(), true))
+                .loai(loai)
                 .tenHienThi(request.getTenHienThi().trim())
-                .loaiTinhPhi(parseLoaiTinhPhi(request.getLoaiTinhPhi()))
+                .loaiTinhPhi(normalizeMeterPricing(loai, parseLoaiTinhPhi(request.getLoaiTinhPhi())))
                 .donGia(request.getDonGia())
                 .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
                 .hieuLucDen(request.getHieuLucDen())
@@ -133,15 +134,16 @@ public class CauHinhGiaService {
             checkWritePermission(nhaTro);
         }
 
+        LoaiMucHoaDon loai = request.getLoai() != null ? parseLoai(request.getLoai(), true) : oldEntity.getLoai();
         CauHinhGia newEntity = CauHinhGia.builder()
                 .nhaTro(nhaTro)
                 .dichVuId(request.getDichVuId() != null ? request.getDichVuId() : oldEntity.getDichVuId())
-                .loai(request.getLoai() != null ? parseLoai(request.getLoai(), true) : oldEntity.getLoai())
+                .loai(loai)
                 .tenHienThi(request.getTenHienThi() != null && !request.getTenHienThi().isBlank()
                         ? request.getTenHienThi().trim()
                         : oldEntity.getTenHienThi())
-                .loaiTinhPhi(request.getLoaiTinhPhi() != null ? parseLoaiTinhPhi(request.getLoaiTinhPhi())
-                        : oldEntity.getLoaiTinhPhi())
+                .loaiTinhPhi(normalizeMeterPricing(loai, request.getLoaiTinhPhi() != null
+                        ? parseLoaiTinhPhi(request.getLoaiTinhPhi()) : oldEntity.getLoaiTinhPhi()))
                 .donGia(request.getDonGia() != null ? request.getDonGia() : oldEntity.getDonGia())
                 .hieuLucTu(request.getHieuLucTu() != null ? request.getHieuLucTu() : LocalDate.now())
                 .hieuLucDen(request.getHieuLucDen() != null ? request.getHieuLucDen() : oldEntity.getHieuLucDen())
@@ -204,6 +206,13 @@ public class CauHinhGiaService {
         } catch (Exception e) {
             throw new RuntimeException("Loại tính phí không hợp lệ: " + value);
         }
+    }
+
+    private LoaiTinhPhi normalizeMeterPricing(LoaiMucHoaDon loai, LoaiTinhPhi loaiTinhPhi) {
+        if (loai == LoaiMucHoaDon.ELECTRICITY || loai == LoaiMucHoaDon.WATER) {
+            return LoaiTinhPhi.PER_UNIT;
+        }
+        return loaiTinhPhi;
     }
 
     private void validateMoney(BigDecimal value) {

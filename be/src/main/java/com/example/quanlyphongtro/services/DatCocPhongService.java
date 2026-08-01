@@ -72,6 +72,7 @@ public class DatCocPhongService {
         dc.setNgayDuKienVao(request.getNgayDuKienVao());
         dc.setGhiChu(request.getGhiChu());
         dc.setTrangThai(TrangThaiDatCoc.PENDING);
+        dc.setNgayDatCoc(ZonedDateTime.now());
         
         return mapToResponse(datCocPhongRepository.save(dc));
     }

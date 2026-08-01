@@ -264,14 +264,16 @@ public class HoaDonService {
         result.put("chiSoNuocCuoiKy", 0);
         result.put("coChiSoDienKyNay", false);
         result.put("coChiSoNuocKyNay", false);
+        result.put("donGiaDien", BigDecimal.ZERO);
+        result.put("donGiaNuoc", BigDecimal.ZERO);
 
         HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
         if (hd != null && hd.getPhong() != null) {
             assertCanReadHopDong(hd, permissionService.requireCurrentUserId());
             Optional<ChiSoDienNuoc> electricThisPeriod = readingForPeriod(hd, LoaiChiSo.ELECTRICITY, thang, nam);
             Optional<ChiSoDienNuoc> waterThisPeriod = readingForPeriod(hd, LoaiChiSo.WATER, thang, nam);
-            Optional<Integer> latestElectric = latestReadingBeforePeriod(hd.getId(), LoaiChiSo.ELECTRICITY, thang, nam);
-            Optional<Integer> latestWater = latestReadingBeforePeriod(hd.getId(), LoaiChiSo.WATER, thang, nam);
+            Optional<Integer> latestElectric = latestReadingBeforePeriod(hd.getPhong().getId(), LoaiChiSo.ELECTRICITY, thang, nam);
+            Optional<Integer> latestWater = latestReadingBeforePeriod(hd.getPhong().getId(), LoaiChiSo.WATER, thang, nam);
 
             int dienBanDau = electricThisPeriod.map(ChiSoDienNuoc::getChiSoCu)
                     .orElse(latestElectric.orElse(defaultMeterReading(hd.getChiSoDienBanDau())));
@@ -284,6 +286,11 @@ public class HoaDonService {
             result.put("chiSoNuocCuoiKy", waterThisPeriod.map(ChiSoDienNuoc::getChiSoMoi).orElse(nuocBanDau));
             result.put("coChiSoDienKyNay", electricThisPeriod.isPresent());
             result.put("coChiSoNuocKyNay", waterThisPeriod.isPresent());
+            InvoiceContext context = new InvoiceContext(hd, hd.getPhong(), hd.getKhachThue(), nam, thang,
+                    LocalDate.of(nam, thang, 1), LocalDate.of(nam, thang, 1).plusMonths(1).minusDays(1),
+                    LocalDate.of(nam, thang, 1).plusMonths(1).minusDays(1).plusDays(resolvePaymentGraceDays(hd)));
+            result.put("donGiaDien", resolveMeterUnitPrice(context, LoaiMucHoaDon.ELECTRICITY));
+            result.put("donGiaNuoc", resolveMeterUnitPrice(context, LoaiMucHoaDon.WATER));
             if (latestElectric.isPresent() || latestWater.isPresent()) {
                 result.put("isFirstInvoice", false);
             }
@@ -466,10 +473,10 @@ public class HoaDonService {
                 resolveRoomPrice(ctx));
 
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.ELECTRICITY, LoaiMucHoaDon.ELECTRICITY,
-                req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(), req.getTienDien(),
+                req.getChiSoDienBanDau(), req.getChiSoDienCuoiKy(),
                 Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKwhThucTe() : null, "Tiền điện");
         addMeterLine(items, hoaDon, ctx, LoaiChiSo.WATER, LoaiMucHoaDon.WATER,
-                req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(), req.getTienNuoc(),
+                req.getChiSoNuocBanDau(), req.getChiSoNuocCuoiKy(),
                 Boolean.TRUE.equals(req.getResetCongTo()) ? req.getSoKhoiNuocThucTe() : null, "Tiền nước");
 
         List<ChiTietHoaDon> contractServiceLines = buildContractServiceLines(hoaDon, ctx);
@@ -572,7 +579,7 @@ public class HoaDonService {
     }
 
     private void addMeterLine(List<ChiTietHoaDon> items, HoaDon hoaDon, InvoiceContext ctx, LoaiChiSo loaiChiSo,
-            LoaiMucHoaDon loaiMuc, Integer chiSoCu, Integer chiSoMoi, BigDecimal requestTotal,
+            LoaiMucHoaDon loaiMuc, Integer chiSoCu, Integer chiSoMoi,
             Integer actualConsumption, String moTa) {
         if (chiSoCu == null && chiSoMoi == null) return;
         if (chiSoCu == null || chiSoMoi == null) {
@@ -589,7 +596,7 @@ public class HoaDonService {
         if (tieuThu == 0) return;
 
         BigDecimal soLuong = BigDecimal.valueOf(tieuThu);
-        BigDecimal donGia = resolveMeterUnitPrice(ctx, loaiMuc, requestTotal, soLuong);
+        BigDecimal donGia = resolveMeterUnitPrice(ctx, loaiMuc);
         if (donGia.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Chưa có đơn giá hợp lệ cho " + moTa.toLowerCase(Locale.ROOT));
         }
@@ -707,6 +714,14 @@ public class HoaDonService {
     }
 
     private UUID upsertReading(HoaDon hoaDon, InvoiceContext ctx, LoaiChiSo loai, Integer chiSoCu, Integer chiSoMoi) {
+        int expectedStart = latestReadingBeforePeriod(ctx.phong().getId(), loai, ctx.kyThang(), ctx.kyNam())
+                .orElse(defaultMeterReading(loai == LoaiChiSo.ELECTRICITY
+                        ? ctx.hopDong().getChiSoDienBanDau()
+                        : ctx.hopDong().getChiSoNuocBanDau()));
+        if (!Objects.equals(chiSoCu, expectedStart)) {
+            throw new RuntimeException("Chỉ số cũ không khớp chỉ số cuối kỳ trước của phòng (dự kiến: "
+                    + expectedStart + ")");
+        }
         ChiSoDienNuoc reading = chiSoDienNuocRepository
                 .findByPhongIdAndLoaiAndKyNamAndKyThang(ctx.phong().getId(), loai, ctx.kyNam(), ctx.kyThang())
                 .orElseGet(ChiSoDienNuoc::new);
@@ -727,7 +742,7 @@ public class HoaDonService {
         return chiSoDienNuocRepository.save(reading).getId();
     }
 
-    private BigDecimal resolveMeterUnitPrice(InvoiceContext ctx, LoaiMucHoaDon loai, BigDecimal requestTotal, BigDecimal consumption) {
+    private BigDecimal resolveMeterUnitPrice(InvoiceContext ctx, LoaiMucHoaDon loai) {
         BigDecimal configPrice = findApplicablePrice(ctx, loai);
         if (configPrice.compareTo(BigDecimal.ZERO) > 0) {
             return configPrice;
@@ -735,9 +750,6 @@ public class HoaDonService {
         BigDecimal servicePrice = findMeterPriceFromContractServices(ctx.hopDong(), loai);
         if (servicePrice.compareTo(BigDecimal.ZERO) > 0) {
             return servicePrice;
-        }
-        if (requestTotal != null && requestTotal.compareTo(BigDecimal.ZERO) > 0 && consumption.compareTo(BigDecimal.ZERO) > 0) {
-            return requestTotal.divide(consumption, 2, RoundingMode.HALF_UP);
         }
         return BigDecimal.ZERO;
     }
@@ -823,8 +835,8 @@ public class HoaDonService {
                 .filter(item -> item.getHopDong() == null || hopDong.getId().equals(item.getHopDong().getId()));
     }
 
-    private Optional<Integer> latestReadingBeforePeriod(UUID hopDongId, LoaiChiSo loai, int thang, int nam) {
-        return chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, loai).stream()
+    private Optional<Integer> latestReadingBeforePeriod(UUID phongId, LoaiChiSo loai, int thang, int nam) {
+        return chiSoDienNuocRepository.findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(phongId, loai).stream()
                 .filter(item -> item.getTrangThai() != TrangThaiChiSo.CANCELLED)
                 .filter(item -> isBeforeBillingPeriod(item, thang, nam))
                 .map(ChiSoDienNuoc::getChiSoMoi)

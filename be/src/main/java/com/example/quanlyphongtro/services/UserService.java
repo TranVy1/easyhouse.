@@ -96,6 +96,7 @@ public class UserService {
     public void deleteUser(UUID id) {
         permissionService.requireAdmin();
         NguoiDung user = findActiveUser(id);
+        user.setTrangThai(TrangThaiNguoiDung.INACTIVE);
         user.setXoaLuc(ZonedDateTime.now());
         nguoiDungRepository.save(user);
         logAudit(user, "DELETE");

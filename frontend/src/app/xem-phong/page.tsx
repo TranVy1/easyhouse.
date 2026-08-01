@@ -493,7 +493,7 @@ export default function XemPhongPage() {
                     <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
                     {phong.soNguoiToiDa} người
                   </span>
-                  {phong.khoangCachKm !== undefined && (
+                  {typeof phong.khoangCachKm === 'number' && Number.isFinite(phong.khoangCachKm) && (
                     <span className="flex items-center font-medium text-[#267D76]">
                       <LocateFixed className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
                       {phong.khoangCachKm.toLocaleString('vi-VN')} km

@@ -115,6 +115,8 @@ class HoaDonServiceTest {
     @Test
     void createCalculatesInvoiceFromContractPricesAndReadings() {
         stubCanWriteInvoice();
+        hopDong.setChiSoDienBanDau(100);
+        hopDong.setChiSoNuocBanDau(10);
         HoaDonRequest request = new HoaDonRequest();
         request.setHopDong(hopDongId);
         request.setThang(5);
@@ -259,9 +261,9 @@ class HoaDonServiceTest {
                 .thenReturn(Optional.of(electricity));
         when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, LoaiChiSo.WATER, 2026, 5))
                 .thenReturn(Optional.of(water));
-        when(chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, LoaiChiSo.ELECTRICITY))
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(phongId, LoaiChiSo.ELECTRICITY))
                 .thenReturn(List.of(electricity));
-        when(chiSoDienNuocRepository.findByHopDongIdAndLoaiOrderByKyNamDescKyThangDesc(hopDongId, LoaiChiSo.WATER))
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiOrderByKyNamDescKyThangDesc(phongId, LoaiChiSo.WATER))
                 .thenReturn(List.of(water));
         when(hoaDonRepository.findLatestByHopDong(hopDongId)).thenReturn(List.of());
         when(hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hopDongId)).thenReturn(List.of());

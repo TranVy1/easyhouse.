@@ -223,6 +223,15 @@
   }
 }
 
+/* Fallbacks for legacy screens that still use fixed light-mode utility colors. */
+@layer utilities {
+  .dark .text-gray-900, .dark .text-gray-800, .dark .text-gray-700,
+  .dark .text-slate-900, .dark .text-slate-800, .dark .text-slate-700 { color: var(--foreground); }
+  .dark .text-gray-600, .dark .text-gray-500, .dark .text-slate-600, .dark .text-slate-500 { color: var(--muted-foreground); }
+  .dark .bg-white, .dark .bg-gray-50, .dark .bg-slate-50 { background-color: var(--card); }
+  .dark .border-gray-100, .dark .border-gray-200, .dark .border-slate-200 { border-color: var(--border); }
+}
+
 @layer utilities {
   .scrollbar-none::-webkit-scrollbar {
     display: none;

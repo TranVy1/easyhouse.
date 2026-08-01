@@ -219,6 +219,13 @@ public class KhachThueService {
         assertCanWrite(kt, findActiveContract(id), permissionService.requireCurrentUserId());
         kt.setXoaLuc(ZonedDateTime.now());
         khachThueRepository.save(kt);
+        // Vô hiệu hóa tài khoản đăng nhập liên kết, tránh người đã bị xóa vẫn đăng nhập được.
+        if (kt.getNguoiDung() != null) {
+            NguoiDung nguoiDung = kt.getNguoiDung();
+            nguoiDung.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiNguoiDung.INACTIVE);
+            nguoiDung.setXoaLuc(ZonedDateTime.now());
+            nguoiDungRepository.save(nguoiDung);
+        }
     }
 
     @Transactional

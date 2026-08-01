@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,13 @@ public class VNPayService {
     /**
      * Tạo URL thanh toán VNPAY.
      */
-    public String createPaymentUrl(UUID hoaDonId, long amount, String ipAddress) {
+    public String createPaymentUrl(UUID hoaDonId, String ipAddress) {
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        long amount = toWholeVnd(outstandingAmount(hoaDon));
+        if (amount <= 0) {
+            throw new RuntimeException("Hóa đơn không còn số tiền cần thanh toán");
+        }
         String vnp_Version   = "2.1.0";
         String vnp_Command   = "pay";
         String vnp_OrderInfo = "Thanh toan hoa don " + hoaDonId.toString();
@@ -202,6 +209,13 @@ public class VNPayService {
 
             // ===== CẬP NHẬT DB NẾU THÀNH CÔNG =====
             if ("00".equals(responseCode)) {
+                long expectedAmount = toWholeVnd(outstandingAmount(hoaDon));
+                if (amount != expectedAmount) {
+                    log.warn("VNPay IPN: Số tiền không khớp hóa đơn. received={}, expected={}", amount, expectedAmount);
+                    response.put("RspCode", "04");
+                    response.put("Message", "Invalid amount");
+                    return response;
+                }
                 // Tạo bản ghi ThanhToan
                 ThanhToan thanhToan = new ThanhToan();
                 thanhToan.setHoaDon(hoaDon);
@@ -223,11 +237,14 @@ public class VNPayService {
                 // Cập nhật HoaDon - tính daTra và trạng thái
                 BigDecimal daTraMoi = hoaDon.getDaTra().add(BigDecimal.valueOf(amount));
                 BigDecimal conLai   = hoaDon.getTongTien().subtract(daTraMoi);
-                hoaDon.setDaTra(daTraMoi);
 
-                if (conLai.compareTo(BigDecimal.ZERO) <= 0) {
+                if (conLai.abs().compareTo(BigDecimal.ONE) < 0) {
+                    // VNPay only accepts whole VND. Normalize the sub-VND rounding
+                    // difference so a prorated invoice cannot retain an unpayable balance.
+                    hoaDon.setDaTra(hoaDon.getTongTien());
                     hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
                 } else {
+                    hoaDon.setDaTra(daTraMoi);
                     hoaDon.setTrangThai(TrangThaiHoaDon.PARTIAL);
                 }
 
@@ -251,6 +268,20 @@ public class VNPayService {
             response.put("Message", "Unknown error: " + e.getMessage());
         }
         return response;
+    }
+
+    private BigDecimal outstandingAmount(HoaDon hoaDon) {
+        BigDecimal tongTien = hoaDon.getTongTien() != null ? hoaDon.getTongTien() : BigDecimal.ZERO;
+        BigDecimal daTra = hoaDon.getDaTra() != null ? hoaDon.getDaTra() : BigDecimal.ZERO;
+        return tongTien.subtract(daTra).max(BigDecimal.ZERO);
+    }
+
+    private long toWholeVnd(BigDecimal amount) {
+        try {
+            return amount.setScale(0, RoundingMode.HALF_UP).longValueExact();
+        } catch (ArithmeticException e) {
+            throw new RuntimeException("Số tiền thanh toán không hợp lệ", e);
+        }
     }
 
 }
