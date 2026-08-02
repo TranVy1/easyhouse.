@@ -17,7 +17,7 @@ services:
       # Must be a real, complete schema-and-data dump.  The former
       # sql/init-db.sql path had become an empty directory, so a new volume
       # could start without any EasyHouse data.
-      - ./sql/easyhouse-after-fix.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
+      - ./sql/db-latest.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
       - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/01-expand-refresh-token.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]

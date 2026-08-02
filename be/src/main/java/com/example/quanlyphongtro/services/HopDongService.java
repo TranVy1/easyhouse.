@@ -242,8 +242,13 @@ public class HopDongService {
                 hoaDonRepository.save(invoice);
             }
         }
-        
-        return toResponse(hopDongRepository.save(hd));
+
+        HopDong saved = hopDongRepository.save(hd);
+        // Hợp đồng vừa chuyển sang ACTIVE khi đóng cọc: phải đồng bộ trạng thái phòng
+        // (RESERVED -> RENTED). Thiếu bước này khiến phòng kẹt ở "đã đặt" dù hợp đồng
+        // đã "hoạt động".
+        syncRoomStatus(saved.getPhong().getId());
+        return toResponse(saved);
     }
 
     @Transactional
