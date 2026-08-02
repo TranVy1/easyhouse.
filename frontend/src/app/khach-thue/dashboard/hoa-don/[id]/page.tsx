@@ -361,12 +361,16 @@ export default function TenantInvoiceDetailPage() {
               className="w-full bg-[#243B5A] hover:bg-[#1B2E47] text-white py-6 text-[16px] font-semibold rounded-xl shadow-md"
               onClick={async () => {
                 try {
-                  const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice._id || invoice.id}`);
+                  const res = await fetch(`/api/vnpay/create-payment-url?hoaDonId=${invoice._id || invoice.id}`, {
+                    headers: accessToken
+                      ? { 'Authorization': `Bearer ${accessToken}` }
+                      : undefined,
+                  });
                   const data = await res.json();
                   if (data.success && data.data) {
                     window.location.href = data.data;
                   } else {
-                    toast.error("Không thể khởi tạo thanh toán VNPay");
+                    toast.error(data.message || "Không thể khởi tạo thanh toán VNPay");
                   }
                 } catch (error) {
                   toast.error("Lỗi khi kết nối đến server");
