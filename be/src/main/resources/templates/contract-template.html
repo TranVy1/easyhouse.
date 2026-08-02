@@ -82,7 +82,12 @@
         </tr>
     </thead>
     <tbody>
-        <tr th:each="tienIch : ${tienIchList}">
+        <tr th:each="dv : ${dichVuList}">
+            <td th:text="${dv.ten}">Tên dịch vụ</td>
+            <td th:text="${dv.donGia}">0</td>
+            <td th:text="${dv.donVi}"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(dichVuList)}" th:each="tienIch : ${tienIchList}">
             <td th:text="${tienIch}">Tên dịch vụ</td>
             <td>Theo quy định của tòa nhà</td>
             <td></td>

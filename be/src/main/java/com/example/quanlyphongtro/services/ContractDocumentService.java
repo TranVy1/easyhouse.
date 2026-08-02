@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.entity.*;
 import com.example.quanlyphongtro.repository.ContractSignatureRepository;
+import com.example.quanlyphongtro.repository.DichVuHopDongRepository;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.TaiSanPhongRepository;
@@ -34,6 +35,7 @@ public class ContractDocumentService {
     private final HopDongRepository hopDongRepository;
     private final PhongRepository phongRepository;
     private final ContractSignatureRepository signatureRepository;
+    private final DichVuHopDongRepository dichVuHopDongRepository;
     private final CloudinaryService cloudinaryService;
     private final TaiSanPhongRepository taiSanPhongRepository;
     private final TienIchService tienIchService;
@@ -120,6 +122,21 @@ public class ContractDocumentService {
         // Fetch services (TienIch) to get prices
         var tienIchs = tienIchService.listByPhong(hd.getPhong().getId());
         context.setVariable("tienIchList", tienIchs);
+
+        // Dịch vụ áp dụng cho hợp đồng KÈM đơn giá thật (thay cho text cứng
+        // "Theo quy định của tòa nhà"). Lấy từ dich_vu_hop_dong đã chốt khi lập HĐ.
+        List<java.util.Map<String, String>> dichVuList = new ArrayList<>();
+        for (DichVuHopDong dv : dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)) {
+            java.util.Map<String, String> row = new java.util.LinkedHashMap<>();
+            row.put("ten", dv.getDichVu() != null && dv.getDichVu().getTenDichVu() != null
+                    ? dv.getDichVu().getTenDichVu() : "");
+            row.put("donGia", dv.getDonGiaApDung() != null
+                    ? formatMoney(dv.getDonGiaApDung()) : "Theo quy định của tòa nhà");
+            row.put("donVi", dv.getDichVu() != null && dv.getDichVu().getDonVi() != null
+                    ? dv.getDichVu().getDonVi() : "");
+            dichVuList.add(row);
+        }
+        context.setVariable("dichVuList", dichVuList);
         
         // Fetch furniture
         List<TaiSanPhong> taiSanList = taiSanPhongRepository.findByPhongId(hd.getPhong().getId());
@@ -175,12 +192,14 @@ public class ContractDocumentService {
             String url = (String) uploadResult.get("secure_url");
             Files.deleteIfExists(tempPdf.toPath());
 
+            // Luôn cập nhật file chính (filePdf) về bản PDF mới nhất — kể cả sau khi
+            // khách thuê ký — để mọi nơi hiển thị/tải hợp đồng đều thấy đầy đủ chữ ký.
+            // Khi hoàn tất, giữ thêm signedPdfUrl trỏ về cùng bản để không lệch dữ liệu.
+            hd.setFilePdf(url);
             if (hd.getSignatureStatus() == SignatureStatus.COMPLETED) {
                 hd.setSignedPdfUrl(url);
-            } else {
-                hd.setFilePdf(url);
             }
-            
+
             return hopDongRepository.save(hd);
 
         } catch (Exception e) {
