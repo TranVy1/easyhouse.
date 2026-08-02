@@ -124,13 +124,20 @@ export default function DatCocPage() {
                 <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Không có dữ liệu</td></tr>
               ) : filtered.map((d, i) => (
                 <tr key={i} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-primary">{d.phong?.ten}</td>
+                  <td className="px-6 py-4 font-medium text-primary">{d.phong?.maPhong || d.phong?.ten || '-'}</td>
                   <td className="px-6 py-4 font-medium">{d.khachThue?.hoTen}</td>
                   <td className="px-6 py-4 font-bold text-orange-600">{d.soTienCoc?.toLocaleString()} đ</td>
                   <td className="px-6 py-4">{d.ngayDuKienVao ? new Date(d.ngayDuKienVao).toLocaleDateString('vi-VN') : '-'}</td>
                   <td className="px-6 py-4">
                     <Badge variant={d.trangThai === 'CONFIRMED' ? 'default' : d.trangThai === 'CONVERTED' ? 'secondary' : 'outline'}>
-                      {d.trangThai}
+                      {{
+                        PENDING: 'Chờ xác nhận',
+                        CONFIRMED: 'Đã xác nhận',
+                        CONVERTED: 'Đã tạo HĐ',
+                        REFUNDED: 'Đã hoàn tiền',
+                        FORFEITED: 'Mất cọc',
+                        CANCELLED: 'Đã hủy'
+                      }[d.trangThai as string] || d.trangThai}
                     </Badge>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">

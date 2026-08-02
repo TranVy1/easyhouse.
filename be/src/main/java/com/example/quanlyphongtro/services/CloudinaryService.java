@@ -68,7 +68,7 @@ public class CloudinaryService {
                     ObjectUtils.asMap(
                             "folder", "quanlyphongtro/contracts/",
                             "resource_type", "raw",
-                            "public_id", publicId,
+                            "public_id", publicId + ".pdf",
                             "overwrite", true));
 
             String url = uploadResult.get("secure_url").toString();

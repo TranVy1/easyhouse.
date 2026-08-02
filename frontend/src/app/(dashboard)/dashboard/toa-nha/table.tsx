@@ -145,11 +145,15 @@ const createColumns = (props: ToaNhaTableProps): ColumnDef<ToaNha>[] => [
   {
     id: "ma",
     header: () => <div className="font-semibold text-gray-700 text-sm">Mã</div>,
-    cell: ({ row }) => (
-      <span className="font-medium text-emerald-600">
-        CH007588
-      </span>
-    ),
+    cell: ({ row }) => {
+      const id = String(row.original.id || row.original._id || "");
+      const ma = id ? "CH" + id.substring(0, 6).toUpperCase() : "CH007588";
+      return (
+        <span className="font-medium text-emerald-600">
+          {ma}
+        </span>
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   },

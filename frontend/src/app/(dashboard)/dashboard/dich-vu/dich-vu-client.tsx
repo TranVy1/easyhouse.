@@ -175,7 +175,15 @@ export function DichVuClient() {
               dichVuList.map((dv) => (
                 <TableRow key={dv._id} className="hover:bg-[#F8F3EC]/50 transition-colors">
                   <TableCell className="font-medium text-[#243B5A]">{dv.tenDichVu}</TableCell>
-                  <TableCell className="text-gray-600">{dv.loaiTinhPhi}</TableCell>
+                  <TableCell className="text-gray-600">
+                    {{
+                      FIXED: 'Cố định',
+                      PER_PERSON: 'Theo người',
+                      PER_ROOM: 'Theo phòng',
+                      PER_UNIT: 'Theo chỉ số',
+                      PERCENT: 'Phần trăm'
+                    }[dv.loaiTinhPhi as string] || dv.loaiTinhPhi}
+                  </TableCell>
                   <TableCell className="text-gray-600">{dv.donVi}</TableCell>
                   <TableCell className="text-right font-medium text-[#267D76]">
                     {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(dv.donGiaMacDinh || 0)}

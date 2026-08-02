@@ -46,6 +46,21 @@ public class ContractDocumentService {
         return String.format("%,.0f", amount);
     }
 
+    private String getBase64Image(String urlStr) {
+        if (urlStr == null || urlStr.isEmpty()) return null;
+        try {
+            java.net.URL url = new java.net.URL(urlStr);
+            try (java.io.InputStream is = url.openStream()) {
+                byte[] bytes = is.readAllBytes();
+                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                return "data:image/png;base64," + base64;
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch image for PDF: " + urlStr, e);
+            return null;
+        }
+    }
+
     @Transactional
     public HopDong generatePdf(UUID hopDongId) {
         HopDong hd = hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
@@ -88,6 +103,14 @@ public class ContractDocumentService {
         context.setVariable("tienCoc", formatMoney(hd.getTienCoc()));
         context.setVariable("ngayThanhToan", hd.getNgayThanhToanHangThang());
 
+        String noiDung = hd.getNoiDungHopDong();
+        if (noiDung == null || noiDung.trim().isEmpty()) {
+            noiDung = "<p>1. Bên B cam kết thanh toán tiền thuê phòng đúng hạn (ngày " + (hd.getNgayThanhToanHangThang() != null ? hd.getNgayThanhToanHangThang() : "5") + " hàng tháng).</p>" +
+                      "<p>2. Bên B có trách nhiệm bảo quản tài sản trong phòng.</p>" +
+                      "<p>3. Các điều khoản khác tuân theo quy định pháp luật hiện hành.</p>";
+        }
+        context.setVariable("noiDungHopDong", noiDung);
+
         context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null ? "Đã ký điện tử bởi " + hd.getKhachThue().getHoTen() : "(Chưa ký)");
         context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
         
@@ -122,8 +145,8 @@ public class ContractDocumentService {
                 landlordImg = sig.getSignatureImageUrl();
             }
         }
-        context.setVariable("tenantSignatureImg", tenantImg);
-        context.setVariable("landlordSignatureImg", landlordImg);
+        context.setVariable("tenantSignatureImg", getBase64Image(tenantImg));
+        context.setVariable("landlordSignatureImg", getBase64Image(landlordImg));
 
         String htmlContent = templateEngine.process("contract-template", context);
 
