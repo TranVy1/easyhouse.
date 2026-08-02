@@ -1,0 +1,125 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    server_name easyhouse.site www.easyhouse.site;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name easyhouse.site www.easyhouse.site;
+
+    ssl_certificate     /etc/nginx/ssl/easyhouse.site.crt;
+    ssl_certificate_key /etc/nginx/ssl/easyhouse.site.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # The public endpoint is HTTPS-only. HSTS is intentionally scoped to this
+    # host (without includeSubDomains) because unrelated subdomains may exist.
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # NextAuth owns /api/auth/[...nextauth] (providers, session, callback,
+    # signout, CSRF). Its server-side authorize() calls backend:8080 directly.
+    # This block must appear before the generic /api/ backend proxy.
+    location /api/auth/ {
+        proxy_pass http://frontend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Tenant NextAuth uses an independent endpoint and cookie from the
+    # landlord portal. It must reach Next.js before the generic API proxy.
+    location /api/auth-tenant/ {
+        proxy_pass http://frontend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Preserve /api/... exactly.  Deliberately no trailing slash on proxy_pass:
+    # proxy_pass http://backend:8080/ would strip the /api/ prefix.
+    location /api/ {
+        proxy_pass http://backend:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+    }
+
+    # Spring STOMP endpoint. This prefix also covers a future SockJS transport
+    # at /ws/... while retaining the original request URI.
+    location /ws {
+        proxy_pass http://backend:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600;
+    }
+
+    # Next.js App Router handles application routes and refreshes, including
+    # client-side routes such as /dashboard/... .
+    location / {
+        proxy_pass http://frontend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        # Do not force Upgrade on normal HTTP requests.  Next.js dev HMR needs
+        # the upgrade handshake, while HTML/JS/API traffic must stay HTTP.
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+server {
+    listen 80;
+    server_name panel.mineace.fun;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name panel.mineace.fun;
+
+    ssl_certificate     /etc/nginx/ssl/panel.mineace.fun.crt;
+    ssl_certificate_key /etc/nginx/ssl/panel.mineace.fun.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location / {
+        # Docker's default bridge gateway reaches the Crafty service on host.
+        proxy_pass https://172.17.0.1:8443;
+        proxy_http_version 1.1;
+        proxy_ssl_verify off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 3600;
+    }
+}

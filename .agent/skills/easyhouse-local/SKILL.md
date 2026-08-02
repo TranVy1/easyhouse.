@@ -14,15 +14,16 @@ description: Use when working on the EasyHouse rental management project in d:\D
 5. When adding backend endpoint used by frontend, update `frontend/next.config.ts`.
 6. When changing status/enum behavior, verify SQL enum, Java enum, DTO mapper, frontend type, and UI label.
 7. Treat auth, billing, payment, and database schema as high-risk.
-8. When restoring the latest DB into local Docker, restore schema and data together from `sql/db.sql` unless a file is specified; never restore only schema, only data, or partial tables unless explicitly requested.
+8. When restoring the Docker DB, restore schema and data together from `sql/easyhouse-after-fix.sql` unless a user explicitly selects another complete dump such as `sql/db-latest.sql`; never restore only schema, only data, or partial tables unless explicitly requested.
 9. After local Docker DB restore, ensure `admin@easyhouse.local` / `Admin@123` exists with role `ADMIN`.
 
 ## Key Paths
 
 - Backend: `be/`
 - Frontend: `frontend/`
-- Schema dump: `sql/backup.sql`
-- Docker DB restore dump: `sql/db.sql`
+- Docker seed/restore dump: `sql/easyhouse-after-fix.sql` (schema + data)
+- Alternate complete snapshot: `sql/db-latest.sql`
+- Schema reference: `sql/schema.sql`
 - Main index: `.agents/project-index.md`
 - Codex guide: `AGENTS.md`
 - Claude guide: `CLAUDE.md`

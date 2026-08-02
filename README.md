@@ -94,7 +94,9 @@ easyhouse/
 │   ├── src/lib/              # Utils, Cấu hình WebSocket, Auth
 │   └── src/types/            # Định nghĩa TypeScript Interfaces
 ├── sql/                      # 🗄️ DATABASE
-│   └── backup.sql            # File dump CSDL (Bao gồm cả Schema & Data mẫu)
+│   ├── easyhouse-after-fix.sql # Dump khởi tạo Docker (Schema + Data)
+│   ├── db-latest.sql         # Snapshot đầy đủ để backup/restore khi chỉ định
+│   └── schema.sql            # Tham chiếu schema
 ├── monitoring/               # 📊 GIÁM SÁT HIỆU NĂNG
 │   └── docker-compose.yml    # Prometheus, Grafana stack
 └── docker-compose.easyhouse.yml # Cấu hình chạy toàn bộ dự án bằng Docker
@@ -112,10 +114,10 @@ git clone https://github.com/TranVy1/easyhouse.git
 cd easyhouse
 ```
 
-### Bước 2: Khôi phục Database
-- Yêu cầu cài đặt PostgreSQL (nếu chạy local).
-- Tạo Database tên `quanlyphongtro`.
-- Dùng DBeaver, pgAdmin hoặc CLI để khôi phục file `sql/backup.sql` vào database vừa tạo. (Lưu ý: File này chứa cả cấu trúc bảng và dữ liệu mẫu của Admin).
+### Bước 2: Database Docker
+- Compose tạo database `postgres` với user/password `postgres` và công bố ở `localhost:54322`.
+- Khi volume `easyhouse_postgres_data` chưa tồn tại, Docker tự nạp đầy đủ schema và data từ `sql/easyhouse-after-fix.sql` rồi áp dụng migration `sql/migrations/20260801_expand_refresh_token.sql`.
+- Restart service PostgreSQL không import lại dump. Chỉ restore thủ công một dump đầy đủ khi bạn thực sự muốn thay thế dữ liệu; dùng `sql/db-latest.sql` khi cần snapshot mới hơn.
 
 ### Bước 3: Cấu hình biến môi trường
 Tạo các file biến môi trường tương ứng (xem chi tiết ở mục 7).
@@ -148,17 +150,17 @@ npm run dev
 ### Frontend (Tạo file `frontend/.env.local`)
 | Biến | Mô tả | Mặc định |
 |---|---|---|
-| `NEXT_PUBLIC_WS_URL` | URL kết nối WebSocket (STOMP) | `ws://localhost:8080/ws` |
-| `BACKEND_URL` | URL API của Spring Boot | `http://localhost:8080` |
+| `NEXT_PUBLIC_WS_URL` | URL kết nối WebSocket (STOMP) | `ws://localhost:8082/ws` |
+| `BACKEND_URL` | URL API của Spring Boot | `http://localhost:8082` |
 | `NEXTAUTH_SECRET` | Khóa bí mật mã hóa JWT của NextAuth | `secret-key-qlyphongtro` |
-| `NEXTAUTH_URL` | URL gốc của Next.js | `http://localhost:3000` |
+| `NEXTAUTH_URL` | URL gốc của Next.js | `http://localhost:3002` |
 | `GEMINI_API_KEY` | (Optional) Key dùng cho Chatbot AI | `(Trống)` |
 
 ### Backend (Sửa file `be/src/main/resources/application.properties`)
 Mặc định dự án có thể chạy ngay với `application.properties`, tuy nhiên bạn có thể override qua ENV variables:
 | Biến (Properties / Env) | Mô tả | Mặc định |
 |---|---|---|
-| `spring.datasource.*` | Thông tin kết nối PostgreSQL | `jdbc:postgresql://localhost:5432/quanlyphongtro` |
+| `spring.datasource.*` | Thông tin kết nối PostgreSQL Docker từ host | `jdbc:postgresql://localhost:54322/postgres` |
 | `jwt.access-ttl-minutes` | Thời gian sống của JWT Access Token | `600` (10 tiếng) |
 | `PUSH_VAPID_PUBLIC_KEY` | Key cho WebPush (Notification) | `(Trống)` |
 
@@ -166,7 +168,7 @@ Mặc định dự án có thể chạy ngay với `application.properties`, tuy
 
 ## 8. 📱 Hướng dẫn sử dụng
 
-Truy cập hệ thống tại: **http://localhost:3000**
+Truy cập Docker development tại: **http://localhost:3002** (hoặc domain/Nginx đang cấu hình ở môi trường production).
 
 **Login Admin:**
 - **Email:** `admin@easyhouse.local`

@@ -1,27 +1,27 @@
 ---
 name: easyhouse-backup-database
-description: Back up schema and data from the local EasyHouse Docker PostgreSQL database to sql/db.sql by default, or to a user-specified .sql file. Use when the user asks to dump, export, back up, save, or snapshot EasyHouse Docker database schema/data, preserving the previous target SQL file before overwriting it.
+description: Back up schema and data from the local EasyHouse Docker PostgreSQL database to sql/db-latest.sql by default, or to a user-specified .sql file. Use when the user asks to dump, export, back up, save, or snapshot EasyHouse Docker database schema/data, preserving the previous target SQL file before overwriting it.
 ---
 
 # EasyHouse Backup Database
 
 ## Overview
 
-Dump schema and data from local Docker database `easyhouse-postgres` / `easyhouse` into a plain SQL file. Before overwriting the target file, copy the current file to a timestamped backup next to it.
+Dump schema and data from local Docker database `easyhouse-postgres` / `postgres` into a plain SQL file. Before overwriting the target file, copy the current file to a timestamped backup next to it.
 
 ## Workflow
 
-1. Use `sql/db.sql` unless the user names another output file.
+1. Use `sql/db-latest.sql` unless the user names another output file. Do not overwrite `sql/easyhouse-after-fix.sql`, which Docker mounts as its new-volume seed, unless the user explicitly requests it.
 2. Run the bundled script from the project root:
 
 ```powershell
-python .codex/skills/easyhouse-backup-database/scripts/backup_easyhouse_db.py --output sql/db.sql
+python3 .codex/skills/easyhouse-backup-database/scripts/backup_easyhouse_db.py --output sql/db-latest.sql
 ```
 
 For a user-specified file:
 
 ```powershell
-python .codex/skills/easyhouse-backup-database/scripts/backup_easyhouse_db.py --output path/to/file.sql
+python3 .codex/skills/easyhouse-backup-database/scripts/backup_easyhouse_db.py --output path/to/file.sql
 ```
 
 3. Report both paths:

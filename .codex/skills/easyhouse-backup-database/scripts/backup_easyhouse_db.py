@@ -110,12 +110,12 @@ def dump_database(output_file: Path, container: str, db_user: str, database: str
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", default="sql/db.sql", help="SQL dump output path")
+    parser.add_argument("--output", default="sql/db-latest.sql", help="SQL dump output path")
     parser.add_argument("--project-root", default=None, help="EasyHouse project root")
     parser.add_argument("--compose-file", default="docker-compose.easyhouse.yml")
     parser.add_argument("--container", default="easyhouse-postgres")
-    parser.add_argument("--database", default="easyhouse")
-    parser.add_argument("--db-user", default="easyhouse")
+    parser.add_argument("--database", default="postgres")
+    parser.add_argument("--db-user", default="postgres")
     parser.add_argument("--skip-backup-current", action="store_true")
     return parser.parse_args()
 

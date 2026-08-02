@@ -65,9 +65,9 @@ services:
       # The browser is redirected here after payment; the controller verifies the
       # signature, updates the invoice, then redirects to the frontend result page.
       VNPAY_RETURN_URL: ${FRONTEND_URL:-http://localhost:3002}/api/vnpay/vnpay-return
-      CLOUDINARY_CLOUD_NAME: your-cloud-name
-      CLOUDINARY_API_KEY: your-api-key
-      CLOUDINARY_API_SECRET: your-api-secret
+      # Cloudinary credentials are loaded from application-secrets.properties.
+      # Do not set placeholder CLOUDINARY_* variables here: environment variables
+      # take precedence in Spring and would disable uploads in Cloudinary.
       # Khoa VAPID cho Web Push. Sinh bang: npx web-push generate-vapid-keys
       # Day la khoa DEV, production phai sinh cap khac va dat qua bien moi truong.
       # Thieu hai bien nay thi WebPushSender khong duoc tao bean va he thong bo qua

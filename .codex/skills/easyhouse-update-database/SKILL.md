@@ -1,34 +1,34 @@
 ---
 name: easyhouse-update-database
-description: Restore or update the local EasyHouse Docker PostgreSQL database from sql/db.sql by default, or from a user-specified .sql file. Use when the user asks to import, refresh, update, reset, push, or load EasyHouse database data/schema into Docker, and then provide a full-permission web login account.
+description: Restore or update the local EasyHouse Docker PostgreSQL database from sql/easyhouse-after-fix.sql by default, or from a user-specified complete SQL dump. Use when the user asks to import, refresh, update, reset, push, or load EasyHouse database schema and data into Docker, and then provide a full-permission web login account.
 ---
 
 # EasyHouse Update Database
 
 ## Overview
 
-Restore the local Docker database `easyhouse-postgres` / `easyhouse` from a SQL dump. After restore, ensure a known ADMIN account exists and print login details.
+Restore the local Docker database `easyhouse-postgres` / `postgres` from a complete SQL dump. After restore, ensure a known ADMIN account exists and print login details.
 
 ## Workflow
 
 1. Treat restore as destructive for the local Docker database.
-2. Use `sql/db.sql` unless the user names another SQL file.
+2. Use `sql/easyhouse-after-fix.sql` unless the user names another complete SQL file. Use `sql/db-latest.sql` only when that snapshot is explicitly requested.
 3. Restore the complete dump: schema and data together. Do not push only schema, only data, or a partial table subset unless the user explicitly asks for that exact partial operation.
 4. Run the bundled script from the project root:
 
 ```powershell
-python .codex/skills/easyhouse-update-database/scripts/restore_easyhouse_db.py --sql-file sql/db.sql
+python3 .codex/skills/easyhouse-update-database/scripts/restore_easyhouse_db.py --sql-file sql/easyhouse-after-fix.sql
 ```
 
 For a user-specified file:
 
 ```powershell
-python .codex/skills/easyhouse-update-database/scripts/restore_easyhouse_db.py --sql-file path/to/file.sql
+python3 .codex/skills/easyhouse-update-database/scripts/restore_easyhouse_db.py --sql-file path/to/file.sql
 ```
 
 5. Report the script output, especially admin login:
 
-- URL: `http://localhost:3000/dang-nhap`
+- URL: `http://localhost:3002/dang-nhap` (direct Docker development port)
 - Email: `admin@easyhouse.local`
 - Password: `Admin@123`
 - Role: `ADMIN`

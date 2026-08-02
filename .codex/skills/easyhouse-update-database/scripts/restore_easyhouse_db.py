@@ -252,12 +252,12 @@ ORDER BY nd.email;
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--sql-file", default="sql/db.sql", help="SQL dump to restore")
+    parser.add_argument("--sql-file", default="sql/easyhouse-after-fix.sql", help="Complete SQL dump to restore")
     parser.add_argument("--project-root", default=None, help="EasyHouse project root")
     parser.add_argument("--compose-file", default="docker-compose.easyhouse.yml")
     parser.add_argument("--container", default="easyhouse-postgres")
-    parser.add_argument("--database", default="easyhouse")
-    parser.add_argument("--db-user", default="easyhouse")
+    parser.add_argument("--database", default="postgres")
+    parser.add_argument("--db-user", default="postgres")
     parser.add_argument("--skip-ensure-admin", action="store_true")
     return parser.parse_args()
 
@@ -281,7 +281,7 @@ def main() -> int:
 
     print("Restore complete.")
     print("Full-permission web login:")
-    print("  URL: http://localhost:3000/dang-nhap")
+    print("  URL: http://localhost:3002/dang-nhap")
     print(f"  Email: {ADMIN_EMAIL}")
     print(f"  Password: {ADMIN_PASSWORD}")
     print("  Role: ADMIN")

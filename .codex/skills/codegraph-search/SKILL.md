@@ -52,7 +52,7 @@ If a task changes an HTTP or data contract, follow the graph across all relevant
 - Next.js page/component and `frontend/src/types/index.ts`
 - `/api/...` use and `frontend/next.config.ts` rewrite
 - Spring controller, request/response DTO, service, repository/entity
-- `sql/backup.sql` for enum or schema-sensitive behavior
+- `sql/easyhouse-after-fix.sql` for enum or schema-sensitive behavior
 
 ## Boundaries
 

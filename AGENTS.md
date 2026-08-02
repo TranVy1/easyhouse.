@@ -8,7 +8,7 @@ Before changing code, read:
 
 1. `.agents/project-index.md`
 2. Relevant backend/frontend files named in that index
-3. `sql/backup.sql` when data shape or enum behavior matters
+3. `sql/easyhouse-after-fix.sql` when data shape or enum behavior matters
 
 Repo source wins over old docs. Previous docs in this repo mentioned files that are not present (`sql/init_schema.sql`, `plainning/BACKEND_CODING_PLAN.md`); use actual files found in the tree.
 
@@ -18,7 +18,8 @@ EasyHouse is a Vietnamese rental property management system.
 
 - Backend: `be/`, Spring Boot 4.0.6, Java 21, Spring Web/Data JPA/Security/Validation/Mail, PostgreSQL, Cloudinary SDK.
 - Frontend: `frontend/`, Next.js 15.5.4 App Router, React 19, TypeScript, Tailwind CSS v4, Radix UI, NextAuth v4.
-- Database dump/schema: `sql/backup.sql`.
+- Docker seed dump (schema + data): `sql/easyhouse-after-fix.sql`.
+- Alternate complete snapshot: `sql/db-latest.sql`.
 - Monitoring playground: `monitoring/`, Docker Compose with Prometheus/Grafana/k6.
 - Planning/user-facing feature list: `plainning/WEEKLY_IMPLEMENTATION_PLAN.md`, `danh_sach_chuc_nang.txt`.
 
@@ -34,7 +35,7 @@ EasyHouse is a Vietnamese rental property management system.
 ## Docker Database Refresh Rule
 
 - Every time the latest database is pushed into local Docker, restore the complete SQL dump including both schema and data. Do not restore only schema, only data, or a partial table subset unless the user explicitly asks for that exact partial operation.
-- Default restore source is `sql/db.sql` unless the user specifies another SQL file.
+- Default restore source is `sql/easyhouse-after-fix.sql` unless the user specifies another complete SQL file. Docker only runs this seed for a new `easyhouse_postgres_data` volume; restarting PostgreSQL preserves the current data.
 - After restore, ensure a full-permission admin account exists for web login:
   - Email: `admin@easyhouse.local`
   - Password: `Admin@123`

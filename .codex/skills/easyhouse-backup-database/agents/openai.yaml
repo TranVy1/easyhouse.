@@ -1,4 +1,4 @@
 interface:
   display_name: "EasyHouse Backup Database"
   short_description: "Dump EasyHouse Docker database"
-  default_prompt: "Use $easyhouse-backup-database to back up the local Docker database into sql/db.sql."
+  default_prompt: "Use $easyhouse-backup-database to back up the local Docker database into sql/db-latest.sql."

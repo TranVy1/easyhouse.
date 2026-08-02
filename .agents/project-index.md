@@ -32,7 +32,9 @@ Architecture is conventional but mid-migration:
 | `frontend/` | Next.js frontend | React 19, Tailwind v4 |
 | `docker-compose.easyhouse.yml` | Local Docker dev stack | Frontend, backend, PostgreSQL |
 | `docker/easyhouse.README.md` | Docker runbook | Commands and refresh behavior |
-| `sql/backup.sql` | PostgreSQL schema/dump | Custom enums and RLS |
+| `sql/easyhouse-after-fix.sql` | Docker seed dump | Complete PostgreSQL schema and data; mounted on first creation of `easyhouse_postgres_data` |
+| `sql/db-latest.sql` | Current snapshot | Complete PostgreSQL schema and data; use only when explicitly selected for restore |
+| `sql/schema.sql` | Schema reference | Use for focused schema review when data is not needed |
 | `monitoring/` | Observability playground | Prometheus, Grafana, k6 |
 | `plainning/WEEKLY_IMPLEMENTATION_PLAN.md` | Short-term plan | File name has typo `plainning` |
 | `danh_sach_chuc_nang.txt` | Feature catalog | Vietnamese feature list |
@@ -58,8 +60,10 @@ Frontend:
 
 Database:
 
-- PostgreSQL schema/dump in `sql/backup.sql`
-- Hibernate `ddl-auto=update`
+- Docker PostgreSQL: database/user/password `postgres`, host port `54322`
+- Docker seed dump: `sql/easyhouse-after-fix.sql` (schema + data, first new volume only)
+- Alternate complete snapshot: `sql/db-latest.sql`; schema-only reference: `sql/schema.sql`
+- Hibernate `ddl-auto=none` in Docker
 - Secrets expected in `application-secrets.properties`
 - Hikari pool capped for Supabase free tier
 - `stringtype=unspecified` set for PostgreSQL enum casts
@@ -252,7 +256,7 @@ Important known mapping:
 
 Do not assume SQL enum values match frontend values. Check:
 
-1. `sql/backup.sql`
+1. `sql/easyhouse-after-fix.sql`
 2. Java enum in `be/src/main/java/.../entity`
 3. Response DTO mapping
 4. `frontend/src/types/index.ts`
@@ -265,7 +269,7 @@ Do not assume SQL enum values match frontend values. Check:
 Frontend:
 
 - Login page calls `signIn('credentials')`.
-- `frontend/src/lib/auth.ts` calls backend `http://localhost:8080/api/auth/login`.
+- `frontend/src/lib/auth.ts` calls the Docker backend at `http://localhost:8082/api/auth/login` when running through the published development port.
 - Session stores `role`, `phone`, `avatar`, `accessToken`.
 
 Backend:
@@ -318,7 +322,7 @@ Implication: any auth/authorization task must fix backend security/token model b
 
 ## Data Schema Highlights
 
-`sql/backup.sql` defines these major tables:
+`sql/easyhouse-after-fix.sql` defines these major tables:
 
 - `nguoi_dung`, `vai_tro`, `nguoi_dung_vai_tro`
 - `chu_tro`, `khach_thue`
@@ -364,7 +368,7 @@ docker compose -f docker-compose.easyhouse.yml up --build
 docker compose -f docker-compose.easyhouse.yml ps
 ```
 
-Open `http://localhost:3000`. Backend API is `http://localhost:8080`. PostgreSQL is exposed on `localhost:54323`.
+Open `http://localhost:3002`. Backend API is `http://localhost:8082`. PostgreSQL is exposed on `localhost:54322`. Production overrides may instead expose the frontend through Nginx on ports `80` and `443`.
 
 For docs-only changes:
 
@@ -402,7 +406,7 @@ cd frontend
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Then open `http://localhost:3002`.
 
 ## Agent Operating Procedure
 
@@ -413,6 +417,6 @@ Then open `http://localhost:3000`.
 5. Add or update `frontend/next.config.ts` rewrites when adding backend endpoints called through `/api/...`.
 6. Treat billing, payment, and auth as high-risk areas.
 7. Do not run writes against production/customer DB. This repo currently points to Supabase secrets outside tracked files.
-8. When pushing the latest database into local Docker, restore a complete SQL dump with both schema and data; do not restore only schema, only data, or partial tables unless explicitly requested. Default source is `sql/db.sql`.
+8. When restoring the Docker database, use a complete schema-and-data dump; do not restore only schema, only data, or partial tables unless explicitly requested. The default seed/restore source is `sql/easyhouse-after-fix.sql`; use `sql/db-latest.sql` only when explicitly requested. A PostgreSQL restart preserves the named volume and does not re-import the seed.
 9. After local Docker DB restore, ensure full-permission login exists: `admin@easyhouse.local` / `Admin@123` with role `ADMIN`.
 10. Keep docs in sync when changing architecture or routes.

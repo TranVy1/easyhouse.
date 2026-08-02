@@ -299,6 +299,60 @@ export default function ChiSoDienNuocPage() {
     setFormOpen(true)
   }
 
+  // Khi tạo kỳ mới, chỉ số đầu kỳ phải nối tiếp chỉ số cuối kỳ gần nhất
+  // của cùng phòng và cùng loại đồng hồ. Backend cũng kiểm tra quy tắc này,
+  // vì vậy không thể để form mặc định về 0 nếu phòng đã có kỳ trước.
+  useEffect(() => {
+    if (!formOpen || editing || !formData.phongId || !formData.kyNam || !formData.kyThang) return
+
+    const controller = new AbortController()
+    const loadPreviousReading = async () => {
+      try {
+        const params = new URLSearchParams({
+          phongId: formData.phongId,
+          loai: formData.loai,
+          page: "1",
+          limit: "100",
+          sort: "kyNam,desc",
+        })
+        const response = await fetch(`/api/chi-so-dien-nuoc?${params.toString()}`, {
+          signal: controller.signal,
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        })
+        const result: ApiResponse<PaginatedResponse<ChiSoDienNuoc>> = await response.json()
+        if (!response.ok || !result.success) return
+
+        const readings = unwrapPageData(result.data)
+        const previous = readings
+          .filter((reading) => {
+            const year = reading.kyNam ?? reading.nam
+            const month = reading.kyThang ?? reading.thang
+            return year < formData.kyNam || (year === formData.kyNam && month < formData.kyThang)
+          })
+          .sort((a, b) => {
+            const aYear = a.kyNam ?? a.nam
+            const bYear = b.kyNam ?? b.nam
+            const aMonth = a.kyThang ?? a.thang
+            const bMonth = b.kyThang ?? b.thang
+            return bYear - aYear || bMonth - aMonth
+          })[0]
+
+        if (controller.signal.aborted) return
+        setFormData((current) => current.chiSoCu === 0
+          ? { ...current, chiSoCu: previous?.chiSoMoi ?? 0 }
+          : current)
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          // Giữ giá trị 0 cho kỳ đầu tiên hoặc khi không tải được lịch sử;
+          // backend vẫn là lớp kiểm tra cuối cùng cho tính liên tục.
+        }
+      }
+    }
+
+    loadPreviousReading()
+    return () => controller.abort()
+  }, [accessToken, editing, formData.kyNam, formData.kyThang, formData.loai, formData.phongId, formOpen])
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!formData.phongId) {
@@ -695,7 +749,7 @@ export default function ChiSoDienNuocPage() {
                 <Input type="number" min={2020} value={formData.kyNam} onChange={(event) => setFormData((current) => ({ ...current, kyNam: Number(event.target.value) }))} disabled={Boolean(editing)} />
               </div>
               <div className="space-y-2">
-                <Label>Chỉ số cũ</Label>
+                <Label>Chỉ số cũ <span className="text-xs font-normal text-muted-foreground">(tự điền từ kỳ trước)</span></Label>
                 <Input type="number" min={0} value={formData.chiSoCu} onChange={(event) => setFormData((current) => ({ ...current, chiSoCu: Number(event.target.value) }))} />
               </div>
               <div className="space-y-2">
