@@ -21,11 +21,11 @@ public class PhuongTienRequest {
     @NotBlank(message = "Biển số không được để trống")
     private String bienSo;
 
+    @NotNull(message = "Khách thuê không được để trống")
     private UUID khachThueId;
     
     private UUID phongId;
 
-    @NotNull(message = "Tòa nhà không được để trống")
     private UUID nhaTroId;
 
     @NotNull(message = "Trạng thái không được để trống")

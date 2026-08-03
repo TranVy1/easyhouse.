@@ -19,8 +19,7 @@ public class PhuongTienService {
 
     private final PhuongTienRepository phuongTienRepository;
     private final KhachThueRepository khachThueRepository;
-    private final PhongRepository phongRepository;
-    private final NhaTroRepository nhaTroRepository;
+    private final HopDongRepository hopDongRepository;
     private final PermissionService permissionService;
 
     public PaginatedResponse<PhuongTienDto> getAll(String keyword, String nhaTroId, String phongId, String trangThai, int page, int limit) {
@@ -107,15 +106,7 @@ public class PhuongTienService {
         pt.setSoVeXe(request.getSoVeXe());
         pt.setChuTro(chuTro);
         
-        if (request.getNhaTroId() != null) {
-            pt.setNhaTro(nhaTroRepository.findById(request.getNhaTroId()).orElseThrow(() -> new RuntimeException("Không tìm thấy Tòa nhà")));
-        }
-        if (request.getPhongId() != null) {
-            pt.setPhong(phongRepository.findById(request.getPhongId()).orElse(null));
-        }
-        if (request.getKhachThueId() != null) {
-            pt.setKhachThue(khachThueRepository.findById(request.getKhachThueId()).orElse(null));
-        }
+        assignCurrentResidence(pt, request.getKhachThueId(), chuTroId);
         
         PhuongTien saved = phuongTienRepository.save(pt);
         return mapToDto(saved);
@@ -149,20 +140,7 @@ public class PhuongTienService {
         pt.setTenChuXe(request.getTenChuXe());
         pt.setSoVeXe(request.getSoVeXe());
         
-        if (request.getNhaTroId() != null) {
-            pt.setNhaTro(nhaTroRepository.findById(request.getNhaTroId()).orElseThrow(() -> new RuntimeException("Không tìm thấy Tòa nhà")));
-        }
-        if (request.getPhongId() != null) {
-            pt.setPhong(phongRepository.findById(request.getPhongId()).orElse(null));
-        } else {
-            pt.setPhong(null);
-        }
-        
-        if (request.getKhachThueId() != null) {
-            pt.setKhachThue(khachThueRepository.findById(request.getKhachThueId()).orElse(null));
-        } else {
-            pt.setKhachThue(null);
-        }
+        assignCurrentResidence(pt, request.getKhachThueId(), chuTroId);
         
         return mapToDto(phuongTienRepository.save(pt));
     }
@@ -173,6 +151,33 @@ public class PhuongTienService {
         PhuongTien pt = phuongTienRepository.findByIdAndChuTroId(id, chuTroId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phương tiện"));
         phuongTienRepository.delete(pt);
+    }
+
+    /**
+     * A vehicle always follows the tenant's current active contract.  Do not
+     * accept room/building IDs from the client: they can be stale or unrelated
+     * to the selected tenant.
+     */
+    private void assignCurrentResidence(PhuongTien pt, UUID khachThueId, UUID userId) {
+        KhachThue khachThue = khachThueRepository.findById(khachThueId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách thuê"));
+        HopDong hopDong = hopDongRepository
+                .findByKhachThueIdAndTrangThaiAndXoaLucIsNullOrderByTaoLucDesc(khachThueId, TrangThaiHopDong.ACTIVE)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Khách thuê chưa có hợp đồng đang hiệu lực"));
+
+        Phong phong = hopDong.getPhong();
+        if (phong == null || phong.getNhaTro() == null) {
+            throw new RuntimeException("Hợp đồng của khách thuê chưa có thông tin phòng/tòa nhà");
+        }
+        if (!permissionService.canWritePhong(userId, phong.getId())) {
+            throw new RuntimeException("Bạn không có quyền quản lý phương tiện tại phòng này");
+        }
+
+        pt.setKhachThue(khachThue);
+        pt.setPhong(phong);
+        pt.setNhaTro(phong.getNhaTro());
     }
     
     private PhuongTienDto mapToDto(PhuongTien entity) {

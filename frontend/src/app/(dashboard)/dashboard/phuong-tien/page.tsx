@@ -275,7 +275,6 @@ export default function PhuongTienPage() {
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
           initialData={editingItem}
-          toaNhas={toaNhas}
           onSuccess={handleFormSuccess}
         />
       )}

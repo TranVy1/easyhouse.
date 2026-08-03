@@ -294,6 +294,7 @@ export default function KhoTaiSanPage() {
           open={isCapPhatOpen}
           onOpenChange={setIsCapPhatOpen}
           khoTaiSan={selectedItem}
+          toaNhas={toaNhas}
           accessToken={(accessToken as string) || ""}
           onSuccess={() => {
             setIsCapPhatOpen(false)
@@ -308,6 +309,7 @@ export default function KhoTaiSanPage() {
           open={isThuHoiOpen}
           onOpenChange={setIsThuHoiOpen}
           khoTaiSan={selectedItem}
+          toaNhas={toaNhas}
           accessToken={(accessToken as string) || ""}
           onSuccess={() => {
             setIsThuHoiOpen(false)

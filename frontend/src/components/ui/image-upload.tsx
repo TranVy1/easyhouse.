@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface ImageUploadProps {
   imageUrl: string;
@@ -21,6 +22,7 @@ export function ImageUpload({
   label = 'Ảnh',
   placeholder = 'Chọn ảnh'
 }: ImageUploadProps) {
+  const { data: session } = useSession();
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,11 +39,15 @@ export function ImageUpload({
     setUploading(true);
 
     try {
+      if (!session?.accessToken) {
+        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+      }
       const formData = new FormData();
       formData.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${session.accessToken}` },
         body: formData,
       });
 

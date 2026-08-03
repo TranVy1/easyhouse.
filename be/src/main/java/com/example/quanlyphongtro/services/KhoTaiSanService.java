@@ -107,6 +107,9 @@ public class KhoTaiSanService {
 
         Phong phong = phongRepository.findById(request.getPhongId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+        if (phong.getNhaTro() == null || !phong.getNhaTro().getId().equals(khoTaiSan.getNhaTro().getId())) {
+            throw new RuntimeException("Phòng cấp phát phải thuộc cùng tòa nhà với tài sản trong kho");
+        }
 
         // Update Kho
         khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() - request.getSoLuong());

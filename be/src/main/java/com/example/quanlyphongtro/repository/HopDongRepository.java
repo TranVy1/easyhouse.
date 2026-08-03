@@ -49,6 +49,10 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
 
     List<HopDong> findByKhachThueIdAndXoaLucIsNull(UUID khachThueId);
 
+    List<HopDong> findByKhachThueIdAndTrangThaiAndXoaLucIsNullOrderByTaoLucDesc(
+            UUID khachThueId,
+            TrangThaiHopDong trangThai);
+
     @Query("SELECT hd FROM HopDong hd WHERE hd.phong.id = :phongId AND hd.trangThai = :trangThai AND hd.xoaLuc IS NULL ORDER BY hd.taoLuc DESC")
     List<HopDong> findByPhongIdAndTrangThai(@Param("phongId") UUID phongId, @Param("trangThai") TrangThaiHopDong trangThai);
 

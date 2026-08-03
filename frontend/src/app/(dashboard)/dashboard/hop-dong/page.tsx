@@ -44,7 +44,6 @@ import { HopDong, Phong, KhachThue, ToaNha } from '@/types';
 import { HopDongDataTable } from './table';
 import { hopDongStatusFromDb, normalizeHopDong, normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
 import { toast } from 'sonner';
-import { generateAndDownloadHopDong } from '@/lib/export-hop-dong';
 import { CheckoutModal } from '@/components/hop-dong/CheckoutModal';
 
 export default function HopDongPage() {
@@ -317,17 +316,21 @@ export default function HopDongPage() {
 
   const handleDownload = async (hopDong: HopDong) => {
     try {
-      const phongInfo = getPhongInfo(hopDong.phong);
-      const nguoiDaiDienName = getKhachThueName(hopDong.nguoiDaiDien);
-      const nguoiDaiDienObj = khachThueList.find(kt => {
-        const ktId = typeof kt._id === 'object' ? (kt._id as { _id: string })._id : kt._id;
-        const daiDienId = typeof hopDong.nguoiDaiDien === 'object' ? (hopDong.nguoiDaiDien as { _id: string })._id : hopDong.nguoiDaiDien;
-        return ktId === daiDienId;
+      if (!accessToken || !hopDong._id) throw new Error('Phiên đăng nhập đã hết hạn');
+      const response = await fetch(`/api/hop-dong/${hopDong._id}/generate-pdf`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
-      await generateAndDownloadHopDong(hopDong, phongInfo, nguoiDaiDienName, nguoiDaiDienObj, formatCurrency);
-      toast.success('Đã tải xuống hợp đồng thành công!');
+      const result = await response.json().catch(() => ({}));
+      const pdfUrl = result.data?.filePdf || result.data?.pdfUrl;
+      if (!response.ok || !result.success || !pdfUrl) {
+        throw new Error(result.message || 'Không thể sinh file PDF');
+      }
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+      toast.success('Đã sinh file PDF hợp đồng');
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi tạo file Word');
+      console.error('Lỗi sinh PDF hợp đồng:', error);
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi sinh PDF');
     }
   };
 

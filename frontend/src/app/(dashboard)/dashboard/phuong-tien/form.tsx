@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { PhuongTien, ToaNha, Phong, KhachThue } from "@/types"
+import { PhuongTien, KhachThue } from "@/types"
 
 const formSchema = z.object({
   anhXe: z.string().optional(),
@@ -43,26 +43,23 @@ const formSchema = z.object({
   bienSo: z.string().min(1, "Biển số xe không được để trống"),
   soVeXe: z.string().optional(),
   hoatDong: z.boolean().default(true),
-  nhaTroId: z.string().min(1, "Vui lòng chọn Tòa nhà"),
-  phongId: z.string().optional().nullable(),
-  khachThueId: z.string().optional().nullable(),
+  nhaTroId: z.string().min(1, "Không xác định được tòa nhà của khách thuê"),
+  phongId: z.string().min(1, "Không xác định được phòng của khách thuê"),
+  khachThueId: z.string().min(1, "Vui lòng chọn khách hàng"),
 })
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialData: PhuongTien | null
-  toaNhas: ToaNha[]
   onSuccess: () => void
 }
 
-export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuccess }: Props) {
+export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: Props) {
   const { data: session } = useSession()
   const accessToken = session?.accessToken
 
-  const [phongs, setPhongs] = React.useState<Phong[]>([])
   const [khachThues, setKhachThues] = React.useState<KhachThue[]>([])
-  const [isLoadingPhongs, setIsLoadingPhongs] = React.useState(false)
   const [isLoadingKhachThues, setIsLoadingKhachThues] = React.useState(false)
   const [isUploading, setIsUploading] = React.useState(false)
 
@@ -82,30 +79,22 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
     },
   })
 
-  const watchNhaTroId = form.watch("nhaTroId")
-  const watchPhongId = form.watch("phongId")
+  const watchKhachThueId = form.watch("khachThueId")
 
   React.useEffect(() => {
-    if (!accessToken || !watchNhaTroId) {
-      setPhongs([])
-      return
-    }
-    const fetchPhongs = async () => {
-      setIsLoadingPhongs(true)
-      try {
-        const res = await fetch(`/api/phong?toaNha=${watchNhaTroId}&limit=1000`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        })
-        const json = await res.json()
-        if (json.success) setPhongs(Array.isArray(json.data) ? json.data : (json.data?.data || []))
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setIsLoadingPhongs(false)
-      }
-    }
-    fetchPhongs()
-  }, [accessToken, watchNhaTroId])
+    form.reset({
+      anhXe: initialData?.anhXe || "",
+      loaiPhuongTien: initialData?.loaiPhuongTien || "",
+      tenDongXe: initialData?.tenDongXe || "",
+      mauXe: initialData?.mauXe || "",
+      bienSo: initialData?.bienSo || "",
+      soVeXe: initialData?.soVeXe || "",
+      hoatDong: initialData ? initialData.trangThai === "HIEU_LUC" : true,
+      nhaTroId: initialData?.nhaTroId ? String(initialData.nhaTroId) : "",
+      phongId: initialData?.phongId ? String(initialData.phongId) : "",
+      khachThueId: initialData?.khachThueId ? String(initialData.khachThueId) : "",
+    })
+  }, [form, initialData, open])
 
   React.useEffect(() => {
     if (!accessToken) {
@@ -115,7 +104,7 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
     const fetchKhachThues = async () => {
       setIsLoadingKhachThues(true)
       try {
-        const res = await fetch(`/api/khach-thue?limit=1000`, {
+        const res = await fetch(`/api/khach-thue?trangThai=dangThue&limit=1000`, {
           headers: { Authorization: `Bearer ${accessToken}` }
         })
         const json = await res.json()
@@ -129,12 +118,9 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
     fetchKhachThues()
   }, [accessToken])
 
-  const filteredKhachThues = watchPhongId
-    ? khachThues.filter(k => {
-        const pId = k.hopDongHienTai?.phong?._id || k.hopDongHienTai?.phong?.id;
-        return String(pId) === String(watchPhongId);
-      })
-    : khachThues;
+  const selectedKhachThue = khachThues.find(k => String(k.id || k._id) === watchKhachThueId)
+  const selectedPhong = selectedKhachThue?.hopDongHienTai?.phong
+  const selectedToaNha = selectedPhong?.toaNha
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -355,76 +341,19 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
 
               <FormField
                 control={form.control}
-                name="nhaTroId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-700 font-medium">Toà nhà</FormLabel>
-                    <Select onValueChange={(val) => { field.onChange(val); form.setValue("phongId", ""); form.setValue("khachThueId", ""); }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-11">
-                          <SelectValue placeholder="Chọn tòa nhà" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white border-slate-200 text-slate-900">
-                        {toaNhas.map(t => (
-                          <SelectItem key={String(t.id || t._id)} value={String(t.id || t._id)}>
-                            {t.tenToaNha}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phongId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-700 font-medium">Phòng</FormLabel>
-                    <Select
-                      onValueChange={(val) => { field.onChange(val); form.setValue("khachThueId", ""); }}
-                      value={field.value ?? ""}
-                      disabled={!watchNhaTroId || isLoadingPhongs}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-11">
-                          <SelectValue placeholder={isLoadingPhongs ? "Đang tải..." : "Chọn phòng"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white border-slate-200 text-slate-900">
-                        {phongs.map(p => (
-                          <SelectItem key={String(p.id || p._id)} value={String(p.id || p._id)}>
-                            {p.ten || p.maPhong}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="khachThueId"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2 md:w-[calc(50%-12px)]">
-                    <FormLabel className="text-slate-700 font-medium">Khách hàng</FormLabel>
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-medium">Khách hàng <span className="text-red-500">*</span></FormLabel>
                     <Select
                       onValueChange={(val) => {
                         field.onChange(val);
                         const selectedK = khachThues.find(k => String(k.id || k._id) === val);
-                        if (selectedK?.hopDongHienTai?.phong) {
-                          const pId = selectedK.hopDongHienTai.phong._id || selectedK.hopDongHienTai.phong.id;
-                          const nId = selectedK.hopDongHienTai.phong.toaNha?._id || selectedK.hopDongHienTai.phong.toaNha?.id;
-                          if (nId && String(nId) !== watchNhaTroId) form.setValue("nhaTroId", String(nId));
-                          if (pId && String(pId) !== watchPhongId) {
-                            setTimeout(() => form.setValue("phongId", String(pId)), 100);
-                          }
-                        }
+                        const phong = selectedK?.hopDongHienTai?.phong;
+                        const phongId = phong?._id || phong?.id;
+                        const nhaTroId = phong?.toaNha?._id || phong?.toaNha?.id;
+                        form.setValue("phongId", phongId ? String(phongId) : "", { shouldValidate: true });
+                        form.setValue("nhaTroId", nhaTroId ? String(nhaTroId) : "", { shouldValidate: true });
                       }}
                       value={field.value ?? ""}
                       disabled={isLoadingKhachThues}
@@ -435,7 +364,7 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-white border-slate-200 text-slate-900">
-                        {filteredKhachThues.map((k: any) => (
+                        {khachThues.map((k) => (
                           <SelectItem key={String(k.id || k._id)} value={String(k.id || k._id)}>
                             {k.hoTen} {k.soDienThoai ? `- ${k.soDienThoai}` : ""}
                           </SelectItem>
@@ -444,8 +373,26 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
                     </Select>
                     <FormMessage className="text-red-400" />
                   </FormItem>
-                )}
-              />
+                  )}
+                />
+
+              <FormItem>
+                <FormLabel className="text-slate-700 font-medium">Toà nhà</FormLabel>
+                <Input
+                  value={selectedToaNha?.tenToaNha || (watchKhachThueId ? "Chưa có thông tin tòa nhà" : "Chọn khách hàng để tự động điền")}
+                  readOnly
+                  className="bg-slate-50 border-slate-200 text-slate-600 h-11"
+                />
+              </FormItem>
+
+              <FormItem>
+                <FormLabel className="text-slate-700 font-medium">Phòng</FormLabel>
+                <Input
+                  value={selectedPhong?.maPhong || (watchKhachThueId ? "Chưa có thông tin phòng" : "Chọn khách hàng để tự động điền")}
+                  readOnly
+                  className="bg-slate-50 border-slate-200 text-slate-600 h-11"
+                />
+              </FormItem>
             </div>
 
             <div className="bg-amber-50 text-amber-600 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2">
@@ -467,8 +414,6 @@ export function PhuongTienForm({ open, onOpenChange, initialData, toaNhas, onSuc
     </Dialog>
   )
 }
-
-
 
 
 

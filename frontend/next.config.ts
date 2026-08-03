@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   images: {
+    // Cloudinary serves the optimized image directly. Next's production
+    // image proxy rejects valid Cloudinary URLs in this deployment.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

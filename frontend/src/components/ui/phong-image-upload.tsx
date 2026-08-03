@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, Image as ImageIcon, Loader2, Home } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface PhongImageUploadProps {
   images: string[];
@@ -21,6 +22,7 @@ export function PhongImageUpload({
   className = '',
   maxImages = 10
 }: PhongImageUploadProps) {
+  const { data: session } = useSession();
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,11 +49,15 @@ export function PhongImageUpload({
 
     try {
       const uploadPromises = newFiles.map(async (file) => {
+        if (!session?.accessToken) {
+          throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+        }
         const formData = new FormData();
         formData.append('file', file);
 
         const response = await fetch('/api/upload', {
           method: 'POST',
+          headers: { Authorization: `Bearer ${session.accessToken}` },
           body: formData,
         });
 

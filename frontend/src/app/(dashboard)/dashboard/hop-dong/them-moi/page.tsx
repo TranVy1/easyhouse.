@@ -41,7 +41,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { generateAndDownloadHopDong } from '@/lib/export-hop-dong';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import { normalizeKhachThue, normalizePhong, normalizeToaNha } from '@/lib/domain-mappers';
@@ -58,26 +57,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-type DichVuOption = {
-  dichVuId: string;
-  ten: string;
-  loaiTinhPhi?: string;
-  donVi?: string;
-  donGiaMacDinh: number;
-  batBuoc?: boolean;
-};
-
-type ApiDichVu = {
-  _id?: string;
-  id?: string;
-  tenDichVu?: string;
-  ten?: string;
-  loaiTinhPhi?: string;
-  donVi?: string;
-  donGiaMacDinh?: number;
-  batBuoc?: boolean;
-};
 
 type PhiDichVuForm = {
   dichVuId?: string;
@@ -136,7 +115,6 @@ export default function ThemMoiHopDongPage() {
   const accessToken = session?.accessToken;
   const [selectedNhaTro, setSelectedNhaTro] = useState<string>(nhaTroId || '');
   const [openNhaTro, setOpenNhaTro] = useState(false);
-  const [dichVuOptions, setDichVuOptions] = useState<DichVuOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // SWR Fetcher
@@ -151,20 +129,7 @@ export default function ThemMoiHopDongPage() {
   };
 
   const { data: nhaTroListData } = useSWR<unknown[]>(accessToken ? '/api/toa-nha?page=1&limit=100' : null, fetcher);
-  const { data: globalDichVuListData } = useSWR<unknown[]>(accessToken ? '/api/dich-vu?page=1&limit=100' : null, fetcher);
-  
   const nhaTroList = (nhaTroListData || []).map(normalizeToaNha);
-  const globalDichVuList = (globalDichVuListData || []).map((item) => {
-    const dv = item as ApiDichVu;
-    return {
-      dichVuId: String(dv._id ?? dv.id ?? ''),
-      ten: dv.tenDichVu ?? dv.ten ?? '',
-      loaiTinhPhi: dv.loaiTinhPhi,
-      donVi: dv.donVi,
-      donGiaMacDinh: Number(dv.donGiaMacDinh || 0),
-      batBuoc: dv.batBuoc,
-    };
-  });
 
   const { data: phongListData } = useSWR(
     selectedNhaTro ? `/api/phong?page=1&limit=100&nhaTroId=${selectedNhaTro}&simple=true` : null,
@@ -236,7 +201,6 @@ export default function ThemMoiHopDongPage() {
   const [openPhong, setOpenPhong] = useState(false);
   const [openKhachThue, setOpenKhachThue] = useState(false);
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
-  const [openAddDichVu, setOpenAddDichVu] = useState(false);
   const [openAddKhachThue, setOpenAddKhachThue] = useState(false);
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
   const [loadingAddKhachThue, setLoadingAddKhachThue] = useState(false);
@@ -372,45 +336,6 @@ export default function ThemMoiHopDongPage() {
     return null;
   };
 
-  const loadDichVuTheoPhong = async (phongId: string) => {
-    if (!phongId) {
-      setDichVuOptions([]);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/hop-dong/dich-vu?phongId=${phongId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const result = response.ok ? await response.json() : { data: [] };
-      const options = (result.data || []).map((item: DichVuOption) => ({
-        ...item,
-        dichVuId: String(item.dichVuId),
-        donGiaMacDinh: Number(item.donGiaMacDinh || 0),
-      }));
-      setDichVuOptions(options);
-
-      setFormData(prev => ({
-        ...prev,
-        phiDichVu: [
-          ...prev.phiDichVu.filter(phi => options.some((option: DichVuOption) => option.dichVuId === phi.dichVuId)),
-          ...options
-            .filter((option: DichVuOption) => option.batBuoc && !prev.phiDichVu.some(phi => phi.dichVuId === option.dichVuId))
-            .map((option: DichVuOption) => ({
-              dichVuId: option.dichVuId,
-              ten: option.ten,
-              gia: option.donGiaMacDinh,
-              soLuong: 1,
-              loaiTinhPhi: option.loaiTinhPhi,
-            })),
-        ],
-      }));
-    } catch (error) {
-      console.error('Error loading contract services:', error);
-      setDichVuOptions([]);
-    }
-  };
-
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -428,7 +353,6 @@ export default function ThemMoiHopDongPage() {
         tienCoc: selectedPhong.tienCoc || 0,
         phiDichVu: [],
       }));
-      loadDichVuTheoPhong(phongId);
     }
     setOpenPhong(false);
   };
@@ -440,33 +364,6 @@ export default function ThemMoiHopDongPage() {
       khachThueId: prev.khachThueId.includes(khachThueId)
         ? prev.khachThueId.filter(id => id !== khachThueId)
         : [...prev.khachThueId, khachThueId]
-    }));
-  };
-
-  const toggleDichVuHopDong = (option: DichVuOption) => {
-    setFormData(prev => {
-      const exists = prev.phiDichVu.some(phi => phi.dichVuId === option.dichVuId);
-      return {
-        ...prev,
-        phiDichVu: exists
-          ? prev.phiDichVu.filter(phi => phi.dichVuId !== option.dichVuId)
-          : [...prev.phiDichVu, {
-            dichVuId: option.dichVuId,
-            ten: option.ten,
-            gia: option.donGiaMacDinh,
-            soLuong: 1,
-            loaiTinhPhi: option.loaiTinhPhi,
-          }],
-      };
-    });
-  };
-
-  const updateDichVuHopDong = (dichVuId: string, field: 'gia' | 'soLuong', value: number) => {
-    setFormData(prev => ({
-      ...prev,
-      phiDichVu: prev.phiDichVu.map(phi =>
-        phi.dichVuId === dichVuId ? { ...phi, [field]: value } : phi
-      ),
     }));
   };
 
@@ -559,25 +456,23 @@ export default function ThemMoiHopDongPage() {
         toast.success(result.message || 'Đã lưu hợp đồng thành công');
         
         try {
-          const phongObj = phongList.find(p => p._id === formData.phong);
-          const toaNhaObj = nhaTroList.find(t => t._id === selectedNhaTro);
-          const phongInfo = {
-            maPhong: phongObj?.maPhong || '',
-            toaNha: toaNhaObj?.tenToaNha || ''
-          };
-          const nguoiDaiDienObj = khachThueList.find(k => k._id === formData.nguoiDaiDien);
-          const nguoiDaiDienName = nguoiDaiDienObj?.hoTen || '';
-          
-          await generateAndDownloadHopDong(
-            { ...formData, ...result.data, ngayTao: new Date().toISOString() }, 
-            phongInfo,
-            nguoiDaiDienName,
-            nguoiDaiDienObj,
-            formatCurrency
-          );
+          const contractId = result.data?._id || result.data?.id;
+          if (contractId && accessToken) {
+            const pdfResponse = await fetch(`/api/hop-dong/${contractId}/generate-pdf`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            const pdfResult = await pdfResponse.json().catch(() => ({}));
+            const pdfUrl = pdfResult.data?.filePdf || pdfResult.data?.pdfUrl;
+            if (pdfResponse.ok && pdfResult.success && pdfUrl) {
+              window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+            } else {
+              toast.error(pdfResult.message || 'Lưu thành công nhưng chưa sinh được PDF');
+            }
+          }
         } catch (err) {
-          console.error("Error exporting docx", err);
-          toast.error("Lưu thành công nhưng lỗi tạo file Hợp đồng");
+          console.error('Lỗi sinh PDF hợp đồng:', err);
+          toast.error('Lưu thành công nhưng lỗi tạo file PDF');
         }
         
         setOpenPreviewModal(false);
@@ -595,7 +490,7 @@ export default function ThemMoiHopDongPage() {
     }
   };
 
-  if (!nhaTroListData || !globalDichVuListData) {
+  if (!nhaTroListData) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -668,7 +563,6 @@ export default function ThemMoiHopDongPage() {
                             onSelect={() => {
                               setSelectedNhaTro(nt._id!);
                               setFormData(prev => ({ ...prev, phong: '', giaThue: 0 as number | string, tienCoc: 0 as number | string, phiDichVu: [] }));
-                              setDichVuOptions([]);
                               setOpenNhaTro(false);
                             }}
                           >
@@ -1102,8 +996,8 @@ export default function ThemMoiHopDongPage() {
             </FormSection>
 
             <FormSection
-              title="Ghi chú & dịch vụ áp dụng"
-              description="Bổ sung ghi chú bàn giao, tiện ích phòng và các dịch vụ tính phí trong hợp đồng."
+              title="Ghi chú & tiện ích phòng"
+              description="Bổ sung ghi chú bàn giao và xem các tiện ích hiện có của phòng."
               icon={StickyNote}
             >
             <div className={fieldClass}>
@@ -1133,116 +1027,6 @@ export default function ThemMoiHopDongPage() {
                 </div>
               </div>
             )}
-
-            <div className="mt-5 space-y-3 rounded-[16px] border border-[rgba(36,59,90,0.08)] bg-white/75 p-4 shadow-[0_8px_20px_rgba(36,59,90,0.04)]">
-              <Label>Dịch vụ áp dụng cho hợp đồng</Label>
-              {!formData.phong ? (
-                <p className="text-sm text-muted-foreground">Chọn phòng trước để tải danh sách dịch vụ đang áp dụng cho tòa nhà/phòng.</p>
-              ) : dichVuOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Phòng này chưa có dịch vụ nào trong cấu hình giá.</p>
-              ) : (
-                <div className="space-y-4">
-                  <div className="overflow-hidden rounded-[14px] border border-[rgba(36,59,90,0.10)] bg-white">
-                    {/* Header Desktop */}
-                    <div className="hidden grid-cols-[1fr_100px_120px_120px] gap-4 border-b border-[rgba(36,59,90,0.08)] bg-[#F8F3EC]/70 px-4 py-3 text-sm font-semibold text-[#6B7A90] md:grid">
-                      <div>Tên dịch vụ</div>
-                      <div>Đơn giá</div>
-                      <div>Số lượng</div>
-                      <div className="text-right">Thành tiền</div>
-                    </div>
-
-                    <div className="divide-y">
-                      {dichVuOptions.map((option) => {
-                        const selected = formData.phiDichVu.find(phi => phi.dichVuId === option.dichVuId);
-                        return (
-                          <div key={option.dichVuId} className={cn("grid grid-cols-1 items-center gap-3 p-4 transition-colors md:grid-cols-[1fr_160px_120px_120px] md:gap-4", selected ? "bg-[#4FA7A0]/8" : "bg-white hover:bg-[#FFFCF7]")}>
-                            <button type="button" onClick={() => toggleDichVuHopDong(option)} className="flex items-center gap-3 text-left">
-                              <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors", selected ? "bg-primary border-primary text-primary-foreground" : "border-input")}>
-                                {selected && <Check className="h-3.5 w-3.5" />}
-                              </span>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-sm font-medium">{option.ten}</span>
-                                {option.batBuoc && <span className="text-[10px] uppercase tracking-wider font-semibold text-primary/70">Bắt buộc</span>}
-                              </div>
-                            </button>
-
-                            <div className="flex items-center gap-2 md:block">
-                              <span className="md:hidden w-24 text-sm text-muted-foreground">Đơn giá:</span>
-                              <div className="relative w-full">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  className={cn(controlClass, "h-10 pr-7 text-sm", !selected && "opacity-50")}
-                                  value={selected?.gia ?? option.donGiaMacDinh}
-                                  disabled={!selected}
-                                  onChange={(e) => updateDichVuHopDong(option.dichVuId, 'gia', Number(e.target.value) || 0)}
-                                />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₫</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 md:block">
-                              <span className="md:hidden w-24 text-sm text-muted-foreground">Số lượng:</span>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                className={cn(controlClass, "h-10 text-sm", !selected && "opacity-50")}
-                                value={selected?.soLuong ?? 1}
-                                disabled={!selected}
-                                onChange={(e) => updateDichVuHopDong(option.dichVuId, 'soLuong', Number(e.target.value) || 0)}
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-2 md:block md:text-right border-t md:border-t-0 pt-2 md:pt-0 mt-1 md:mt-0">
-                              <span className="md:hidden w-24 text-sm text-muted-foreground">Thành tiền:</span>
-                              <div className={cn("text-sm font-semibold md:font-medium", selected ? "text-primary" : "text-muted-foreground")}>
-                                {selected ? formatCurrency((selected.gia || 0) * (selected.soLuong || 1)) : formatCurrency(option.donGiaMacDinh)}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 border-t border-[rgba(36,59,90,0.08)] pt-4">
-                    <Label className={cn(labelClass, "mb-2 block")}>Thêm dịch vụ khác</Label>
-                    <Popover open={openAddDichVu} onOpenChange={setOpenAddDichVu}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" role="combobox" aria-expanded={openAddDichVu} className={comboControlClass}>
-                          Chọn thêm dịch vụ từ danh sách...
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[90vw] md:w-full p-0">
-                        <Command>
-                          <CommandInput placeholder="Tìm dịch vụ..." />
-                          <CommandEmpty>Không tìm thấy dịch vụ.</CommandEmpty>
-                          <CommandGroup className="max-h-64 overflow-auto">
-                            {globalDichVuList
-                              .filter(dv => !dichVuOptions.some(opt => opt.dichVuId === dv.dichVuId))
-                              .map((dv) => (
-                                <CommandItem
-                                  key={dv.dichVuId}
-                                  value={dv.ten}
-                                  onSelect={() => {
-                                    setDichVuOptions(prev => [...prev, dv]);
-                                    toggleDichVuHopDong(dv);
-                                    setOpenAddDichVu(false);
-                                  }}
-                                >
-                                  {dv.ten} - {formatCurrency(dv.donGiaMacDinh)} {dv.donVi ? `/${dv.donVi}` : ''}
-                                </CommandItem>
-                              ))}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              )}
-            </div>
 
             </FormSection>
 

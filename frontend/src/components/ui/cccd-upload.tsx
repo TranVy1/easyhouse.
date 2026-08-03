@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, Image as ImageIcon, Loader2, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface CCCDUploadProps {
   anhCCCD: {
@@ -22,6 +23,7 @@ export function CCCDUpload({
   onCCCDChange, 
   className = '' 
 }: CCCDUploadProps) {
+  const { data: session } = useSession();
   const [uploading, setUploading] = useState<{ matTruoc: boolean; matSau: boolean }>({
     matTruoc: false,
     matSau: false
@@ -42,11 +44,15 @@ export function CCCDUpload({
     setUploading(prev => ({ ...prev, [type]: true }));
 
     try {
+      if (!session?.accessToken) {
+        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+      }
       const formData = new FormData();
       formData.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${session.accessToken}` },
         body: formData,
       });
 

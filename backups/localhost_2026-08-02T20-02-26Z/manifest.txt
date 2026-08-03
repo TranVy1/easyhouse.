@@ -1,0 +1,16 @@
+backup_name=localhost_2026-08-02T20-02-26Z
+created_at_utc=2026-08-02T20:02:34+00:00
+hostname=localhost
+postgres_container=easyhouse-postgres
+postgres_database=postgres
+git_commit=1437e47fc301d8a9989d43285530a3ead47b5531
+
+[docker-compose-images]
+CONTAINER            REPOSITORY          TAG                 PLATFORM            IMAGE ID            SIZE                CREATED
+easyhouse-backend    home-backend        latest              linux/amd64         8c6aa552080c        401MB               9 days ago
+easyhouse-frontend   home-frontend       latest              linux/amd64         6c227c71cea7        314MB               4 hours ago
+easyhouse-nginx      nginx               1.27-alpine         linux/amd64         65645c7bb6a0        21MB                15 months ago
+easyhouse-postgres   postgres            14-alpine           linux/amd64         944eb7667a77        115MB               3 weeks ago
+easyhouse-redis      redis               7-alpine            linux/amd64         6ab0b6e73817        16.3MB              2 months ago
+
+[docker-volumes]
