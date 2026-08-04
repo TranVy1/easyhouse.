@@ -688,7 +688,7 @@ export function useChat() {
 
   useEffect(() => {
     if (!token) return;
-    chatSocket.connect();
+    chatSocket.connect(token);
 
     const boTinNhan = chatSocket.onTinNhan((payload) => {
       const tin = payload as TinNhan;

@@ -165,6 +165,19 @@ class ChatPermissionServiceTest {
     }
 
     @Test
+    void adminKhongTuDongDocDuocChatDirectNeuKhongLaThanhVien() {
+        UUID hoiThoaiId = UUID.randomUUID();
+        UUID adminId = UUID.randomUUID();
+        lenient().when(permissionService.isAdmin(adminId)).thenReturn(true);
+        when(thanhVienRepository.findByCuocTroChuyenIdAndNguoiDungId(hoiThoaiId, adminId))
+                .thenReturn(Optional.empty());
+
+        assertFalse(chatPermissionService.coTheDoc(hoiThoaiId, adminId));
+        assertThrows(ChatKhongCoQuyenException.class,
+                () -> chatPermissionService.yeuCauLaThanhVien(hoiThoaiId, adminId));
+    }
+
+    @Test
     void hoiThoaiBiKhoaThiKhongGuiDuocDuLaThanhVien() {
         UUID hoiThoaiId = UUID.randomUUID();
         CuocTroChuyen biKhoa = hoiThoai(hoiThoaiId);

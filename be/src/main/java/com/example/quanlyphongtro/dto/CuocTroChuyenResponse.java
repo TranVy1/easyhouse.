@@ -102,6 +102,17 @@ public class CuocTroChuyenResponse {
     private static String anhHienThi(CuocTroChuyen c, List<ThanhVienChatResponse> thanhVien, UUID nguoiXem) {
         if (c.getLoai() != null && c.getLoai().laNhom()) return c.getAnh();
 
+        if (c.getLoai() == LoaiCuocTroChuyen.SUPPORT) {
+            UUID nguoiTaoId = c.getNguoiTao() != null ? c.getNguoiTao().getId() : null;
+            if (nguoiTaoId == null || nguoiTaoId.equals(nguoiXem)) return c.getAnh();
+            return thanhVien.stream()
+                    .filter(tv -> nguoiTaoId.equals(tv.getNguoiDungId()))
+                    .map(ThanhVienChatResponse::getAnhDaiDien)
+                    .filter(a -> a != null && !a.isBlank())
+                    .findFirst()
+                    .orElse(c.getAnh());
+        }
+
         // Nhom 1-1 co nhieu hon mot nguoi khac (hiem, vd kenh ho tro nhieu nhan vien)
         // thi khong doan bua — de client ve chu cai dau cho nhat quan.
         List<String> anhNguoiKhac = thanhVien.stream()
@@ -123,6 +134,10 @@ public class CuocTroChuyenResponse {
         if (c.getTen() != null && !c.getTen().isBlank()) return c.getTen();
         if (c.getLoai() != null && c.getLoai().laNhom()) return c.getTen();
 
+        if (c.getLoai() == LoaiCuocTroChuyen.SUPPORT) {
+            return tenKenhHoTro(c, thanhVien, nguoiXem);
+        }
+
         String ten = thanhVien.stream()
                 .filter(tv -> !tv.getNguoiDungId().equals(nguoiXem))
                 .map(ThanhVienChatResponse::getHoTen)
@@ -132,6 +147,32 @@ public class CuocTroChuyenResponse {
                 .orElse(null);
 
         if (ten != null) return ten;
-        return c.getLoai() == LoaiCuocTroChuyen.SUPPORT ? "Ban quan ly" : "Cuoc tro chuyen";
+        return "Cuoc tro chuyen";
+    }
+
+    private static String tenKenhHoTro(CuocTroChuyen c,
+                                       List<ThanhVienChatResponse> thanhVien,
+                                       UUID nguoiXem) {
+        UUID nguoiTaoId = c.getNguoiTao() != null ? c.getNguoiTao().getId() : null;
+        String tenNhaTro = c.getNhaTro() != null ? c.getNhaTro().getTen() : null;
+
+        if (nguoiTaoId == null || nguoiTaoId.equals(nguoiXem)) {
+            return ghepPhamVi("Ban quản lý", tenNhaTro);
+        }
+
+        String tenNguoiYeuCau = thanhVien.stream()
+                .filter(tv -> nguoiTaoId.equals(tv.getNguoiDungId()))
+                .map(tv -> tv.getBietDanh() != null && !tv.getBietDanh().isBlank()
+                        ? tv.getBietDanh()
+                        : tv.getHoTen())
+                .filter(ten -> ten != null && !ten.isBlank())
+                .findFirst()
+                .orElse("Khách thuê");
+
+        return ghepPhamVi("Hỗ trợ · " + tenNguoiYeuCau, tenNhaTro);
+    }
+
+    private static String ghepPhamVi(String ten, String tenNhaTro) {
+        return tenNhaTro != null && !tenNhaTro.isBlank() ? ten + " · " + tenNhaTro : ten;
     }
 }

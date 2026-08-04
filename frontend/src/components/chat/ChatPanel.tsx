@@ -22,7 +22,6 @@ import {
   Send,
   Trash2,
   Undo2,
-  Users,
   Wifi,
   WifiOff,
   X,
@@ -418,7 +417,9 @@ export function ChatPanel({ hienNutHoTro = false }: { hienNutHoTro?: boolean }) 
                   {tenAiDangGo.length > 0
                     ? `${tenAiDangGo.join(', ')} đang nhập…`
                     : hoiThoaiDangMo.loai === 'SUPPORT'
-                      ? 'Kênh liên hệ ban quản lý'
+                      ? hienNutHoTro
+                        ? 'Hộp thư chung — Ban quản lý cùng tiếp nhận và trả lời'
+                        : `Hộp thư chung Ban quản lý · ${hoiThoaiDangMo.thanhVien?.length ?? 0} thành viên`
                       : laNhom
                         // Với nhóm thì đếm TỔNG thành viên (kể cả mình) — đếm "người
                         // khác" sẽ ra "0 người" khi chỉ còn lại mình, đọc rất khó hiểu.

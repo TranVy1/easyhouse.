@@ -1,8 +1,10 @@
 package com.example.quanlyphongtro.repository;
 
 import com.example.quanlyphongtro.entity.CuocTroChuyen;
+import com.example.quanlyphongtro.entity.LoaiCuocTroChuyen;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +19,15 @@ public interface CuocTroChuyenRepository extends JpaRepository<CuocTroChuyen, UU
 
     Optional<CuocTroChuyen> findByIdAndXoaLucIsNull(UUID id);
 
-    /** Tra cuu theo khoa chong trung truoc khi tao moi. */
+    /**
+     * Tra cuu theo khoa chong trung truoc khi tao moi.
+     *
+     * Get-or-create co y khong boc transaction ngoai de con bat duoc loi trung
+     * khoa trong transaction cua factory. Vi vay cac quan he can de dung response
+     * phai duoc nap ngay trong query nay, neu khong hoi thoai da ton tai se tra
+     * lazy proxy da tach session.
+     */
+    @EntityGraph(attributePaths = {"nhaTro", "nguoiTao"})
     Optional<CuocTroChuyen> findByKhoaDuyNhatAndXoaLucIsNull(String khoaDuyNhat);
 
     /**
@@ -68,4 +78,15 @@ public interface CuocTroChuyenRepository extends JpaRepository<CuocTroChuyen, UU
 
     /** Nap hang loat theo khoa chong trung — dung khi dong bo nhieu nhom mot luc. */
     List<CuocTroChuyen> findByKhoaDuyNhatInAndXoaLucIsNull(List<String> khoaDuyNhats);
+
+    /** Tat ca kenh ho tro — admin he thong duoc quyen tiep nhan tren moi nha tro. */
+    List<CuocTroChuyen> findByLoaiAndXoaLucIsNull(LoaiCuocTroChuyen loai);
+
+    /** Kenh ho tro trong cac nha tro ma chu tro/nhan vien dang duoc phan quyen. */
+    List<CuocTroChuyen> findByLoaiAndNhaTroIdInAndXoaLucIsNull(LoaiCuocTroChuyen loai,
+                                                               List<UUID> nhaTroIds);
+
+    /** Kenh ho tro do chinh nguoi dung mo — giu lai du ho khong phai quan ly. */
+    List<CuocTroChuyen> findByLoaiAndNguoiTaoIdAndXoaLucIsNull(LoaiCuocTroChuyen loai,
+                                                               UUID nguoiTaoId);
 }

@@ -39,6 +39,7 @@ class ChatSocket {
   private client: Client | null = null;
   private state: ChatSocketState = 'idle';
   private delayHienTai = DELAY_DAU;
+  private tokenHienTai: string | null = null;
 
   private handlersTinNhan = new Set<Handler>();
   private handlersTrangThai = new Set<Handler>();
@@ -51,12 +52,21 @@ class ChatSocket {
       // Chạm vào endpoint session của NextAuth sẽ kích hoạt callback jwt, tự refresh
       // access token nếu đã hết hạn. Nếu không làm bước này, WebSocket sẽ chết im
       // lặng khi token hết hạn và không bao giờ nối lại được.
-      const res = await fetch('/api/auth/session');
-      if (!res.ok) return null;
+      // Cổng khách thuê dùng một NextAuth basePath riêng để không ghi đè phiên
+      // quản trị. Đọc nhầm /api/auth/session ở trang khách thuê luôn trả token rỗng,
+      // khiến STOMP reconnect vô hạn với lỗi "Thiếu token xác thực".
+      const sessionUrl = window.location.pathname.startsWith('/khach-thue')
+        ? '/api/auth-tenant/session'
+        : '/api/auth/session';
+      const res = await fetch(sessionUrl);
+      if (!res.ok) return this.tokenHienTai;
       const session = await res.json();
-      return session?.accessToken ?? null;
+      if (typeof session?.accessToken === 'string' && session.accessToken) {
+        this.tokenHienTai = session.accessToken;
+      }
+      return this.tokenHienTai;
     } catch {
-      return null;
+      return this.tokenHienTai;
     }
   }
 
@@ -66,7 +76,13 @@ class ChatSocket {
     this.handlersState.forEach((h) => h(s));
   }
 
-  connect() {
+  connect(token?: string) {
+    // Token tu SessionProvider la nguon chac chan nhat o lan noi dau. Endpoint
+    // session ben tren van duoc goi moi lan reconnect de lay token da refresh,
+    // nhung neu endpoint custom cua tenant khong tra du lieu kip thi khong duoc
+    // gui mot frame CONNECT rong va roi vao vong lap "Thieu token xac thuc".
+    if (token) this.tokenHienTai = token;
+
     if (this.client || !WS_URL) {
       if (!WS_URL) {
         console.warn('[chat] Thiếu NEXT_PUBLIC_WS_URL — chat realtime sẽ không hoạt động.');
@@ -141,6 +157,7 @@ class ChatSocket {
   disconnect() {
     this.client?.deactivate();
     this.client = null;
+    this.tokenHienTai = null;
     this.datState('idle');
   }
 

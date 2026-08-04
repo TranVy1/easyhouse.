@@ -56,7 +56,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (session?.accessToken) {
       refreshData();
       
-      chatSocket.connect();
+      chatSocket.connect(session.accessToken as string);
       const unsub = chatSocket.onThongBao(() => {
         refreshData();
         toast.info('Bạn có thông báo mới');
