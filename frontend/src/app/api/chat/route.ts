@@ -47,8 +47,10 @@ export async function POST(req: Request) {
     // Fetch available rooms context
     let dynamicContext = "";
     try {
-      // Use 127.0.0.1 instead of localhost to prevent IPv6 resolution issues in Node.js fetch
-      const roomRes = await fetch("http://127.0.0.1:8080/api/public/phong?limit=10", { cache: 'no-store' });
+      // In Docker, the backend is a separate container. BACKEND_URL resolves
+      // it through the Compose network; the fallback keeps local development working.
+      const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8080";
+      const roomRes = await fetch(`${backendUrl}/api/public/phong?limit=10`, { cache: 'no-store' });
       if (roomRes.ok) {
         const roomData = await roomRes.json();
         const availableRooms = roomData.data?.data?.filter((r: any) => r.trangThai === 'AVAILABLE') || [];

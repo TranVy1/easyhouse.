@@ -10,6 +10,9 @@ services:
       VNPAY_RETURN_URL: https://easyhouse.site/api/vnpay/vnpay-return
 
   frontend:
+    # Provides server-only values such as GEMINI_API_KEY to Next.js route handlers.
+    env_file:
+      - ./frontend/.env.local
     build:
       context: ./frontend
       dockerfile: Dockerfile.production
