@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -17,17 +15,15 @@ import {
   Search, 
   Home, 
   MapPin, 
-  Users, 
-  Square, 
-  Eye,
   ArrowLeft,
   LocateFixed,
-  ExternalLink,
 } from 'lucide-react';
 import { Phong, ToaNha } from '@/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { ImageCarousel } from '@/components/ui/image-carousel';
+import { useRouter } from 'next/navigation';
+import { PropertyCard, PropertyCardSkeleton } from '@/components/property/property-card';
+import { CountUp, StaggerGroup, StaggerItem, motion } from '@/components/motion';
 
 type ToaNhaRef = string | { tenToaNha?: string };
 type UserLocation = { viDo: number; kinhDo: number };
@@ -40,6 +36,7 @@ const getToaNhaTen = (toaNha: ToaNhaRef) => {
 };
 
 export default function XemPhongPage() {
+  const router = useRouter();
   const [phongList, setPhongList] = useState<Phong[]>([]);
   const [toaNhaList, setToaNhaList] = useState<ToaNha[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,16 +169,15 @@ export default function XemPhongPage() {
 
   const filteredPhong = phongList;
 
-  const getTrangThaiBadge = (trangThai: string) => {
-    const variants = {
-      trong: { variant: 'secondary' as const, label: 'Trống', color: 'text-green-600' },
-      daDat: { variant: 'outline' as const, label: 'Đã đặt', color: 'text-[#243B5A]' },
-      dangThue: { variant: 'default' as const, label: 'Đang thuê', color: 'text-orange-600' },
-      baoTri: { variant: 'destructive' as const, label: 'Bảo trì', color: 'text-red-600' },
+  /** Trang thai phong -> badge cua PropertyCard (nhan + tong mau). */
+  const getTrangThaiBadge = (trangThai: string): { label: string; tone: 'teal' | 'navy' | 'orange' } => {
+    const variants: Record<string, { label: string; tone: 'teal' | 'navy' | 'orange' }> = {
+      trong: { label: 'Còn trống', tone: 'teal' },
+      daDat: { label: 'Đã đặt', tone: 'navy' },
+      dangThue: { label: 'Đang thuê', tone: 'orange' },
+      baoTri: { label: 'Bảo trì', tone: 'navy' },
     };
-    
-    const config = variants[trangThai as keyof typeof variants] || variants.trong;
-    return <Badge variant={config.variant} className={config.color}>{config.label}</Badge>;
+    return variants[trangThai] || variants.trong;
   };
 
   const formatCurrency = (amount: number) => {
@@ -208,32 +204,12 @@ export default function XemPhongPage() {
     bat: 'Bát',
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F8F3EC] relative">
-        {/* Polka dot background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle, rgba(79, 167, 160, 0.35) 1px, transparent 1px)',
-            backgroundSize: '20px 20px'
-          }}></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 py-8">
-          <div className="space-y-6">
-            <div className="h-8 bg-gradient-to-r from-[#E6F3F1] to-[#F8E0C4] rounded-xl w-48 animate-pulse"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 rounded-[22px] border border-[#E8DED1] bg-[#FFFCF8] shadow-[0_12px_30px_rgba(36,59,90,0.08)] animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
+  /*
+   * Co y KHONG return sam mot man hinh loading toan trang o day.
+   * Fetch duoc debounce theo tung ky tu nguoi dung go, nen return sam se lam
+   * ca header va bo loc bien mat roi hien lai lien tuc trong luc go.
+   * Thay vao do chi rieng luoi phong doi thanh skeleton (xem ben duoi).
+   */
 
   return (
     <div className="min-h-screen bg-[#F8F3EC] relative">
@@ -402,26 +378,41 @@ export default function XemPhongPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-8">
-          <Card className="p-4 border border-[#E8DED2] bg-white shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7A8C]">Phòng trống phù hợp</p>
-                <p className="text-2xl font-bold text-[#243B5A]">{totalElements}</p>
-              </div>
-              <Home className="h-5 w-5 text-[#267D76]" />
-            </div>
-          </Card>
-          <Card className="p-4 border border-[#E8DED2] bg-white shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7A8C]">Tòa nhà đang hiển thị</p>
-                <p className="text-2xl font-bold text-[#243B5A]">{selectedToaNha && selectedToaNha !== 'all' ? '1' : toaNhaList.length}</p>
-              </div>
-              <MapPin className="h-5 w-5 text-[#6B7A8C]" />
-            </div>
-          </Card>
-        </div>
+        <StaggerGroup className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:mb-8 md:gap-4" stagger={0.08}>
+          <StaggerItem>
+            <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Card className="border border-[#E8DED2] bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-[#6B7A8C]">Phòng trống phù hợp</p>
+                    <p className="text-2xl font-bold text-[#243B5A]">
+                      <CountUp value={totalElements} duration={0.9} />
+                    </p>
+                  </div>
+                  <Home className="h-5 w-5 text-[#267D76]" />
+                </div>
+              </Card>
+            </motion.div>
+          </StaggerItem>
+          <StaggerItem>
+            <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Card className="border border-[#E8DED2] bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-[#6B7A8C]">Tòa nhà đang hiển thị</p>
+                    <p className="text-2xl font-bold text-[#243B5A]">
+                      <CountUp
+                        value={selectedToaNha && selectedToaNha !== 'all' ? 1 : toaNhaList.length}
+                        duration={0.9}
+                      />
+                    </p>
+                  </div>
+                  <MapPin className="h-5 w-5 text-[#6B7A8C]" />
+                </div>
+              </Card>
+            </motion.div>
+          </StaggerItem>
+        </StaggerGroup>
 
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
@@ -434,125 +425,71 @@ export default function XemPhongPage() {
           </Card>
         )}
 
-        {/* Room Grid */}
-        {!error && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {filteredPhong.map((phong) => (
-            <Card key={phong._id} className="group cursor-pointer overflow-hidden rounded-[22px] border border-[#243B5A]/[0.08] bg-[#FFFCF8] shadow-[0_12px_30px_rgba(36,59,90,0.08)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)]">
-              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
-                {(phong.anhDaiDien || (phong.anhPhong && phong.anhPhong.length > 0)) ? (
-                  <>
-                    <div className="relative h-full w-full transition-transform duration-300 ease-out group-hover:scale-[1.03]">
-                      <Image
-                        src={phong.anhDaiDien || phong.anhPhong?.[0]}
-                        alt={`Phòng ${phong.ten || phong.maPhong}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    {phong.anhPhong && phong.anhPhong.length > 0 && (
-                      <ImageCarousel
-                        images={phong.anhPhong}
-                        className="opacity-0 group-hover:opacity-100 transition-all duration-300"
-                      />
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
-                        <Home className="h-8 w-8" />
-                      </div>
-                      <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#6B7A8C] ring-1 ring-[#E8DED1]">Chưa có ảnh</span>
-                    </div>
-                  </div>
-                )}
-                <div className="absolute top-2 left-2">
-                  {getTrangThaiBadge(phong.trangThai)}
-                </div>
-              </div>
-              
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base md:text-lg">
-                  <span className="text-[#243B5A]">Phòng {phong.ten || phong.maPhong}</span>
-                  <span className="text-base md:text-lg font-black text-[#F2A45B]">
-                    {formatCurrency(phong.giaHienTai || phong.giaThue)}
-                  </span>
-                </CardTitle>
-                <CardDescription className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
-                  <span className="flex items-center">
-                    <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{phong.tenNhaTro || getToaNhaTen(phong.toaNha as ToaNhaRef)}</span>
-                  </span>
-                  <span className="flex items-center">
-                    <Square className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                    {phong.dienTich}m²
-                  </span>
-                  <span className="flex items-center">
-                    <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                    {phong.soNguoiToiDa} người
-                  </span>
-                  {typeof phong.khoangCachKm === 'number' && Number.isFinite(phong.khoangCachKm) && (
-                    <span className="flex items-center font-medium text-[#267D76]">
-                      <LocateFixed className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                      {phong.khoangCachKm.toLocaleString('vi-VN')} km
-                    </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
+        {/* Room Grid - dung chung PropertyCard voi trang chu */}
+        {!error && loading && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
-              <CardContent className="p-4 md:p-6">
-                {phong.moTa && (
-                  <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2">
-                    {phong.moTa}
-                  </p>
-                )}
-                
-                {((phong.tienNghi?.length || 0) > 0 || (phong.tienIchNoiBat?.length || 0) > 0) && (
-                  <div className="flex flex-wrap gap-1 mb-3 md:mb-4">
-                    {(phong.tienIchNoiBat || phong.tienNghi || []).slice(0, 3).map((tienNghi) => (
-                      <Badge key={tienNghi} variant="outline" className="text-[10px] md:text-xs">
-                        {tienNghiLabels[tienNghi as keyof typeof tienNghiLabels] || tienNghi}
-                      </Badge>
-                    ))}
-                    {((phong.tienIchNoiBat?.length || 0) > 3 || (phong.tienNghi?.length || 0) > 3) && (
-                      <Badge variant="outline" className="text-[10px] md:text-xs">
-                        +{((phong.tienIchNoiBat || phong.tienNghi || []).length) - 3}
-                      </Badge>
-                    )}
-                  </div>
-                )}
+        {!error && !loading && (
+          <StaggerGroup
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
+            stagger={0.06}
+            amount={0.02}
+          >
+            {filteredPhong.map((phong) => {
+              const id = phong._id || phong.id;
+              const images = [
+                phong.anhDaiDien,
+                ...(phong.anhPhong || []),
+              ].filter((src, index, list): src is string => Boolean(src) && list.indexOf(src) === index);
 
-                <div className="flex gap-2">
-                <Link href={`/phong/${phong._id || phong.id}`} className="block flex-1">
-                  <Button 
-                    size="sm"
-                    className="w-full rounded-2xl bg-[#243B5A] text-white border-0 shadow-lg shadow-[#243B5A]/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#4FA7A0] hover:shadow-xl group"
-                  >
-                    <Eye className="h-3.5 w-3.5 md:h-4 md:w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                    Xem chi tiết
-                  </Button>
-                </Link>
-                  {phong.viDo !== undefined && phong.kinhDo !== undefined && (
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${phong.viDo},${phong.kinhDo}`)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="Chỉ đường trên Google Maps"
-                    >
-                      <Button type="button" size="sm" variant="outline" className="h-full rounded-2xl">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>}
+              const amenities = (phong.tienIchNoiBat || phong.tienNghi || []).map(
+                (item) => tienNghiLabels[item as keyof typeof tienNghiLabels] || item
+              );
 
-        {!error && filteredPhong.length === 0 && (
+              return (
+                <StaggerItem key={phong._id} className="h-full">
+                  <PropertyCard
+                    room={{
+                      id: id ?? '',
+                      name: `Phòng ${phong.ten || phong.maPhong}`,
+                      location: phong.tenNhaTro || getToaNhaTen(phong.toaNha as ToaNhaRef),
+                      priceLabel: formatCurrency(phong.giaHienTai || phong.giaThue),
+                      areaLabel: `${phong.dienTich}m²`,
+                      description: phong.moTa,
+                      images,
+                      amenities,
+                      badge: getTrangThaiBadge(phong.trangThai),
+                      meta: (
+                        <>
+                          {phong.soNguoiToiDa ? (
+                            <span className="rounded-full bg-[#F8F3EC] px-2.5 py-1 text-[#243B5A]">
+                              {phong.soNguoiToiDa} người
+                            </span>
+                          ) : null}
+                          {typeof phong.khoangCachKm === 'number' && Number.isFinite(phong.khoangCachKm) ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#4FA7A0]/10 px-2.5 py-1 text-[#267D76]">
+                              <LocateFixed className="h-3 w-3" />
+                              {phong.khoangCachKm.toLocaleString('vi-VN')} km
+                            </span>
+                          ) : null}
+                        </>
+                      ),
+                    }}
+                    onSelect={() => router.push(`/phong/${id}`)}
+                    className="eh-shadow-float eh-shadow-float-hover h-full"
+                  />
+                </StaggerItem>
+              );
+            })}
+          </StaggerGroup>
+        )}
+
+        {!error && !loading && filteredPhong.length === 0 && (
           <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
             <CardContent className="flex flex-col items-center justify-center py-12 p-4 md:p-6">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-[#4FA7A0]/10 rounded-full flex items-center justify-center mb-6">
