@@ -8,7 +8,6 @@ import com.example.quanlyphongtro.dto.TinNhanResponse;
 import com.example.quanlyphongtro.entity.CuocTroChuyen;
 import com.example.quanlyphongtro.entity.LoaiCuocTroChuyen;
 import com.example.quanlyphongtro.entity.NguoiDung;
-import com.example.quanlyphongtro.entity.NguoiDungNhaTro;
 import com.example.quanlyphongtro.entity.NhaTro;
 import com.example.quanlyphongtro.entity.ThanhVienCuocTroChuyen;
 import com.example.quanlyphongtro.entity.TinNhan;
@@ -18,7 +17,6 @@ import com.example.quanlyphongtro.event.TinNhanCreatedEvent;
 import com.example.quanlyphongtro.exception.ChatKhongTimThayException;
 import com.example.quanlyphongtro.exception.ChatYeuCauKhongHopLeException;
 import com.example.quanlyphongtro.repository.CuocTroChuyenRepository;
-import com.example.quanlyphongtro.repository.NguoiDungNhaTroRepository;
 import com.example.quanlyphongtro.repository.NguoiDungRepository;
 import com.example.quanlyphongtro.repository.NhaTroRepository;
 import com.example.quanlyphongtro.repository.ThanhVienCuocTroChuyenRepository;
@@ -49,7 +47,6 @@ public class CuocTroChuyenService {
     private final TinNhanRepository tinNhanRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final NhaTroRepository nhaTroRepository;
-    private final NguoiDungNhaTroRepository nguoiDungNhaTroRepository;
     private final PermissionService permissionService;
     private final ChatPermissionService chatPermissionService;
     private final CuocTroChuyenFactory cuocTroChuyenFactory;
@@ -122,9 +119,10 @@ public class CuocTroChuyenService {
                 nhaTro,
                 null,
                 nguoiDungRepository.getReferenceById(toi),
-                thanhVienKenhHoTro(toi, nhaTro),
+                chatMembershipService.thanhVienKenhHoTro(toi, nhaTroDich),
                 Map.of()));
 
+        chatMembershipService.dongBoKenhHoTro(hoiThoai.getId());
         return dungResponse(hoiThoai, toi);
     }
 
@@ -364,8 +362,9 @@ public class CuocTroChuyenService {
     @Transactional(readOnly = true)
     public CuocTroChuyenResponse chiTiet(UUID hoiThoaiId) {
         UUID toi = permissionService.requireCurrentUserId();
+        CuocTroChuyen hoiThoai = yeuCauHoiThoai(hoiThoaiId);
         chatPermissionService.yeuCauLaThanhVien(hoiThoaiId, toi);
-        return dungResponse(yeuCauHoiThoai(hoiThoaiId), toi);
+        return dungResponse(hoiThoai, toi);
     }
 
     @Transactional(readOnly = true)
@@ -376,8 +375,12 @@ public class CuocTroChuyenService {
     /** Dung chung cho TinNhanService. */
     @Transactional(readOnly = true)
     public CuocTroChuyen yeuCauHoiThoai(UUID hoiThoaiId) {
-        return cuocTroChuyenRepository.findByIdAndXoaLucIsNull(hoiThoaiId)
+        CuocTroChuyen hoiThoai = cuocTroChuyenRepository.findByIdAndXoaLucIsNull(hoiThoaiId)
                 .orElseThrow(() -> new ChatKhongTimThayException("Khong tim thay cuoc tro chuyen"));
+        if (hoiThoai.getLoai() == LoaiCuocTroChuyen.SUPPORT) {
+            chatMembershipService.dongBoKenhHoTro(hoiThoaiId);
+        }
+        return hoiThoai;
     }
 
     // ── Helper ─────────────────────────────────────────────────────────────
@@ -420,24 +423,6 @@ public class CuocTroChuyenService {
                         permissionService.isAdmin(nguoiDungId)
                                 ? "Ban la quan tri vien nen khong thuoc nha tro nao — hay chon nha tro cu the"
                                 : thongDiepKhiTrong));
-    }
-
-    /** Nguoi goi + chu tro + nhan vien co quyen xem nha tro. */
-    private Set<UUID> thanhVienKenhHoTro(UUID nguoiGoi, NhaTro nhaTro) {
-        Set<UUID> thanhVien = new LinkedHashSet<>();
-        thanhVien.add(nguoiGoi);
-
-        if (nhaTro.getChuTro() != null) {
-            thanhVien.add(nhaTro.getChuTro().getId());
-        }
-
-        nguoiDungNhaTroRepository.findByNhaTroIdIn(List.of(nhaTro.getId())).stream()
-                .filter(q -> Boolean.TRUE.equals(q.getCoQuyenXem()) || Boolean.TRUE.equals(q.getCoQuyenSua()))
-                .map(NguoiDungNhaTro::getNguoiDung)
-                .filter(java.util.Objects::nonNull)
-                .forEach(nd -> thanhVien.add(nd.getId()));
-
-        return thanhVien;
     }
 
     /**

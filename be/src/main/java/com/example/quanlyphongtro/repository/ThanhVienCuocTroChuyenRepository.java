@@ -62,4 +62,19 @@ public interface ThanhVienCuocTroChuyenRepository extends JpaRepository<ThanhVie
             """)
     List<ThanhVienCuocTroChuyen> timTheoHoiThoaiVaNguoiDung(@Param("cuocTroChuyenIds") List<UUID> cuocTroChuyenIds,
                                                             @Param("nguoiDungId") UUID nguoiDungId);
+
+    /**
+     * Cac kenh SUPPORT ma nguoi dung dang thay. Dung de thu hoi quyen cua admin/
+     * nhan vien khong con quan ly, nhung van giu kenh do chinh nguoi thue tao.
+     */
+    @Query("""
+            SELECT tv FROM ThanhVienCuocTroChuyen tv
+            JOIN FETCH tv.cuocTroChuyen c
+            LEFT JOIN FETCH c.nguoiTao
+            WHERE tv.nguoiDung.id = :nguoiDungId
+              AND tv.roiLuc IS NULL
+              AND c.xoaLuc IS NULL
+              AND c.loai = com.example.quanlyphongtro.entity.LoaiCuocTroChuyen.SUPPORT
+            """)
+    List<ThanhVienCuocTroChuyen> kenhHoTroDangThamGia(@Param("nguoiDungId") UUID nguoiDungId);
 }

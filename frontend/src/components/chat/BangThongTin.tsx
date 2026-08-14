@@ -227,7 +227,7 @@ export function BangThongTin({
             {laNhom
               ? `${hoiThoai.thanhVien?.length ?? 0} thành viên`
               : hoiThoai.loai === 'SUPPORT'
-                ? 'Kênh liên hệ ban quản lý'
+                ? `Hộp thư chung Ban quản lý · ${hoiThoai.thanhVien?.length ?? 0} thành viên`
                 : 'Trò chuyện riêng'}
           </p>
         </div>

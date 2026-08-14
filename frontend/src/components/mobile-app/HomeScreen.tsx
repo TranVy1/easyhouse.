@@ -8,28 +8,31 @@ import {
   ArrowRight,
   Bell,
   Building2,
-  Car,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   Heart,
   Home,
   LogIn,
-  MapPin,
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
-  Square,
   UserPlus,
-  Wifi,
-  Wind,
   X,
   BadgeCheck,
   Headphones,
   Layers3,
   MapPinned,
 } from "lucide-react";
+
+import { PropertyCard, PropertyCardSkeleton } from "@/components/property/property-card";
+import {
+  CountUp,
+  ParallaxLayer,
+  StaggerGroup,
+  StaggerItem,
+  motion,
+} from "@/components/motion";
 
 type RoomId = string | number;
 
@@ -188,14 +191,6 @@ const mapRoom = (room: LooseRoom, index: number): RoomCard => {
   };
 };
 
-const amenityIcon = (amenity: string) => {
-  const value = amenity.toLowerCase();
-  if (value.includes("wifi")) return <Wifi size={13} />;
-  if (value.includes("điều hòa") || value.includes("máy lạnh") || value.includes("ac")) return <Wind size={13} />;
-  if (value.includes("xe") || value.includes("parking")) return <Car size={13} />;
-  return <Sparkles size={13} />;
-};
-
 const getVisiblePages = (currentPage: number, totalPages: number) => {
   const windowSize = 7;
   if (totalPages <= windowSize) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -271,21 +266,10 @@ function RoomImage({
   );
 }
 
-function StatusBadge({ status }: { status?: string }) {
-  const available = isAvailable(status);
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold shadow-sm ring-1 ${
-        available
-          ? "bg-[#4FA7A0]/15 text-[#1E7770] ring-[#4FA7A0]/25"
-          : "bg-[#243B5A]/90 text-white ring-white/15"
-      }`}
-    >
-      {available ? "Còn phòng" : "Đang cập nhật"}
-    </span>
-  );
-}
-
+/**
+ * Adapter mong noi du lieu RoomCard cua HomeScreen voi <PropertyCard>
+ * (the kieu Airbnb: carousel anh trong the, hover nang, tim spring).
+ */
 function RoomCardView({
   room,
   saved,
@@ -299,78 +283,34 @@ function RoomCardView({
   onSave: (event: MouseEvent) => void;
   featured?: boolean;
 }) {
+  const available = isAvailable(room.status);
+
   return (
-    <article
-      onClick={onSelect}
-      className={`group cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left shadow-[0_12px_30px_rgba(36,59,90,0.08)] ring-1 ring-[#243B5A]/[0.08] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.12)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
-    >
-      <RoomImage src={room.image} alt={room.name} className={featured ? "h-64" : "h-56"}>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/50 via-transparent to-transparent opacity-80" />
-        <div className="absolute left-4 top-4">
-          <StatusBadge status={room.status} />
-        </div>
-        <button
-          onClick={onSave}
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#243B5A] shadow-sm ring-1 ring-white/70 transition duration-200 ease-out hover:-translate-y-0.5 hover:text-[#F2A45B] hover:shadow-md"
-          aria-label="Lưu phòng"
-          title="Lưu phòng"
-        >
-          <Heart size={18} className={saved ? "fill-[#F2A45B] text-[#F2A45B]" : ""} />
-        </button>
-        {featured && (
-          <span className="absolute bottom-4 left-4 rounded-full bg-[#F2A45B] px-3 py-1 text-xs font-extrabold text-white shadow-sm">
-            Nổi bật
+    <PropertyCard
+      room={{
+        id: room.id,
+        name: room.name,
+        location: room.location,
+        priceLabel: room.priceLabel,
+        areaLabel: room.areaLabel,
+        description: room.description,
+        images: room.images,
+        amenities: room.amenities,
+        badge: featured
+          ? { label: "Nổi bật", tone: "orange" }
+          : { label: available ? "Còn phòng" : "Đang cập nhật", tone: available ? "teal" : "navy" },
+        meta: room.maxPeople ? (
+          <span className="rounded-full bg-[#F8F3EC] px-2.5 py-1 text-[#243B5A]">
+            {room.maxPeople} người
           </span>
-        )}
-      </RoomImage>
-
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className="line-clamp-1 text-lg font-black tracking-tight text-[#243B5A]">{room.name}</h3>
-            <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[#6B7A8C]">
-              <MapPin size={15} className="shrink-0 text-[#4FA7A0]" />
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(room.location)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="line-clamp-1 hover:text-[#4FA7A0] hover:underline transition-colors"
-                title="Xem trên Google Maps"
-              >
-                {room.location}
-              </a>
-            </p>
-          </div>
-          <p className="shrink-0 text-right text-lg font-black text-[#F2A45B]">{room.priceLabel}</p>
-        </div>
-
-        <p className="mt-4 line-clamp-2 min-h-[44px] text-sm leading-6 text-[#6B7A8C]">{room.description}</p>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#F8F3EC] px-3 py-1.5 text-xs font-bold text-[#243B5A]">
-            <Square size={13} /> {room.areaLabel}
-          </span>
-          {room.maxPeople ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#F8F3EC] px-3 py-1.5 text-xs font-bold text-[#243B5A]">
-              {room.maxPeople} người
-            </span>
-          ) : null}
-          {room.amenities.slice(0, featured ? 2 : 3).map((amenity) => (
-            <span key={`${room.id}-${amenity}`} className="inline-flex items-center gap-1 rounded-full bg-[#4FA7A0]/10 px-3 py-1.5 text-xs font-bold text-[#267D76]">
-              {amenityIcon(amenity)}
-              {amenity}
-            </span>
-          ))}
-        </div>
-        <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#E8DED1]/70 pt-4">
-          <span className="text-xs font-bold text-[#6B7A8C]">Chi tiết phòng và tiện ích</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#243B5A] px-3 py-2 text-xs font-black text-white transition duration-200 ease-out group-hover:bg-[#4FA7A0]">
-            Xem chi tiết <ArrowRight size={14} />
-          </span>
-        </div>
-      </div>
-    </article>
+        ) : null,
+      }}
+      saved={saved}
+      onSelect={onSelect}
+      onToggleSave={onSave}
+      aspect={featured ? "aspect-[4/3]" : "aspect-[4/3]"}
+      className="eh-shadow-float eh-shadow-float-hover h-full"
+    />
   );
 }
 
@@ -380,6 +320,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const didMountViewState = useRef(false);
   const [userProfile, setUserProfile] = useState<LooseRoom | null>(null);
   const [allRooms, setAllRooms] = useState<RoomCard[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterPrice, setFilterPrice] = useState("all");
   const [filterArea, setFilterArea] = useState("all");
@@ -439,7 +380,8 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         const rooms = Array.isArray(data) ? data : data?.data?.data || data?.data?.content || data?.data || [];
         setAllRooms(Array.isArray(rooms) ? rooms.map(mapRoom) : []);
       })
-      .catch((error) => console.error("API Fetch Error:", error.message || error));
+      .catch((error) => console.error("API Fetch Error:", error.message || error))
+      .finally(() => setLoadingRooms(false));
   }, []);
 
   useEffect(() => {
@@ -616,66 +558,119 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       </header>
 
       <main className="mx-auto w-full max-w-screen-2xl flex-1 px-4 py-6 md:px-8 md:py-9">
-        <section className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        {/* Hero: nen aurora troi cham + noi dung bay vao tung lop */}
+        <section className="relative grid items-center gap-8 overflow-hidden rounded-[32px] px-1 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:px-6 lg:py-8">
+          <div className="eh-aurora" aria-hidden="true" />
+
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-[#4FA7A0] shadow-sm ring-1 ring-[#E8DED1]">
+            <motion.span
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-[#4FA7A0] shadow-sm ring-1 ring-[#E8DED1]"
+            >
               <ShieldCheck size={15} />
               Dữ liệu phòng từ hệ thống EasyHouse
-            </span>
-            <h1 className="mt-5 max-w-2xl text-4xl font-black leading-tight tracking-tight text-[#243B5A] sm:text-5xl">
+            </motion.span>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-5 max-w-2xl text-4xl font-black leading-tight tracking-tight text-[#243B5A] sm:text-5xl"
+            >
               Tìm phòng phù hợp ngân sách trong vài thao tác
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#243B5A]/70">
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-4 max-w-xl text-base leading-7 text-[#243B5A]/70"
+            >
               Lọc theo giá, diện tích và vị trí. Lưu phòng quan tâm để so sánh trước khi liên hệ.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-6 flex flex-col gap-3 sm:flex-row"
+            >
+              <motion.button
                 onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F2A45B] px-6 py-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(242,164,91,0.25)] transition hover:-translate-y-0.5 hover:bg-[#e89447]"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F2A45B] px-6 py-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(242,164,91,0.25)]"
               >
                 Khám phá ngay
-                <ArrowRight size={18} />
-              </button>
-              <button
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              </motion.button>
+              <motion.button
                 onClick={() => setIsFilterOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-6 py-4 text-sm font-black text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0]"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-6 py-4 text-sm font-black text-[#243B5A] shadow-sm"
               >
                 <SlidersHorizontal size={18} />
                 Lọc phòng
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            <div className="mt-8 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E8DED1]">
-                <p className="text-2xl font-black text-[#243B5A]">{allRooms.length}</p>
-                <p className="mt-1 text-xs font-semibold text-[#243B5A]/60">Phòng đang đăng</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E8DED1]">
-                <p className="text-2xl font-black text-[#243B5A]">{filteredRooms.length}</p>
-                <p className="mt-1 text-xs font-semibold text-[#243B5A]/60">Kết quả phù hợp</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E8DED1]">
-                <p className="text-2xl font-black text-[#243B5A]">{savedCount}</p>
-                <p className="mt-1 text-xs font-semibold text-[#243B5A]/60">Tin đã lưu</p>
-              </div>
-            </div>
+            <StaggerGroup className="mt-8 grid grid-cols-3 gap-3" delay={0.3} stagger={0.08}>
+              {[
+                { value: allRooms.length, label: "Phòng đang đăng" },
+                { value: filteredRooms.length, label: "Kết quả phù hợp" },
+                { value: savedCount, label: "Tin đã lưu" },
+              ].map((stat) => (
+                <StaggerItem key={stat.label}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="h-full rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E8DED1]"
+                  >
+                    <p className="text-2xl font-black text-[#243B5A]">
+                      <CountUp value={stat.value} duration={1} />
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-[#243B5A]/60">{stat.label}</p>
+                  </motion.div>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
           </div>
 
-          <div className="relative">
-            <RoomImage src={heroRoom?.image} alt={heroRoom?.name || "Phòng EasyHouse"} className="group aspect-[4/3] rounded-2xl shadow-[0_22px_48px_rgba(36,59,90,0.18)]">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/70 via-transparent to-transparent" />
-              {heroRoom ? (
-                <button
-                  onClick={() => onRoomSelect(heroRoom.id)}
-                  className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 p-4 text-left shadow-xl backdrop-blur transition hover:scale-[1.01] md:left-auto md:w-80"
-                >
-                  <p className="text-xs font-black uppercase tracking-wide text-[#F2A45B]">Gợi ý hôm nay</p>
-                  <p className="mt-1 line-clamp-1 text-lg font-black text-[#243B5A]">{heroRoom.name}</p>
-                  <p className="mt-1 text-sm font-black text-[#F2A45B]">{heroRoom.priceLabel}</p>
-                </button>
-              ) : null}
-            </RoomImage>
-          </div>
+          {/* Anh hero co parallax nhe khi cuon */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10"
+          >
+            <ParallaxLayer strength={26} className="overflow-hidden rounded-3xl">
+              <RoomImage
+                src={heroRoom?.image}
+                alt={heroRoom?.name || "Phòng EasyHouse"}
+                className="group aspect-[4/3] rounded-3xl shadow-[0_22px_48px_rgba(36,59,90,0.18)]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/70 via-transparent to-transparent" />
+                {heroRoom ? (
+                  <motion.button
+                    onClick={() => onRoomSelect(heroRoom.id)}
+                    whileHover={{ scale: 1.02, y: -3 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 p-4 text-left shadow-xl backdrop-blur md:left-auto md:w-80"
+                  >
+                    <p className="text-xs font-black uppercase tracking-wide text-[#F2A45B]">Gợi ý hôm nay</p>
+                    <p className="mt-1 line-clamp-1 text-lg font-black text-[#243B5A]">{heroRoom.name}</p>
+                    <p className="mt-1 text-sm font-black text-[#F2A45B]">{heroRoom.priceLabel}</p>
+                  </motion.button>
+                ) : null}
+              </RoomImage>
+            </ParallaxLayer>
+          </motion.div>
         </section>
 
         <section className="mt-8 rounded-[24px] border border-[#243B5A]/[0.08] bg-white/85 p-3 shadow-[0_12px_30px_rgba(36,59,90,0.08)] backdrop-blur">
@@ -741,18 +736,22 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
                 Xem tất cả <ChevronRight size={17} />
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-3">
+            <StaggerGroup
+              className="grid grid-cols-1 gap-5 pb-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              stagger={0.08}
+            >
               {featuredRooms.slice(0, 4).map((room) => (
-                <RoomCardView
-                  key={room.id}
-                  room={room}
-                  saved={savedRooms.has(room.id)}
-                  featured
-                  onSelect={() => onRoomSelect(room.id)}
-                  onSave={(event) => toggleSave(room, event)}
-                />
+                <StaggerItem key={room.id} className="h-full">
+                  <RoomCardView
+                    room={room}
+                    saved={savedRooms.has(room.id)}
+                    featured
+                    onSelect={() => onRoomSelect(room.id)}
+                    onSave={(event) => toggleSave(room, event)}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGroup>
           </section>
         )}
 
@@ -773,7 +772,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             </div>
           </div>
 
-          {filteredRooms.length === 0 ? (
+          {loadingRooms ? (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PropertyCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredRooms.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#D8CBBA] bg-white p-8 text-center shadow-sm">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F8F3EC] text-[#243B5A]">
                 <Search size={24} />
@@ -786,16 +791,23 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             </div>
           ) : (
             <>
-              <div id="room-list" className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div id="room-list" className="scroll-mt-32">
+              <StaggerGroup
+                className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                stagger={0.05}
+                amount={0.02}
+              >
                 {paginatedRooms.map((room) => (
-                  <RoomCardView
-                    key={room.id}
-                    room={room}
-                    saved={savedRooms.has(room.id)}
-                    onSelect={() => onRoomSelect(room.id)}
-                    onSave={(event) => toggleSave(room, event)}
-                  />
+                  <StaggerItem key={room.id} className="h-full">
+                    <RoomCardView
+                      room={room}
+                      saved={savedRooms.has(room.id)}
+                      onSelect={() => onRoomSelect(room.id)}
+                      onSave={(event) => toggleSave(room, event)}
+                    />
+                  </StaggerItem>
                 ))}
+              </StaggerGroup>
               </div>
               {currentPage < totalPages && (
                 <div className="mt-8 flex justify-center">

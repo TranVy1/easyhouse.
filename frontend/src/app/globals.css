@@ -5086,3 +5086,168 @@
   scrollbar-color: rgba(36, 59, 90, 0.2) transparent;
   scrollbar-width: thin;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   EasyHouse — Immersive UI layer
+   Bo utility phuc vu giao dien "xem nha" moi: skeleton, nen aurora,
+   vien gradient, marquee. Tat ca deu tat khi prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Skeleton shimmer ── */
+@keyframes eh-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(36, 59, 90, 0.06) 0%,
+    rgba(36, 59, 90, 0.12) 40%,
+    rgba(36, 59, 90, 0.06) 80%
+  );
+  background-size: 200% 100%;
+  animation: eh-shimmer 1.6s linear infinite;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.11) 40%,
+    rgba(255, 255, 255, 0.05) 80%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Nen aurora: khoi mau troi cham sau hero ── */
+@keyframes eh-aurora {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(4%, -6%, 0) scale(1.12); }
+  66%  { transform: translate3d(-5%, 4%, 0) scale(0.94); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.eh-aurora {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  filter: blur(72px);
+  opacity: 0.55;
+}
+
+.eh-aurora::before,
+.eh-aurora::after {
+  content: "";
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.eh-aurora::before {
+  top: 4%;
+  left: 6%;
+  background: radial-gradient(circle, rgba(79, 167, 160, 0.75) 0%, transparent 68%);
+  animation: eh-aurora 22s ease-in-out infinite;
+}
+
+.eh-aurora::after {
+  right: 4%;
+  bottom: 2%;
+  background: radial-gradient(circle, rgba(242, 164, 91, 0.6) 0%, transparent 68%);
+  animation: eh-aurora 28s ease-in-out infinite reverse;
+}
+
+/* ── Vien gradient chay quanh the (dung cho card noi bat) ── */
+@keyframes eh-border-spin {
+  to { transform: rotate(1turn); }
+}
+
+.eh-gradient-ring {
+  position: relative;
+  isolation: isolate;
+}
+
+.eh-gradient-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(79, 167, 160, 0.9) 60deg,
+    rgba(242, 164, 91, 0.9) 120deg,
+    transparent 200deg
+  );
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+  animation: eh-border-spin 4s linear infinite;
+}
+
+.eh-gradient-ring:hover::before {
+  opacity: 1;
+}
+
+/* ── Marquee ngang (dai logo / tien ich) ── */
+@keyframes eh-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.eh-marquee {
+  display: flex;
+  width: max-content;
+  animation: eh-marquee 32s linear infinite;
+}
+
+.eh-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ── Mask mo dan hai bien (dung cho hang scroll ngang) ── */
+.eh-fade-edges {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+/* ── Do bong nhieu tang cho the noi ── */
+.eh-shadow-float {
+  box-shadow:
+    0 1px 2px rgba(36, 59, 90, 0.06),
+    0 8px 24px rgba(36, 59, 90, 0.08),
+    0 24px 56px rgba(36, 59, 90, 0.06);
+}
+
+.eh-shadow-float-hover:hover {
+  box-shadow:
+    0 2px 4px rgba(36, 59, 90, 0.08),
+    0 14px 34px rgba(36, 59, 90, 0.12),
+    0 34px 72px rgba(36, 59, 90, 0.1);
+}
+
+/* ── Photo Sphere Viewer: khop mau nen voi he thong ── */
+.psv-container {
+  background: #0f1b2d !important;
+}
+
+.psv-loader-container {
+  background: #0f1b2d !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer,
+  .eh-marquee,
+  .eh-gradient-ring::before {
+    animation: none !important;
+  }
+  .eh-aurora::before,
+  .eh-aurora::after {
+    animation: none !important;
+  }
+}

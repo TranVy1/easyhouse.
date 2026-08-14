@@ -20,6 +20,7 @@ import com.example.quanlyphongtro.dto.CuocTroChuyenResponse;
 import com.example.quanlyphongtro.entity.CuocTroChuyen;
 import com.example.quanlyphongtro.entity.LoaiCuocTroChuyen;
 import com.example.quanlyphongtro.entity.NguoiDung;
+import com.example.quanlyphongtro.entity.NhaTro;
 import com.example.quanlyphongtro.entity.ThanhVienCuocTroChuyen;
 import com.example.quanlyphongtro.exception.ChatYeuCauKhongHopLeException;
 import com.example.quanlyphongtro.repository.CuocTroChuyenRepository;
@@ -207,6 +208,31 @@ class CuocTroChuyenServiceTest {
                 () -> cuocTroChuyenService.layHoacTaoHoTro(null));
         assertTrue(ex.getMessage().contains("chon nha tro"), "Loi thuc te: " + ex.getMessage());
         assertFalse(ex.getMessage().contains("chua thue phong"), "Loi thuc te: " + ex.getMessage());
+    }
+
+    @Test
+    void moKenhHoTroCuLuonDongBoLaiBanQuanLy() {
+        UUID nhaTroId = UUID.randomUUID();
+        NhaTro nhaTro = NhaTro.builder().id(nhaTroId).ten("HH2A").build();
+        CuocTroChuyen support = CuocTroChuyen.builder()
+                .id(UUID.randomUUID())
+                .loai(LoaiCuocTroChuyen.SUPPORT)
+                .nguoiTao(NguoiDung.builder().id(toi).hoTen("Khach thue").build())
+                .nhaTro(nhaTro)
+                .khoaDuyNhat("support_" + nhaTroId + "_" + toi)
+                .build();
+
+        when(permissionService.requireCurrentUserId()).thenReturn(toi);
+        when(chatPermissionService.nhaTroCuaNguoiDung(toi)).thenReturn(Set.of(nhaTroId));
+        when(nhaTroRepository.findByIdAndXoaLucIsNull(nhaTroId)).thenReturn(Optional.of(nhaTro));
+        when(cuocTroChuyenRepository.findByKhoaDuyNhatAndXoaLucIsNull(support.getKhoaDuyNhat()))
+                .thenReturn(Optional.of(support));
+        chuanBiDungResponse(support);
+
+        CuocTroChuyenResponse response = cuocTroChuyenService.layHoacTaoHoTro(nhaTroId);
+
+        assertEquals(support.getId(), response.getId());
+        verify(chatMembershipService).dongBoKenhHoTro(support.getId());
     }
 
     /**

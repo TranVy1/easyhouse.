@@ -4,7 +4,7 @@ services:
     # Ha xuong 14 gay hai van de: volume cu do PostgreSQL 16 tao se khong mo duoc
     # ("database files are incompatible with server"), va sql/init-db.sql duoc
     # pg_dump tu ban 17.6 nen phuc hoi vao 14 de vap cu phap moi.
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     container_name: easyhouse-postgres
     environment:
       POSTGRES_DB: postgres
@@ -18,7 +18,16 @@ services:
       # sql/init-db.sql path had become an empty directory, so a new volume
       # could start without any EasyHouse data.
       - ./sql/easyhouse-after-fix.sql:/docker-entrypoint-initdb.d/00-easyhouse-db.sql:ro
-      - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/01-expand-refresh-token.sql:ro
+      # The complete dump currently predates the chat module. Keep these
+      # idempotent migrations mounted so a fresh volume matches the application.
+      - ./sql/migrations/20260722_add_chat_module.sql:/docker-entrypoint-initdb.d/01-chat-module.sql:ro
+      - ./sql/migrations/20260722_add_chat_info_panel.sql:/docker-entrypoint-initdb.d/02-chat-info-panel.sql:ro
+      - ./sql/migrations/20260722_add_mute_until.sql:/docker-entrypoint-initdb.d/03-chat-mute-until.sql:ro
+      - ./sql/migrations/20260722_add_chat_p8.sql:/docker-entrypoint-initdb.d/04-chat-p8.sql:ro
+      - ./sql/migrations/20260722_add_chat_moderation.sql:/docker-entrypoint-initdb.d/05-chat-moderation.sql:ro
+      - ./sql/migrations/20260722_add_chat_search.sql:/docker-entrypoint-initdb.d/06-chat-search.sql:ro
+      - ./sql/migrations/20260804_share_support_with_admins.sql:/docker-entrypoint-initdb.d/07-share-support-admins.sql:ro
+      - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/08-expand-refresh-token.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
