@@ -29,8 +29,11 @@ import {
   Share2,
   Phone,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Send,
+  FileDown
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { KhachThue, Phong, HoaDon, HopDong } from '@/types';
 import { toast } from 'sonner';
 import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog';
@@ -75,6 +78,8 @@ export default function ChinhSuaHoaDonPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [issuing, setIssuing] = useState(false);
+  const [timeline, setTimeline] = useState<Array<{ id?: string; hanhDong: string; nguoiThucHien?: string; thoiDiem?: string }>>([]);
 
   const [formData, setFormData] = useState({
     maHoaDon: '',
@@ -167,6 +172,14 @@ export default function ChinhSuaHoaDonPage() {
         toast.error('Lỗi khi tải thông tin hóa đơn');
         router.push('/dashboard/hoa-don');
         return;
+      }
+
+      const timelineResponse = await fetch(`/api/hoa-don/${hoaDonId}/timeline`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (timelineResponse.ok) {
+        const timelineData = await timelineResponse.json();
+        setTimeline(timelineData.data || []);
       }
 
       // Fetch form data (hop dong, phong, khach thue)
@@ -320,6 +333,97 @@ export default function ChinhSuaHoaDonPage() {
     }
   };
 
+  const phatHanhHoaDon = async () => {
+    setIssuing(true);
+    try {
+      const res = await fetch(`/api/hoa-don/${hoaDonId}/phat-hanh`, {
+        method: 'POST', headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Không thể phát hành hóa đơn');
+      setHoaDon(result.data);
+      toast.success('Đã phát hành hóa đơn. Nội dung và tổng tiền đã được khóa.');
+      await fetchData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể phát hành hóa đơn');
+    } finally {
+      setIssuing(false);
+    }
+  };
+
+  const xuatExcel = async () => {
+    if (!hoaDon) return;
+    let payments: any[] = [];
+    try {
+      const paymentResponse = await fetch(`/api/thanh-toan/hoa-don/${hoaDonId}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const paymentResult = await paymentResponse.json();
+      if (paymentResponse.ok && paymentResult.success) payments = paymentResult.data || [];
+    } catch {
+      // The invoice itself remains exportable when payment history is unavailable.
+    }
+    const rows = (hoaDon.chiTietHoaDon || hoaDon.chiTiet || []).map((item: any) => ({
+      'Loại': item.loai,
+      'Diễn giải': item.moTa,
+      'Số lượng': item.soLuong,
+      'Đơn giá': item.donGia,
+      'Thành tiền': item.thanhTien,
+      'Nguồn': item.sourceType || 'DỮ LIỆU CŨ',
+      'Kỳ tính từ': item.periodStart || '',
+      'Kỳ tính đến': item.periodEnd || '',
+      'Mã kiểm chứng': item.calculationHash || '',
+    }));
+    rows.push({
+      'Loại': 'TỔNG', 'Diễn giải': hoaDon.maHoaDon, 'Số lượng': 0, 'Đơn giá': 0,
+      'Thành tiền': hoaDon.tongTien, 'Nguồn': '', 'Kỳ tính từ': '', 'Kỳ tính đến': '', 'Mã kiểm chứng': '',
+    });
+    const workbook = XLSX.utils.book_new();
+    const summary = XLSX.utils.json_to_sheet([{
+      "Invoice code": hoaDon.maHoaDon, "Document type": hoaDon.loaiHoaDon || "REGULAR",
+      "Period from": hoaDon.tuNgay || "", "Period to": hoaDon.denNgay || "", "Due date": hoaDon.hanTra || hoaDon.hanThanhToan || "",
+      "Room rent": hoaDon.tienPhong || 0, "Electricity": hoaDon.tienDien || 0, "Water": hoaDon.tienNuoc || 0,
+      "Total": hoaDon.tongTien || 0, "Paid": hoaDon.daTra ?? hoaDon.daThanhToan ?? 0,
+      "Balance": hoaDon.conLai || 0, "Status": hoaDon.trangThai,
+    }]);
+    const sheet = XLSX.utils.json_to_sheet(rows);
+    const paymentSheet = XLSX.utils.json_to_sheet(payments.map((payment: any) => ({
+      "Invoice code": hoaDon.maHoaDon, "Transaction": payment.maGiaoDich || payment._id || payment.id || "",
+      "Method": payment.phuongThuc || payment.phuongThucThanhToan || "", "Reference": payment.maThamChieu || payment.externalTransactionId || "",
+      "Amount": payment.soTien || 0, "Status": payment.trangThai || "", "Paid at": payment.ngayThanhToan || "",
+    })));
+    summary['!cols'] = [{ wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+    sheet['!cols'] = [{ wch: 18 }, { wch: 42 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 24 }, { wch: 14 }, { wch: 14 }, { wch: 66 }];
+    paymentSheet['!cols'] = [{ wch: 18 }, { wch: 38 }, { wch: 18 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }];
+    [summary, sheet, paymentSheet].forEach((worksheet) => {
+      worksheet['!autofilter'] = { ref: worksheet['!ref'] || 'A1' };
+      Object.values(worksheet).forEach((cell: any) => { if (cell?.t === 'n') cell.z = '#,##0 [$₫-vi-VN]'; });
+    });
+    XLSX.utils.book_append_sheet(workbook, summary, 'Invoice Summary');
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Invoice Items');
+    if (payments.length > 0) XLSX.utils.book_append_sheet(workbook, paymentSheet, 'Payments');
+    XLSX.writeFile(workbook, `hoa-don-${hoaDon.maHoaDon}.xlsx`);
+  };
+
+  const huyHoaDon = async () => {
+    const lyDo = window.prompt('Nhập lý do hủy hóa đơn (bắt buộc):');
+    if (!lyDo?.trim()) return;
+    try {
+      const res = await fetch(`/api/hoa-don/${hoaDonId}/huy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ lyDo: lyDo.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Không thể hủy hóa đơn');
+      setHoaDon(result.data);
+      toast.success('Đã hủy hóa đơn và lưu lại lý do.');
+      await fetchData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể hủy hóa đơn');
+    }
+  };
+
   const addPhiDichVu = () => {
     if (newPhiDichVu.ten && newPhiDichVu.gia > 0) {
       setFormData(prev => ({
@@ -367,6 +471,8 @@ export default function ChinhSuaHoaDonPage() {
       </div>
     );
   }
+
+  const isDraft = hoaDon.trangThai === 'DRAFT' || hoaDon.trangThai === 'nhap';
 
   // Helpers for display
   const fmt = (n: number) => n.toLocaleString('vi-VN') + ' đ';
@@ -417,9 +523,10 @@ export default function ChinhSuaHoaDonPage() {
             <ArrowLeft className="h-5 w-5 text-gray-700" />
           </button>
           <h1 className="text-[17px] font-bold text-gray-800">Chi tiết hóa đơn</h1>
-          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors">
-            <Settings className="h-5 w-5 text-gray-700" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button aria-label="In hóa đơn" onClick={() => window.print()} className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors"><Printer className="h-5 w-5 text-gray-700" /></button>
+            <button aria-label="Xuất Excel" onClick={xuatExcel} className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors"><FileDown className="h-5 w-5 text-gray-700" /></button>
+          </div>
         </div>
       </div>
 
@@ -634,17 +741,47 @@ export default function ChinhSuaHoaDonPage() {
 
 
 
-        <Button
+        {isDraft && <Button
+          className="w-full py-6 text-[16px] font-semibold rounded-xl shadow-md mb-3 bg-[#243B5A] hover:bg-[#1C304B]"
+          onClick={phatHanhHoaDon}
+          disabled={issuing}
+        >
+          {issuing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Send className="mr-2 h-5 w-5" />} Phát hành hóa đơn
+        </Button>}
+
+        {isDraft && <Button
           variant="destructive"
           className="w-full py-6 text-[16px] font-semibold rounded-xl shadow-md mb-6 hover:bg-red-700"
           onClick={() => setIsConfirmOpen(true)}
         >
           <Trash2 className="mr-2 h-5 w-5" /> Xóa hóa đơn
-        </Button>
+        </Button>}
+
+        {!isDraft && hoaDon.trangThai !== 'PAID' && hoaDon.trangThai !== 'daThanhToan' && hoaDon.trangThai !== 'CANCELLED' && hoaDon.trangThai !== 'daHuy' && <Button
+          variant="outline"
+          className="w-full py-5 text-[15px] font-semibold rounded-xl mb-3 border-red-200 text-red-700 hover:bg-red-50"
+          onClick={huyHoaDon}
+        >Hủy hóa đơn (cần lý do)</Button>}
+
+        <Card className="mb-6 print:shadow-none">
+          <CardHeader><CardTitle className="text-base">Nguồn và kiểm chứng từng dòng</CardTitle><CardDescription>Thông tin này được máy chủ chốt khi tạo hóa đơn.</CardDescription></CardHeader>
+          <CardContent className="overflow-x-auto">
+            <table className="w-full text-sm"><thead><tr className="border-b text-left text-gray-500"><th className="pb-2">Dòng tiền</th><th className="pb-2">Nguồn</th><th className="pb-2">Kỳ tính</th><th className="pb-2">Mã kiểm chứng</th></tr></thead>
+              <tbody>{(hoaDon.chiTietHoaDon || hoaDon.chiTiet || []).map((item: any) => <tr key={item.id || item.moTa} className="border-b align-top"><td className="py-2">{item.moTa}</td><td className="py-2">{item.sourceType || 'Dữ liệu cũ'}</td><td className="py-2">{item.periodStart || '-'}{item.periodEnd ? ` → ${item.periodEnd}` : ''}</td><td className="py-2 font-mono text-xs break-all">{item.calculationHash || '-'}</td></tr>)}</tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6 print:hidden">
+          <CardHeader><CardTitle className="text-base">Lịch sử hóa đơn</CardTitle><CardDescription>Ai đã thực hiện thao tác và thời điểm ghi nhận.</CardDescription></CardHeader>
+          <CardContent className="space-y-3">
+            {timeline.length === 0 ? <p className="text-sm text-gray-500">Chưa có lịch sử để hiển thị.</p> : timeline.map((item) => <div key={item.id || `${item.hanhDong}-${item.thoiDiem}`} className="flex items-center justify-between border-b pb-2 text-sm"><span className="font-medium">{item.hanhDong}</span><span className="text-right text-gray-500">{item.nguoiThucHien || 'Hệ thống'}<br />{item.thoiDiem ? new Date(item.thoiDiem).toLocaleString('vi-VN') : ''}</span></div>)}
+          </CardContent>
+        </Card>
 
 
         {/* Edit form (collapsible) */}
-        <details className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
+        {isDraft && <details className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
           <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none list-none">
             <span className="text-sm font-semibold text-gray-700">✏️ Chỉnh sửa hóa đơn</span>
             <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
@@ -766,7 +903,7 @@ export default function ChinhSuaHoaDonPage() {
               </Button>
             </form>
           </div>
-        </details>
+        </details>}
       </div>
 
       <ConfirmActionDialog

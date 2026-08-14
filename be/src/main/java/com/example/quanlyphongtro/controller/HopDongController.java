@@ -10,6 +10,7 @@ import com.example.quanlyphongtro.services.QuyetToanTraPhongService;
 import com.example.quanlyphongtro.dto.TaoQuyetToanTraPhongRequest;
 import com.example.quanlyphongtro.dto.HoanTatQuyetToanTraPhongRequest;
 import com.example.quanlyphongtro.dto.QuyetToanTraPhongResponse;
+import com.example.quanlyphongtro.dto.BanGiaoTaiSanRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -153,6 +154,12 @@ public class HopDongController {
     public ResponseEntity<ApiResponse<HopDongResponse>> hoanTatQuyetToanTraPhong(
             @PathVariable UUID id, @RequestBody HoanTatQuyetToanTraPhongRequest request) {
         return ResponseEntity.ok(ApiResponse.success(quyetToanTraPhongService.hoanTat(id, request), "Đã hoàn tất trả phòng"));
+    }
+
+    @PostMapping("/{id}/quyet-toan-tra-phong/ban-giao")
+    public ResponseEntity<ApiResponse<QuyetToanTraPhongResponse>> capNhatBanGiaoTaiSan(
+            @PathVariable UUID id, @RequestBody BanGiaoTaiSanRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(quyetToanTraPhongService.capNhatBanGiaoTaiSan(id, request), "Đã lưu biên bản bàn giao tài sản"));
     }
 
     @PutMapping("/{id}/gia-han")

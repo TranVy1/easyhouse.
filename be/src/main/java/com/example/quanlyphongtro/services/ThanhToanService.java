@@ -157,11 +157,10 @@ public class ThanhToanService {
                 .trangThai(status)
                 .build();
         ThanhToan saved = thanhToanRepository.save(tt);
-        if (saved.getTrangThai() == TrangThaiThanhToan.SUCCESS && saved.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT) {
-            adjustDeposit(hoaDon, saved.getSoTien(), true);
-        }
+        ghiNhanThuCocNeuCan(saved);
         mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
         recalculate(hoaDon.getId());
+        logInvoiceAudit(hoaDon.getId(), saved.getTrangThai() == TrangThaiThanhToan.SUCCESS ? "PAYMENT_SUCCESS" : "PAYMENT_RECORDED");
 
         try {
             HoaDon updatedInvoice = hoaDonRepository.findById(hoaDon.getId()).orElse(hoaDon);
@@ -196,7 +195,9 @@ public class ThanhToanService {
                 .ghiChu("VietQR manual match")
                 .build();
         ThanhToan saved = thanhToanRepository.save(payment);
+        ghiNhanThuCocNeuCan(saved);
         recalculate(lockedInvoice.getId());
+        logInvoiceAudit(lockedInvoice.getId(), "PAYMENT_MATCHED");
         logAudit(saved, "MANUAL_MATCH");
     }
 
@@ -210,10 +211,6 @@ public class ThanhToanService {
             throw new RuntimeException("Không thể sửa giao dịch thanh toán đã thành công; hãy lập chứng từ điều chỉnh riêng");
         }
         UUID oldHoaDonId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
-
-        boolean oldIsDeposit = tt.getTrangThai() == TrangThaiThanhToan.SUCCESS && tt.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT;
-        BigDecimal oldSoTien = tt.getSoTien();
-        HoaDon oldHoaDon = tt.getHoaDon();
 
         if (req.getHoaDonId() != null && (tt.getHoaDon() == null || !req.getHoaDonId().equals(tt.getHoaDon().getId()))) {
             HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
@@ -240,16 +237,8 @@ public class ThanhToanService {
         tt.setKhachThue(lockedInvoice.getKhachThue());
         validatePaymentAmount(lockedInvoice, tt.getSoTien(), tt.getTrangThai(), tt.getId());
 
-        if (oldIsDeposit) {
-            adjustDeposit(oldHoaDon, oldSoTien, false);
-        }
-
         ThanhToan saved = thanhToanRepository.save(tt);
-        
-        boolean newIsDeposit = saved.getTrangThai() == TrangThaiThanhToan.SUCCESS && saved.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT;
-        if (newIsDeposit) {
-            adjustDeposit(saved.getHoaDon(), saved.getSoTien(), true);
-        }
+        ghiNhanThuCocNeuCan(saved);
         if (req.getAnhBienLai() != null) {
             mediaService.replaceUrl(LoaiDoiTuongMedia.PAYMENT, saved.getId(), req.getAnhBienLai(), MediaService.PAYMENT_RECEIPT);
         }
@@ -272,10 +261,7 @@ public class ThanhToanService {
         }
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         
-        // Chuyển delete vật lý thành cancel
-        if (tt.getTrangThai() == TrangThaiThanhToan.SUCCESS && tt.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT) {
-            adjustDeposit(tt.getHoaDon(), tt.getSoTien(), false);
-        }
+        // Chuyển delete vật lý thành cancel. Giao dịch thành công là bất biến.
         tt.setTrangThai(TrangThaiThanhToan.CANCELLED);
         thanhToanRepository.save(tt);
         logAudit(tt, "CANCEL");
@@ -307,6 +293,9 @@ public class ThanhToanService {
 
     private void validatePaymentAmount(HoaDon hoaDon, BigDecimal soTien, TrangThaiThanhToan trangThai, UUID excludePaymentId) {
         if (trangThai != TrangThaiThanhToan.SUCCESS) return;
+        if (hoaDon.getTrangThai() == TrangThaiHoaDon.DRAFT) {
+            throw new RuntimeException("Hóa đơn nháp phải được phát hành trước khi thanh toán");
+        }
         if (soTien == null || soTien.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("So tien thanh toan phai lon hon 0");
         }
@@ -440,7 +429,13 @@ public class ThanhToanService {
         BigDecimal safeTotal = total != null ? total : BigDecimal.ZERO;
         if (paid.compareTo(safeTotal) == 0 && safeTotal.compareTo(BigDecimal.ZERO) > 0) return TrangThaiHoaDon.PAID;
         if (hanTra != null && hanTra.isBefore(LocalDate.now())) return TrangThaiHoaDon.OVERDUE;
-        return TrangThaiHoaDon.UNPAID;
+        return TrangThaiHoaDon.ISSUED;
+    }
+
+    private void ghiNhanThuCocNeuCan(ThanhToan thanhToan) {
+        if (giaoDichTienCocService != null) {
+            giaoDichTienCocService.ghiNhanThuCoc(thanhToan);
+        }
     }
 
     private ThanhToanResponse toResponse(ThanhToan thanhToan, List<ChiTietHoaDon> chiTietList) {
@@ -452,6 +447,9 @@ public class ThanhToanService {
     @org.springframework.beans.factory.annotation.Autowired
     private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private GiaoDichTienCocService giaoDichTienCocService;
+
     private void logAudit(ThanhToan tt, String hanhDong) {
         if (auditLogRepository == null) return;
         com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
@@ -462,6 +460,20 @@ public class ThanhToanService {
             .taoLuc(ZonedDateTime.now())
             .build();
         auditLogRepository.save(log);
+    }
+
+    private void logInvoiceAudit(UUID hoaDonId, String hanhDong) {
+        if (auditLogRepository == null || hoaDonId == null) return;
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
+        if (hoaDon == null) return;
+        auditLogRepository.save(com.example.quanlyphongtro.entity.AuditLog.builder()
+                .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
+                .hanhDong(hanhDong)
+                .bangTacDong("hoa_don")
+                .banGhiId(hoaDonId)
+                .duLieuMoi("{\"trangThai\":\"" + hoaDon.getTrangThai().name() + "\",\"daTra\":\"" + hoaDon.getDaTra() + "\"}")
+                .taoLuc(ZonedDateTime.now())
+                .build());
     }
 
     private TrangThaiThanhToan parseTrangThai(String value) {

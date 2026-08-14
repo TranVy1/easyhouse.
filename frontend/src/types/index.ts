@@ -28,7 +28,7 @@ export type TrangThaiHopDong = TrangThaiHopDongDb | TrangThaiHopDongUi;
 
 export type TrangThaiCocHopDong = 'NOT_PAID' | 'KEPT' | 'REFUNDED' | 'DEDUCTED' | 'FORFEITED';
 
-export type TrangThaiHoaDonDb = 'DRAFT' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'OVERPAID' | 'OVERDUE' | 'CANCELLED';
+export type TrangThaiHoaDonDb = 'DRAFT' | 'ISSUED' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'OVERPAID' | 'OVERDUE' | 'CANCELLED';
 export type TrangThaiHoaDonUi =
   | 'nhap'
   | 'chuaThanhToan'
@@ -411,13 +411,20 @@ export interface ChiTietHoaDon {
   soLuong: number;
   donGia: number;
   thanhTien: number;
+  sourceType?: string;
+  sourceId?: ID;
+  pricingRuleVersion?: string;
+  periodStart?: DateLike;
+  periodEnd?: DateLike;
+  calculationHash?: string;
 }
 
 export interface HoaDon {
   id?: ID;
   _id?: ID;
   maHoaDon: string;
-  loaiHoaDon?: 'REGULAR' | 'FINAL_SETTLEMENT';
+  loaiHoaDon?: 'REGULAR' | 'DEPOSIT_REQUEST' | 'FINAL_SETTLEMENT' | 'DEBIT_NOTE' | 'CREDIT_NOTE';
+  hoaDonGocId?: ID;
   hopDongId?: ID;
   hopDong: Ref<HopDong>;
   phongId?: ID;
@@ -666,6 +673,19 @@ export interface CauHinhGia {
   dangApDung: boolean;
 }
 
+export interface CauHinhPhiXe {
+  id?: ID;
+  _id?: ID;
+  nhaTroId: ID;
+  tenNhaTro?: string;
+  loaiXe: string;
+  donGia: number;
+  hieuLucTu: DateLike;
+  hieuLucDen?: DateLike;
+  dangApDung: boolean;
+  ghiChu?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -741,6 +761,8 @@ export interface PhuongTien {
   phong?: Phong;
   nhaTro?: ToaNha;
   trangThai: TrangThaiPhuongTien;
+  hieuLucTu?: DateLike;
+  hieuLucDen?: DateLike;
   createdAt?: DateLike;
   updatedAt?: DateLike;
 }

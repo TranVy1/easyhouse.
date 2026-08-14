@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.services;
 
 import com.example.quanlyphongtro.dto.HoaDonRequest;
 import com.example.quanlyphongtro.dto.HoaDonResponse;
+import com.example.quanlyphongtro.dto.HoaDonTimelineItemResponse;
 import com.example.quanlyphongtro.dto.HoaDonQuyetToanResult;
 import com.example.quanlyphongtro.dto.KhoanKhauTruCocRequest;
 import com.example.quanlyphongtro.entity.*;
@@ -17,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -49,6 +53,8 @@ public class HoaDonService {
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
     private final PhuLucHopDongRepository phuLucHopDongRepository;
     private final PhuongTienRepository phuongTienRepository;
+    private final LichSuPhuongTienRepository lichSuPhuongTienRepository;
+    private final CauHinhPhiXeRepository cauHinhPhiXeRepository;
     private final PermissionService permissionService;
     private final EmailService emailService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -129,6 +135,7 @@ public class HoaDonService {
         InvoiceContext ctx = resolveContext(req, null);
         assertCanWriteHopDong(ctx.hopDong(), permissionService.requireCurrentUserId());
         LoaiHoaDon loaiHoaDon = parseLoaiHoaDon(req.getLoaiHoaDon(), LoaiHoaDon.REGULAR);
+        HoaDon hoaDonGoc = resolveHoaDonGoc(req.getHoaDonGocId(), loaiHoaDon, ctx.hopDong());
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), loaiHoaDon, null);
 
         if (req.getDaThanhToan() != null && req.getDaThanhToan().compareTo(BigDecimal.ZERO) > 0) {
@@ -141,6 +148,7 @@ public class HoaDonService {
                 .khachThue(ctx.khachThue())
                 .maHoaDon(resolveInvoiceCode(req.getMaHoaDon(), ctx))
                 .loaiHoaDon(loaiHoaDon)
+                .hoaDonGoc(hoaDonGoc)
                 .kyNam(ctx.kyNam())
                 .kyThang(ctx.kyThang())
                 .tuNgay(ctx.tuNgay())
@@ -160,7 +168,7 @@ public class HoaDonService {
         persistLineItemsAndTotals(saved, items);
 
         logAudit(saved, "CREATE");
-        if (saved.getTrangThai() == TrangThaiHoaDon.UNPAID) {
+        if (saved.getTrangThai() == TrangThaiHoaDon.ISSUED) {
             eventPublisher.publishEvent(new com.example.quanlyphongtro.event.InvoiceCreatedEvent(this, saved));
             logAudit(saved, "SEND_EVENT");
         }
@@ -188,6 +196,7 @@ public class HoaDonService {
         InvoiceContext ctx = resolveContext(req, hd);
         assertCanWriteHopDong(ctx.hopDong(), userId);
         LoaiHoaDon loaiHoaDon = parseLoaiHoaDon(req.getLoaiHoaDon(), hd.getLoaiHoaDon());
+        HoaDon hoaDonGoc = resolveHoaDonGoc(req.getHoaDonGocId(), loaiHoaDon, ctx.hopDong());
         ensureInvoicePeriodAvailable(ctx.hopDong().getId(), ctx.kyNam(), ctx.kyThang(), loaiHoaDon, hd.getId());
         boolean billingContextChanged = changedBillingContext(hd, ctx);
 
@@ -197,6 +206,7 @@ public class HoaDonService {
         hd.setKyNam(ctx.kyNam());
         hd.setKyThang(ctx.kyThang());
         hd.setLoaiHoaDon(loaiHoaDon);
+        hd.setHoaDonGoc(hoaDonGoc);
         hd.setTuNgay(ctx.tuNgay());
 
         hd.setDenNgay(ctx.denNgay());
@@ -222,7 +232,7 @@ public class HoaDonService {
         }
 
         logAudit(hd, "UPDATE");
-        if (oldStatus == TrangThaiHoaDon.DRAFT && hd.getTrangThai() == TrangThaiHoaDon.UNPAID) {
+        if (oldStatus == TrangThaiHoaDon.DRAFT && hd.getTrangThai() == TrangThaiHoaDon.ISSUED) {
             eventPublisher.publishEvent(new com.example.quanlyphongtro.event.InvoiceCreatedEvent(this, hd));
             logAudit(hd, "SEND_EVENT");
         }
@@ -248,6 +258,69 @@ public class HoaDonService {
         hd.setXoaLuc(ZonedDateTime.now());
         hoaDonRepository.save(hd);
         logAudit(hd, "CANCEL");
+    }
+
+    @Transactional(readOnly = true)
+    public List<HoaDonTimelineItemResponse> getTimeline(UUID id) {
+        HoaDon hoaDon = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        assertCanReadHoaDon(hoaDon, permissionService.requireCurrentUserId());
+        return auditLogRepository.findByBangTacDongAndBanGhiIdOrderByTaoLucAsc("hoa_don", id).stream()
+                .map(log -> HoaDonTimelineItemResponse.builder()
+                        .id(log.getId())
+                        .hanhDong(log.getHanhDong())
+                        .nguoiThucHien(log.getNguoiDung() != null ? log.getNguoiDung().getHoTen() : "Hệ thống")
+                        .duLieuCu(log.getDuLieuCu())
+                        .duLieuMoi(log.getDuLieuMoi())
+                        .thoiDiem(log.getTaoLuc())
+                        .build())
+                .toList();
+    }
+
+    /** Locks a reviewed draft. Later corrections require an adjustment or cancellation reason. */
+    @Transactional
+    public HoaDonResponse phatHanh(UUID id) {
+        HoaDon hoaDon = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        assertCanWriteHoaDon(hoaDon, permissionService.requireCurrentUserId());
+        if (hoaDon.getXoaLuc() != null || hoaDon.getTrangThai() != TrangThaiHoaDon.DRAFT) {
+            throw new RuntimeException("Chỉ có thể phát hành hóa đơn đang ở trạng thái nháp");
+        }
+        List<ChiTietHoaDon> lines = chiTietHoaDonRepository.findByHoaDonId(id);
+        if (lines.isEmpty() || defaultMoney(hoaDon.getTongTien()).compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Hóa đơn phát hành phải có dữ liệu chi tiết hợp lệ");
+        }
+        TrangThaiHoaDon before = hoaDon.getTrangThai();
+        hoaDon.setTrangThai(resolveInvoiceStatus(TrangThaiHoaDon.ISSUED,
+                defaultMoney(hoaDon.getDaTra()), defaultMoney(hoaDon.getTongTien()), hoaDon.getHanTra()));
+        hoaDonRepository.save(hoaDon);
+        logAudit(hoaDon, "ISSUE", before, hoaDon.getTrangThai(), "Phát hành hóa đơn");
+        eventPublisher.publishEvent(new com.example.quanlyphongtro.event.InvoiceCreatedEvent(this, hoaDon));
+        return HoaDonResponse.fromEntity(hoaDon, lines);
+    }
+
+    /** Cancels an issued invoice without deleting its financial trail. */
+    @Transactional
+    public HoaDonResponse huy(UUID id, String lyDo) {
+        if (lyDo == null || lyDo.isBlank()) {
+            throw new RuntimeException("Lý do hủy hóa đơn là bắt buộc");
+        }
+        HoaDon hoaDon = hoaDonRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        assertCanWriteHoaDon(hoaDon, permissionService.requireCurrentUserId());
+        if (hoaDon.getTrangThai() == TrangThaiHoaDon.PAID || defaultMoney(hoaDon.getDaTra()).compareTo(BigDecimal.ZERO) > 0
+                || (thanhToanRepository != null && !thanhToanRepository.findByHoaDonIdAndTrangThai(id, TrangThaiThanhToan.SUCCESS).isEmpty())) {
+            throw new RuntimeException("Không thể hủy hóa đơn đã có thanh toán thành công; hãy tạo chứng từ điều chỉnh");
+        }
+        if (hoaDon.getTrangThai() == TrangThaiHoaDon.CANCELLED || hoaDon.getXoaLuc() != null) {
+            throw new RuntimeException("Hóa đơn đã bị hủy");
+        }
+        TrangThaiHoaDon before = hoaDon.getTrangThai();
+        hoaDon.setTrangThai(TrangThaiHoaDon.CANCELLED);
+        hoaDon.setGhiChu(nonBlank(hoaDon.getGhiChu(), "") + "\nLý do hủy: " + lyDo.trim());
+        hoaDonRepository.save(hoaDon);
+        logAudit(hoaDon, "CANCEL", before, TrangThaiHoaDon.CANCELLED, lyDo.trim());
+        return HoaDonResponse.fromEntity(hoaDon, chiTietHoaDonRepository.findByHoaDonId(id));
     }
 
     @Transactional(readOnly = true)
@@ -512,40 +585,36 @@ public class HoaDonService {
         List<ChiTietHoaDon> lines = new ArrayList<>();
         if (ctx.phong() == null || ctx.hopDong() == null || ctx.phong().getNhaTro() == null) return lines;
         
-        List<PhuongTien> activeVehicles = phuongTienRepository.findByPhongIdAndTrangThai(ctx.phong().getId(), TrangThaiPhuongTien.HIEU_LUC);
-        if (activeVehicles.isEmpty()) return lines;
-        
-        // Group by tenant
-        Map<UUID, List<PhuongTien>> vehiclesByTenant = new HashMap<>();
-        for (PhuongTien pt : activeVehicles) {
-            if (pt.getKhachThue() != null) {
-                vehiclesByTenant.computeIfAbsent(pt.getKhachThue().getId(), k -> new ArrayList<>()).add(pt);
-            } else {
-                // If no tenant specified, assume it belongs to the primary tenant
-                vehiclesByTenant.computeIfAbsent(ctx.khachThue().getId(), k -> new ArrayList<>()).add(pt);
+        List<LichSuPhuongTien> assignments = lichSuPhuongTienRepository.findBillableInPeriod(ctx.phong().getId(), ctx.tuNgay(), ctx.denNgay());
+        if (assignments.isEmpty()) return lines;
+        for (LichSuPhuongTien assignment : assignments) {
+            PhuongTien vehicle = assignment.getPhuongTien();
+            LocalDate start = assignment.getHieuLucTu().isAfter(ctx.tuNgay()) ? assignment.getHieuLucTu() : ctx.tuNgay();
+            LocalDate end = assignment.getHieuLucDen() != null && assignment.getHieuLucDen().isBefore(ctx.denNgay()) ? assignment.getHieuLucDen() : ctx.denNgay();
+            String vehicleType = vehicle.getLoaiPhuongTien() != null && !vehicle.getLoaiPhuongTien().isBlank()
+                    ? vehicle.getLoaiPhuongTien().trim() : vehicle.getLoaiXe();
+            long totalDays = ChronoUnit.DAYS.between(ctx.tuNgay(), ctx.denNgay()) + 1;
+            List<CauHinhPhiXe> plans = cauHinhPhiXeRepository.findEffectiveInPeriod(
+                    assignment.getNhaTro().getId(), vehicleType, start, end);
+            if (plans.isEmpty()) throw new RuntimeException("Chưa có biểu phí xe hiệu lực cho loại " + vehicleType);
+            LocalDate expectedStart = start;
+            for (CauHinhPhiXe plan : plans) {
+                LocalDate segmentStart = plan.getHieuLucTu().isAfter(start) ? plan.getHieuLucTu() : start;
+                LocalDate segmentEnd = plan.getHieuLucDen() != null && plan.getHieuLucDen().isBefore(end) ? plan.getHieuLucDen() : end;
+                if (segmentStart.isAfter(segmentEnd)) continue;
+                if (!segmentStart.equals(expectedStart)) throw new RuntimeException("Thiếu biểu phí xe cho loại " + vehicleType + " từ ngày " + expectedStart);
+                long activeDays = ChronoUnit.DAYS.between(segmentStart, segmentEnd) + 1;
+                BigDecimal amount = plan.getDonGia().multiply(BigDecimal.valueOf(activeDays))
+                        .divide(BigDecimal.valueOf(totalDays), 0, RoundingMode.HALF_UP);
+                if (amount.compareTo(BigDecimal.ZERO) > 0) {
+                    lines.add(ChiTietHoaDon.builder().hoaDon(hoaDon).loai(LoaiMucHoaDon.PARKING)
+                            .moTa("Phí xe " + vehicleType + " " + vehicle.getBienSo() + " (" + activeDays + "/" + totalDays + " ngày)")
+                            .soLuong(BigDecimal.ONE).donGia(amount).thanhTien(amount).sourceType("VEHICLE")
+                            .sourceId(vehicle.getId()).pricingRuleVersion("VEHICLE_FEE_PLAN:" + plan.getId() + ":" + plan.getHieuLucTu()).build());
+                }
+                expectedStart = segmentEnd.plusDays(1);
             }
-        }
-        
-        int billableCount = 0;
-        for (List<PhuongTien> pts : vehiclesByTenant.values()) {
-            pts.sort((v1, v2) -> {
-                if (v1.getCreatedAt() == null && v2.getCreatedAt() == null) return 0;
-                if (v1.getCreatedAt() == null) return 1;
-                if (v2.getCreatedAt() == null) return -1;
-                return v1.getCreatedAt().compareTo(v2.getCreatedAt());
-            });
-            // First vehicle is free, the rest are billable
-            if (pts.size() > 1) {
-                billableCount += (pts.size() - 1);
-            }
-        }
-        
-        if (billableCount > 0) {
-            // Find parking fee in CauHinhGia or DichVuHopDong
-            BigDecimal parkingFee = resolveParkingFee(ctx);
-            if (parkingFee.compareTo(BigDecimal.ZERO) > 0) {
-                addLine(lines, hoaDon, null, null, LoaiMucHoaDon.PARKING, "Phí gửi xe (" + billableCount + " chiếc)", BigDecimal.valueOf(billableCount), parkingFee);
-            }
+            if (!expectedStart.isAfter(end)) throw new RuntimeException("Thiếu biểu phí xe cho loại " + vehicleType + " từ ngày " + expectedStart);
         }
         
         return lines;
@@ -571,7 +640,12 @@ public class HoaDonService {
             LoaiMucHoaDon loai = parseLoaiMuc(ci.getLoai());
             BigDecimal soLuong = ci.getSoLuong() != null ? ci.getSoLuong() : BigDecimal.ONE;
             BigDecimal donGia = ci.getDonGia() != null ? ci.getDonGia() : BigDecimal.ZERO;
-            BigDecimal thanhTien = ci.getThanhTien() != null ? ci.getThanhTien() : donGia.multiply(soLuong);
+            BigDecimal thanhTien = loai == LoaiMucHoaDon.DISCOUNT && ci.getThanhTien() != null
+                    ? ci.getThanhTien() : donGia.multiply(soLuong);
+            if (loai != LoaiMucHoaDon.DISCOUNT && ci.getThanhTien() != null
+                    && ci.getThanhTien().compareTo(thanhTien) != 0) {
+                throw new RuntimeException("Thành tiền dòng hóa đơn phải do hệ thống tính từ số lượng và đơn giá");
+            }
             validateLineMoney(loai, soLuong, donGia, thanhTien);
             items.add(ChiTietHoaDon.builder()
                     .hoaDon(hoaDon)
@@ -586,6 +660,7 @@ public class HoaDonService {
         }
         return items;
     }
+
 
     @Transactional
     public HoaDonQuyetToanResult createFinalSettlement(HoaDonRequest request,
@@ -627,6 +702,7 @@ public class HoaDonService {
                     .build());
         }
         List<ChiTietHoaDon> newItems = items.stream().filter(item -> item.getId() == null).toList();
+        stampLineSnapshots(hoaDon, newItems);
         if (!newItems.isEmpty()) chiTietHoaDonRepository.saveAll(newItems);
         List<ChiTietHoaDon> savedItems = chiTietHoaDonRepository.findByHoaDonId(hoaDon.getId());
         syncInvoiceTotals(hoaDon, savedItems);
@@ -732,6 +808,11 @@ public class HoaDonService {
             String ten = service.getDichVu() != null ? service.getDichVu().getTenDichVu() : "Dá»‹ch vá»¥";
             if (isMeterServiceName(ten) || isParkingServiceName(ten)) continue;
             BigDecimal soLuong = resolveServiceQuantity(service, ctx.hopDong(), ctx.tuNgay(), ctx.denNgay());
+            if (service.getLoaiTinhPhi() == LoaiTinhPhi.PER_PERSON) {
+                long personDays = countActiveMemberDays(ctx.hopDong(), ctx.tuNgay(), ctx.denNgay());
+                long periodDays = ChronoUnit.DAYS.between(ctx.tuNgay(), ctx.denNgay()) + 1;
+                ten += " (" + personDays + " người-ngày/" + periodDays + " ngày)";
+            }
             addLine(items, hoaDon, service.getDichVu() != null ? service.getDichVu().getId() : null, null,
                     LoaiMucHoaDon.SERVICE, ten, soLuong, service.getDonGiaApDung());
         }
@@ -757,6 +838,7 @@ public class HoaDonService {
     }
 
     private void persistLineItemsAndTotals(HoaDon hoaDon, List<ChiTietHoaDon> items) {
+        stampLineSnapshots(hoaDon, items);
         List<ChiTietHoaDon> savedItems = chiTietHoaDonRepository.saveAll(items);
         syncInvoiceTotals(hoaDon, savedItems);
         hoaDonRepository.save(hoaDon);
@@ -770,6 +852,51 @@ public class HoaDonService {
         hoaDon.setTongTienPhatSinh(tongPhatSinh);
         hoaDon.setTongTien(defaultMoney(hoaDon.getSoDuDauKy()).add(tongPhatSinh));
         hoaDon.setTrangThai(resolveInvoiceStatus(hoaDon.getTrangThai(), defaultMoney(hoaDon.getDaTra()), hoaDon.getTongTien(), hoaDon.getHanTra()));
+    }
+
+    private void stampLineSnapshots(HoaDon hoaDon, List<ChiTietHoaDon> items) {
+        for (ChiTietHoaDon item : items) {
+            if (item.getSourceType() == null || item.getSourceType().isBlank()) {
+                if (item.getChiSoDienNuocId() != null) {
+                    item.setSourceType("METER_READING");
+                    item.setSourceId(item.getChiSoDienNuocId());
+                    item.setPricingRuleVersion("METER_UNIT_PRICE_V1");
+                } else if (item.getDichVuId() != null) {
+                    item.setSourceType("CONTRACT_SERVICE");
+                    item.setSourceId(item.getDichVuId());
+                    item.setPricingRuleVersion("CONTRACT_SERVICE_PRICE_V1");
+                } else if (item.getLoai() == LoaiMucHoaDon.ROOM) {
+                    item.setSourceType("CONTRACT_RENT");
+                    item.setSourceId(hoaDon.getHopDong().getId());
+                    item.setPricingRuleVersion("CONTRACT_RENT_V1");
+                } else if (item.getLoai() == LoaiMucHoaDon.DISCOUNT) {
+                    item.setSourceType("DEPOSIT_SETTLEMENT");
+                    item.setPricingRuleVersion("DEPOSIT_SETTLEMENT_V1");
+                } else {
+                    item.setSourceType("MANUAL_ADJUSTMENT");
+                    item.setPricingRuleVersion("MANUAL_V1");
+                }
+            }
+            item.setPeriodStart(hoaDon.getTuNgay());
+            item.setPeriodEnd(hoaDon.getDenNgay());
+            item.setCalculationHash(calculationHash(hoaDon, item));
+        }
+    }
+
+    private String calculationHash(HoaDon hoaDon, ChiTietHoaDon item) {
+        String input = String.join("|", String.valueOf(hoaDon.getId()), String.valueOf(item.getLoai()),
+                String.valueOf(item.getSourceType()), String.valueOf(item.getSourceId()),
+                String.valueOf(item.getPricingRuleVersion()), String.valueOf(hoaDon.getTuNgay()),
+                String.valueOf(hoaDon.getDenNgay()), String.valueOf(item.getSoLuong()),
+                String.valueOf(item.getDonGia()), String.valueOf(item.getThanhTien()));
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder result = new StringBuilder(64);
+            for (byte value : digest) result.append(String.format("%02x", value));
+            return result.toString();
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Không thể tạo mã kiểm chứng dòng hóa đơn", ex);
+        }
     }
 
     private UUID upsertReading(HoaDon hoaDon, InvoiceContext ctx, LoaiChiSo loai, Integer chiSoCu, Integer chiSoMoi) {
@@ -837,19 +964,26 @@ public class HoaDonService {
 
     private BigDecimal resolveServiceQuantity(DichVuHopDong service, HopDong hopDong, LocalDate tuNgay, LocalDate denNgay) {
         if (service.getLoaiTinhPhi() == LoaiTinhPhi.PER_PERSON) {
-            return BigDecimal.valueOf(Math.max(1, countActiveMembers(hopDong, tuNgay, denNgay)));
+            long periodDays = ChronoUnit.DAYS.between(tuNgay, denNgay) + 1;
+            return BigDecimal.valueOf(countActiveMemberDays(hopDong, tuNgay, denNgay))
+                    .divide(BigDecimal.valueOf(periodDays), 6, RoundingMode.HALF_UP);
         }
         return service.getSoLuong() != null ? service.getSoLuong() : BigDecimal.ONE;
     }
 
-    private long countActiveMembers(HopDong hopDong, LocalDate tuNgay, LocalDate denNgay) {
+    private long countActiveMemberDays(HopDong hopDong, LocalDate tuNgay, LocalDate denNgay) {
         List<ThanhVienHopDong> members = thanhVienHopDongRepository.findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
-        long count = members.stream()
-                .filter(member -> !Boolean.FALSE.equals(member.getDangO()))
-                .filter(member -> member.getNgayVao() == null || !member.getNgayVao().isAfter(denNgay))
-                .filter(member -> member.getNgayRoi() == null || !member.getNgayRoi().isBefore(tuNgay))
-                .count();
-        return count > 0 ? count : 1;
+        long personDays = members.stream()
+                .filter(member -> !Boolean.FALSE.equals(member.getDangO()) || member.getNgayRoi() != null)
+                .mapToLong(member -> {
+                    LocalDate start = member.getNgayVao() != null && member.getNgayVao().isAfter(tuNgay)
+                            ? member.getNgayVao() : tuNgay;
+                    LocalDate end = member.getNgayRoi() != null && member.getNgayRoi().isBefore(denNgay)
+                            ? member.getNgayRoi() : denNgay;
+                    return start.isAfter(end) ? 0 : ChronoUnit.DAYS.between(start, end) + 1;
+                })
+                .sum();
+        return personDays > 0 ? personDays : ChronoUnit.DAYS.between(tuNgay, denNgay) + 1;
     }
 
     private boolean isServiceActiveInPeriod(DichVuHopDong service, LocalDate tuNgay, LocalDate denNgay) {
@@ -991,12 +1125,12 @@ public class HoaDonService {
         if (value == null || value.isBlank()) return fallback;
         return switch (value.trim()) {
             case "nhap" -> TrangThaiHoaDon.DRAFT;
-            case "chuaThanhToan" -> TrangThaiHoaDon.UNPAID;
+            case "chuaThanhToan", "ISSUED" -> TrangThaiHoaDon.ISSUED;
             case "daThanhToanMotPhan", "PARTIAL", "OVERPAID", "thanhToanDu" ->
                     throw new RuntimeException("Hệ thống không hỗ trợ thanh toán từng phần hoặc thanh toán dư");
             case "daThanhToan", "PAID", "quaHan", "OVERDUE" ->
                     throw new RuntimeException("Trạng thái đã thanh toán hoặc quá hạn chỉ được hệ thống cập nhật");
-            case "daHuy" -> TrangThaiHoaDon.CANCELLED;
+            case "daHuy", "CANCELLED" -> throw new RuntimeException("Hủy hóa đơn phải dùng thao tác hủy kèm lý do");
             default -> {
                 try {
                     yield TrangThaiHoaDon.valueOf(value.trim().toUpperCase(Locale.ROOT));
@@ -1016,6 +1150,24 @@ public class HoaDonService {
         }
     }
 
+    private HoaDon resolveHoaDonGoc(UUID hoaDonGocId, LoaiHoaDon loaiHoaDon, HopDong hopDong) {
+        boolean isAdjustment = loaiHoaDon == LoaiHoaDon.DEBIT_NOTE || loaiHoaDon == LoaiHoaDon.CREDIT_NOTE;
+        if (!isAdjustment && hoaDonGocId == null) return null;
+        if (hoaDonGocId == null) {
+            throw new RuntimeException("Debit note hoặc credit note phải tham chiếu hóa đơn gốc");
+        }
+        HoaDon hoaDonGoc = hoaDonRepository.findById(hoaDonGocId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn gốc"));
+        if (hoaDonGoc.getXoaLuc() != null || hoaDonGoc.getTrangThai() == TrangThaiHoaDon.DRAFT
+                || hoaDonGoc.getTrangThai() == TrangThaiHoaDon.CANCELLED) {
+            throw new RuntimeException("Hóa đơn gốc phải đã phát hành và chưa bị hủy");
+        }
+        if (!hoaDonGoc.getHopDong().getId().equals(hopDong.getId())) {
+            throw new RuntimeException("Chứng từ điều chỉnh phải thuộc cùng hợp đồng với hóa đơn gốc");
+        }
+        return hoaDonGoc;
+    }
+
     private UUID parseOptionalUuid(String value) {
         if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
             return null;
@@ -1029,12 +1181,10 @@ public class HoaDonService {
 
     private TrangThaiHoaDon resolveInvoiceStatus(TrangThaiHoaDon requested, BigDecimal paid, BigDecimal total, LocalDate hanTra) {
         if (requested == TrangThaiHoaDon.CANCELLED) return TrangThaiHoaDon.CANCELLED;
-        if (requested == TrangThaiHoaDon.DRAFT && total.compareTo(BigDecimal.ZERO) == 0 && paid.compareTo(BigDecimal.ZERO) == 0) {
-            return TrangThaiHoaDon.DRAFT;
-        }
+        if (requested == TrangThaiHoaDon.DRAFT) return TrangThaiHoaDon.DRAFT;
         if (paid.compareTo(total) == 0 && total.compareTo(BigDecimal.ZERO) > 0) return TrangThaiHoaDon.PAID;
         if (hanTra != null && hanTra.isBefore(LocalDate.now())) return TrangThaiHoaDon.OVERDUE;
-        return TrangThaiHoaDon.UNPAID;
+        return requested == TrangThaiHoaDon.UNPAID ? TrangThaiHoaDon.UNPAID : TrangThaiHoaDon.ISSUED;
     }
 
     private LoaiMucHoaDon parseLoaiMuc(String value) {
@@ -1100,15 +1250,28 @@ public class HoaDonService {
     @org.springframework.beans.factory.annotation.Autowired
     private com.example.quanlyphongtro.repository.AuditLogRepository auditLogRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private ThanhToanRepository thanhToanRepository;
+
     private void logAudit(HoaDon hd, String hanhDong) {
+        logAudit(hd, hanhDong, null, hd.getTrangThai(), null);
+    }
+
+    private void logAudit(HoaDon hd, String hanhDong, TrangThaiHoaDon trangThaiCu, TrangThaiHoaDon trangThaiMoi, String lyDo) {
         if (auditLogRepository == null) return;
         com.example.quanlyphongtro.entity.AuditLog log = com.example.quanlyphongtro.entity.AuditLog.builder()
             .nguoiDung(com.example.quanlyphongtro.entity.NguoiDung.builder().id(permissionService.requireCurrentUserId()).build())
             .hanhDong(hanhDong)
             .bangTacDong("hoa_don")
             .banGhiId(hd.getId())
+            .duLieuCu(trangThaiCu != null ? "{\"trangThai\":\"" + trangThaiCu.name() + "\"}" : null)
+            .duLieuMoi("{\"trangThai\":\"" + trangThaiMoi.name() + "\",\"lyDo\":\"" + escapeJson(lyDo) + "\"}")
             .taoLuc(java.time.ZonedDateTime.now())
             .build();
         auditLogRepository.save(log);
+    }
+
+    private String escapeJson(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
     }
 }

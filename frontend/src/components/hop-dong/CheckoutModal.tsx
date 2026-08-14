@@ -19,6 +19,7 @@ interface CheckoutModalProps {
 }
 
 type KhoanKhauTru = { moTa: string; soTien: number; chungTuUrl: string };
+type TaiSanBanGiao = { id: string; tenTaiSan: string; soLuongBanDau: number; tinhTrangBanDau: string; soLuongThucTe?: number; tinhTrangThucTe?: string; chungTuUrl?: string; ghiChu?: string; daXacNhan?: boolean };
 type QuyetToan = {
   trangThai: string;
   hoaDon: { _id: string; maHoaDon: string; tongTien: number; trangThai: string; chiTietHoaDon?: Array<{ moTa: string; thanhTien: number }> };
@@ -28,6 +29,7 @@ type QuyetToan = {
   tienPhaiThuThem: number;
   banGiaoDaXacNhan: boolean;
   veSinhKiemTraXong: boolean;
+  taiSanBanGiao?: TaiSanBanGiao[];
 };
 
 const money = (value?: number) => Number(value || 0).toLocaleString('vi-VN') + ' đ';
@@ -42,8 +44,11 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
   const [chiSoNuocCuoiKy, setChiSoNuocCuoiKy] = useState(0);
   const [khoanKhauTru, setKhoanKhauTru] = useState<KhoanKhauTru[]>([]);
   const [daHoanCoc, setDaHoanCoc] = useState(false);
+  const [chungTuHoanCoc, setChungTuHoanCoc] = useState('');
+  const [maThamChieuHoanCoc, setMaThamChieuHoanCoc] = useState('');
   const [banGiaoDaXacNhan, setBanGiaoDaXacNhan] = useState(false);
   const [veSinhKiemTraXong, setVeSinhKiemTraXong] = useState(false);
+  const [taiSanBanGiao, setTaiSanBanGiao] = useState<TaiSanBanGiao[]>([]);
 
   const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
 
@@ -52,8 +57,11 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
     setQuyetToan(null);
     setKhoanKhauTru([]);
     setDaHoanCoc(false);
+    setChungTuHoanCoc('');
+    setMaThamChieuHoanCoc('');
     setBanGiaoDaXacNhan(false);
     setVeSinhKiemTraXong(false);
+    setTaiSanBanGiao([]);
     void load();
   }, [isOpen, hopDong?._id]);
 
@@ -72,7 +80,10 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
       }
       if (settlementResponse.ok) {
         const result = await settlementResponse.json();
-        if (result.success) setQuyetToan(result.data);
+        if (result.success) {
+          setQuyetToan(result.data);
+          setTaiSanBanGiao(result.data.taiSanBanGiao || []);
+        }
       }
     } catch {
       toast.error('Không thể tải dữ liệu trả phòng');
@@ -105,6 +116,7 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.message);
       setQuyetToan(result.data);
+      setTaiSanBanGiao(result.data.taiSanBanGiao || []);
       toast.success('Đã lập hóa đơn quyết toán. Không có khoản cọc nào bị mất.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể lập quyết toán');
@@ -113,14 +125,44 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
     }
   };
 
+  const updateAsset = (index: number, patch: Partial<TaiSanBanGiao>) => setTaiSanBanGiao(items => items.map((item, i) => i === index ? { ...item, ...patch } : item));
+
+  const saveAssetHandover = async () => {
+    if (!hopDong?._id) return;
+    if (taiSanBanGiao.some(item => item.soLuongThucTe === undefined || !item.tinhTrangThucTe?.trim() || !item.daXacNhan)) {
+      toast.error('Hãy kiểm kê, nhập tình trạng và xác nhận từng tài sản');
+      return;
+    }
+    if (taiSanBanGiao.some(item => (item.soLuongThucTe !== item.soLuongBanDau || item.tinhTrangThucTe?.trim().toLowerCase() !== item.tinhTrangBanDau.trim().toLowerCase()) && !item.chungTuUrl?.trim())) {
+      toast.error('Tài sản thiếu hoặc khác tình trạng phải có chứng từ/hình ảnh');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/hop-dong/${hopDong._id}/quyet-toan-tra-phong/ban-giao`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(headers || {}) },
+        body: JSON.stringify({ items: taiSanBanGiao.map(item => ({ id: item.id, soLuongThucTe: item.soLuongThucTe, tinhTrangThucTe: item.tinhTrangThucTe, chungTuUrl: item.chungTuUrl, ghiChu: item.ghiChu, daXacNhan: item.daXacNhan })) }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message);
+      setQuyetToan(result.data); setTaiSanBanGiao(result.data.taiSanBanGiao || []);
+      toast.success('Đã lưu biên bản bàn giao tài sản');
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Không thể lưu biên bản bàn giao'); }
+    finally { setSubmitting(false); }
+  };
+
   const completeCheckout = async () => {
     if (!hopDong?._id || !quyetToan) return;
+    if (quyetToan.tienCocCanHoan > 0 && (!daHoanCoc || !chungTuHoanCoc.trim())) {
+      toast.error('Cần xác nhận hoàn cọc và nhập chứng từ hoặc mã biên nhận');
+      return;
+    }
     setSubmitting(true);
     try {
       const response = await fetch(`/api/hop-dong/${hopDong._id}/quyet-toan-tra-phong/hoan-tat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(headers || {}) },
-        body: JSON.stringify({ daHoanCoc, banGiaoDaXacNhan, veSinhKiemTraXong }),
+        body: JSON.stringify({ daHoanCoc, chungTuHoanCoc, maThamChieuHoanCoc, banGiaoDaXacNhan, veSinhKiemTraXong }),
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.message);
@@ -172,7 +214,21 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
           {quyetToan.tienPhaiThuThem > 0 && <div className="flex justify-between font-semibold text-red-700"><span>Khách cần thanh toán thêm</span><span>{money(quyetToan.tienPhaiThuThem)}</span></div>}
         </div>
         <p className="text-muted-foreground">Nếu khách cần đóng thêm, hãy ghi nhận thanh toán đủ cho hóa đơn trên trước khi bấm hoàn tất.</p>
-        {quyetToan.tienCocCanHoan > 0 && <div className="flex gap-2 items-center"><Checkbox id="refund" checked={daHoanCoc} onCheckedChange={value => setDaHoanCoc(value === true)} /><Label htmlFor="refund">Đã hoàn phần cọc dư cho khách</Label></div>}
+        {taiSanBanGiao.length > 0 && <div className="space-y-3 rounded-md border p-3">
+          <div><Label>Kiểm kê tài sản bàn giao</Label><p className="text-xs text-muted-foreground">Mọi tài sản cần được xác nhận; khác hiện trạng ban đầu phải có chứng từ.</p></div>
+          {taiSanBanGiao.map((item, index) => <div className="space-y-2 rounded border p-2" key={item.id}>
+            <div className="font-medium">{item.tenTaiSan} · ban đầu: {item.soLuongBanDau} · {item.tinhTrangBanDau}</div>
+            <div className="grid grid-cols-2 gap-2"><Input type="number" min="0" max={item.soLuongBanDau} value={item.soLuongThucTe ?? ''} onChange={e => updateAsset(index, { soLuongThucTe: Number(e.target.value) })} /><Input placeholder="Tình trạng thực tế" value={item.tinhTrangThucTe || ''} onChange={e => updateAsset(index, { tinhTrangThucTe: e.target.value })} /></div>
+            <Input placeholder="URL chứng từ nếu thiếu/hư hỏng" value={item.chungTuUrl || ''} onChange={e => updateAsset(index, { chungTuUrl: e.target.value })} />
+            <div className="flex items-center gap-2"><Checkbox id={`asset-${item.id}`} checked={item.daXacNhan === true} onCheckedChange={value => updateAsset(index, { daXacNhan: value === true })} /><Label htmlFor={`asset-${item.id}`}>Đã kiểm kê và xác nhận</Label></div>
+          </div>)}
+          <Button type="button" size="sm" variant="outline" onClick={saveAssetHandover} disabled={submitting}>Lưu biên bản bàn giao</Button>
+        </div>}
+        {quyetToan.tienCocCanHoan > 0 && <div className="space-y-2 rounded-md border p-3">
+          <div className="flex gap-2 items-center"><Checkbox id="refund" checked={daHoanCoc} onCheckedChange={value => setDaHoanCoc(value === true)} /><Label htmlFor="refund">Đã hoàn phần cọc dư cho khách</Label></div>
+          <Input placeholder="URL chứng từ hoặc mã biên nhận hoàn cọc (bắt buộc)" value={chungTuHoanCoc} onChange={e => setChungTuHoanCoc(e.target.value)} />
+          <Input placeholder="Mã tham chiếu giao dịch (nếu có)" value={maThamChieuHoanCoc} onChange={e => setMaThamChieuHoanCoc(e.target.value)} />
+        </div>}
         <div className="flex gap-2 items-center"><Checkbox id="handover" checked={banGiaoDaXacNhan} onCheckedChange={value => setBanGiaoDaXacNhan(value === true)} /><Label htmlFor="handover">Đã bàn giao phòng</Label></div>
         <div className="flex gap-2 items-center"><Checkbox id="inspection" checked={veSinhKiemTraXong} onCheckedChange={value => setVeSinhKiemTraXong(value === true)} /><Label htmlFor="inspection">Đã vệ sinh và kiểm tra hoàn tất</Label></div>
       </div>}

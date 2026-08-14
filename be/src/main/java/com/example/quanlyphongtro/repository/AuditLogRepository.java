@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
+import java.util.List;
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
     Page<AuditLog> findByBangTacDong(String bangTacDong, Pageable pageable);
     Page<AuditLog> findByNguoiDungId(UUID nguoiDungId, Pageable pageable);
     Page<AuditLog> findByBanGhiId(UUID banGhiId, Pageable pageable);
+    List<AuditLog> findByBangTacDongAndBanGhiIdOrderByTaoLucAsc(String bangTacDong, UUID banGhiId);
 }

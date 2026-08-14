@@ -46,6 +46,8 @@ const formSchema = z.object({
   nhaTroId: z.string().min(1, "Không xác định được tòa nhà của khách thuê"),
   phongId: z.string().min(1, "Không xác định được phòng của khách thuê"),
   khachThueId: z.string().min(1, "Vui lòng chọn khách hàng"),
+  hieuLucTu: z.string().min(1, "Vui lòng chọn ngày bắt đầu hiệu lực"),
+  hieuLucDen: z.string().optional(),
 })
 
 interface Props {
@@ -76,6 +78,8 @@ export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: P
       nhaTroId: initialData?.nhaTroId ? String(initialData.nhaTroId) : "",
       phongId: initialData?.phongId ? String(initialData.phongId) : "",
       khachThueId: initialData?.khachThueId ? String(initialData.khachThueId) : "",
+      hieuLucTu: initialData?.hieuLucTu ? String(initialData.hieuLucTu).slice(0, 10) : new Date().toISOString().slice(0, 10),
+      hieuLucDen: initialData?.hieuLucDen ? String(initialData.hieuLucDen).slice(0, 10) : "",
     },
   })
 
@@ -93,6 +97,8 @@ export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: P
       nhaTroId: initialData?.nhaTroId ? String(initialData.nhaTroId) : "",
       phongId: initialData?.phongId ? String(initialData.phongId) : "",
       khachThueId: initialData?.khachThueId ? String(initialData.khachThueId) : "",
+      hieuLucTu: initialData?.hieuLucTu ? String(initialData.hieuLucTu).slice(0, 10) : new Date().toISOString().slice(0, 10),
+      hieuLucDen: initialData?.hieuLucDen ? String(initialData.hieuLucDen).slice(0, 10) : "",
     })
   }, [form, initialData, open])
 
@@ -321,6 +327,30 @@ export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: P
 
               <FormField
                 control={form.control}
+                name="hieuLucTu"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-medium">Hiệu lực từ <span className="text-red-500">*</span></FormLabel>
+                    <FormControl><Input type="date" className="bg-white border-slate-200 text-slate-900 h-11" {...field} /></FormControl>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hieuLucDen"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-medium">Hiệu lực đến</FormLabel>
+                    <FormControl><Input type="date" min={form.watch("hieuLucTu")} className="bg-white border-slate-200 text-slate-900 h-11" {...field} /></FormControl>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="hoatDong"
                 render={({ field }) => (
                   <FormItem className="flex flex-col justify-between">
@@ -398,7 +428,7 @@ export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: P
             <div className="bg-amber-50 text-amber-600 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
               <p>
-                <strong>Lưu ý:</strong> Xe đầu tiên được miễn phí gửi. Từ xe thứ 2 trở đi sẽ tính phí gửi xe theo cấu hình của tòa nhà/hợp đồng khi lập hóa đơn.
+                <strong>Lưu ý:</strong> Mỗi xe được tính theo biểu phí của tòa nhà, loại xe và khoảng thời gian hiệu lực. Không có quy tắc miễn phí xe ngầm.
               </p>
             </div>
 

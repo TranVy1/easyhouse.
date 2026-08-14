@@ -202,6 +202,14 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/cau-hinh-gia/:path*`
       },
       {
+        source: '/api/cau-hinh-phi-xe',
+        destination: `${backendUrl}/api/cau-hinh-phi-xe`
+      },
+      {
+        source: '/api/cau-hinh-phi-xe/:path*',
+        destination: `${backendUrl}/api/cau-hinh-phi-xe/:path*`
+      },
+      {
         source: '/api/chi-so-dien-nuoc',
         destination: `${backendUrl}/api/chi-so-dien-nuoc`
       },

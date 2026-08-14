@@ -39,6 +39,10 @@ public class HoaDon {
     @Builder.Default
     private LoaiHoaDon loaiHoaDon = LoaiHoaDon.REGULAR;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hoa_don_goc_id")
+    private HoaDon hoaDonGoc;
+
     @Column(nullable = false)
     private Integer kyNam;
 

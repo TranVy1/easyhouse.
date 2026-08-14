@@ -12,6 +12,7 @@ import java.util.UUID;
 public class HoaDonRequest {
     private String maHoaDon;
     private String loaiHoaDon;
+    private UUID hoaDonGocId;
     private UUID hopDongId;
     
     @NotNull(message = "Hợp đồng không được để trống")

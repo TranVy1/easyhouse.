@@ -48,5 +48,24 @@ public class ChiTietHoaDon {
     @Column(nullable = false)
     private BigDecimal thanhTien = BigDecimal.ZERO;
 
+    /** Immutable snapshot used to explain exactly why this line was billed. */
+    @Column(name = "source_type", nullable = false, length = 64)
+    private String sourceType;
+
+    @Column(name = "source_id")
+    private UUID sourceId;
+
+    @Column(name = "pricing_rule_version", nullable = false, length = 128)
+    private String pricingRuleVersion;
+
+    @Column(name = "period_start", nullable = false)
+    private java.time.LocalDate periodStart;
+
+    @Column(name = "period_end", nullable = false)
+    private java.time.LocalDate periodEnd;
+
+    @Column(name = "calculation_hash", nullable = false, length = 64)
+    private String calculationHash;
+
     private ZonedDateTime taoLuc;
 }

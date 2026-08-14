@@ -21,10 +21,14 @@ public class DashboardAnalyticsService {
 
     private final EntityManager entityManager;
     private final com.example.quanlyphongtro.repository.MeterAnomalyAlertRepository meterAnomalyAlertRepository;
+    private final PermissionService permissionService;
+
+    private record DashboardScope(UUID nhaTroId, List<UUID> accessibleNhaTroIds) {
+    }
 
     public DashboardAnalyticsOverviewResponse getOverview(UUID nhaTroId) {
-        String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
-        String filterSqlNoPrefix = nhaTroId != null ? " AND nha_tro_id = :nhaTroId " : "";
+        DashboardScope scope = resolveScope(nhaTroId);
+        String filterSql = propertyFilter("p", scope);
 
         // Rooms count
         String roomQuerySql = "SELECT " +
@@ -34,7 +38,7 @@ public class DashboardAnalyticsService {
                 "FROM phong p WHERE p.xoa_luc IS NULL " + filterSql;
 
         Query roomQuery = entityManager.createNativeQuery(roomQuerySql);
-        if (nhaTroId != null) roomQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(roomQuery, scope);
         Object[] roomResult = (Object[]) roomQuery.getSingleResult();
         long totalRooms = ((Number) roomResult[0]).longValue();
         long occupiedRooms = roomResult[1] != null ? ((Number) roomResult[1]).longValue() : 0;
@@ -53,7 +57,7 @@ public class DashboardAnalyticsService {
                 "AND hd.ky_nam = EXTRACT(YEAR FROM CURRENT_DATE) " + filterSql;
 
         Query revQuery = entityManager.createNativeQuery(revQuerySql);
-        if (nhaTroId != null) revQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(revQuery, scope);
         Object[] revResult = (Object[]) revQuery.getSingleResult();
         BigDecimal expectedRevenue = revResult[0] != null ? (BigDecimal) revResult[0] : BigDecimal.ZERO;
         BigDecimal collectedRevenue = revResult[1] != null ? (BigDecimal) revResult[1] : BigDecimal.ZERO;
@@ -67,7 +71,7 @@ public class DashboardAnalyticsService {
                 "JOIN phong p ON sc.phong_id = p.id " +
                 "WHERE sc.trang_thai NOT IN ('RESOLVED', 'CANCELLED') " + filterSql;
         Query incidentQuery = entityManager.createNativeQuery(incidentQuerySql);
-        if (nhaTroId != null) incidentQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(incidentQuery, scope);
         long openIncidentCount = ((Number) incidentQuery.getSingleResult()).longValue();
 
         // Expiring contracts
@@ -76,7 +80,7 @@ public class DashboardAnalyticsService {
                 "WHERE hd.xoa_luc IS NULL AND hd.trang_thai = 'ACTIVE' " +
                 "AND hd.ngay_ket_thuc <= CURRENT_DATE + INTERVAL '30 days' " + filterSql;
         Query contractQuery = entityManager.createNativeQuery(contractQuerySql);
-        if (nhaTroId != null) contractQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(contractQuery, scope);
         long expiringContractCount = ((Number) contractQuery.getSingleResult()).longValue();
         
         // Overdue invoices
@@ -85,7 +89,7 @@ public class DashboardAnalyticsService {
                 "WHERE hd.xoa_luc IS NULL AND hd.trang_thai IN ('UNPAID', 'PARTIAL', 'OVERDUE') " +
                 "AND hd.han_tra < CURRENT_DATE " + filterSql;
         Query overdueQuery = entityManager.createNativeQuery(overdueInvoiceSql);
-        if (nhaTroId != null) overdueQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(overdueQuery, scope);
         long overdueInvoiceCount = ((Number) overdueQuery.getSingleResult()).longValue();
 
         return DashboardAnalyticsOverviewResponse.builder()
@@ -104,7 +108,8 @@ public class DashboardAnalyticsService {
     }
 
     public List<RevenueChartItemResponse> getRevenueChart(int months, UUID nhaTroId) {
-        String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
+        DashboardScope scope = resolveScope(nhaTroId);
+        String invoiceRoomFilter = invoiceRoomFilter(scope);
         String sql = "WITH RECURSIVE months_cte AS (" +
                 "  SELECT date_trunc('month', CURRENT_DATE) - INTERVAL '" + (months - 1) + " months' AS m_date " +
                 "  UNION ALL " +
@@ -121,14 +126,13 @@ public class DashboardAnalyticsService {
                 "FROM months_cte m " +
                 "LEFT JOIN hoa_don hd ON EXTRACT(MONTH FROM hd.ngay_lap_hoa_don) = EXTRACT(MONTH FROM m.m_date) " +
                 "  AND EXTRACT(YEAR FROM hd.ngay_lap_hoa_don) = EXTRACT(YEAR FROM m.m_date) " +
-                "  AND hd.xoa_luc IS NULL AND hd.trang_thai != 'CANCELLED' " +
+                "  AND hd.xoa_luc IS NULL AND hd.trang_thai != 'CANCELLED' " + invoiceRoomFilter +
                 "LEFT JOIN phong p ON hd.phong_id = p.id " +
-                "WHERE (p.id IS NULL OR 1=1) " + filterSql +
                 "GROUP BY m.m_date " +
                 "ORDER BY m.m_date";
 
         Query query = entityManager.createNativeQuery(sql);
-        if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
+        applyScope(query, scope);
         
         List<Object[]> results = query.getResultList();
         List<RevenueChartItemResponse> response = new ArrayList<>();
@@ -154,7 +158,8 @@ public class DashboardAnalyticsService {
     }
 
     public DebtAgingResponse getDebtAging(UUID nhaTroId) {
-        String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
+        DashboardScope scope = resolveScope(nhaTroId);
+        String filterSql = propertyFilter("p", scope);
         String sql = "SELECT " +
                 "SUM(CASE WHEN hd.han_tra >= CURRENT_DATE THEN GREATEST(hd.tong_tien - hd.da_tra, 0) ELSE 0 END) AS not_due, " +
                 "SUM(CASE WHEN CURRENT_DATE - hd.han_tra BETWEEN 1 AND 7 THEN GREATEST(hd.tong_tien - hd.da_tra, 0) ELSE 0 END) AS overdue_1_7, " +
@@ -166,7 +171,7 @@ public class DashboardAnalyticsService {
                 "WHERE hd.xoa_luc IS NULL AND hd.trang_thai IN ('UNPAID', 'PARTIAL', 'OVERDUE') " + filterSql;
 
         Query query = entityManager.createNativeQuery(sql);
-        if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
+        applyScope(query, scope);
         Object[] result = (Object[]) query.getSingleResult();
         
         BigDecimal notDue = result[0] != null ? (BigDecimal) result[0] : BigDecimal.ZERO;
@@ -188,7 +193,8 @@ public class DashboardAnalyticsService {
     }
 
     public List<TopDebtorResponse> getTopDebtors(UUID nhaTroId, int limit) {
-        String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
+        DashboardScope scope = resolveScope(nhaTroId);
+        String filterSql = propertyFilter("p", scope);
         String sql = "SELECT " +
                 "p.id AS phong_id, " +
                 "p.ten, " +
@@ -209,7 +215,7 @@ public class DashboardAnalyticsService {
                 "ORDER BY tong_no DESC LIMIT :limit";
         
         Query query = entityManager.createNativeQuery(sql);
-        if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
+        applyScope(query, scope);
         query.setParameter("limit", limit);
         
         List<Object[]> results = query.getResultList();
@@ -233,14 +239,11 @@ public class DashboardAnalyticsService {
     }
 
     public List<ActionItemResponse> getActionItems(UUID nhaTroId, int limit) {
+        DashboardScope scope = resolveScope(nhaTroId);
         List<ActionItemResponse> items = new ArrayList<>();
-        
-        List<UUID> nhaTroIds = nhaTroId != null ? List.of(nhaTroId) : List.of(); // Assuming we handle permission before calling this or we fetch all if null
-        // However, we just use JPA or native queries. Here we only focus on Meter Anomaly Alerts first, 
-        // as other items (Overdue invoices, Open Incidents) can be added later.
-        
+
         // Add Meter Anomaly Alerts
-        String filterSql = nhaTroId != null ? " AND p.nha_tro_id = :nhaTroId " : "";
+        String filterSql = propertyFilter("p", scope);
         String alertSql = "SELECT a.id, p.ten, a.muc_do, a.loai, a.ly_do " +
                 "FROM meter_anomaly_alert a " +
                 "JOIN phong p ON a.phong_id = p.id " +
@@ -249,7 +252,7 @@ public class DashboardAnalyticsService {
                 
         try {
             Query query = entityManager.createNativeQuery(alertSql);
-            if (nhaTroId != null) query.setParameter("nhaTroId", nhaTroId);
+            applyScope(query, scope);
             query.setParameter("limit", limit);
             
             List<Object[]> alertResults = query.getResultList();
@@ -278,7 +281,7 @@ public class DashboardAnalyticsService {
                 "ORDER BY days_overdue DESC LIMIT :limit";
                 
         Query overdueQuery = entityManager.createNativeQuery(overdueSql);
-        if (nhaTroId != null) overdueQuery.setParameter("nhaTroId", nhaTroId);
+        applyScope(overdueQuery, scope);
         overdueQuery.setParameter("limit", limit);
         
         List<Object[]> overdueResults = overdueQuery.getResultList();
@@ -296,5 +299,38 @@ public class DashboardAnalyticsService {
         }
         
         return items;
+    }
+
+    private DashboardScope resolveScope(UUID requestedNhaTroId) {
+        UUID userId = permissionService.requireCurrentUserId();
+        List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
+        if (requestedNhaTroId != null && accessibleIds != null && !accessibleIds.contains(requestedNhaTroId)) {
+            throw new RuntimeException("Bạn không có quyền xem dữ liệu tòa nhà này");
+        }
+        return new DashboardScope(requestedNhaTroId, requestedNhaTroId == null ? accessibleIds : null);
+    }
+
+    private String propertyFilter(String alias, DashboardScope scope) {
+        if (scope.nhaTroId() != null) return " AND " + alias + ".nha_tro_id = :nhaTroId ";
+        if (scope.accessibleNhaTroIds() == null) return "";
+        if (scope.accessibleNhaTroIds().isEmpty()) return " AND 1 = 0 ";
+        return " AND " + alias + ".nha_tro_id IN (:accessibleNhaTroIds) ";
+    }
+
+    private String invoiceRoomFilter(DashboardScope scope) {
+        if (scope.nhaTroId() != null) {
+            return " AND hd.phong_id IN (SELECT id FROM phong WHERE nha_tro_id = :nhaTroId) ";
+        }
+        if (scope.accessibleNhaTroIds() == null) return "";
+        if (scope.accessibleNhaTroIds().isEmpty()) return " AND 1 = 0 ";
+        return " AND hd.phong_id IN (SELECT id FROM phong WHERE nha_tro_id IN (:accessibleNhaTroIds)) ";
+    }
+
+    private void applyScope(Query query, DashboardScope scope) {
+        if (scope.nhaTroId() != null) {
+            query.setParameter("nhaTroId", scope.nhaTroId());
+        } else if (scope.accessibleNhaTroIds() != null && !scope.accessibleNhaTroIds().isEmpty()) {
+            query.setParameter("accessibleNhaTroIds", scope.accessibleNhaTroIds());
+        }
     }
 }

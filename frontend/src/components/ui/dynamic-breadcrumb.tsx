@@ -30,6 +30,7 @@ const routeNameMap: Record<string, string> = {
   "quan-ly-tai-khoan": "Quản lý tài khoản",
   "dich-vu": "Dịch vụ & tiện ích",
   "cau-hinh-gia": "Cấu hình giá",
+  "cau-hinh-phi-xe": "Biểu phí xe",
   "chi-so-dien-nuoc": "Chỉ số điện nước",
   "cong-no": "Công nợ",
   "lich-hen": "Lịch hẹn",

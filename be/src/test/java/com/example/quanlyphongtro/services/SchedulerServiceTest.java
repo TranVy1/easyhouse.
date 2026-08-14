@@ -150,6 +150,27 @@ class SchedulerServiceTest {
     }
 
     @Test
+    void testCheckExpiringContracts_MarksExpiredWithoutReleasingRoom() {
+        LocalDate today = LocalDate.now();
+        HopDong hd = HopDong.builder()
+                .id(UUID.randomUUID())
+                .maHopDong("HD-EXPIRED")
+                .ngayBatDau(today.minusMonths(6))
+                .ngayKetThuc(today.minusDays(1))
+                .trangThai(TrangThaiHopDong.ACTIVE)
+                .phong(mockPhong)
+                .khachThue(mockKhachThue)
+                .build();
+        when(hopDongRepository.findAllActive()).thenReturn(List.of(hd));
+
+        schedulerService.checkExpiringContracts();
+
+        assert hd.getTrangThai() == TrangThaiHopDong.EXPIRED;
+        verify(hopDongRepository).save(hd);
+        verify(emailService, never()).sendContractExpiringEmail(any(), any(), anyInt());
+    }
+
+    @Test
     void testCheckInvoices() {
         schedulerService.checkInvoices();
         verify(debtReminderService).runDailyDebtReminders();

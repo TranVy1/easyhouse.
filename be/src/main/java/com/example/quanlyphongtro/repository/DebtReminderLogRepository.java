@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -16,4 +17,7 @@ public interface DebtReminderLogRepository extends JpaRepository<DebtReminderLog
             UUID hoaDonId, ReminderType type, ReminderChannel channel, String contact);
             
     List<DebtReminderLog> findByHoaDonIdOrderBySentAtDesc(UUID hoaDonId);
+
+    Optional<DebtReminderLog> findFirstByHoaDonIdAndReminderTypeAndChannelAndRecipientContactOrderBySentAtDesc(
+            UUID hoaDonId, ReminderType type, ReminderChannel channel, String contact);
 }

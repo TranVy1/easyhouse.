@@ -3,6 +3,7 @@ package com.example.quanlyphongtro.controller;
 import com.example.quanlyphongtro.dto.ApiResponse;
 import com.example.quanlyphongtro.dto.HoaDonRequest;
 import com.example.quanlyphongtro.dto.HoaDonResponse;
+import com.example.quanlyphongtro.dto.HoaDonTimelineItemResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.dto.ThanhToanRequest;
 import com.example.quanlyphongtro.dto.InvoiceGenerationPreviewResponse;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -81,6 +83,24 @@ public class HoaDonController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteByParam(@RequestParam UUID id) {
         return delete(id);
+    }
+
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<ApiResponse<List<HoaDonTimelineItemResponse>>> getTimeline(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getTimeline(id)));
+    }
+
+    @PostMapping("/{id}/phat-hanh")
+    public ResponseEntity<ApiResponse<HoaDonResponse>> phatHanh(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.phatHanh(id), "Phát hành hóa đơn thành công"));
+    }
+
+    @PostMapping("/{id}/huy")
+    public ResponseEntity<ApiResponse<HoaDonResponse>> huy(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(ApiResponse.success(
+                hoaDonService.huy(id, body != null ? body.get("lyDo") : null), "Hủy hóa đơn thành công"));
     }
 
     @GetMapping("/form-data")

@@ -42,6 +42,8 @@ class HoaDonServiceTest {
     @Mock private ThanhVienHopDongRepository thanhVienHopDongRepository;
     @Mock private PhuLucHopDongRepository phuLucHopDongRepository;
     @Mock private PhuongTienRepository phuongTienRepository;
+    @Mock private LichSuPhuongTienRepository lichSuPhuongTienRepository;
+    @Mock private CauHinhPhiXeRepository cauHinhPhiXeRepository;
     @Mock private PermissionService permissionService;
     @Mock private EmailService emailService;
     @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -68,6 +70,8 @@ class HoaDonServiceTest {
                 thanhVienHopDongRepository,
                 phuLucHopDongRepository,
                 phuongTienRepository,
+                lichSuPhuongTienRepository,
+                cauHinhPhiXeRepository,
                 permissionService,
                 emailService,
                 eventPublisher
@@ -215,6 +219,45 @@ class HoaDonServiceTest {
     }
 
     @Test
+    void createProratesPerPersonServiceByMemberDays() {
+        stubCanWriteInvoice();
+        HoaDonRequest request = new HoaDonRequest();
+        request.setHopDong(hopDongId);
+        request.setThang(5);
+        request.setNam(2026);
+
+        DichVu serviceDefinition = DichVu.builder().id(UUID.randomUUID()).tenDichVu("Phí sinh hoạt")
+                .loaiTinhPhi(LoaiTinhPhi.PER_PERSON).build();
+        DichVuHopDong perPersonFee = DichVuHopDong.builder().hopDong(hopDong).dichVu(serviceDefinition)
+                .loaiTinhPhi(LoaiTinhPhi.PER_PERSON).donGiaApDung(BigDecimal.valueOf(50_000))
+                .soLuong(BigDecimal.ONE).batDauTu(LocalDate.of(2026, 1, 1)).build();
+        ThanhVienHopDong fullMonth = ThanhVienHopDong.builder().hopDong(hopDong).hoTen("A")
+                .ngayVao(LocalDate.of(2026, 1, 1)).dangO(true).build();
+        ThanhVienHopDong midMonth = ThanhVienHopDong.builder().hopDong(hopDong).hoTen("B")
+                .ngayVao(LocalDate.of(2026, 5, 16)).dangO(true).build();
+
+        when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
+        when(hoaDonRepository.findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(hopDongId, 2026, 5))
+                .thenReturn(Optional.empty());
+        when(hoaDonRepository.save(any(HoaDon.class))).thenAnswer(invocation -> {
+            HoaDon invoice = invocation.getArgument(0);
+            if (invoice.getId() == null) invoice.setId(UUID.randomUUID());
+            return invoice;
+        });
+        when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)).thenReturn(List.of(perPersonFee));
+        when(thanhVienHopDongRepository.findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDongId))
+                .thenReturn(List.of(fullMonth, midMonth));
+        when(chiTietHoaDonRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        HoaDonResponse response = service.create(request);
+
+        var line = response.getChiTiet().stream().filter(item -> "SERVICE".equals(item.getLoai())).findFirst().orElseThrow();
+        assertEquals(new BigDecimal("1.516129"), line.getSoLuong());
+        assertEquals(new BigDecimal("75806.450000"), line.getThanhTien());
+        assertEquals("Phí sinh hoạt (47 người-ngày/31 ngày)", line.getMoTa());
+    }
+
+    @Test
     void createRejectsDuplicateContractMonth() {
         stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
@@ -279,7 +322,7 @@ class HoaDonServiceTest {
     }
 
     @Test
-    void createBillsOnlyVehiclesAfterTheFirstVehicleOfEachTenant() {
+    void createBillsEveryVehicleUsingItsEffectiveFeePlan() {
         stubCanWriteInvoice();
         HoaDonRequest request = new HoaDonRequest();
         request.setHopDong(hopDongId);
@@ -295,20 +338,18 @@ class HoaDonServiceTest {
             return hoaDon;
         });
         when(dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)).thenReturn(List.of());
-        when(phuongTienRepository.findByPhongIdAndTrangThai(phongId, TrangThaiPhuongTien.HIEU_LUC))
-                .thenReturn(List.of(vehicle("XE-1"), vehicle("XE-2"), vehicle("XE-3")));
-        when(cauHinhGiaRepository.findApplicable(eq(nhaTroId), eq(LoaiMucHoaDon.PARKING), any(LocalDate.class)))
-                .thenReturn(List.of(price(LoaiMucHoaDon.PARKING, BigDecimal.valueOf(100_000))));
+        when(lichSuPhuongTienRepository.findBillableInPeriod(eq(phongId), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(vehicleAssignment("XE-1"), vehicleAssignment("XE-2"), vehicleAssignment("XE-3")));
+        CauHinhPhiXe plan = CauHinhPhiXe.builder().id(UUID.randomUUID()).donGia(BigDecimal.valueOf(100_000))
+                .hieuLucTu(LocalDate.of(2026, 1, 1)).dangApDung(true).build();
+        when(cauHinhPhiXeRepository.findEffectiveInPeriod(eq(nhaTroId), any(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(plan));
         when(chiTietHoaDonRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         HoaDonResponse response = service.create(request);
 
-        assertEquals(BigDecimal.valueOf(3_200_000), response.getTongTien());
-        assertEquals(BigDecimal.valueOf(2), response.getChiTiet().stream()
-                .filter(item -> "PARKING".equals(item.getLoai()))
-                .findFirst()
-                .orElseThrow()
-                .getSoLuong());
+        assertEquals(BigDecimal.valueOf(3_300_000), response.getTongTien());
+        assertEquals(3, response.getChiTiet().stream().filter(item -> "PARKING".equals(item.getLoai())).count());
     }
 
     @Test
@@ -409,6 +450,13 @@ class HoaDonServiceTest {
                 .nhaTro(hopDong.getPhong().getNhaTro())
                 .chuTro(hopDong.getPhong().getNhaTro().getChuTro())
                 .trangThai(TrangThaiPhuongTien.HIEU_LUC)
+                .hieuLucTu(LocalDate.of(2026, 1, 1))
                 .build();
+    }
+
+    private LichSuPhuongTien vehicleAssignment(String maPt) {
+        return LichSuPhuongTien.builder().id(UUID.randomUUID()).phuongTien(vehicle(maPt))
+                .khachThue(hopDong.getKhachThue()).phong(hopDong.getPhong())
+                .nhaTro(hopDong.getPhong().getNhaTro()).hieuLucTu(LocalDate.of(2026, 1, 1)).build();
     }
 }

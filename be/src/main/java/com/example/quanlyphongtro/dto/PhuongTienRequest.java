@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -37,4 +38,6 @@ public class PhuongTienRequest {
     private String mauXe;
     private String tenChuXe;
     private String soVeXe;
+    private LocalDate hieuLucTu;
+    private LocalDate hieuLucDen;
 }

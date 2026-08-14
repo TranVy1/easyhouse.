@@ -6,6 +6,9 @@ import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.PhongRepository;
 import com.example.quanlyphongtro.repository.QuyetToanTraPhongRepository;
+import com.example.quanlyphongtro.repository.AuditLogRepository;
+import com.example.quanlyphongtro.repository.TaiSanPhongRepository;
+import com.example.quanlyphongtro.repository.ChiTietBanGiaoTaiSanRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,10 @@ public class QuyetToanTraPhongService {
     private final HoaDonService hoaDonService;
     private final PermissionService permissionService;
     private final ObjectMapper objectMapper;
+    private final GiaoDichTienCocService giaoDichTienCocService;
+    private final AuditLogRepository auditLogRepository;
+    private final TaiSanPhongRepository taiSanPhongRepository;
+    private final ChiTietBanGiaoTaiSanRepository chiTietBanGiaoRepository;
 
     @Transactional
     public QuyetToanTraPhongResponse tao(UUID hopDongId, TaoQuyetToanTraPhongRequest request) {
@@ -37,8 +44,8 @@ public class QuyetToanTraPhongService {
         if (existing != null) {
             return toResponse(existing);
         }
-        if (hopDong.getTrangThai() != TrangThaiHopDong.ACTIVE) {
-            throw new RuntimeException("Chỉ hợp đồng đang hoạt động mới có thể lập quyết toán trả phòng");
+        if (hopDong.getTrangThai() != TrangThaiHopDong.ACTIVE && hopDong.getTrangThai() != TrangThaiHopDong.EXPIRED) {
+            throw new RuntimeException("Chỉ hợp đồng đang hoạt động hoặc đã hết hạn mới có thể lập quyết toán trả phòng");
         }
 
         LocalDate ngayTraPhong = request.getNgayTraPhong() != null ? request.getNgayTraPhong() : LocalDate.now();
@@ -66,7 +73,7 @@ public class QuyetToanTraPhongService {
         hoaDonRequest.setChiSoNuocCuoiKy(request.getChiSoNuocCuoiKy());
         hoaDonRequest.setGhiChu("Hóa đơn quyết toán trả phòng");
 
-        BigDecimal tienCoc = money(hopDong.getTienCoc());
+        BigDecimal tienCoc = giaoDichTienCocService.soDu(hopDong.getId());
         HoaDonQuyetToanResult ketQuaHoaDon = hoaDonService.createFinalSettlement(hoaDonRequest, khoanKhauTru, tienCoc);
         BigDecimal tienCocDaCanTru = ketQuaHoaDon.getTienCocDaCanTru();
         BigDecimal tienCocCanHoan = tienCoc.subtract(tienCocDaCanTru);
@@ -92,7 +99,10 @@ public class QuyetToanTraPhongService {
                 .veSinhKiemTraXong(false)
                 .ghiChu(request.getGhiChu())
                 .build();
-        return toResponse(quyetToanRepository.save(quyetToan));
+        QuyetToanTraPhong saved = quyetToanRepository.save(quyetToan);
+        snapshotTaiSanBanGiao(saved, hopDong.getPhong().getId());
+        logAudit(saved, "CREATE_SETTLEMENT");
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -118,8 +128,16 @@ public class QuyetToanTraPhongService {
         if (money(quyetToan.getTienCocCanHoan()).compareTo(BigDecimal.ZERO) > 0 && !Boolean.TRUE.equals(request.getDaHoanCoc())) {
             throw new RuntimeException("Cần xác nhận đã hoàn phần cọc dư cho khách thuê");
         }
+        if (money(quyetToan.getTienCocCanHoan()).compareTo(BigDecimal.ZERO) > 0
+                && (request.getChungTuHoanCoc() == null || request.getChungTuHoanCoc().isBlank())) {
+            throw new RuntimeException("Hoàn cọc phải có chứng từ hoặc mã biên nhận");
+        }
         if (!Boolean.TRUE.equals(request.getBanGiaoDaXacNhan())) {
             throw new RuntimeException("Cần xác nhận bàn giao phòng");
+        }
+        if (chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(quyetToan.getId()).stream()
+                .anyMatch(item -> !Boolean.TRUE.equals(item.getDaXacNhan()))) {
+            throw new RuntimeException("Cần kiểm kê và xác nhận đầy đủ từng tài sản phòng trước khi hoàn tất trả phòng");
         }
         if (!Boolean.TRUE.equals(request.getVeSinhKiemTraXong())) {
             throw new RuntimeException("Phòng chỉ được chuyển Trống sau khi vệ sinh và kiểm tra hoàn tất");
@@ -135,11 +153,12 @@ public class QuyetToanTraPhongService {
         quyetToan.setTrangThai(TrangThaiQuyetToanTraPhong.COMPLETED);
         if (request.getGhiChu() != null && !request.getGhiChu().isBlank()) quyetToan.setGhiChu(request.getGhiChu().trim());
         quyetToanRepository.save(quyetToan);
+        giaoDichTienCocService.ghiNhanQuyetToan(quyetToan, request.getChungTuHoanCoc(), request.getMaThamChieuHoanCoc());
+        logAudit(quyetToan, "COMPLETE_CHECKOUT");
 
         hopDong.setTrangThai(TrangThaiHopDong.TERMINATED);
         hopDong.setTrangThaiCoc(money(quyetToan.getTienCocDaCanTru()).compareTo(BigDecimal.ZERO) > 0
                 ? TrangThaiCocHopDong.DEDUCTED : TrangThaiCocHopDong.REFUNDED);
-        hopDong.setTienCoc(BigDecimal.ZERO);
         hopDongRepository.save(hopDong);
 
         Phong phong = hopDong.getPhong();
@@ -153,6 +172,42 @@ public class QuyetToanTraPhongService {
             }
         }
         return HopDongResponse.fromEntity(hopDong);
+    }
+
+    @Transactional
+    public QuyetToanTraPhongResponse capNhatBanGiaoTaiSan(UUID hopDongId, BanGiaoTaiSanRequest request) {
+        getWritableContract(hopDongId);
+        QuyetToanTraPhong quyetToan = quyetToanRepository.findByHopDongId(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Cần lập quyết toán trả phòng trước khi kiểm kê tài sản"));
+        if (quyetToan.getTrangThai() == TrangThaiQuyetToanTraPhong.COMPLETED) {
+            throw new RuntimeException("Biên bản bàn giao đã hoàn tất và không thể sửa");
+        }
+        List<BanGiaoTaiSanRequest.Item> items = request.getItems() != null ? request.getItems() : Collections.emptyList();
+        List<ChiTietBanGiaoTaiSan> snapshots = chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(quyetToan.getId());
+        if (items.size() != snapshots.size()) throw new RuntimeException("Cần kiểm kê đầy đủ mọi tài sản trong biên bản");
+        for (ChiTietBanGiaoTaiSan snapshot : snapshots) {
+            BanGiaoTaiSanRequest.Item item = items.stream().filter(candidate -> snapshot.getId().equals(candidate.getId())).findFirst()
+                    .orElseThrow(() -> new RuntimeException("Thiếu kết quả kiểm kê tài sản " + snapshot.getTenTaiSan()));
+            if (item.getSoLuongThucTe() == null || item.getSoLuongThucTe() < 0 || item.getSoLuongThucTe() > snapshot.getSoLuongBanDau()
+                    || item.getTinhTrangThucTe() == null || item.getTinhTrangThucTe().isBlank()
+                    || !Boolean.TRUE.equals(item.getDaXacNhan())) {
+                throw new RuntimeException("Mỗi tài sản phải có số lượng thực tế hợp lệ, tình trạng và xác nhận bàn giao");
+            }
+            boolean hasDifference = !snapshot.getSoLuongBanDau().equals(item.getSoLuongThucTe())
+                    || !snapshot.getTinhTrangBanDau().equalsIgnoreCase(item.getTinhTrangThucTe().trim());
+            if (hasDifference && (item.getChungTuUrl() == null || item.getChungTuUrl().isBlank())) {
+                throw new RuntimeException("Tài sản thiếu hoặc khác tình trạng phải có chứng từ/hình ảnh kèm theo");
+            }
+            snapshot.setSoLuongThucTe(item.getSoLuongThucTe());
+            snapshot.setTinhTrangThucTe(item.getTinhTrangThucTe().trim());
+            snapshot.setChungTuUrl(trimToNull(item.getChungTuUrl()));
+            snapshot.setGhiChu(trimToNull(item.getGhiChu()));
+            snapshot.setDaXacNhan(true);
+            snapshot.setXacNhanLuc(ZonedDateTime.now());
+        }
+        chiTietBanGiaoRepository.saveAll(snapshots);
+        logAudit(quyetToan, "CONFIRM_ASSET_HANDOVER");
+        return toResponse(quyetToan);
     }
 
     private HopDong getWritableContract(UUID hopDongId) {
@@ -175,7 +230,22 @@ public class QuyetToanTraPhongService {
     }
 
     private QuyetToanTraPhongResponse toResponse(QuyetToanTraPhong entity) {
-        return QuyetToanTraPhongResponse.fromEntity(entity, hoaDonService.getById(entity.getHoaDon().getId()));
+        QuyetToanTraPhongResponse response = QuyetToanTraPhongResponse.fromEntity(entity, hoaDonService.getById(entity.getHoaDon().getId()));
+        response.setTaiSanBanGiao(chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(entity.getId()).stream()
+                .map(ChiTietBanGiaoTaiSanResponse::fromEntity).toList());
+        return response;
+    }
+
+    private void snapshotTaiSanBanGiao(QuyetToanTraPhong quyetToan, UUID phongId) {
+        List<ChiTietBanGiaoTaiSan> snapshots = taiSanPhongRepository.findByPhongId(phongId).stream().map(asset ->
+                ChiTietBanGiaoTaiSan.builder().quyetToanTraPhong(quyetToan).taiSanPhong(asset).tenTaiSan(asset.getTenTaiSan())
+                        .soLuongBanDau(asset.getSoLuong()).tinhTrangBanDau(asset.getTinhTrang()).anhTaiSanBanDau(asset.getAnhTaiSan())
+                        .daXacNhan(false).build()).toList();
+        if (!snapshots.isEmpty()) chiTietBanGiaoRepository.saveAll(snapshots);
+    }
+
+    private String trimToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private String toJson(List<KhoanKhauTruCocRequest> deductions) {
@@ -188,5 +258,17 @@ public class QuyetToanTraPhongService {
 
     private BigDecimal money(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private void logAudit(QuyetToanTraPhong quyetToan, String hanhDong) {
+        auditLogRepository.save(AuditLog.builder()
+                .hanhDong(hanhDong)
+                .bangTacDong("quyet_toan_tra_phong")
+                .banGhiId(quyetToan.getId())
+                .duLieuMoi("{\"hopDongId\":\"" + quyetToan.getHopDong().getId()
+                        + "\",\"tienCocBanDau\":\"" + money(quyetToan.getTienCocBanDau())
+                        + "\",\"tienCocDaCanTru\":\"" + money(quyetToan.getTienCocDaCanTru())
+                        + "\",\"tienCocCanHoan\":\"" + money(quyetToan.getTienCocCanHoan()) + "\"}")
+                .taoLuc(ZonedDateTime.now()).build());
     }
 }

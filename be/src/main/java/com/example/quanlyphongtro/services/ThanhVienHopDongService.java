@@ -6,6 +6,9 @@ import com.example.quanlyphongtro.entity.HopDong;
 import com.example.quanlyphongtro.entity.ThanhVienHopDong;
 import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.repository.ThanhVienHopDongRepository;
+import com.example.quanlyphongtro.repository.AuditLogRepository;
+import com.example.quanlyphongtro.entity.AuditLog;
+import com.example.quanlyphongtro.entity.NguoiDung;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ public class ThanhVienHopDongService {
     private final ThanhVienHopDongRepository thanhVienHopDongRepository;
     private final HopDongRepository hopDongRepository;
     private final PermissionService permissionService;
+    private final AuditLogRepository auditLogRepository;
 
     public List<ThanhVienHopDongResponse> getMembersByHopDongId(UUID hopDongId) {
         HopDong hopDong = hopDongRepository.findById(hopDongId)
@@ -55,14 +59,20 @@ public class ThanhVienHopDongService {
             throw new RuntimeException("Phòng đã đạt số người ở tối đa (" + maxPeople + " người)");
         }
 
+        LocalDate ngayVao = request.getNgayVao() != null ? request.getNgayVao() : LocalDate.now();
+        boolean dangO = request.getDangO() == null || request.getDangO();
+        LocalDate ngayRoi = request.getNgayRoi() != null ? request.getNgayRoi() : (dangO ? null : LocalDate.now());
+        if (ngayRoi != null && ngayRoi.isBefore(ngayVao)) {
+            throw new RuntimeException("Ngày rời đi không thể trước ngày vào ở");
+        }
         ThanhVienHopDong member = ThanhVienHopDong.builder()
                 .hopDong(hopDong)
                 .hoTen(request.getHoTen().trim())
                 .soCccd(request.getSoCccd() != null ? request.getSoCccd().trim() : null)
                 .soDienThoai(request.getSoDienThoai() != null ? request.getSoDienThoai().trim() : null)
-                .ngayVao(request.getNgayVao() != null ? request.getNgayVao() : LocalDate.now())
-                .ngayRoi(request.getNgayRoi())
-                .dangO(request.getDangO() != null ? request.getDangO() : true)
+                .ngayVao(ngayVao)
+                .ngayRoi(ngayRoi)
+                .dangO(dangO)
                 .laNguoiDaiDien(false)
                 .ghiChu(request.getGhiChu())
                 .build();
@@ -87,7 +97,6 @@ public class ThanhVienHopDongService {
         member.setSoCccd(request.getSoCccd() != null ? request.getSoCccd().trim() : null);
         member.setSoDienThoai(request.getSoDienThoai() != null ? request.getSoDienThoai().trim() : null);
         if (request.getNgayVao() != null) member.setNgayVao(request.getNgayVao());
-        member.setNgayRoi(request.getNgayRoi());
         if (request.getDangO() != null) {
             if (Boolean.FALSE.equals(member.getDangO()) && Boolean.TRUE.equals(request.getDangO())) {
                 // Kiểm tra lại số lượng tối đa nếu chuyển từ không ở sang đang ở
@@ -100,6 +109,14 @@ public class ThanhVienHopDongService {
                 }
             }
             member.setDangO(request.getDangO());
+            if (Boolean.TRUE.equals(request.getDangO())) {
+                member.setNgayRoi(null);
+            } else {
+                member.setNgayRoi(request.getNgayRoi() != null ? request.getNgayRoi() : LocalDate.now());
+            }
+        } else if (request.getNgayRoi() != null) {
+            member.setNgayRoi(request.getNgayRoi());
+            member.setDangO(false);
         }
         member.setGhiChu(request.getGhiChu());
 
@@ -123,6 +140,19 @@ public class ThanhVienHopDongService {
             throw new RuntimeException("Không thể xóa người đại diện hợp đồng");
         }
 
-        thanhVienHopDongRepository.delete(member);
+        LocalDate ngayRoi = LocalDate.now();
+        if (ngayRoi.isBefore(member.getNgayVao())) {
+            ngayRoi = member.getNgayVao();
+        }
+        member.setNgayRoi(ngayRoi);
+        member.setDangO(false);
+        ThanhVienHopDong saved = thanhVienHopDongRepository.save(member);
+        auditLogRepository.save(AuditLog.builder()
+                .nguoiDung(NguoiDung.builder().id(userId).build())
+                .hanhDong("LEAVE")
+                .bangTacDong("thanh_vien_hop_dong")
+                .banGhiId(saved.getId())
+                .duLieuMoi("{\"ngayRoi\":\"" + ngayRoi + "\",\"dangO\":false}")
+                .build());
     }
 }

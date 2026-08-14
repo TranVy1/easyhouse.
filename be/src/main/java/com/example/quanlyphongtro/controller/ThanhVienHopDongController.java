@@ -43,6 +43,6 @@ public class ThanhVienHopDongController {
             @PathVariable UUID hopDongId,
             @PathVariable UUID id) {
         thanhVienHopDongService.removeMember(id);
-        return ApiResponse.success(null, "Xóa thành viên thành công");
+        return ApiResponse.success(null, "Đã ghi nhận thành viên rời phòng và giữ lịch sử cư trú");
     }
 }

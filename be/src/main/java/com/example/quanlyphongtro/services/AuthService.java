@@ -375,7 +375,8 @@ public class AuthService {
 
         List<HoaDon> hoaDons = hoaDonRepository.findByKhachThueIdAndXoaLucIsNullOrderByKyNamDescKyThangDesc(khachThue.getId());
         long unpaidCount = hoaDons.stream()
-                .filter(item -> item.getTrangThai() == TrangThaiHoaDon.UNPAID
+                .filter(item -> item.getTrangThai() == TrangThaiHoaDon.ISSUED
+                        || item.getTrangThai() == TrangThaiHoaDon.UNPAID
                         || item.getTrangThai() == TrangThaiHoaDon.PARTIAL
                         || item.getTrangThai() == TrangThaiHoaDon.OVERDUE)
                 .count();

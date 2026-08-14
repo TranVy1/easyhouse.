@@ -28,6 +28,15 @@ services:
       - ./sql/migrations/20260722_add_chat_search.sql:/docker-entrypoint-initdb.d/06-chat-search.sql:ro
       - ./sql/migrations/20260804_share_support_with_admins.sql:/docker-entrypoint-initdb.d/07-share-support-admins.sql:ro
       - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/08-expand-refresh-token.sql:ro
+      - ./sql/migrations/20260813_checkout_deposit_settlement.sql:/docker-entrypoint-initdb.d/09-checkout-settlement.sql:ro
+      - ./sql/migrations/20260814_invoice_traceability_and_issuance.sql:/docker-entrypoint-initdb.d/10-invoice-traceability.sql:ro
+      - ./sql/migrations/20260814_deposit_ledger.sql:/docker-entrypoint-initdb.d/11-deposit-ledger.sql:ro
+      - ./sql/migrations/20260814_asset_handover.sql:/docker-entrypoint-initdb.d/12-asset-handover.sql:ro
+      - ./sql/migrations/20260814_vehicle_fee_plan.sql:/docker-entrypoint-initdb.d/13-vehicle-fee-plan.sql:ro
+      - ./sql/migrations/20260814_notification_delivery_dedupe.sql:/docker-entrypoint-initdb.d/14-notification-delivery-dedupe.sql:ro
+      - ./sql/migrations/20260814_notification_delivery.sql:/docker-entrypoint-initdb.d/15-notification-delivery.sql:ro
+      - ./sql/migrations/20260814_vehicle_assignment_history.sql:/docker-entrypoint-initdb.d/16-vehicle-assignment-history.sql:ro
+      - ./sql/migrations/20260814_invoice_reconciliation_and_due_today.sql:/docker-entrypoint-initdb.d/17-invoice-reconciliation-and-due-today.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s

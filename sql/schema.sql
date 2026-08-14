@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict bJDufgCgUD6E2h1pgOKWBs5B70I9huFmFzuqZp7HTeTtdSckZBhw9g1V1UqwQBS
+\restrict O6WaZLv2mrxYc1Q9KPy4H7VPIZL9dMmSim1SDfF2BXcfYGWekHoAaqgZrbLg7YL
 
 -- Dumped from database version 14.23
 -- Dumped by pg_dump version 14.23
@@ -26,14 +26,42 @@ CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION btree_gist IS 'support for indexing common datatypes in GiST';
 
 
 --
--- Name: appointment_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
+
+
+--
+-- Name: appointment_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.appointment_status AS ENUM (
@@ -44,10 +72,8 @@ CREATE TYPE public.appointment_status AS ENUM (
 );
 
 
-ALTER TYPE public.appointment_status OWNER TO postgres;
-
 --
--- Name: booking_deposit_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: booking_deposit_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.booking_deposit_status AS ENUM (
@@ -58,10 +84,8 @@ CREATE TYPE public.booking_deposit_status AS ENUM (
 );
 
 
-ALTER TYPE public.booking_deposit_status OWNER TO postgres;
-
 --
--- Name: calc_type; Type: TYPE; Schema: public; Owner: postgres
+-- Name: calc_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.calc_type AS ENUM (
@@ -71,10 +95,8 @@ CREATE TYPE public.calc_type AS ENUM (
 );
 
 
-ALTER TYPE public.calc_type OWNER TO postgres;
-
 --
--- Name: contract_deposit_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: contract_deposit_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.contract_deposit_status AS ENUM (
@@ -84,10 +106,8 @@ CREATE TYPE public.contract_deposit_status AS ENUM (
 );
 
 
-ALTER TYPE public.contract_deposit_status OWNER TO postgres;
-
 --
--- Name: contract_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: contract_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.contract_status AS ENUM (
@@ -98,10 +118,8 @@ CREATE TYPE public.contract_status AS ENUM (
 );
 
 
-ALTER TYPE public.contract_status OWNER TO postgres;
-
 --
--- Name: invoice_item_type; Type: TYPE; Schema: public; Owner: postgres
+-- Name: invoice_item_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.invoice_item_type AS ENUM (
@@ -114,10 +132,8 @@ CREATE TYPE public.invoice_item_type AS ENUM (
 );
 
 
-ALTER TYPE public.invoice_item_type OWNER TO postgres;
-
 --
--- Name: invoice_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: invoice_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.invoice_status AS ENUM (
@@ -127,10 +143,8 @@ CREATE TYPE public.invoice_status AS ENUM (
 );
 
 
-ALTER TYPE public.invoice_status OWNER TO postgres;
-
 --
--- Name: kenh_thong_bao; Type: TYPE; Schema: public; Owner: postgres
+-- Name: kenh_thong_bao; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.kenh_thong_bao AS ENUM (
@@ -143,10 +157,8 @@ CREATE TYPE public.kenh_thong_bao AS ENUM (
 );
 
 
-ALTER TYPE public.kenh_thong_bao OWNER TO postgres;
-
 --
--- Name: loai_chi_so; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_chi_so; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_chi_so AS ENUM (
@@ -155,10 +167,21 @@ CREATE TYPE public.loai_chi_so AS ENUM (
 );
 
 
-ALTER TYPE public.loai_chi_so OWNER TO postgres;
+--
+-- Name: loai_cuoc_tro_chuyen; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.loai_cuoc_tro_chuyen AS ENUM (
+    'DIRECT',
+    'GROUP',
+    'BUILDING',
+    'FLOOR',
+    'SUPPORT'
+);
+
 
 --
--- Name: loai_doi_tuong_media; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_doi_tuong_media; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_doi_tuong_media AS ENUM (
@@ -175,10 +198,8 @@ CREATE TYPE public.loai_doi_tuong_media AS ENUM (
 );
 
 
-ALTER TYPE public.loai_doi_tuong_media OWNER TO postgres;
-
 --
--- Name: loai_muc_hoa_don; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_muc_hoa_don; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_muc_hoa_don AS ENUM (
@@ -197,10 +218,8 @@ CREATE TYPE public.loai_muc_hoa_don AS ENUM (
 );
 
 
-ALTER TYPE public.loai_muc_hoa_don OWNER TO postgres;
-
 --
--- Name: loai_su_co_enum; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_su_co_enum; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_su_co_enum AS ENUM (
@@ -213,10 +232,8 @@ CREATE TYPE public.loai_su_co_enum AS ENUM (
 );
 
 
-ALTER TYPE public.loai_su_co_enum OWNER TO postgres;
-
 --
--- Name: loai_thong_bao; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_thong_bao; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_thong_bao AS ENUM (
@@ -230,10 +247,20 @@ CREATE TYPE public.loai_thong_bao AS ENUM (
 );
 
 
-ALTER TYPE public.loai_thong_bao OWNER TO postgres;
+--
+-- Name: loai_tin_nhan; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.loai_tin_nhan AS ENUM (
+    'TEXT',
+    'IMAGE',
+    'FILE',
+    'SYSTEM'
+);
+
 
 --
--- Name: loai_tinh_phi; Type: TYPE; Schema: public; Owner: postgres
+-- Name: loai_tinh_phi; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.loai_tinh_phi AS ENUM (
@@ -245,10 +272,8 @@ CREATE TYPE public.loai_tinh_phi AS ENUM (
 );
 
 
-ALTER TYPE public.loai_tinh_phi OWNER TO postgres;
-
 --
--- Name: maintenance_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: maintenance_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.maintenance_status AS ENUM (
@@ -259,10 +284,8 @@ CREATE TYPE public.maintenance_status AS ENUM (
 );
 
 
-ALTER TYPE public.maintenance_status OWNER TO postgres;
-
 --
--- Name: media_entity_type; Type: TYPE; Schema: public; Owner: postgres
+-- Name: media_entity_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.media_entity_type AS ENUM (
@@ -275,10 +298,19 @@ CREATE TYPE public.media_entity_type AS ENUM (
 );
 
 
-ALTER TYPE public.media_entity_type OWNER TO postgres;
+--
+-- Name: nen_tang_push; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.nen_tang_push AS ENUM (
+    'WEB',
+    'ANDROID',
+    'IOS'
+);
+
 
 --
--- Name: phuong_thuc_thanh_toan; Type: TYPE; Schema: public; Owner: postgres
+-- Name: phuong_thuc_thanh_toan; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.phuong_thuc_thanh_toan AS ENUM (
@@ -293,10 +325,8 @@ CREATE TYPE public.phuong_thuc_thanh_toan AS ENUM (
 );
 
 
-ALTER TYPE public.phuong_thuc_thanh_toan OWNER TO postgres;
-
 --
--- Name: room_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: room_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.room_status AS ENUM (
@@ -306,10 +336,20 @@ CREATE TYPE public.room_status AS ENUM (
 );
 
 
-ALTER TYPE public.room_status OWNER TO postgres;
+--
+-- Name: trang_thai_bao_cao; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.trang_thai_bao_cao AS ENUM (
+    'PENDING',
+    'REVIEWED',
+    'DISMISSED',
+    'ACTIONED'
+);
+
 
 --
--- Name: trang_thai_chi_so; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_chi_so; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_chi_so AS ENUM (
@@ -320,10 +360,8 @@ CREATE TYPE public.trang_thai_chi_so AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_chi_so OWNER TO postgres;
-
 --
--- Name: trang_thai_coc_hop_dong; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_coc_hop_dong; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_coc_hop_dong AS ENUM (
@@ -335,10 +373,19 @@ CREATE TYPE public.trang_thai_coc_hop_dong AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_coc_hop_dong OWNER TO postgres;
+--
+-- Name: trang_thai_cuoc_tro_chuyen; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.trang_thai_cuoc_tro_chuyen AS ENUM (
+    'ACTIVE',
+    'ARCHIVED',
+    'LOCKED'
+);
+
 
 --
--- Name: trang_thai_dat_coc; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_dat_coc; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_dat_coc AS ENUM (
@@ -350,14 +397,13 @@ CREATE TYPE public.trang_thai_dat_coc AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_dat_coc OWNER TO postgres;
-
 --
--- Name: trang_thai_hoa_don; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_hoa_don; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_hoa_don AS ENUM (
     'DRAFT',
+    'ISSUED',
     'UNPAID',
     'PARTIAL',
     'PAID',
@@ -367,10 +413,8 @@ CREATE TYPE public.trang_thai_hoa_don AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_hoa_don OWNER TO postgres;
-
 --
--- Name: trang_thai_hop_dong; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_hop_dong; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_hop_dong AS ENUM (
@@ -383,10 +427,8 @@ CREATE TYPE public.trang_thai_hop_dong AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_hop_dong OWNER TO postgres;
-
 --
--- Name: trang_thai_lich_hen; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_lich_hen; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_lich_hen AS ENUM (
@@ -398,10 +440,8 @@ CREATE TYPE public.trang_thai_lich_hen AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_lich_hen OWNER TO postgres;
-
 --
--- Name: trang_thai_nguoi_dung; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_nguoi_dung; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_nguoi_dung AS ENUM (
@@ -411,10 +451,8 @@ CREATE TYPE public.trang_thai_nguoi_dung AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_nguoi_dung OWNER TO postgres;
-
 --
--- Name: trang_thai_phong; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_phong; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_phong AS ENUM (
@@ -426,10 +464,8 @@ CREATE TYPE public.trang_thai_phong AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_phong OWNER TO postgres;
-
 --
--- Name: trang_thai_phuong_tien; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_phuong_tien; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_phuong_tien AS ENUM (
@@ -438,10 +474,8 @@ CREATE TYPE public.trang_thai_phuong_tien AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_phuong_tien OWNER TO postgres;
-
 --
--- Name: trang_thai_su_co; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_su_co; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_su_co AS ENUM (
@@ -452,10 +486,8 @@ CREATE TYPE public.trang_thai_su_co AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_su_co OWNER TO postgres;
-
 --
--- Name: trang_thai_thanh_toan; Type: TYPE; Schema: public; Owner: postgres
+-- Name: trang_thai_thanh_toan; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.trang_thai_thanh_toan AS ENUM (
@@ -467,10 +499,8 @@ CREATE TYPE public.trang_thai_thanh_toan AS ENUM (
 );
 
 
-ALTER TYPE public.trang_thai_thanh_toan OWNER TO postgres;
-
 --
--- Name: user_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: user_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.user_status AS ENUM (
@@ -480,10 +510,8 @@ CREATE TYPE public.user_status AS ENUM (
 );
 
 
-ALTER TYPE public.user_status OWNER TO postgres;
-
 --
--- Name: uu_tien_enum; Type: TYPE; Schema: public; Owner: postgres
+-- Name: uu_tien_enum; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.uu_tien_enum AS ENUM (
@@ -494,10 +522,8 @@ CREATE TYPE public.uu_tien_enum AS ENUM (
 );
 
 
-ALTER TYPE public.uu_tien_enum OWNER TO postgres;
-
 --
--- Name: vai_tro_he_thong; Type: TYPE; Schema: public; Owner: postgres
+-- Name: vai_tro_he_thong; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.vai_tro_he_thong AS ENUM (
@@ -508,10 +534,19 @@ CREATE TYPE public.vai_tro_he_thong AS ENUM (
 );
 
 
-ALTER TYPE public.vai_tro_he_thong OWNER TO postgres;
+--
+-- Name: vai_tro_thanh_vien_chat; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.vai_tro_thanh_vien_chat AS ENUM (
+    'OWNER',
+    'MODERATOR',
+    'MEMBER'
+);
+
 
 --
--- Name: can_access_nha_tro(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: can_access_nha_tro(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.can_access_nha_tro(p_nha_tro_id uuid) RETURNS boolean
@@ -535,10 +570,8 @@ CREATE FUNCTION public.can_access_nha_tro(p_nha_tro_id uuid) RETURNS boolean
 $$;
 
 
-ALTER FUNCTION public.can_access_nha_tro(p_nha_tro_id uuid) OWNER TO postgres;
-
 --
--- Name: cap_nhat_thoi_gian(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: cap_nhat_thoi_gian(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.cap_nhat_thoi_gian() RETURNS trigger
@@ -551,10 +584,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.cap_nhat_thoi_gian() OWNER TO postgres;
-
 --
--- Name: cap_nhat_trang_thai_hoa_don(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: cap_nhat_trang_thai_hoa_don(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.cap_nhat_trang_thai_hoa_don() RETURNS trigger
@@ -586,10 +617,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.cap_nhat_trang_thai_hoa_don() OWNER TO postgres;
-
 --
--- Name: clone_cau_truc_toa_nha(uuid, uuid); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: clone_cau_truc_toa_nha(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.clone_cau_truc_toa_nha(p_nha_tro_nguon_id uuid, p_nha_tro_dich_id uuid) RETURNS TABLE(tang_duoc_tao integer, phong_duoc_tao integer)
@@ -683,10 +712,19 @@ END;
 $$;
 
 
-ALTER FUNCTION public.clone_cau_truc_toa_nha(p_nha_tro_nguon_id uuid, p_nha_tro_dich_id uuid) OWNER TO postgres;
+--
+-- Name: f_khong_dau(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.f_khong_dau(text) RETURNS text
+    LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+    AS $_$
+    SELECT lower(public.unaccent('public.unaccent'::regdictionary, $1))
+$_$;
+
 
 --
--- Name: is_admin(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: is_admin(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.is_admin() RETURNS boolean
@@ -703,10 +741,8 @@ CREATE FUNCTION public.is_admin() RETURNS boolean
 $$;
 
 
-ALTER FUNCTION public.is_admin() OWNER TO postgres;
-
 --
--- Name: recalc_hoa_don_from_chi_tiet(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: recalc_hoa_don_from_chi_tiet(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.recalc_hoa_don_from_chi_tiet() RETURNS trigger
@@ -736,10 +772,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.recalc_hoa_don_from_chi_tiet() OWNER TO postgres;
-
 --
--- Name: recalc_hoa_don_from_thanh_toan(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: recalc_hoa_don_from_thanh_toan(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.recalc_hoa_don_from_thanh_toan() RETURNS trigger
@@ -765,10 +799,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.recalc_hoa_don_from_thanh_toan() OWNER TO postgres;
-
 --
--- Name: sinh_phong_toa_nha(uuid, integer, integer, numeric, numeric, numeric, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: sinh_phong_toa_nha(uuid, integer, integer, numeric, numeric, numeric, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.sinh_phong_toa_nha(p_nha_tro_id uuid, p_so_tang integer, p_so_phong_moi_tang integer, p_dien_tich numeric DEFAULT 20, p_gia_hien_tai numeric DEFAULT 0, p_tien_coc_mac_dinh numeric DEFAULT 0, p_so_nguoi_toi_da integer DEFAULT 2) RETURNS TABLE(tang_duoc_tao integer, phong_duoc_tao integer)
@@ -785,7 +817,6 @@ BEGIN
     IF p_so_tang <= 0 OR p_so_phong_moi_tang <= 0 THEN
         RAISE EXCEPTION 'p_so_tang va p_so_phong_moi_tang phai lon hon 0';
     END IF;
-
     IF p_dien_tich <= 0 OR p_gia_hien_tai < 0 OR p_tien_coc_mac_dinh < 0 OR p_so_nguoi_toi_da <= 0 THEN
         RAISE EXCEPTION 'Thong so phong khong hop le';
     END IF;
@@ -794,40 +825,23 @@ BEGIN
         INSERT INTO public.tang (nha_tro_id, so_tang, ten_tang, thu_tu_hien_thi, so_phong_du_kien)
         VALUES (p_nha_tro_id, v_tang, 'Tang ' || v_tang::text, v_tang, p_so_phong_moi_tang)
         ON CONFLICT (nha_tro_id, so_tang) DO UPDATE
-        SET
-            so_phong_du_kien = EXCLUDED.so_phong_du_kien,
+        SET so_phong_du_kien = EXCLUDED.so_phong_du_kien,
             cap_nhat_luc = now()
         RETURNING id INTO v_tang_id;
 
         v_tang_count := v_tang_count + 1;
-
         FOR v_phong IN 1..p_so_phong_moi_tang LOOP
-            v_ma_phong := 'Ph??ng ' || (v_tang * 100 + v_phong)::text;
-
+            v_ma_phong := U&'Ph\00F2ng ' || (v_tang * 100 + v_phong)::text;
             INSERT INTO public.phong (
-                nha_tro_id,
-                tang_id,
-                ten,
-                tang,
-                dien_tich,
-                so_nguoi_toi_da,
-                trang_thai,
-                gia_hien_tai,
-                tien_coc_mac_dinh
+                nha_tro_id, tang_id, ten, tang, dien_tich, so_nguoi_toi_da,
+                trang_thai, gia_hien_tai, tien_coc_mac_dinh
             )
             VALUES (
-                p_nha_tro_id,
-                v_tang_id,
-                v_ma_phong,
-                v_tang,
-                p_dien_tich,
-                p_so_nguoi_toi_da,
-                'AVAILABLE'::public.trang_thai_phong,
-                p_gia_hien_tai,
-                p_tien_coc_mac_dinh
+                p_nha_tro_id, v_tang_id, v_ma_phong, v_tang, p_dien_tich,
+                p_so_nguoi_toi_da, 'AVAILABLE'::public.trang_thai_phong,
+                p_gia_hien_tai, p_tien_coc_mac_dinh
             )
             ON CONFLICT (nha_tro_id, ten) DO NOTHING;
-
             IF FOUND THEN
                 v_phong_count := v_phong_count + 1;
             END IF;
@@ -839,10 +853,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.sinh_phong_toa_nha(p_nha_tro_id uuid, p_so_tang integer, p_so_phong_moi_tang integer, p_dien_tich numeric, p_gia_hien_tai numeric, p_tien_coc_mac_dinh numeric, p_so_nguoi_toi_da integer) OWNER TO postgres;
-
 --
--- Name: tao_lich_thanh_toan_hang_thang(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: tao_lich_thanh_toan_hang_thang(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.tao_lich_thanh_toan_hang_thang(p_hop_dong_id uuid) RETURNS integer
@@ -854,6 +866,8 @@ DECLARE
     v_tu_ngay date;
     v_den_ngay date;
     v_han_thanh_toan date;
+    v_so_ngay_o integer;
+    v_so_ngay_thang integer;
     v_count integer := 0;
 BEGIN
     SELECT *
@@ -871,19 +885,16 @@ BEGIN
     WHILE v_ngay <= v_hd.ngay_ket_thuc LOOP
         v_tu_ngay := greatest(v_hd.ngay_bat_dau, v_ngay);
         v_den_ngay := least(v_hd.ngay_ket_thuc, (v_ngay + INTERVAL '1 month - 1 day')::date);
+        v_so_ngay_o := (v_den_ngay - v_tu_ngay) + 1;
+        v_so_ngay_thang := extract(day FROM (v_ngay + INTERVAL '1 month - 1 day'))::integer;
         v_han_thanh_toan := make_date(
-            extract(year from v_ngay)::integer,
-            extract(month from v_ngay)::integer,
+            extract(year FROM (v_ngay + INTERVAL '1 month'))::integer,
+            extract(month FROM (v_ngay + INTERVAL '1 month'))::integer,
             least(
-                v_hd.ngay_thanh_toan_hang_thang,
-                extract(day from ((v_ngay + INTERVAL '1 month - 1 day')::date))::integer
+                coalesce(v_hd.ngay_thanh_toan_hang_thang, 5),
+                extract(day FROM ((v_ngay + INTERVAL '2 month - 1 day')::date))::integer
             )
         );
-        
-        -- Fix: N???u h???n thanh to??n trong th??ng ?????u b??? r??i v??o tr?????c ng??y b???t ?????u, d???i sang t???_ng??y
-        IF v_han_thanh_toan < v_tu_ngay THEN
-            v_han_thanh_toan := v_tu_ngay;
-        END IF;
 
         INSERT INTO public.lich_thanh_toan (
             hop_dong_id,
@@ -896,12 +907,12 @@ BEGIN
         )
         VALUES (
             v_hd.id,
-            extract(year from v_ngay)::integer,
-            extract(month from v_ngay)::integer,
+            extract(year FROM v_ngay)::integer,
+            extract(month FROM v_ngay)::integer,
             v_tu_ngay,
             v_den_ngay,
             v_han_thanh_toan,
-            v_hd.gia_thue_hop_dong
+            round(v_hd.gia_thue_hop_dong * v_so_ngay_o / v_so_ngay_thang, 2)
         )
         ON CONFLICT (hop_dong_id, ky_nam, ky_thang) DO UPDATE
         SET
@@ -920,10 +931,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.tao_lich_thanh_toan_hang_thang(p_hop_dong_id uuid) OWNER TO postgres;
-
 --
--- Name: update_invoice_status_on_payment(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_invoice_status_on_payment(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.update_invoice_status_on_payment() RETURNS trigger
@@ -977,10 +986,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.update_invoice_status_on_payment() OWNER TO postgres;
-
 --
--- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
@@ -993,14 +1000,12 @@ END;
 $$;
 
 
-ALTER FUNCTION public.update_updated_at_column() OWNER TO postgres;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: audit_log; Type: TABLE; Schema: public; Owner: postgres
+-- Name: audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.audit_log (
@@ -1017,10 +1022,8 @@ CREATE TABLE public.audit_log (
 );
 
 
-ALTER TABLE public.audit_log OWNER TO postgres;
-
 --
--- Name: bank_transaction; Type: TABLE; Schema: public; Owner: postgres
+-- Name: bank_transaction; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.bank_transaction (
@@ -1039,10 +1042,26 @@ CREATE TABLE public.bank_transaction (
 );
 
 
-ALTER TABLE public.bank_transaction OWNER TO postgres;
+--
+-- Name: bao_cao_tin_nhan; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bao_cao_tin_nhan (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    tin_nhan_id uuid NOT NULL,
+    cuoc_tro_chuyen_id uuid NOT NULL,
+    nguoi_bao_cao_id uuid NOT NULL,
+    ly_do text NOT NULL,
+    trang_thai public.trang_thai_bao_cao DEFAULT 'PENDING'::public.trang_thai_bao_cao NOT NULL,
+    nguoi_xu_ly_id uuid,
+    ghi_chu_xu_ly text,
+    xu_ly_luc timestamp with time zone,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL
+);
+
 
 --
--- Name: cau_hinh_gia; Type: TABLE; Schema: public; Owner: postgres
+-- Name: cau_hinh_gia; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.cau_hinh_gia (
@@ -1063,10 +1082,41 @@ CREATE TABLE public.cau_hinh_gia (
 );
 
 
-ALTER TABLE public.cau_hinh_gia OWNER TO postgres;
+--
+-- Name: cau_hinh_phi_xe; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cau_hinh_phi_xe (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    loai_xe character varying(100) NOT NULL,
+    don_gia numeric(18,2) NOT NULL,
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    dang_ap_dung boolean DEFAULT true NOT NULL,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT cau_hinh_phi_xe_don_gia_check CHECK ((don_gia >= (0)::numeric)),
+    CONSTRAINT cau_hinh_phi_xe_hieu_luc_check CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
+);
+
 
 --
--- Name: chi_so_dien_nuoc; Type: TABLE; Schema: public; Owner: postgres
+-- Name: chan_nguoi_dung; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chan_nguoi_dung (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nguoi_chan_id uuid NOT NULL,
+    nguoi_bi_chan_id uuid NOT NULL,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chk_khong_tu_chan CHECK ((nguoi_chan_id <> nguoi_bi_chan_id))
+);
+
+
+--
+-- Name: chi_so_dien_nuoc; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.chi_so_dien_nuoc (
@@ -1091,10 +1141,32 @@ CREATE TABLE public.chi_so_dien_nuoc (
 );
 
 
-ALTER TABLE public.chi_so_dien_nuoc OWNER TO postgres;
+--
+-- Name: chi_tiet_ban_giao_tai_san; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chi_tiet_ban_giao_tai_san (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    quyet_toan_tra_phong_id uuid NOT NULL,
+    tai_san_phong_id uuid,
+    ten_tai_san character varying(255) NOT NULL,
+    so_luong_ban_dau integer NOT NULL,
+    tinh_trang_ban_dau character varying(255) NOT NULL,
+    anh_tai_san_ban_dau text,
+    so_luong_thuc_te integer,
+    tinh_trang_thuc_te character varying(255),
+    chung_tu_url text,
+    ghi_chu text,
+    da_xac_nhan boolean DEFAULT false NOT NULL,
+    xac_nhan_luc timestamp with time zone,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chi_tiet_ban_giao_tai_san_quantity_check CHECK (((so_luong_ban_dau >= 0) AND ((so_luong_thuc_te IS NULL) OR ((so_luong_thuc_te >= 0) AND (so_luong_thuc_te <= so_luong_ban_dau)))))
+);
+
 
 --
--- Name: chi_tiet_hoa_don; Type: TABLE; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.chi_tiet_hoa_don (
@@ -1109,14 +1181,18 @@ CREATE TABLE public.chi_tiet_hoa_don (
     don_gia numeric(38,2) DEFAULT 0 NOT NULL,
     thanh_tien numeric(38,2) DEFAULT 0 NOT NULL,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    source_type character varying(64) NOT NULL,
+    source_id uuid,
+    pricing_rule_version character varying(128) NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    calculation_hash character varying(64) NOT NULL,
     CONSTRAINT chk_cthd_tien CHECK (((so_luong >= (0)::numeric) AND (don_gia >= (0)::numeric) AND (((loai = 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien <= (0)::numeric)) OR ((loai <> 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien >= (0)::numeric)))))
 );
 
 
-ALTER TABLE public.chi_tiet_hoa_don OWNER TO postgres;
-
 --
--- Name: chu_tro; Type: TABLE; Schema: public; Owner: postgres
+-- Name: chu_tro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.chu_tro (
@@ -1133,10 +1209,8 @@ CREATE TABLE public.chu_tro (
 );
 
 
-ALTER TABLE public.chu_tro OWNER TO postgres;
-
 --
--- Name: contract_signature; Type: TABLE; Schema: public; Owner: postgres
+-- Name: contract_signature; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.contract_signature (
@@ -1151,10 +1225,47 @@ CREATE TABLE public.contract_signature (
 );
 
 
-ALTER TABLE public.contract_signature OWNER TO postgres;
+--
+-- Name: cuoc_tro_chuyen; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cuoc_tro_chuyen (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    loai public.loai_cuoc_tro_chuyen NOT NULL,
+    ten text,
+    anh text,
+    nha_tro_id uuid,
+    tang_id uuid,
+    nguoi_tao_id uuid,
+    trang_thai public.trang_thai_cuoc_tro_chuyen DEFAULT 'ACTIVE'::public.trang_thai_cuoc_tro_chuyen NOT NULL,
+    khoa_duy_nhat text NOT NULL,
+    tin_nhan_cuoi_luc timestamp with time zone,
+    xem_truoc text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    xoa_luc timestamp with time zone
+);
+
 
 --
--- Name: dat_coc_phong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: dang_ky_push; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.dang_ky_push (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nguoi_dung_id uuid NOT NULL,
+    nen_tang public.nen_tang_push NOT NULL,
+    endpoint text NOT NULL,
+    khoa_p256dh text,
+    khoa_auth text,
+    mo_ta_thiet_bi text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    dung_luc timestamp with time zone
+);
+
+
+--
+-- Name: dat_coc_phong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.dat_coc_phong (
@@ -1177,10 +1288,8 @@ CREATE TABLE public.dat_coc_phong (
 );
 
 
-ALTER TABLE public.dat_coc_phong OWNER TO postgres;
-
 --
--- Name: debt_reminder_log; Type: TABLE; Schema: public; Owner: postgres
+-- Name: debt_reminder_log; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.debt_reminder_log (
@@ -1194,14 +1303,12 @@ CREATE TABLE public.debt_reminder_log (
     hoa_don_id uuid NOT NULL,
     recipient_id uuid,
     CONSTRAINT debt_reminder_log_channel_check CHECK (((channel)::text = ANY (ARRAY[('EMAIL'::character varying)::text, ('SYSTEM_NOTIFICATION'::character varying)::text]))),
-    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY[('DUE_IN_3_DAYS'::character varying)::text, ('DUE_TOMORROW'::character varying)::text, ('OVERDUE_1_DAY'::character varying)::text, ('OVERDUE_7_DAYS'::character varying)::text, ('OVERDUE_15_DAYS'::character varying)::text, ('OVERDUE_30_DAYS'::character varying)::text, ('MANUAL'::character varying)::text])))
+    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY['DUE_IN_3_DAYS'::text, 'DUE_TOMORROW'::text, 'DUE_TODAY'::text, 'OVERDUE_1_DAY'::text, 'OVERDUE_3_DAYS'::text, 'OVERDUE_7_DAYS'::text, 'OVERDUE_15_DAYS'::text, 'OVERDUE_30_DAYS'::text, 'MANUAL'::text])))
 );
 
 
-ALTER TABLE public.debt_reminder_log OWNER TO postgres;
-
 --
--- Name: dich_vu; Type: TABLE; Schema: public; Owner: postgres
+-- Name: dich_vu; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.dich_vu (
@@ -1218,10 +1325,8 @@ CREATE TABLE public.dich_vu (
 );
 
 
-ALTER TABLE public.dich_vu OWNER TO postgres;
-
 --
--- Name: dich_vu_hop_dong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.dich_vu_hop_dong (
@@ -1238,10 +1343,8 @@ CREATE TABLE public.dich_vu_hop_dong (
 );
 
 
-ALTER TABLE public.dich_vu_hop_dong OWNER TO postgres;
-
 --
--- Name: email_verification_token; Type: TABLE; Schema: public; Owner: postgres
+-- Name: email_verification_token; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.email_verification_token (
@@ -1253,10 +1356,8 @@ CREATE TABLE public.email_verification_token (
 );
 
 
-ALTER TABLE public.email_verification_token OWNER TO postgres;
-
 --
--- Name: file_media; Type: TABLE; Schema: public; Owner: postgres
+-- Name: file_media; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.file_media (
@@ -1274,10 +1375,29 @@ CREATE TABLE public.file_media (
 );
 
 
-ALTER TABLE public.file_media OWNER TO postgres;
+--
+-- Name: giao_dich_tien_coc; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.giao_dich_tien_coc (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    thanh_toan_id uuid,
+    quyet_toan_tra_phong_id uuid,
+    loai character varying(32) NOT NULL,
+    so_tien numeric(18,2) NOT NULL,
+    thoi_diem timestamp with time zone DEFAULT now() NOT NULL,
+    dien_giai text NOT NULL,
+    ma_tham_chieu character varying(150),
+    chung_tu_url text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT giao_dich_tien_coc_loai_check CHECK (((loai)::text = ANY ((ARRAY['LEGACY_OPENING'::character varying, 'HELD'::character varying, 'DEDUCTION'::character varying, 'REFUND'::character varying])::text[]))),
+    CONSTRAINT giao_dich_tien_coc_so_tien_positive CHECK ((so_tien > (0)::numeric))
+);
+
 
 --
--- Name: hoa_don; Type: TABLE; Schema: public; Owner: postgres
+-- Name: hoa_don; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.hoa_don (
@@ -1286,7 +1406,6 @@ CREATE TABLE public.hoa_don (
     phong_id uuid NOT NULL,
     khach_thue_id uuid NOT NULL,
     ma_hoa_don character varying(100) NOT NULL,
-    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     ky_nam integer NOT NULL,
     ky_thang integer NOT NULL,
     tu_ngay date NOT NULL,
@@ -1306,16 +1425,16 @@ CREATE TABLE public.hoa_don (
     auto_generated boolean DEFAULT false,
     generation_batch_id uuid,
     source_schedule_id uuid,
+    hoa_don_goc_id uuid,
+    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     CONSTRAINT chk_hoa_don_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND ((ky_nam >= 2000) AND (ky_nam <= 2100)))),
     CONSTRAINT chk_hoa_don_ngay CHECK (((den_ngay >= tu_ngay) AND (han_tra >= tu_ngay))),
     CONSTRAINT chk_hoa_don_tien CHECK (((tong_tien_phat_sinh >= (0)::numeric) AND (tong_tien >= (0)::numeric) AND (da_tra >= (0)::numeric)))
 );
 
 
-ALTER TABLE public.hoa_don OWNER TO postgres;
-
 --
--- Name: hop_dong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: hop_dong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.hop_dong (
@@ -1356,10 +1475,8 @@ CREATE TABLE public.hop_dong (
 );
 
 
-ALTER TABLE public.hop_dong OWNER TO postgres;
-
 --
--- Name: invoice_generation_batch; Type: TABLE; Schema: public; Owner: postgres
+-- Name: invoice_generation_batch; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.invoice_generation_batch (
@@ -1377,10 +1494,8 @@ CREATE TABLE public.invoice_generation_batch (
 );
 
 
-ALTER TABLE public.invoice_generation_batch OWNER TO postgres;
-
 --
--- Name: invoice_generation_log; Type: TABLE; Schema: public; Owner: postgres
+-- Name: invoice_generation_log; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.invoice_generation_log (
@@ -1394,10 +1509,8 @@ CREATE TABLE public.invoice_generation_log (
 );
 
 
-ALTER TABLE public.invoice_generation_log OWNER TO postgres;
-
 --
--- Name: khach_thue; Type: TABLE; Schema: public; Owner: postgres
+-- Name: khach_thue; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.khach_thue (
@@ -1421,10 +1534,29 @@ CREATE TABLE public.khach_thue (
 );
 
 
-ALTER TABLE public.khach_thue OWNER TO postgres;
+--
+-- Name: kho_tai_san; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.kho_tai_san (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    ten_tai_san character varying(255) NOT NULL,
+    hinh_anh text,
+    tong_so_luong integer DEFAULT 0 NOT NULL,
+    so_luong_kha_dung integer DEFAULT 0 NOT NULL,
+    so_luong_da_cap_phat integer DEFAULT 0 NOT NULL,
+    so_luong_hu_hong integer DEFAULT 0 NOT NULL,
+    tinh_trang character varying(255) NOT NULL,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now(),
+    cap_nhat_luc timestamp with time zone DEFAULT now(),
+    xoa_luc timestamp with time zone
+);
+
 
 --
--- Name: lich_hen; Type: TABLE; Schema: public; Owner: postgres
+-- Name: lich_hen; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.lich_hen (
@@ -1446,10 +1578,8 @@ CREATE TABLE public.lich_hen (
 );
 
 
-ALTER TABLE public.lich_hen OWNER TO postgres;
-
 --
--- Name: lich_su_hoa_don; Type: TABLE; Schema: public; Owner: postgres
+-- Name: lich_su_hoa_don; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.lich_su_hoa_don (
@@ -1463,10 +1593,40 @@ CREATE TABLE public.lich_su_hoa_don (
 );
 
 
-ALTER TABLE public.lich_su_hoa_don OWNER TO postgres;
+--
+-- Name: lich_su_kho_tai_san; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lich_su_kho_tai_san (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    kho_tai_san_id uuid NOT NULL,
+    phong_id uuid,
+    loai_giao_dich character varying(255) NOT NULL,
+    so_luong integer NOT NULL,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now()
+);
+
 
 --
--- Name: lich_thanh_toan; Type: TABLE; Schema: public; Owner: postgres
+-- Name: lich_su_phuong_tien; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lich_su_phuong_tien (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    phuong_tien_id uuid NOT NULL,
+    khach_thue_id uuid NOT NULL,
+    phong_id uuid NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_lich_su_phuong_tien_dates CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
+);
+
+
+--
+-- Name: lich_thanh_toan; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.lich_thanh_toan (
@@ -1490,10 +1650,8 @@ CREATE TABLE public.lich_thanh_toan (
 );
 
 
-ALTER TABLE public.lich_thanh_toan OWNER TO postgres;
-
 --
--- Name: login_history; Type: TABLE; Schema: public; Owner: postgres
+-- Name: login_history; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.login_history (
@@ -1508,10 +1666,8 @@ CREATE TABLE public.login_history (
 );
 
 
-ALTER TABLE public.login_history OWNER TO postgres;
-
 --
--- Name: meter_anomaly_alert; Type: TABLE; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.meter_anomaly_alert (
@@ -1534,10 +1690,8 @@ CREATE TABLE public.meter_anomaly_alert (
 );
 
 
-ALTER TABLE public.meter_anomaly_alert OWNER TO postgres;
-
 --
--- Name: nguoi_dung; Type: TABLE; Schema: public; Owner: postgres
+-- Name: nguoi_dung; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.nguoi_dung (
@@ -1569,10 +1723,8 @@ CREATE TABLE public.nguoi_dung (
 );
 
 
-ALTER TABLE public.nguoi_dung OWNER TO postgres;
-
 --
--- Name: nguoi_dung_nha_tro; Type: TABLE; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.nguoi_dung_nha_tro (
@@ -1588,10 +1740,8 @@ CREATE TABLE public.nguoi_dung_nha_tro (
 );
 
 
-ALTER TABLE public.nguoi_dung_nha_tro OWNER TO postgres;
-
 --
--- Name: nguoi_dung_vai_tro; Type: TABLE; Schema: public; Owner: postgres
+-- Name: nguoi_dung_vai_tro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.nguoi_dung_vai_tro (
@@ -1601,10 +1751,8 @@ CREATE TABLE public.nguoi_dung_vai_tro (
 );
 
 
-ALTER TABLE public.nguoi_dung_vai_tro OWNER TO postgres;
-
 --
--- Name: nha_tro; Type: TABLE; Schema: public; Owner: postgres
+-- Name: nha_tro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.nha_tro (
@@ -1623,14 +1771,37 @@ CREATE TABLE public.nha_tro (
     trang_thai character varying(30) DEFAULT 'ACTIVE'::character varying NOT NULL,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
-    xoa_luc timestamp with time zone
+    xoa_luc timestamp with time zone,
+    vi_do numeric(10,7),
+    kinh_do numeric(10,7),
+    google_place_id character varying(255),
+    dia_chi_da_chuan_hoa text,
+    CONSTRAINT nha_tro_kinh_do_range CHECK (((kinh_do IS NULL) OR ((kinh_do >= ('-180'::integer)::numeric) AND (kinh_do <= (180)::numeric)))),
+    CONSTRAINT nha_tro_vi_do_range CHECK (((vi_do IS NULL) OR ((vi_do >= ('-90'::integer)::numeric) AND (vi_do <= (90)::numeric))))
 );
 
 
-ALTER TABLE public.nha_tro OWNER TO postgres;
+--
+-- Name: notification_delivery; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notification_delivery (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    aggregate_type character varying(64) NOT NULL,
+    aggregate_id uuid NOT NULL,
+    rule_code character varying(128) NOT NULL,
+    scheduled_for date NOT NULL,
+    channel character varying(32) NOT NULL,
+    recipient_id uuid NOT NULL,
+    status character varying(16) DEFAULT 'PENDING'::character varying NOT NULL,
+    error_message text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL
+);
+
 
 --
--- Name: phong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: phong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.phong (
@@ -1656,10 +1827,8 @@ CREATE TABLE public.phong (
 );
 
 
-ALTER TABLE public.phong OWNER TO postgres;
-
 --
--- Name: phong_tien_ich; Type: TABLE; Schema: public; Owner: postgres
+-- Name: phong_tien_ich; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.phong_tien_ich (
@@ -1669,10 +1838,8 @@ CREATE TABLE public.phong_tien_ich (
 );
 
 
-ALTER TABLE public.phong_tien_ich OWNER TO postgres;
-
 --
--- Name: phu_luc_hop_dong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: phu_luc_hop_dong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.phu_luc_hop_dong (
@@ -1689,10 +1856,8 @@ CREATE TABLE public.phu_luc_hop_dong (
 );
 
 
-ALTER TABLE public.phu_luc_hop_dong OWNER TO postgres;
-
 --
--- Name: phuong_tien; Type: TABLE; Schema: public; Owner: postgres
+-- Name: phuong_tien; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.phuong_tien (
@@ -1712,12 +1877,15 @@ CREATE TABLE public.phuong_tien (
     ten_dong_xe character varying(100),
     mau_xe character varying(50),
     ten_chu_xe character varying(100),
-    so_ve_xe character varying(50)
+    so_ve_xe character varying(50),
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    CONSTRAINT phuong_tien_hieu_luc_check CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
 );
 
 
 --
--- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.quyet_toan_tra_phong (
@@ -1740,15 +1908,13 @@ CREATE TABLE public.quyet_toan_tra_phong (
     ghi_chu text,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= 0) AND (tien_coc_da_can_tru >= 0) AND (tien_coc_can_hoan >= 0) AND (tien_phai_thu_them >= 0))),
-    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau))
+    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau)),
+    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= (0)::numeric) AND (tien_coc_da_can_tru >= (0)::numeric) AND (tien_coc_can_hoan >= (0)::numeric) AND (tien_phai_thu_them >= (0)::numeric)))
 );
 
 
-ALTER TABLE public.phuong_tien OWNER TO postgres;
-
 --
--- Name: refresh_token; Type: TABLE; Schema: public; Owner: postgres
+-- Name: refresh_token; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.refresh_token (
@@ -1760,10 +1926,8 @@ CREATE TABLE public.refresh_token (
 );
 
 
-ALTER TABLE public.refresh_token OWNER TO postgres;
-
 --
--- Name: su_co; Type: TABLE; Schema: public; Owner: postgres
+-- Name: su_co; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.su_co (
@@ -1787,10 +1951,8 @@ CREATE TABLE public.su_co (
 );
 
 
-ALTER TABLE public.su_co OWNER TO postgres;
-
 --
--- Name: tai_san_phong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: tai_san_phong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.tai_san_phong (
@@ -1803,14 +1965,14 @@ CREATE TABLE public.tai_san_phong (
     ghi_chu text,
     tao_luc timestamp with time zone,
     cap_nhat_luc timestamp with time zone,
-    anh_tai_san text
+    anh_tai_san text,
+    xoa_luc timestamp with time zone,
+    kho_tai_san_id uuid
 );
 
 
-ALTER TABLE public.tai_san_phong OWNER TO postgres;
-
 --
--- Name: tang; Type: TABLE; Schema: public; Owner: postgres
+-- Name: tang; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.tang (
@@ -1829,10 +1991,8 @@ CREATE TABLE public.tang (
 );
 
 
-ALTER TABLE public.tang OWNER TO postgres;
-
 --
--- Name: thanh_toan; Type: TABLE; Schema: public; Owner: postgres
+-- Name: thanh_toan; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.thanh_toan (
@@ -1853,10 +2013,58 @@ CREATE TABLE public.thanh_toan (
 );
 
 
-ALTER TABLE public.thanh_toan OWNER TO postgres;
+--
+-- Name: thanh_vien_cuoc_tro_chuyen; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.thanh_vien_cuoc_tro_chuyen (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    cuoc_tro_chuyen_id uuid NOT NULL,
+    nguoi_dung_id uuid NOT NULL,
+    vai_tro public.vai_tro_thanh_vien_chat DEFAULT 'MEMBER'::public.vai_tro_thanh_vien_chat NOT NULL,
+    tham_gia_luc timestamp with time zone DEFAULT now() NOT NULL,
+    roi_luc timestamp with time zone,
+    doc_den_seq bigint DEFAULT 0 NOT NULL,
+    doc_den_luc timestamp with time zone,
+    tat_thong_bao boolean DEFAULT false NOT NULL,
+    ghim boolean DEFAULT false NOT NULL,
+    luu_tru boolean DEFAULT false NOT NULL,
+    an_den_seq bigint DEFAULT 0 NOT NULL,
+    biet_danh text,
+    tat_thong_bao_den timestamp with time zone
+);
+
 
 --
--- Name: thanh_vien_hop_dong; Type: TABLE; Schema: public; Owner: postgres
+-- Name: COLUMN thanh_vien_cuoc_tro_chuyen.tat_thong_bao; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.thanh_vien_cuoc_tro_chuyen.tat_thong_bao IS 'T???t th??ng b??o v?? th???i h???n (?????n khi ng?????i d??ng t??? b???t l???i)';
+
+
+--
+-- Name: COLUMN thanh_vien_cuoc_tro_chuyen.luu_tru; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.thanh_vien_cuoc_tro_chuyen.luu_tru IS 'L??u tr???: ???n kh???i danh s??ch nh??ng gi??? l???ch s???, c?? tin m???i th?? hi???n l???i';
+
+
+--
+-- Name: COLUMN thanh_vien_cuoc_tro_chuyen.an_den_seq; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.thanh_vien_cuoc_tro_chuyen.an_den_seq IS 'Xo?? b???n c???a m??nh: ch??? hi???n th??? tin c?? so_thu_tu > gi?? tr??? n??y. Kh??ng ?????ng d??? li???u ng?????i kh??c';
+
+
+--
+-- Name: COLUMN thanh_vien_cuoc_tro_chuyen.tat_thong_bao_den; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.thanh_vien_cuoc_tro_chuyen.tat_thong_bao_den IS 'T???t th??ng b??o t???i th???i ??i???m n??y. ??ang t???t = tat_thong_bao OR tat_thong_bao_den > now()';
+
+
+--
+-- Name: thanh_vien_hop_dong; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.thanh_vien_hop_dong (
@@ -1877,10 +2085,8 @@ CREATE TABLE public.thanh_vien_hop_dong (
 );
 
 
-ALTER TABLE public.thanh_vien_hop_dong OWNER TO postgres;
-
 --
--- Name: thong_bao; Type: TABLE; Schema: public; Owner: postgres
+-- Name: thong_bao; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.thong_bao (
@@ -1899,10 +2105,8 @@ CREATE TABLE public.thong_bao (
 );
 
 
-ALTER TABLE public.thong_bao OWNER TO postgres;
-
 --
--- Name: thong_bao_nguoi_nhan; Type: TABLE; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.thong_bao_nguoi_nhan (
@@ -1916,10 +2120,8 @@ CREATE TABLE public.thong_bao_nguoi_nhan (
 );
 
 
-ALTER TABLE public.thong_bao_nguoi_nhan OWNER TO postgres;
-
 --
--- Name: tien_ich; Type: TABLE; Schema: public; Owner: postgres
+-- Name: tien_ich; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.tien_ich (
@@ -1930,10 +2132,72 @@ CREATE TABLE public.tien_ich (
 );
 
 
-ALTER TABLE public.tien_ich OWNER TO postgres;
+--
+-- Name: tin_nhan; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tin_nhan (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    so_thu_tu bigint NOT NULL,
+    cuoc_tro_chuyen_id uuid NOT NULL,
+    nguoi_gui_id uuid,
+    loai public.loai_tin_nhan DEFAULT 'TEXT'::public.loai_tin_nhan NOT NULL,
+    noi_dung text,
+    file_media_id uuid,
+    tra_loi_cho_id uuid,
+    ma_client text,
+    da_thu_hoi boolean DEFAULT false NOT NULL,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    xoa_luc timestamp with time zone,
+    ghim_luc timestamp with time zone,
+    nguoi_ghim_id uuid,
+    chuyen_tiep_tu_id uuid
+);
+
 
 --
--- Name: v_so_do_toa_nha; Type: VIEW; Schema: public; Owner: postgres
+-- Name: COLUMN tin_nhan.ghim_luc; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.tin_nhan.ghim_luc IS 'Th???i ??i???m ???????c ghim. NULL = kh??ng ghim. Ph???m vi c??? h???i tho???i, m???i th??nh vi??n ?????u th???y';
+
+
+--
+-- Name: COLUMN tin_nhan.nguoi_ghim_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.tin_nhan.nguoi_ghim_id IS 'Ai ???? ghim ??? d??ng ????? hi???n th??? "X ???? ghim m???t tin nh???n"';
+
+
+--
+-- Name: COLUMN tin_nhan.chuyen_tiep_tu_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.tin_nhan.chuyen_tiep_tu_id IS 'Tin g???c n???u ????y l?? b???n chuy???n ti???p. D??ng ????? truy v???t khi ki???m duy???t';
+
+
+--
+-- Name: tin_nhan_so_thu_tu_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tin_nhan_so_thu_tu_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tin_nhan_so_thu_tu_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tin_nhan_so_thu_tu_seq OWNED BY public.tin_nhan.so_thu_tu;
+
+
+--
+-- Name: v_so_do_toa_nha; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_so_do_toa_nha AS
@@ -1995,10 +2259,8 @@ CREATE VIEW public.v_so_do_toa_nha AS
   WHERE (nt.xoa_luc IS NULL);
 
 
-ALTER TABLE public.v_so_do_toa_nha OWNER TO postgres;
-
 --
--- Name: v_thong_ke_toa_nha; Type: VIEW; Schema: public; Owner: postgres
+-- Name: v_thong_ke_toa_nha; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_thong_ke_toa_nha AS
@@ -2048,10 +2310,8 @@ CREATE VIEW public.v_thong_ke_toa_nha AS
   GROUP BY nt.id, nt.ten;
 
 
-ALTER TABLE public.v_thong_ke_toa_nha OWNER TO postgres;
-
 --
--- Name: vai_tro; Type: TABLE; Schema: public; Owner: postgres
+-- Name: vai_tro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.vai_tro (
@@ -2062,10 +2322,8 @@ CREATE TABLE public.vai_tro (
 );
 
 
-ALTER TABLE public.vai_tro OWNER TO postgres;
-
 --
--- Name: yeu_cau_o_ghep; Type: TABLE; Schema: public; Owner: postgres
+-- Name: yeu_cau_o_ghep; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.yeu_cau_o_ghep (
@@ -2080,10 +2338,15 @@ CREATE TABLE public.yeu_cau_o_ghep (
 );
 
 
-ALTER TABLE public.yeu_cau_o_ghep OWNER TO postgres;
+--
+-- Name: tin_nhan so_thu_tu; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan ALTER COLUMN so_thu_tu SET DEFAULT nextval('public.tin_nhan_so_thu_tu_seq'::regclass);
+
 
 --
--- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audit_log
@@ -2091,7 +2354,7 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
--- Name: bank_transaction bank_transaction_ma_giao_dich_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bank_transaction bank_transaction_ma_giao_dich_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bank_transaction
@@ -2099,7 +2362,7 @@ ALTER TABLE ONLY public.bank_transaction
 
 
 --
--- Name: bank_transaction bank_transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bank_transaction bank_transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bank_transaction
@@ -2107,7 +2370,15 @@ ALTER TABLE ONLY public.bank_transaction
 
 
 --
--- Name: cau_hinh_gia cau_hinh_gia_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bao_cao_tin_nhan bao_cao_tin_nhan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT bao_cao_tin_nhan_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cau_hinh_gia cau_hinh_gia_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cau_hinh_gia
@@ -2115,7 +2386,23 @@ ALTER TABLE ONLY public.cau_hinh_gia
 
 
 --
--- Name: chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_loai_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cau_hinh_phi_xe cau_hinh_phi_xe_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cau_hinh_phi_xe
+    ADD CONSTRAINT cau_hinh_phi_xe_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chan_nguoi_dung chan_nguoi_dung_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chan_nguoi_dung
+    ADD CONSTRAINT chan_nguoi_dung_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_loai_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
@@ -2123,7 +2410,7 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 
 --
--- Name: chi_so_dien_nuoc chi_so_dien_nuoc_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_so_dien_nuoc chi_so_dien_nuoc_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
@@ -2131,7 +2418,15 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 
 --
--- Name: chi_tiet_hoa_don chi_tiet_hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chi_tiet_hoa_don chi_tiet_hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_tiet_hoa_don
@@ -2139,7 +2434,7 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
--- Name: chu_tro chu_tro_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chu_tro chu_tro_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chu_tro
@@ -2147,7 +2442,7 @@ ALTER TABLE ONLY public.chu_tro
 
 
 --
--- Name: chu_tro chu_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chu_tro chu_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chu_tro
@@ -2155,7 +2450,7 @@ ALTER TABLE ONLY public.chu_tro
 
 
 --
--- Name: chu_tro chu_tro_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chu_tro chu_tro_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chu_tro
@@ -2163,7 +2458,7 @@ ALTER TABLE ONLY public.chu_tro
 
 
 --
--- Name: contract_signature contract_signature_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contract_signature contract_signature_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contract_signature
@@ -2171,7 +2466,31 @@ ALTER TABLE ONLY public.contract_signature
 
 
 --
--- Name: dat_coc_phong dat_coc_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cuoc_tro_chuyen cuoc_tro_chuyen_khoa_duy_nhat_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cuoc_tro_chuyen
+    ADD CONSTRAINT cuoc_tro_chuyen_khoa_duy_nhat_key UNIQUE (khoa_duy_nhat);
+
+
+--
+-- Name: cuoc_tro_chuyen cuoc_tro_chuyen_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cuoc_tro_chuyen
+    ADD CONSTRAINT cuoc_tro_chuyen_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dang_ky_push dang_ky_push_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.dang_ky_push
+    ADD CONSTRAINT dang_ky_push_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dat_coc_phong dat_coc_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -2179,7 +2498,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: debt_reminder_log debt_reminder_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: debt_reminder_log debt_reminder_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.debt_reminder_log
@@ -2187,7 +2506,7 @@ ALTER TABLE ONLY public.debt_reminder_log
 
 
 --
--- Name: dich_vu dich_vu_chu_tro_id_ten_dich_vu_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu dich_vu_chu_tro_id_ten_dich_vu_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu
@@ -2195,7 +2514,7 @@ ALTER TABLE ONLY public.dich_vu
 
 
 --
--- Name: dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_dich_vu_id_bat_dau_tu_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_dich_vu_id_bat_dau_tu_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu_hop_dong
@@ -2203,7 +2522,7 @@ ALTER TABLE ONLY public.dich_vu_hop_dong
 
 
 --
--- Name: dich_vu_hop_dong dich_vu_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong dich_vu_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu_hop_dong
@@ -2211,7 +2530,7 @@ ALTER TABLE ONLY public.dich_vu_hop_dong
 
 
 --
--- Name: dich_vu dich_vu_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu dich_vu_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu
@@ -2219,7 +2538,7 @@ ALTER TABLE ONLY public.dich_vu
 
 
 --
--- Name: email_verification_token email_verification_token_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: email_verification_token email_verification_token_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.email_verification_token
@@ -2227,7 +2546,7 @@ ALTER TABLE ONLY public.email_verification_token
 
 
 --
--- Name: email_verification_token email_verification_token_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: email_verification_token email_verification_token_token_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.email_verification_token
@@ -2235,7 +2554,7 @@ ALTER TABLE ONLY public.email_verification_token
 
 
 --
--- Name: hop_dong excl_hop_dong_phong_active_overlap; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hop_dong excl_hop_dong_phong_active_overlap; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hop_dong
@@ -2243,7 +2562,7 @@ ALTER TABLE ONLY public.hop_dong
 
 
 --
--- Name: file_media file_media_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: file_media file_media_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.file_media
@@ -2251,7 +2570,23 @@ ALTER TABLE ONLY public.file_media
 
 
 --
--- Name: hoa_don hoa_don_hop_dong_id_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_thanh_toan_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_thanh_toan_id_key UNIQUE (thanh_toan_id);
+
+
+--
+-- Name: hoa_don hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -2259,7 +2594,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: hoa_don hoa_don_ma_hoa_don_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hoa_don hoa_don_ma_hoa_don_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -2267,7 +2602,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: hoa_don hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hoa_don hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -2275,31 +2610,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
-
-
---
--- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
-
-
---
--- Name: quyet_toan_tra_phong quyet_toan_tra_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
-
-
---
--- Name: hop_dong hop_dong_ma_hop_dong_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hop_dong hop_dong_ma_hop_dong_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hop_dong
@@ -2307,7 +2618,7 @@ ALTER TABLE ONLY public.hop_dong
 
 
 --
--- Name: hop_dong hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hop_dong hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hop_dong
@@ -2315,7 +2626,7 @@ ALTER TABLE ONLY public.hop_dong
 
 
 --
--- Name: invoice_generation_batch invoice_generation_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_batch invoice_generation_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_batch
@@ -2323,7 +2634,7 @@ ALTER TABLE ONLY public.invoice_generation_batch
 
 
 --
--- Name: invoice_generation_log invoice_generation_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_log invoice_generation_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_log
@@ -2331,7 +2642,7 @@ ALTER TABLE ONLY public.invoice_generation_log
 
 
 --
--- Name: khach_thue khach_thue_chu_tro_id_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: khach_thue khach_thue_chu_tro_id_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.khach_thue
@@ -2339,7 +2650,7 @@ ALTER TABLE ONLY public.khach_thue
 
 
 --
--- Name: khach_thue khach_thue_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: khach_thue khach_thue_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.khach_thue
@@ -2347,7 +2658,7 @@ ALTER TABLE ONLY public.khach_thue
 
 
 --
--- Name: khach_thue khach_thue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: khach_thue khach_thue_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.khach_thue
@@ -2355,7 +2666,15 @@ ALTER TABLE ONLY public.khach_thue
 
 
 --
--- Name: lich_hen lich_hen_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: kho_tai_san kho_tai_san_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kho_tai_san
+    ADD CONSTRAINT kho_tai_san_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lich_hen lich_hen_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_hen
@@ -2363,7 +2682,7 @@ ALTER TABLE ONLY public.lich_hen
 
 
 --
--- Name: lich_su_hoa_don lich_su_hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_su_hoa_don lich_su_hoa_don_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_su_hoa_don
@@ -2371,7 +2690,23 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 
 --
--- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_su_kho_tai_san lich_su_kho_tai_san_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_kho_tai_san
+    ADD CONSTRAINT lich_su_kho_tai_san_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_thanh_toan
@@ -2379,7 +2714,7 @@ ALTER TABLE ONLY public.lich_thanh_toan
 
 
 --
--- Name: lich_thanh_toan lich_thanh_toan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_thanh_toan lich_thanh_toan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_thanh_toan
@@ -2387,7 +2722,7 @@ ALTER TABLE ONLY public.lich_thanh_toan
 
 
 --
--- Name: login_history login_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: login_history login_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.login_history
@@ -2395,7 +2730,7 @@ ALTER TABLE ONLY public.login_history
 
 
 --
--- Name: meter_anomaly_alert meter_anomaly_alert_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert meter_anomaly_alert_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.meter_anomaly_alert
@@ -2403,7 +2738,7 @@ ALTER TABLE ONLY public.meter_anomaly_alert
 
 
 --
--- Name: nguoi_dung nguoi_dung_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung nguoi_dung_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung
@@ -2411,7 +2746,7 @@ ALTER TABLE ONLY public.nguoi_dung
 
 
 --
--- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_nha_tro_id_vai_tro_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_nha_tro_id_vai_tro_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_nha_tro
@@ -2419,7 +2754,7 @@ ALTER TABLE ONLY public.nguoi_dung_nha_tro
 
 
 --
--- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_nha_tro
@@ -2427,7 +2762,7 @@ ALTER TABLE ONLY public.nguoi_dung_nha_tro
 
 
 --
--- Name: nguoi_dung nguoi_dung_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung nguoi_dung_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung
@@ -2435,7 +2770,7 @@ ALTER TABLE ONLY public.nguoi_dung
 
 
 --
--- Name: nguoi_dung nguoi_dung_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung nguoi_dung_so_cccd_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung
@@ -2443,7 +2778,7 @@ ALTER TABLE ONLY public.nguoi_dung
 
 
 --
--- Name: nguoi_dung nguoi_dung_so_dien_thoai_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung nguoi_dung_so_dien_thoai_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung
@@ -2451,7 +2786,7 @@ ALTER TABLE ONLY public.nguoi_dung
 
 
 --
--- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_vai_tro
@@ -2459,7 +2794,7 @@ ALTER TABLE ONLY public.nguoi_dung_vai_tro
 
 
 --
--- Name: nha_tro nha_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nha_tro nha_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nha_tro
@@ -2467,7 +2802,15 @@ ALTER TABLE ONLY public.nha_tro
 
 
 --
--- Name: phong phong_nha_tro_id_ten_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notification_delivery notification_delivery_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_delivery
+    ADD CONSTRAINT notification_delivery_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: phong phong_nha_tro_id_ten_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong
@@ -2475,7 +2818,7 @@ ALTER TABLE ONLY public.phong
 
 
 --
--- Name: phong phong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong
@@ -2483,7 +2826,7 @@ ALTER TABLE ONLY public.phong
 
 
 --
--- Name: phong_tien_ich phong_tien_ich_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong_tien_ich phong_tien_ich_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong_tien_ich
@@ -2491,7 +2834,7 @@ ALTER TABLE ONLY public.phong_tien_ich
 
 
 --
--- Name: phu_luc_hop_dong phu_luc_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phu_luc_hop_dong phu_luc_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phu_luc_hop_dong
@@ -2499,7 +2842,7 @@ ALTER TABLE ONLY public.phu_luc_hop_dong
 
 
 --
--- Name: phuong_tien phuong_tien_ma_pt_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_ma_pt_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -2507,7 +2850,7 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: phuong_tien phuong_tien_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -2515,7 +2858,31 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: refresh_token refresh_token_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: refresh_token refresh_token_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.refresh_token
@@ -2523,7 +2890,7 @@ ALTER TABLE ONLY public.refresh_token
 
 
 --
--- Name: refresh_token refresh_token_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: refresh_token refresh_token_token_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.refresh_token
@@ -2531,7 +2898,7 @@ ALTER TABLE ONLY public.refresh_token
 
 
 --
--- Name: su_co su_co_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: su_co su_co_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.su_co
@@ -2539,7 +2906,7 @@ ALTER TABLE ONLY public.su_co
 
 
 --
--- Name: tai_san_phong tai_san_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tai_san_phong tai_san_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tai_san_phong
@@ -2547,7 +2914,7 @@ ALTER TABLE ONLY public.tai_san_phong
 
 
 --
--- Name: tang tang_nha_tro_id_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tang tang_nha_tro_id_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tang
@@ -2555,7 +2922,7 @@ ALTER TABLE ONLY public.tang
 
 
 --
--- Name: tang tang_nha_tro_id_so_tang_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tang tang_nha_tro_id_so_tang_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tang
@@ -2563,7 +2930,7 @@ ALTER TABLE ONLY public.tang
 
 
 --
--- Name: tang tang_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tang tang_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tang
@@ -2571,7 +2938,7 @@ ALTER TABLE ONLY public.tang
 
 
 --
--- Name: thanh_toan thanh_toan_external_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_external_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -2579,7 +2946,7 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_toan thanh_toan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -2587,7 +2954,15 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_vien_hop_dong thanh_vien_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thanh_vien_cuoc_tro_chuyen
+    ADD CONSTRAINT thanh_vien_cuoc_tro_chuyen_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: thanh_vien_hop_dong thanh_vien_hop_dong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_vien_hop_dong
@@ -2595,7 +2970,7 @@ ALTER TABLE ONLY public.thanh_vien_hop_dong
 
 
 --
--- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao_nguoi_nhan
@@ -2603,7 +2978,7 @@ ALTER TABLE ONLY public.thong_bao_nguoi_nhan
 
 
 --
--- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_nguoi_dung_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao_nguoi_nhan
@@ -2611,7 +2986,7 @@ ALTER TABLE ONLY public.thong_bao_nguoi_nhan
 
 
 --
--- Name: thong_bao thong_bao_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao thong_bao_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao
@@ -2619,7 +2994,7 @@ ALTER TABLE ONLY public.thong_bao
 
 
 --
--- Name: tien_ich tien_ich_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tien_ich tien_ich_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tien_ich
@@ -2627,7 +3002,7 @@ ALTER TABLE ONLY public.tien_ich
 
 
 --
--- Name: tien_ich tien_ich_ten_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tien_ich tien_ich_ten_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tien_ich
@@ -2635,7 +3010,63 @@ ALTER TABLE ONLY public.tien_ich
 
 
 --
--- Name: vai_tro vai_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tin_nhan tin_nhan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tin_nhan tin_nhan_so_thu_tu_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_so_thu_tu_key UNIQUE (so_thu_tu);
+
+
+--
+-- Name: bao_cao_tin_nhan uq_bao_cao_tin_nhan; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT uq_bao_cao_tin_nhan UNIQUE (tin_nhan_id, nguoi_bao_cao_id);
+
+
+--
+-- Name: chan_nguoi_dung uq_chan_nguoi_dung; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chan_nguoi_dung
+    ADD CONSTRAINT uq_chan_nguoi_dung UNIQUE (nguoi_chan_id, nguoi_bi_chan_id);
+
+
+--
+-- Name: dang_ky_push uq_dang_ky_push_endpoint; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.dang_ky_push
+    ADD CONSTRAINT uq_dang_ky_push_endpoint UNIQUE (endpoint);
+
+
+--
+-- Name: notification_delivery uq_notification_delivery_rule; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_delivery
+    ADD CONSTRAINT uq_notification_delivery_rule UNIQUE (aggregate_type, aggregate_id, rule_code, scheduled_for, channel, recipient_id);
+
+
+--
+-- Name: thanh_vien_cuoc_tro_chuyen uq_thanh_vien_cuoc_tro_chuyen; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thanh_vien_cuoc_tro_chuyen
+    ADD CONSTRAINT uq_thanh_vien_cuoc_tro_chuyen UNIQUE (cuoc_tro_chuyen_id, nguoi_dung_id);
+
+
+--
+-- Name: vai_tro vai_tro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vai_tro
@@ -2643,7 +3074,7 @@ ALTER TABLE ONLY public.vai_tro
 
 
 --
--- Name: vai_tro vai_tro_ten_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vai_tro vai_tro_ten_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.vai_tro
@@ -2651,7 +3082,7 @@ ALTER TABLE ONLY public.vai_tro
 
 
 --
--- Name: yeu_cau_o_ghep yeu_cau_o_ghep_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: yeu_cau_o_ghep yeu_cau_o_ghep_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.yeu_cau_o_ghep
@@ -2659,360 +3090,518 @@ ALTER TABLE ONLY public.yeu_cau_o_ghep
 
 
 --
--- Name: idx_audit_log_target; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_log_target; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_log_target ON public.audit_log USING btree (bang_tac_dong, ban_ghi_id);
 
 
 --
--- Name: idx_cau_hinh_gia_nha_tro; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bao_cao_cho_xu_ly; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_bao_cao_cho_xu_ly ON public.bao_cao_tin_nhan USING btree (tao_luc DESC) WHERE (trang_thai = 'PENDING'::public.trang_thai_bao_cao);
+
+
+--
+-- Name: idx_cau_hinh_gia_nha_tro; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_cau_hinh_gia_nha_tro ON public.cau_hinh_gia USING btree (nha_tro_id, loai, dang_ap_dung);
 
 
 --
--- Name: idx_chi_so_phong_ky; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_cau_hinh_phi_xe_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cau_hinh_phi_xe_lookup ON public.cau_hinh_phi_xe USING btree (nha_tro_id, loai_xe, hieu_luc_tu DESC);
+
+
+--
+-- Name: idx_chan_theo_nguoi_bi_chan; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chan_theo_nguoi_bi_chan ON public.chan_nguoi_dung USING btree (nguoi_bi_chan_id);
+
+
+--
+-- Name: idx_chi_so_phong_ky; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_chi_so_phong_ky ON public.chi_so_dien_nuoc USING btree (phong_id, loai, ky_nam, ky_thang);
 
 
 --
--- Name: idx_cthd_hoa_don; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_chi_tiet_ban_giao_tai_san_quyet_toan; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chi_tiet_ban_giao_tai_san_quyet_toan ON public.chi_tiet_ban_giao_tai_san USING btree (quyet_toan_tra_phong_id);
+
+
+--
+-- Name: idx_chi_tiet_hoa_don_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chi_tiet_hoa_don_source ON public.chi_tiet_hoa_don USING btree (source_type, source_id);
+
+
+--
+-- Name: idx_cthd_hoa_don; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_cthd_hoa_don ON public.chi_tiet_hoa_don USING btree (hoa_don_id);
 
 
 --
--- Name: idx_dat_coc_phong; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_cuoc_tro_chuyen_nha_tro; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cuoc_tro_chuyen_nha_tro ON public.cuoc_tro_chuyen USING btree (nha_tro_id) WHERE (xoa_luc IS NULL);
+
+
+--
+-- Name: idx_cuoc_tro_chuyen_tin_cuoi; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cuoc_tro_chuyen_tin_cuoi ON public.cuoc_tro_chuyen USING btree (tin_nhan_cuoi_luc DESC) WHERE (xoa_luc IS NULL);
+
+
+--
+-- Name: idx_dang_ky_push_nguoi_dung; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dang_ky_push_nguoi_dung ON public.dang_ky_push USING btree (nguoi_dung_id) WHERE (dung_luc IS NULL);
+
+
+--
+-- Name: idx_dat_coc_phong; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_dat_coc_phong ON public.dat_coc_phong USING btree (phong_id, trang_thai);
 
 
-CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
-
-
 --
--- Name: idx_dvhd_hop_dong; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_dvhd_hop_dong; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_dvhd_hop_dong ON public.dich_vu_hop_dong USING btree (hop_dong_id);
 
 
 --
--- Name: idx_file_media_target; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_file_media_target; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_file_media_target ON public.file_media USING btree (doi_tuong, doi_tuong_id);
 
 
 --
--- Name: idx_hoa_don_hop_dong_ky; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_giao_dich_tien_coc_hop_dong_thoi_diem; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_giao_dich_tien_coc_hop_dong_thoi_diem ON public.giao_dich_tien_coc USING btree (hop_dong_id, thoi_diem);
+
+
+--
+-- Name: idx_hoa_don_hoa_don_goc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hoa_don_hoa_don_goc ON public.hoa_don USING btree (hoa_don_goc_id) WHERE (hoa_don_goc_id IS NOT NULL);
+
+
+--
+-- Name: idx_hoa_don_hop_dong_ky; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hoa_don_hop_dong_ky ON public.hoa_don USING btree (hop_dong_id, ky_nam, ky_thang);
 
 
 --
--- Name: idx_hoa_don_khach_thue; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hoa_don_khach_thue; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hoa_don_khach_thue ON public.hoa_don USING btree (khach_thue_id);
 
 
 --
--- Name: idx_hoa_don_phong; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hoa_don_phong; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hoa_don_phong ON public.hoa_don USING btree (phong_id);
 
 
 --
--- Name: idx_hoa_don_status_due; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hoa_don_status_due; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hoa_don_status_due ON public.hoa_don USING btree (trang_thai, han_tra);
 
 
 --
--- Name: idx_hop_dong_khach_thue; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hop_dong_khach_thue; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hop_dong_khach_thue ON public.hop_dong USING btree (khach_thue_id);
 
 
 --
--- Name: idx_hop_dong_phong_status_dates; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hop_dong_phong_status_dates; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hop_dong_phong_status_dates ON public.hop_dong USING btree (phong_id, trang_thai, ngay_bat_dau, ngay_ket_thuc);
 
 
 --
--- Name: idx_khach_thue_chu_tro; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_khach_thue_chu_tro; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_khach_thue_chu_tro ON public.khach_thue USING btree (chu_tro_id);
 
 
 --
--- Name: idx_khach_thue_sdt; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_khach_thue_sdt; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_khach_thue_sdt ON public.khach_thue USING btree (so_dien_thoai);
 
 
 --
--- Name: idx_lich_hen_phong_time; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_lich_hen_phong_time; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_lich_hen_phong_time ON public.lich_hen USING btree (phong_id, ngay_hen);
 
 
 --
--- Name: idx_lich_thanh_toan_han; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_lich_su_phuong_tien_billable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_lich_su_phuong_tien_billable ON public.lich_su_phuong_tien USING btree (phong_id, hieu_luc_tu, hieu_luc_den);
+
+
+--
+-- Name: idx_lich_thanh_toan_han; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_lich_thanh_toan_han ON public.lich_thanh_toan USING btree (han_thanh_toan, trang_thai) WHERE (xoa_luc IS NULL);
 
 
 --
--- Name: idx_lich_thanh_toan_hop_dong; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_lich_thanh_toan_hop_dong; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_lich_thanh_toan_hop_dong ON public.lich_thanh_toan USING btree (hop_dong_id, ky_nam, ky_thang) WHERE (xoa_luc IS NULL);
 
 
 --
--- Name: idx_login_history_user_time; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_login_history_user_time; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_login_history_user_time ON public.login_history USING btree (nguoi_dung_id, tao_luc DESC);
 
 
 --
--- Name: idx_ndnt_nha_tro_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_ndnt_nha_tro_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_ndnt_nha_tro_user ON public.nguoi_dung_nha_tro USING btree (nha_tro_id, nguoi_dung_id);
 
 
 --
--- Name: idx_nguoi_dung_email; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_nguoi_dung_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_nguoi_dung_email ON public.nguoi_dung USING btree (email);
 
 
 --
--- Name: idx_nguoi_dung_trang_thai; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_nguoi_dung_trang_thai; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_nguoi_dung_trang_thai ON public.nguoi_dung USING btree (trang_thai);
 
 
 --
--- Name: idx_nha_tro_chu_tro; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_nha_tro_chu_tro; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_nha_tro_chu_tro ON public.nha_tro USING btree (chu_tro_id);
 
 
 --
--- Name: idx_phong_nha_tro; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_nha_tro_location_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_nha_tro_location_active ON public.nha_tro USING btree (vi_do, kinh_do) WHERE ((xoa_luc IS NULL) AND (vi_do IS NOT NULL) AND (kinh_do IS NOT NULL));
+
+
+--
+-- Name: idx_notification_delivery_aggregate; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notification_delivery_aggregate ON public.notification_delivery USING btree (aggregate_type, aggregate_id, scheduled_for DESC);
+
+
+--
+-- Name: idx_phong_nha_tro; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_phong_nha_tro ON public.phong USING btree (nha_tro_id);
 
 
 --
--- Name: idx_phong_nha_tro_tang; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_phong_nha_tro_tang; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_phong_nha_tro_tang ON public.phong USING btree (nha_tro_id, tang, ten) WHERE (xoa_luc IS NULL);
 
 
 --
--- Name: idx_phong_tang_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_phong_tang_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_phong_tang_id ON public.phong USING btree (tang_id) WHERE (xoa_luc IS NULL);
 
 
 --
--- Name: idx_phong_trang_thai; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_phong_trang_thai; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_phong_trang_thai ON public.phong USING btree (trang_thai);
 
 
 --
--- Name: idx_su_co_phong_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_quyet_toan_tra_phong_trang_thai; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
+
+
+--
+-- Name: idx_su_co_phong_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_su_co_phong_status ON public.su_co USING btree (phong_id, trang_thai);
 
 
 --
--- Name: idx_tang_nha_tro_so_tang; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_tang_nha_tro_so_tang; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_tang_nha_tro_so_tang ON public.tang USING btree (nha_tro_id, so_tang) WHERE (xoa_luc IS NULL);
 
 
 --
--- Name: idx_thanh_toan_hoa_don; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_thanh_toan_hoa_don; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_thanh_toan_hoa_don ON public.thanh_toan USING btree (hoa_don_id);
 
 
 --
--- Name: idx_thanh_toan_ref; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_thanh_toan_ref; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_thanh_toan_ref ON public.thanh_toan USING btree (ma_tham_chieu);
 
 
 --
--- Name: idx_thong_bao_recipient; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_thanh_vien_nguoi_dung; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_thanh_vien_nguoi_dung ON public.thanh_vien_cuoc_tro_chuyen USING btree (nguoi_dung_id, roi_luc);
+
+
+--
+-- Name: idx_thong_bao_recipient; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_thong_bao_recipient ON public.thong_bao_nguoi_nhan USING btree (nguoi_dung_id, da_doc);
 
 
 --
--- Name: idx_tvhd_hop_dong; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_tin_nhan_co_lien_ket; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tin_nhan_co_lien_ket ON public.tin_nhan USING btree (cuoc_tro_chuyen_id, so_thu_tu DESC) WHERE ((noi_dung IS NOT NULL) AND (xoa_luc IS NULL) AND (da_thu_hoi = false));
+
+
+--
+-- Name: idx_tin_nhan_dinh_kem; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tin_nhan_dinh_kem ON public.tin_nhan USING btree (cuoc_tro_chuyen_id, so_thu_tu DESC) WHERE ((file_media_id IS NOT NULL) AND (xoa_luc IS NULL) AND (da_thu_hoi = false));
+
+
+--
+-- Name: idx_tin_nhan_ghim; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tin_nhan_ghim ON public.tin_nhan USING btree (cuoc_tro_chuyen_id, ghim_luc DESC) WHERE ((ghim_luc IS NOT NULL) AND (xoa_luc IS NULL));
+
+
+--
+-- Name: idx_tin_nhan_hoi_thoai_seq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tin_nhan_hoi_thoai_seq ON public.tin_nhan USING btree (cuoc_tro_chuyen_id, so_thu_tu DESC);
+
+
+--
+-- Name: idx_tin_nhan_noi_dung_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_tin_nhan_noi_dung_trgm ON public.tin_nhan USING gin (public.f_khong_dau(noi_dung) public.gin_trgm_ops) WHERE ((xoa_luc IS NULL) AND (da_thu_hoi = false) AND (noi_dung IS NOT NULL));
+
+
+--
+-- Name: idx_tvhd_hop_dong; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_tvhd_hop_dong ON public.thanh_vien_hop_dong USING btree (hop_dong_id);
 
 
 --
--- Name: cau_hinh_gia trg_cau_hinh_gia_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: uq_debt_reminder_delivery; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_debt_reminder_delivery ON public.debt_reminder_log USING btree (hoa_don_id, reminder_type, channel, COALESCE(recipient_contact, ''::character varying));
+
+
+--
+-- Name: uq_giao_dich_tien_coc_quyet_toan_loai; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_giao_dich_tien_coc_quyet_toan_loai ON public.giao_dich_tien_coc USING btree (quyet_toan_tra_phong_id, loai) WHERE (quyet_toan_tra_phong_id IS NOT NULL);
+
+
+--
+-- Name: uq_tin_nhan_ma_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tin_nhan_ma_client ON public.tin_nhan USING btree (cuoc_tro_chuyen_id, ma_client) WHERE (ma_client IS NOT NULL);
+
+
+--
+-- Name: cau_hinh_gia trg_cau_hinh_gia_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_cau_hinh_gia_cap_nhat BEFORE UPDATE ON public.cau_hinh_gia FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: chi_so_dien_nuoc trg_chi_so_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: chi_so_dien_nuoc trg_chi_so_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_chi_so_cap_nhat BEFORE UPDATE ON public.chi_so_dien_nuoc FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: chu_tro trg_chu_tro_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: chu_tro trg_chu_tro_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_chu_tro_cap_nhat BEFORE UPDATE ON public.chu_tro FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: chi_tiet_hoa_don trg_cthd_recalc; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don trg_cthd_recalc; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_cthd_recalc AFTER INSERT OR DELETE OR UPDATE ON public.chi_tiet_hoa_don FOR EACH ROW EXECUTE FUNCTION public.recalc_hoa_don_from_chi_tiet();
 
 
 --
--- Name: dich_vu trg_dich_vu_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: dich_vu trg_dich_vu_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_dich_vu_cap_nhat BEFORE UPDATE ON public.dich_vu FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: hoa_don trg_hoa_don_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: hoa_don trg_hoa_don_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_hoa_don_cap_nhat BEFORE UPDATE ON public.hoa_don FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: hoa_don trg_hoa_don_status; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: hoa_don trg_hoa_don_status; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_hoa_don_status BEFORE INSERT OR UPDATE OF tong_tien, da_tra, han_tra, trang_thai ON public.hoa_don FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_trang_thai_hoa_don();
 
 
 --
--- Name: hop_dong trg_hop_dong_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: hop_dong trg_hop_dong_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_hop_dong_cap_nhat BEFORE UPDATE ON public.hop_dong FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: khach_thue trg_khach_thue_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: khach_thue trg_khach_thue_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_khach_thue_cap_nhat BEFORE UPDATE ON public.khach_thue FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: lich_hen trg_lich_hen_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: lich_hen trg_lich_hen_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_lich_hen_cap_nhat BEFORE UPDATE ON public.lich_hen FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: nguoi_dung trg_nguoi_dung_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: nguoi_dung trg_nguoi_dung_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_nguoi_dung_cap_nhat BEFORE UPDATE ON public.nguoi_dung FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: nha_tro trg_nha_tro_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: nha_tro trg_nha_tro_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_nha_tro_cap_nhat BEFORE UPDATE ON public.nha_tro FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: phong trg_phong_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: phong trg_phong_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_phong_cap_nhat BEFORE UPDATE ON public.phong FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: su_co trg_su_co_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: su_co trg_su_co_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_su_co_cap_nhat BEFORE UPDATE ON public.su_co FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: thanh_toan trg_thanh_toan_recalc; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: thanh_toan trg_thanh_toan_recalc; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_thanh_toan_recalc AFTER INSERT OR DELETE OR UPDATE ON public.thanh_toan FOR EACH ROW EXECUTE FUNCTION public.recalc_hoa_don_from_thanh_toan();
 
 
 --
--- Name: thanh_vien_hop_dong trg_thanh_vien_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: thanh_vien_hop_dong trg_thanh_vien_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_thanh_vien_cap_nhat BEFORE UPDATE ON public.thanh_vien_hop_dong FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: thong_bao trg_thong_bao_cap_nhat; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: thong_bao trg_thong_bao_cap_nhat; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_thong_bao_cap_nhat BEFORE UPDATE ON public.thong_bao FOR EACH ROW EXECUTE FUNCTION public.cap_nhat_thoi_gian();
 
 
 --
--- Name: audit_log audit_log_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: audit_log audit_log_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audit_log
@@ -3020,7 +3609,7 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
--- Name: bank_transaction bank_transaction_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bank_transaction bank_transaction_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bank_transaction
@@ -3028,7 +3617,7 @@ ALTER TABLE ONLY public.bank_transaction
 
 
 --
--- Name: bank_transaction bank_transaction_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bank_transaction bank_transaction_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bank_transaction
@@ -3036,7 +3625,39 @@ ALTER TABLE ONLY public.bank_transaction
 
 
 --
--- Name: cau_hinh_gia cau_hinh_gia_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bao_cao_tin_nhan bao_cao_tin_nhan_cuoc_tro_chuyen_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT bao_cao_tin_nhan_cuoc_tro_chuyen_id_fkey FOREIGN KEY (cuoc_tro_chuyen_id) REFERENCES public.cuoc_tro_chuyen(id) ON DELETE CASCADE;
+
+
+--
+-- Name: bao_cao_tin_nhan bao_cao_tin_nhan_nguoi_bao_cao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT bao_cao_tin_nhan_nguoi_bao_cao_id_fkey FOREIGN KEY (nguoi_bao_cao_id) REFERENCES public.nguoi_dung(id);
+
+
+--
+-- Name: bao_cao_tin_nhan bao_cao_tin_nhan_nguoi_xu_ly_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT bao_cao_tin_nhan_nguoi_xu_ly_id_fkey FOREIGN KEY (nguoi_xu_ly_id) REFERENCES public.nguoi_dung(id);
+
+
+--
+-- Name: bao_cao_tin_nhan bao_cao_tin_nhan_tin_nhan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bao_cao_tin_nhan
+    ADD CONSTRAINT bao_cao_tin_nhan_tin_nhan_id_fkey FOREIGN KEY (tin_nhan_id) REFERENCES public.tin_nhan(id) ON DELETE CASCADE;
+
+
+--
+-- Name: cau_hinh_gia cau_hinh_gia_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cau_hinh_gia
@@ -3044,7 +3665,7 @@ ALTER TABLE ONLY public.cau_hinh_gia
 
 
 --
--- Name: cau_hinh_gia cau_hinh_gia_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cau_hinh_gia cau_hinh_gia_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cau_hinh_gia
@@ -3052,7 +3673,31 @@ ALTER TABLE ONLY public.cau_hinh_gia
 
 
 --
--- Name: chi_so_dien_nuoc chi_so_dien_nuoc_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cau_hinh_phi_xe cau_hinh_phi_xe_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cau_hinh_phi_xe
+    ADD CONSTRAINT cau_hinh_phi_xe_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chan_nguoi_dung chan_nguoi_dung_nguoi_bi_chan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chan_nguoi_dung
+    ADD CONSTRAINT chan_nguoi_dung_nguoi_bi_chan_id_fkey FOREIGN KEY (nguoi_bi_chan_id) REFERENCES public.nguoi_dung(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chan_nguoi_dung chan_nguoi_dung_nguoi_chan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chan_nguoi_dung
+    ADD CONSTRAINT chan_nguoi_dung_nguoi_chan_id_fkey FOREIGN KEY (nguoi_chan_id) REFERENCES public.nguoi_dung(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chi_so_dien_nuoc chi_so_dien_nuoc_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
@@ -3060,7 +3705,7 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 
 --
--- Name: chi_so_dien_nuoc chi_so_dien_nuoc_nguoi_ghi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_so_dien_nuoc chi_so_dien_nuoc_nguoi_ghi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
@@ -3068,7 +3713,7 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 
 --
--- Name: chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_so_dien_nuoc chi_so_dien_nuoc_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
@@ -3076,7 +3721,23 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 
 --
--- Name: chi_tiet_hoa_don chi_tiet_hoa_don_chi_so_dien_nuoc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_quyet_toan_tra_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_quyet_toan_tra_phong_id_fkey FOREIGN KEY (quyet_toan_tra_phong_id) REFERENCES public.quyet_toan_tra_phong(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_tai_san_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_tai_san_phong_id_fkey FOREIGN KEY (tai_san_phong_id) REFERENCES public.tai_san_phong(id) ON DELETE SET NULL;
+
+
+--
+-- Name: chi_tiet_hoa_don chi_tiet_hoa_don_chi_so_dien_nuoc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_tiet_hoa_don
@@ -3084,7 +3745,7 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
--- Name: chi_tiet_hoa_don chi_tiet_hoa_don_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don chi_tiet_hoa_don_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_tiet_hoa_don
@@ -3092,7 +3753,7 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
--- Name: chi_tiet_hoa_don chi_tiet_hoa_don_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don chi_tiet_hoa_don_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_tiet_hoa_don
@@ -3100,7 +3761,39 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
--- Name: dat_coc_phong dat_coc_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cuoc_tro_chuyen cuoc_tro_chuyen_nguoi_tao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cuoc_tro_chuyen
+    ADD CONSTRAINT cuoc_tro_chuyen_nguoi_tao_id_fkey FOREIGN KEY (nguoi_tao_id) REFERENCES public.nguoi_dung(id);
+
+
+--
+-- Name: cuoc_tro_chuyen cuoc_tro_chuyen_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cuoc_tro_chuyen
+    ADD CONSTRAINT cuoc_tro_chuyen_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id);
+
+
+--
+-- Name: cuoc_tro_chuyen cuoc_tro_chuyen_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cuoc_tro_chuyen
+    ADD CONSTRAINT cuoc_tro_chuyen_tang_id_fkey FOREIGN KEY (tang_id) REFERENCES public.tang(id);
+
+
+--
+-- Name: dang_ky_push dang_ky_push_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.dang_ky_push
+    ADD CONSTRAINT dang_ky_push_nguoi_dung_id_fkey FOREIGN KEY (nguoi_dung_id) REFERENCES public.nguoi_dung(id) ON DELETE CASCADE;
+
+
+--
+-- Name: dat_coc_phong dat_coc_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -3108,7 +3801,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: dat_coc_phong dat_coc_phong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dat_coc_phong dat_coc_phong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -3116,7 +3809,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: dat_coc_phong dat_coc_phong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dat_coc_phong dat_coc_phong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -3124,7 +3817,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: dich_vu dich_vu_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu dich_vu_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu
@@ -3132,7 +3825,7 @@ ALTER TABLE ONLY public.dich_vu
 
 
 --
--- Name: dich_vu_hop_dong dich_vu_hop_dong_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong dich_vu_hop_dong_dich_vu_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu_hop_dong
@@ -3140,7 +3833,7 @@ ALTER TABLE ONLY public.dich_vu_hop_dong
 
 
 --
--- Name: dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong dich_vu_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dich_vu_hop_dong
@@ -3148,7 +3841,7 @@ ALTER TABLE ONLY public.dich_vu_hop_dong
 
 
 --
--- Name: email_verification_token email_verification_token_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: email_verification_token email_verification_token_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.email_verification_token
@@ -3156,7 +3849,7 @@ ALTER TABLE ONLY public.email_verification_token
 
 
 --
--- Name: file_media file_media_nguoi_tai_len_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: file_media file_media_nguoi_tai_len_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.file_media
@@ -3164,7 +3857,7 @@ ALTER TABLE ONLY public.file_media
 
 
 --
--- Name: meter_anomaly_alert fk_anomaly_chi_so; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert fk_anomaly_chi_so; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.meter_anomaly_alert
@@ -3172,7 +3865,7 @@ ALTER TABLE ONLY public.meter_anomaly_alert
 
 
 --
--- Name: meter_anomaly_alert fk_anomaly_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert fk_anomaly_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.meter_anomaly_alert
@@ -3180,7 +3873,7 @@ ALTER TABLE ONLY public.meter_anomaly_alert
 
 
 --
--- Name: meter_anomaly_alert fk_anomaly_phong; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert fk_anomaly_phong; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.meter_anomaly_alert
@@ -3188,7 +3881,7 @@ ALTER TABLE ONLY public.meter_anomaly_alert
 
 
 --
--- Name: meter_anomaly_alert fk_anomaly_resolved_by; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert fk_anomaly_resolved_by; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.meter_anomaly_alert
@@ -3196,7 +3889,7 @@ ALTER TABLE ONLY public.meter_anomaly_alert
 
 
 --
--- Name: chi_tiet_hoa_don fk_cthd_su_co; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don fk_cthd_su_co; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chi_tiet_hoa_don
@@ -3204,7 +3897,7 @@ ALTER TABLE ONLY public.chi_tiet_hoa_don
 
 
 --
--- Name: dat_coc_phong fk_dat_coc_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dat_coc_phong fk_dat_coc_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -3212,7 +3905,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: dat_coc_phong fk_dat_coc_nguoi_xac_nhan; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dat_coc_phong fk_dat_coc_nguoi_xac_nhan; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dat_coc_phong
@@ -3220,7 +3913,7 @@ ALTER TABLE ONLY public.dat_coc_phong
 
 
 --
--- Name: invoice_generation_batch fk_invoice_batch_nguoi_tao; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_batch fk_invoice_batch_nguoi_tao; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_batch
@@ -3228,7 +3921,7 @@ ALTER TABLE ONLY public.invoice_generation_batch
 
 
 --
--- Name: invoice_generation_batch fk_invoice_batch_nha_tro; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_batch fk_invoice_batch_nha_tro; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_batch
@@ -3236,7 +3929,7 @@ ALTER TABLE ONLY public.invoice_generation_batch
 
 
 --
--- Name: invoice_generation_log fk_invoice_log_batch; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_log fk_invoice_log_batch; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_log
@@ -3244,7 +3937,7 @@ ALTER TABLE ONLY public.invoice_generation_log
 
 
 --
--- Name: invoice_generation_log fk_invoice_log_hoa_don; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_log fk_invoice_log_hoa_don; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_log
@@ -3252,7 +3945,7 @@ ALTER TABLE ONLY public.invoice_generation_log
 
 
 --
--- Name: invoice_generation_log fk_invoice_log_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: invoice_generation_log fk_invoice_log_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoice_generation_log
@@ -3260,7 +3953,23 @@ ALTER TABLE ONLY public.invoice_generation_log
 
 
 --
--- Name: yeu_cau_o_ghep fk_ycog_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tin_nhan fk_tin_nhan_chuyen_tiep_tu; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT fk_tin_nhan_chuyen_tiep_tu FOREIGN KEY (chuyen_tiep_tu_id) REFERENCES public.tin_nhan(id) ON DELETE SET NULL;
+
+
+--
+-- Name: tin_nhan fk_tin_nhan_nguoi_ghim; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT fk_tin_nhan_nguoi_ghim FOREIGN KEY (nguoi_ghim_id) REFERENCES public.nguoi_dung(id) ON DELETE SET NULL;
+
+
+--
+-- Name: yeu_cau_o_ghep fk_ycog_hop_dong; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.yeu_cau_o_ghep
@@ -3268,7 +3977,7 @@ ALTER TABLE ONLY public.yeu_cau_o_ghep
 
 
 --
--- Name: yeu_cau_o_ghep fk_ycog_khach_thue; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: yeu_cau_o_ghep fk_ycog_khach_thue; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.yeu_cau_o_ghep
@@ -3276,7 +3985,39 @@ ALTER TABLE ONLY public.yeu_cau_o_ghep
 
 
 --
--- Name: hoa_don hoa_don_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_quyet_toan_tra_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_quyet_toan_tra_phong_id_fkey FOREIGN KEY (quyet_toan_tra_phong_id) REFERENCES public.quyet_toan_tra_phong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_thanh_toan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_thanh_toan_id_fkey FOREIGN KEY (thanh_toan_id) REFERENCES public.thanh_toan(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: hoa_don hoa_don_hoa_don_goc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hoa_don
+    ADD CONSTRAINT hoa_don_hoa_don_goc_id_fkey FOREIGN KEY (hoa_don_goc_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: hoa_don hoa_don_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -3284,7 +4025,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: hoa_don hoa_don_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hoa_don hoa_don_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -3292,7 +4033,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: hoa_don hoa_don_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hoa_don hoa_don_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -3300,7 +4041,7 @@ ALTER TABLE ONLY public.hoa_don
 
 
 --
--- Name: hop_dong hop_dong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hop_dong hop_dong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hop_dong
@@ -3308,7 +4049,7 @@ ALTER TABLE ONLY public.hop_dong
 
 
 --
--- Name: hop_dong hop_dong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hop_dong hop_dong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hop_dong
@@ -3316,23 +4057,7 @@ ALTER TABLE ONLY public.hop_dong
 
 
 --
--- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
-
-
---
--- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
-
-
---
--- Name: khach_thue khach_thue_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: khach_thue khach_thue_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.khach_thue
@@ -3340,7 +4065,7 @@ ALTER TABLE ONLY public.khach_thue
 
 
 --
--- Name: khach_thue khach_thue_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: khach_thue khach_thue_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.khach_thue
@@ -3348,7 +4073,15 @@ ALTER TABLE ONLY public.khach_thue
 
 
 --
--- Name: lich_hen lich_hen_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: kho_tai_san kho_tai_san_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kho_tai_san
+    ADD CONSTRAINT kho_tai_san_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id);
+
+
+--
+-- Name: lich_hen lich_hen_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_hen
@@ -3356,7 +4089,7 @@ ALTER TABLE ONLY public.lich_hen
 
 
 --
--- Name: lich_hen lich_hen_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_hen lich_hen_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_hen
@@ -3364,7 +4097,7 @@ ALTER TABLE ONLY public.lich_hen
 
 
 --
--- Name: lich_su_hoa_don lich_su_hoa_don_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_su_hoa_don lich_su_hoa_don_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_su_hoa_don
@@ -3372,7 +4105,7 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 
 --
--- Name: lich_su_hoa_don lich_su_hoa_don_nguoi_thay_doi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_su_hoa_don lich_su_hoa_don_nguoi_thay_doi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_su_hoa_don
@@ -3380,7 +4113,55 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 
 --
--- Name: lich_thanh_toan lich_thanh_toan_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_su_kho_tai_san lich_su_kho_tai_san_kho_tai_san_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_kho_tai_san
+    ADD CONSTRAINT lich_su_kho_tai_san_kho_tai_san_id_fkey FOREIGN KEY (kho_tai_san_id) REFERENCES public.kho_tai_san(id);
+
+
+--
+-- Name: lich_su_kho_tai_san lich_su_kho_tai_san_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_kho_tai_san
+    ADD CONSTRAINT lich_su_kho_tai_san_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id);
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_khach_thue_id_fkey FOREIGN KEY (khach_thue_id) REFERENCES public.khach_thue(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_phuong_tien_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_phuong_tien_id_fkey FOREIGN KEY (phuong_tien_id) REFERENCES public.phuong_tien(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_thanh_toan lich_thanh_toan_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_thanh_toan
@@ -3388,7 +4169,7 @@ ALTER TABLE ONLY public.lich_thanh_toan
 
 
 --
--- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lich_thanh_toan lich_thanh_toan_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lich_thanh_toan
@@ -3396,7 +4177,7 @@ ALTER TABLE ONLY public.lich_thanh_toan
 
 
 --
--- Name: login_history login_history_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: login_history login_history_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.login_history
@@ -3404,7 +4185,7 @@ ALTER TABLE ONLY public.login_history
 
 
 --
--- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_nha_tro
@@ -3412,7 +4193,7 @@ ALTER TABLE ONLY public.nguoi_dung_nha_tro
 
 
 --
--- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro nguoi_dung_nha_tro_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_nha_tro
@@ -3420,7 +4201,7 @@ ALTER TABLE ONLY public.nguoi_dung_nha_tro
 
 
 --
--- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_vai_tro
@@ -3428,7 +4209,7 @@ ALTER TABLE ONLY public.nguoi_dung_vai_tro
 
 
 --
--- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_vai_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nguoi_dung_vai_tro nguoi_dung_vai_tro_vai_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nguoi_dung_vai_tro
@@ -3436,7 +4217,7 @@ ALTER TABLE ONLY public.nguoi_dung_vai_tro
 
 
 --
--- Name: nha_tro nha_tro_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: nha_tro nha_tro_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nha_tro
@@ -3444,7 +4225,7 @@ ALTER TABLE ONLY public.nha_tro
 
 
 --
--- Name: phong phong_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong phong_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong
@@ -3452,7 +4233,7 @@ ALTER TABLE ONLY public.phong
 
 
 --
--- Name: phong phong_nha_tro_id_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong phong_nha_tro_id_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong
@@ -3460,7 +4241,7 @@ ALTER TABLE ONLY public.phong
 
 
 --
--- Name: phong phong_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong phong_tang_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong
@@ -3468,7 +4249,7 @@ ALTER TABLE ONLY public.phong
 
 
 --
--- Name: phong_tien_ich phong_tien_ich_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong_tien_ich phong_tien_ich_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong_tien_ich
@@ -3476,7 +4257,7 @@ ALTER TABLE ONLY public.phong_tien_ich
 
 
 --
--- Name: phong_tien_ich phong_tien_ich_tien_ich_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phong_tien_ich phong_tien_ich_tien_ich_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phong_tien_ich
@@ -3484,7 +4265,7 @@ ALTER TABLE ONLY public.phong_tien_ich
 
 
 --
--- Name: phu_luc_hop_dong phu_luc_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phu_luc_hop_dong phu_luc_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phu_luc_hop_dong
@@ -3492,7 +4273,7 @@ ALTER TABLE ONLY public.phu_luc_hop_dong
 
 
 --
--- Name: phu_luc_hop_dong phu_luc_hop_dong_nguoi_tao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phu_luc_hop_dong phu_luc_hop_dong_nguoi_tao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phu_luc_hop_dong
@@ -3500,7 +4281,7 @@ ALTER TABLE ONLY public.phu_luc_hop_dong
 
 
 --
--- Name: phuong_tien phuong_tien_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -3508,7 +4289,7 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: phuong_tien phuong_tien_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -3516,7 +4297,7 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: phuong_tien phuong_tien_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -3524,7 +4305,7 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: phuong_tien phuong_tien_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: phuong_tien phuong_tien_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.phuong_tien
@@ -3532,7 +4313,23 @@ ALTER TABLE ONLY public.phuong_tien
 
 
 --
--- Name: refresh_token refresh_token_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id);
+
+
+--
+-- Name: refresh_token refresh_token_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.refresh_token
@@ -3540,7 +4337,7 @@ ALTER TABLE ONLY public.refresh_token
 
 
 --
--- Name: su_co su_co_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: su_co su_co_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.su_co
@@ -3548,7 +4345,7 @@ ALTER TABLE ONLY public.su_co
 
 
 --
--- Name: su_co su_co_nguoi_bao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: su_co su_co_nguoi_bao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.su_co
@@ -3556,7 +4353,7 @@ ALTER TABLE ONLY public.su_co
 
 
 --
--- Name: su_co su_co_nguoi_phu_trach_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: su_co su_co_nguoi_phu_trach_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.su_co
@@ -3564,7 +4361,7 @@ ALTER TABLE ONLY public.su_co
 
 
 --
--- Name: su_co su_co_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: su_co su_co_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.su_co
@@ -3572,7 +4369,15 @@ ALTER TABLE ONLY public.su_co
 
 
 --
--- Name: tai_san_phong tai_san_phong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tai_san_phong tai_san_phong_kho_tai_san_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tai_san_phong
+    ADD CONSTRAINT tai_san_phong_kho_tai_san_id_fkey FOREIGN KEY (kho_tai_san_id) REFERENCES public.kho_tai_san(id);
+
+
+--
+-- Name: tai_san_phong tai_san_phong_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tai_san_phong
@@ -3580,7 +4385,7 @@ ALTER TABLE ONLY public.tai_san_phong
 
 
 --
--- Name: tang tang_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tang tang_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tang
@@ -3588,7 +4393,7 @@ ALTER TABLE ONLY public.tang
 
 
 --
--- Name: thanh_toan thanh_toan_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -3596,7 +4401,7 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_toan thanh_toan_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -3604,7 +4409,7 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_toan thanh_toan_nguoi_ghi_nhan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_nguoi_ghi_nhan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -3612,7 +4417,7 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_toan thanh_toan_nguoi_thanh_toan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_toan thanh_toan_nguoi_thanh_toan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_toan
@@ -3620,7 +4425,23 @@ ALTER TABLE ONLY public.thanh_toan
 
 
 --
--- Name: thanh_vien_hop_dong thanh_vien_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_cuoc_tro_chuyen_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thanh_vien_cuoc_tro_chuyen
+    ADD CONSTRAINT thanh_vien_cuoc_tro_chuyen_cuoc_tro_chuyen_id_fkey FOREIGN KEY (cuoc_tro_chuyen_id) REFERENCES public.cuoc_tro_chuyen(id) ON DELETE CASCADE;
+
+
+--
+-- Name: thanh_vien_cuoc_tro_chuyen thanh_vien_cuoc_tro_chuyen_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thanh_vien_cuoc_tro_chuyen
+    ADD CONSTRAINT thanh_vien_cuoc_tro_chuyen_nguoi_dung_id_fkey FOREIGN KEY (nguoi_dung_id) REFERENCES public.nguoi_dung(id);
+
+
+--
+-- Name: thanh_vien_hop_dong thanh_vien_hop_dong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_vien_hop_dong
@@ -3628,7 +4449,7 @@ ALTER TABLE ONLY public.thanh_vien_hop_dong
 
 
 --
--- Name: thanh_vien_hop_dong thanh_vien_hop_dong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thanh_vien_hop_dong thanh_vien_hop_dong_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thanh_vien_hop_dong
@@ -3636,7 +4457,7 @@ ALTER TABLE ONLY public.thanh_vien_hop_dong
 
 
 --
--- Name: thong_bao thong_bao_nguoi_gui_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao thong_bao_nguoi_gui_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao
@@ -3644,7 +4465,7 @@ ALTER TABLE ONLY public.thong_bao
 
 
 --
--- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_nguoi_dung_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao_nguoi_nhan
@@ -3652,7 +4473,7 @@ ALTER TABLE ONLY public.thong_bao_nguoi_nhan
 
 
 --
--- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan thong_bao_nguoi_nhan_thong_bao_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.thong_bao_nguoi_nhan
@@ -3660,235 +4481,267 @@ ALTER TABLE ONLY public.thong_bao_nguoi_nhan
 
 
 --
--- Name: audit_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: tin_nhan tin_nhan_cuoc_tro_chuyen_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_cuoc_tro_chuyen_id_fkey FOREIGN KEY (cuoc_tro_chuyen_id) REFERENCES public.cuoc_tro_chuyen(id) ON DELETE CASCADE;
+
+
+--
+-- Name: tin_nhan tin_nhan_file_media_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_file_media_id_fkey FOREIGN KEY (file_media_id) REFERENCES public.file_media(id);
+
+
+--
+-- Name: tin_nhan tin_nhan_nguoi_gui_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_nguoi_gui_id_fkey FOREIGN KEY (nguoi_gui_id) REFERENCES public.nguoi_dung(id);
+
+
+--
+-- Name: tin_nhan tin_nhan_tra_loi_cho_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tin_nhan
+    ADD CONSTRAINT tin_nhan_tra_loi_cho_id_fkey FOREIGN KEY (tra_loi_cho_id) REFERENCES public.tin_nhan(id);
+
+
+--
+-- Name: audit_log; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: bank_transaction; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: bank_transaction; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.bank_transaction ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: cau_hinh_gia; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: cau_hinh_gia; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.cau_hinh_gia ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: chi_so_dien_nuoc; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: chi_so_dien_nuoc; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.chi_so_dien_nuoc ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: chi_tiet_hoa_don; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: chi_tiet_hoa_don; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.chi_tiet_hoa_don ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: chu_tro; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: chu_tro; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.chu_tro ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: contract_signature; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: contract_signature; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.contract_signature ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: dat_coc_phong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: dat_coc_phong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.dat_coc_phong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: debt_reminder_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: debt_reminder_log; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.debt_reminder_log ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: dich_vu; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: dich_vu; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.dich_vu ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: dich_vu_hop_dong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: dich_vu_hop_dong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.dich_vu_hop_dong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: email_verification_token; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: email_verification_token; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.email_verification_token ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: file_media; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: file_media; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.file_media ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: hoa_don; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: hoa_don; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.hoa_don ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: hop_dong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: hop_dong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.hop_dong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: invoice_generation_batch; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: invoice_generation_batch; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.invoice_generation_batch ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: invoice_generation_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: invoice_generation_log; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.invoice_generation_log ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: khach_thue; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: khach_thue; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.khach_thue ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: lich_hen; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: lich_hen; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.lich_hen ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: lich_su_hoa_don; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: lich_su_hoa_don; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.lich_su_hoa_don ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: lich_thanh_toan; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: lich_thanh_toan; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.lich_thanh_toan ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: login_history; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: login_history; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.login_history ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: meter_anomaly_alert; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: meter_anomaly_alert; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.meter_anomaly_alert ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: nguoi_dung; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: nguoi_dung; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.nguoi_dung ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: nguoi_dung_nha_tro; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: nguoi_dung_nha_tro; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.nguoi_dung_nha_tro ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: nguoi_dung_vai_tro; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: nguoi_dung_vai_tro; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.nguoi_dung_vai_tro ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: nha_tro; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: nha_tro; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.nha_tro ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: phong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: phong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.phong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: phong_tien_ich; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: phong_tien_ich; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.phong_tien_ich ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: phu_luc_hop_dong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: phu_luc_hop_dong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.phu_luc_hop_dong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: refresh_token; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: refresh_token; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.refresh_token ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: su_co; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: su_co; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.su_co ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: tang; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: tang; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.tang ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: thanh_toan; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: thanh_toan; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.thanh_toan ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: thanh_vien_hop_dong; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: thanh_vien_hop_dong; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.thanh_vien_hop_dong ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: thong_bao; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: thong_bao; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.thong_bao ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: thong_bao_nguoi_nhan; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: thong_bao_nguoi_nhan; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.thong_bao_nguoi_nhan ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: tien_ich; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: tien_ich; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.tien_ich ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: vai_tro; Type: ROW SECURITY; Schema: public; Owner: postgres
+-- Name: vai_tro; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.vai_tro ENABLE ROW LEVEL SECURITY;
@@ -3897,5 +4750,5 @@ ALTER TABLE public.vai_tro ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict bJDufgCgUD6E2h1pgOKWBs5B70I9huFmFzuqZp7HTeTtdSckZBhw9g1V1UqwQBS
+\unrestrict O6WaZLv2mrxYc1Q9KPy4H7VPIZL9dMmSim1SDfF2BXcfYGWekHoAaqgZrbLg7YL
 

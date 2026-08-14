@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -64,6 +65,12 @@ public class PhuongTien {
 
     @Column(name = "so_ve_xe", length = 50)
     private String soVeXe;
+
+    @Column(name = "hieu_luc_tu", nullable = false)
+    private LocalDate hieuLucTu;
+
+    @Column(name = "hieu_luc_den")
+    private LocalDate hieuLucDen;
 
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;

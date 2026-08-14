@@ -4,6 +4,7 @@ import com.example.quanlyphongtro.entity.TrangThaiPhuongTien;
 import lombok.*;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +22,8 @@ public class PhuongTienDto {
     private String mauXe;
     private String tenChuXe;
     private String soVeXe;
+    private LocalDate hieuLucTu;
+    private LocalDate hieuLucDen;
 
     private UUID khachThueId;
     private KhachThueResponse khachThue;

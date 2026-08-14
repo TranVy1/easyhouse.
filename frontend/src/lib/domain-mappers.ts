@@ -121,6 +121,7 @@ export const hoaDonStatusFromDb = (status?: string): TrangThaiHoaDon => {
     case 'DRAFT':
       return 'nhap';
     case 'UNPAID':
+    case 'ISSUED':
       return 'chuaThanhToan';
     case 'PARTIAL':
       return 'daThanhToanMotPhan';
@@ -142,7 +143,7 @@ export const hoaDonStatusToDb = (status?: string): TrangThaiHoaDonDb => {
     case 'nhap':
       return 'DRAFT';
     case 'chuaThanhToan':
-      return 'UNPAID';
+      return 'ISSUED';
     case 'daThanhToanMotPhan':
       return 'PARTIAL';
     case 'daThanhToan':

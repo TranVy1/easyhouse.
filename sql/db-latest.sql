@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict tUIxbeI4SFrDAzreKZzuSpJZCje4PYXzFXRxnnivZec8wYO0PXrS26tqGggK13D
+\restrict 1rFuteirbYnIPuyqHqJyMX4vs1zm8cY00lsHRnkWMsbKVaeAJLYwhAHlmwbP8SV
 
 -- Dumped from database version 14.23
 -- Dumped by pg_dump version 14.23
@@ -41,6 +41,8 @@ ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_nguoi_ph
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_nguoi_bao_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_khach_thue_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.refresh_token DROP CONSTRAINT IF EXISTS refresh_token_nguoi_dung_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.quyet_toan_tra_phong DROP CONSTRAINT IF EXISTS quyet_toan_tra_phong_hop_dong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.quyet_toan_tra_phong DROP CONSTRAINT IF EXISTS quyet_toan_tra_phong_hoa_don_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phuong_tien DROP CONSTRAINT IF EXISTS phuong_tien_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phuong_tien DROP CONSTRAINT IF EXISTS phuong_tien_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.phuong_tien DROP CONSTRAINT IF EXISTS phuong_tien_khach_thue_id_fkey;
@@ -60,6 +62,10 @@ ALTER TABLE IF EXISTS ONLY public.nguoi_dung_nha_tro DROP CONSTRAINT IF EXISTS n
 ALTER TABLE IF EXISTS ONLY public.login_history DROP CONSTRAINT IF EXISTS login_history_nguoi_dung_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hop_dong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hoa_don_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_su_phuong_tien DROP CONSTRAINT IF EXISTS lich_su_phuong_tien_phuong_tien_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_su_phuong_tien DROP CONSTRAINT IF EXISTS lich_su_phuong_tien_phong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_su_phuong_tien DROP CONSTRAINT IF EXISTS lich_su_phuong_tien_nha_tro_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.lich_su_phuong_tien DROP CONSTRAINT IF EXISTS lich_su_phuong_tien_khach_thue_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_kho_tai_san DROP CONSTRAINT IF EXISTS lich_su_kho_tai_san_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_kho_tai_san DROP CONSTRAINT IF EXISTS lich_su_kho_tai_san_kho_tai_san_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_hoa_don DROP CONSTRAINT IF EXISTS lich_su_hoa_don_nguoi_thay_doi_id_fkey;
@@ -74,6 +80,10 @@ ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS hop_dong_kh
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_khach_thue_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hop_dong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hoa_don_goc_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.giao_dich_tien_coc DROP CONSTRAINT IF EXISTS giao_dich_tien_coc_thanh_toan_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.giao_dich_tien_coc DROP CONSTRAINT IF EXISTS giao_dich_tien_coc_quyet_toan_tra_phong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.giao_dich_tien_coc DROP CONSTRAINT IF EXISTS giao_dich_tien_coc_hop_dong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.yeu_cau_o_ghep DROP CONSTRAINT IF EXISTS fk_ycog_khach_thue;
 ALTER TABLE IF EXISTS ONLY public.yeu_cau_o_ghep DROP CONSTRAINT IF EXISTS fk_ycog_hop_dong;
 ALTER TABLE IF EXISTS ONLY public.tin_nhan DROP CONSTRAINT IF EXISTS fk_tin_nhan_nguoi_ghim;
@@ -105,11 +115,14 @@ ALTER TABLE IF EXISTS ONLY public.cuoc_tro_chuyen DROP CONSTRAINT IF EXISTS cuoc
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_hoa_don_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_dich_vu_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_chi_so_dien_nuoc_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.chi_tiet_ban_giao_tai_san DROP CONSTRAINT IF EXISTS chi_tiet_ban_giao_tai_san_tai_san_phong_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.chi_tiet_ban_giao_tai_san DROP CONSTRAINT IF EXISTS chi_tiet_ban_giao_tai_san_quyet_toan_tra_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_so_dien_nuoc DROP CONSTRAINT IF EXISTS chi_so_dien_nuoc_phong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_so_dien_nuoc DROP CONSTRAINT IF EXISTS chi_so_dien_nuoc_nguoi_ghi_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chi_so_dien_nuoc DROP CONSTRAINT IF EXISTS chi_so_dien_nuoc_hop_dong_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chan_nguoi_dung DROP CONSTRAINT IF EXISTS chan_nguoi_dung_nguoi_chan_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.chan_nguoi_dung DROP CONSTRAINT IF EXISTS chan_nguoi_dung_nguoi_bi_chan_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cau_hinh_phi_xe DROP CONSTRAINT IF EXISTS cau_hinh_phi_xe_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.cau_hinh_gia DROP CONSTRAINT IF EXISTS cau_hinh_gia_nha_tro_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.cau_hinh_gia DROP CONSTRAINT IF EXISTS cau_hinh_gia_dich_vu_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.bao_cao_tin_nhan DROP CONSTRAINT IF EXISTS bao_cao_tin_nhan_tin_nhan_id_fkey;
@@ -137,6 +150,8 @@ DROP TRIGGER IF EXISTS trg_chu_tro_cap_nhat ON public.chu_tro;
 DROP TRIGGER IF EXISTS trg_chi_so_cap_nhat ON public.chi_so_dien_nuoc;
 DROP TRIGGER IF EXISTS trg_cau_hinh_gia_cap_nhat ON public.cau_hinh_gia;
 DROP INDEX IF EXISTS public.uq_tin_nhan_ma_client;
+DROP INDEX IF EXISTS public.uq_giao_dich_tien_coc_quyet_toan_loai;
+DROP INDEX IF EXISTS public.uq_debt_reminder_delivery;
 DROP INDEX IF EXISTS public.idx_tvhd_hop_dong;
 DROP INDEX IF EXISTS public.idx_tin_nhan_noi_dung_trgm;
 DROP INDEX IF EXISTS public.idx_tin_nhan_hoi_thoai_seq;
@@ -149,10 +164,12 @@ DROP INDEX IF EXISTS public.idx_thanh_toan_ref;
 DROP INDEX IF EXISTS public.idx_thanh_toan_hoa_don;
 DROP INDEX IF EXISTS public.idx_tang_nha_tro_so_tang;
 DROP INDEX IF EXISTS public.idx_su_co_phong_status;
+DROP INDEX IF EXISTS public.idx_quyet_toan_tra_phong_trang_thai;
 DROP INDEX IF EXISTS public.idx_phong_trang_thai;
 DROP INDEX IF EXISTS public.idx_phong_tang_id;
 DROP INDEX IF EXISTS public.idx_phong_nha_tro_tang;
 DROP INDEX IF EXISTS public.idx_phong_nha_tro;
+DROP INDEX IF EXISTS public.idx_notification_delivery_aggregate;
 DROP INDEX IF EXISTS public.idx_nha_tro_location_active;
 DROP INDEX IF EXISTS public.idx_nha_tro_chu_tro;
 DROP INDEX IF EXISTS public.idx_nguoi_dung_trang_thai;
@@ -161,6 +178,7 @@ DROP INDEX IF EXISTS public.idx_ndnt_nha_tro_user;
 DROP INDEX IF EXISTS public.idx_login_history_user_time;
 DROP INDEX IF EXISTS public.idx_lich_thanh_toan_hop_dong;
 DROP INDEX IF EXISTS public.idx_lich_thanh_toan_han;
+DROP INDEX IF EXISTS public.idx_lich_su_phuong_tien_billable;
 DROP INDEX IF EXISTS public.idx_lich_hen_phong_time;
 DROP INDEX IF EXISTS public.idx_khach_thue_sdt;
 DROP INDEX IF EXISTS public.idx_khach_thue_chu_tro;
@@ -170,6 +188,8 @@ DROP INDEX IF EXISTS public.idx_hoa_don_status_due;
 DROP INDEX IF EXISTS public.idx_hoa_don_phong;
 DROP INDEX IF EXISTS public.idx_hoa_don_khach_thue;
 DROP INDEX IF EXISTS public.idx_hoa_don_hop_dong_ky;
+DROP INDEX IF EXISTS public.idx_hoa_don_hoa_don_goc;
+DROP INDEX IF EXISTS public.idx_giao_dich_tien_coc_hop_dong_thoi_diem;
 DROP INDEX IF EXISTS public.idx_file_media_target;
 DROP INDEX IF EXISTS public.idx_dvhd_hop_dong;
 DROP INDEX IF EXISTS public.idx_dat_coc_phong;
@@ -177,8 +197,11 @@ DROP INDEX IF EXISTS public.idx_dang_ky_push_nguoi_dung;
 DROP INDEX IF EXISTS public.idx_cuoc_tro_chuyen_tin_cuoi;
 DROP INDEX IF EXISTS public.idx_cuoc_tro_chuyen_nha_tro;
 DROP INDEX IF EXISTS public.idx_cthd_hoa_don;
+DROP INDEX IF EXISTS public.idx_chi_tiet_hoa_don_source;
+DROP INDEX IF EXISTS public.idx_chi_tiet_ban_giao_tai_san_quyet_toan;
 DROP INDEX IF EXISTS public.idx_chi_so_phong_ky;
 DROP INDEX IF EXISTS public.idx_chan_theo_nguoi_bi_chan;
+DROP INDEX IF EXISTS public.idx_cau_hinh_phi_xe_lookup;
 DROP INDEX IF EXISTS public.idx_cau_hinh_gia_nha_tro;
 DROP INDEX IF EXISTS public.idx_bao_cao_cho_xu_ly;
 DROP INDEX IF EXISTS public.idx_audit_log_target;
@@ -186,6 +209,7 @@ ALTER TABLE IF EXISTS ONLY public.yeu_cau_o_ghep DROP CONSTRAINT IF EXISTS yeu_c
 ALTER TABLE IF EXISTS ONLY public.vai_tro DROP CONSTRAINT IF EXISTS vai_tro_ten_key;
 ALTER TABLE IF EXISTS ONLY public.vai_tro DROP CONSTRAINT IF EXISTS vai_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.thanh_vien_cuoc_tro_chuyen DROP CONSTRAINT IF EXISTS uq_thanh_vien_cuoc_tro_chuyen;
+ALTER TABLE IF EXISTS ONLY public.notification_delivery DROP CONSTRAINT IF EXISTS uq_notification_delivery_rule;
 ALTER TABLE IF EXISTS ONLY public.dang_ky_push DROP CONSTRAINT IF EXISTS uq_dang_ky_push_endpoint;
 ALTER TABLE IF EXISTS ONLY public.chan_nguoi_dung DROP CONSTRAINT IF EXISTS uq_chan_nguoi_dung;
 ALTER TABLE IF EXISTS ONLY public.bao_cao_tin_nhan DROP CONSTRAINT IF EXISTS uq_bao_cao_tin_nhan;
@@ -207,12 +231,16 @@ ALTER TABLE IF EXISTS ONLY public.tai_san_phong DROP CONSTRAINT IF EXISTS tai_sa
 ALTER TABLE IF EXISTS ONLY public.su_co DROP CONSTRAINT IF EXISTS su_co_pkey;
 ALTER TABLE IF EXISTS ONLY public.refresh_token DROP CONSTRAINT IF EXISTS refresh_token_token_key;
 ALTER TABLE IF EXISTS ONLY public.refresh_token DROP CONSTRAINT IF EXISTS refresh_token_pkey;
+ALTER TABLE IF EXISTS ONLY public.quyet_toan_tra_phong DROP CONSTRAINT IF EXISTS quyet_toan_tra_phong_pkey;
+ALTER TABLE IF EXISTS ONLY public.quyet_toan_tra_phong DROP CONSTRAINT IF EXISTS quyet_toan_tra_phong_hop_dong_id_key;
+ALTER TABLE IF EXISTS ONLY public.quyet_toan_tra_phong DROP CONSTRAINT IF EXISTS quyet_toan_tra_phong_hoa_don_id_key;
 ALTER TABLE IF EXISTS ONLY public.phuong_tien DROP CONSTRAINT IF EXISTS phuong_tien_pkey;
 ALTER TABLE IF EXISTS ONLY public.phuong_tien DROP CONSTRAINT IF EXISTS phuong_tien_ma_pt_key;
 ALTER TABLE IF EXISTS ONLY public.phu_luc_hop_dong DROP CONSTRAINT IF EXISTS phu_luc_hop_dong_pkey;
 ALTER TABLE IF EXISTS ONLY public.phong_tien_ich DROP CONSTRAINT IF EXISTS phong_tien_ich_pkey;
 ALTER TABLE IF EXISTS ONLY public.phong DROP CONSTRAINT IF EXISTS phong_pkey;
 ALTER TABLE IF EXISTS ONLY public.phong DROP CONSTRAINT IF EXISTS phong_nha_tro_id_ten_key;
+ALTER TABLE IF EXISTS ONLY public.notification_delivery DROP CONSTRAINT IF EXISTS notification_delivery_pkey;
 ALTER TABLE IF EXISTS ONLY public.nha_tro DROP CONSTRAINT IF EXISTS nha_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung_vai_tro DROP CONSTRAINT IF EXISTS nguoi_dung_vai_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.nguoi_dung DROP CONSTRAINT IF EXISTS nguoi_dung_so_dien_thoai_key;
@@ -225,6 +253,7 @@ ALTER TABLE IF EXISTS ONLY public.meter_anomaly_alert DROP CONSTRAINT IF EXISTS 
 ALTER TABLE IF EXISTS ONLY public.login_history DROP CONSTRAINT IF EXISTS login_history_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_thanh_toan DROP CONSTRAINT IF EXISTS lich_thanh_toan_hop_dong_id_ky_nam_ky_thang_key;
+ALTER TABLE IF EXISTS ONLY public.lich_su_phuong_tien DROP CONSTRAINT IF EXISTS lich_su_phuong_tien_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_kho_tai_san DROP CONSTRAINT IF EXISTS lich_su_kho_tai_san_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_su_hoa_don DROP CONSTRAINT IF EXISTS lich_su_hoa_don_pkey;
 ALTER TABLE IF EXISTS ONLY public.lich_hen DROP CONSTRAINT IF EXISTS lich_hen_pkey;
@@ -238,8 +267,9 @@ ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS hop_dong_pk
 ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS hop_dong_ma_hop_dong_key;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_pkey;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_ma_hoa_don_key;
-ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hop_dong_id_ky_nam_ky_thang_key;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key;
+ALTER TABLE IF EXISTS ONLY public.giao_dich_tien_coc DROP CONSTRAINT IF EXISTS giao_dich_tien_coc_thanh_toan_id_key;
+ALTER TABLE IF EXISTS ONLY public.giao_dich_tien_coc DROP CONSTRAINT IF EXISTS giao_dich_tien_coc_pkey;
 ALTER TABLE IF EXISTS ONLY public.file_media DROP CONSTRAINT IF EXISTS file_media_pkey;
 ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS excl_hop_dong_phong_active_overlap;
 ALTER TABLE IF EXISTS ONLY public.email_verification_token DROP CONSTRAINT IF EXISTS email_verification_token_token_key;
@@ -258,9 +288,11 @@ ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_so_c
 ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_pkey;
 ALTER TABLE IF EXISTS ONLY public.chu_tro DROP CONSTRAINT IF EXISTS chu_tro_nguoi_dung_id_key;
 ALTER TABLE IF EXISTS ONLY public.chi_tiet_hoa_don DROP CONSTRAINT IF EXISTS chi_tiet_hoa_don_pkey;
+ALTER TABLE IF EXISTS ONLY public.chi_tiet_ban_giao_tai_san DROP CONSTRAINT IF EXISTS chi_tiet_ban_giao_tai_san_pkey;
 ALTER TABLE IF EXISTS ONLY public.chi_so_dien_nuoc DROP CONSTRAINT IF EXISTS chi_so_dien_nuoc_pkey;
 ALTER TABLE IF EXISTS ONLY public.chi_so_dien_nuoc DROP CONSTRAINT IF EXISTS chi_so_dien_nuoc_phong_id_loai_ky_nam_ky_thang_key;
 ALTER TABLE IF EXISTS ONLY public.chan_nguoi_dung DROP CONSTRAINT IF EXISTS chan_nguoi_dung_pkey;
+ALTER TABLE IF EXISTS ONLY public.cau_hinh_phi_xe DROP CONSTRAINT IF EXISTS cau_hinh_phi_xe_pkey;
 ALTER TABLE IF EXISTS ONLY public.cau_hinh_gia DROP CONSTRAINT IF EXISTS cau_hinh_gia_pkey;
 ALTER TABLE IF EXISTS ONLY public.bao_cao_tin_nhan DROP CONSTRAINT IF EXISTS bao_cao_tin_nhan_pkey;
 ALTER TABLE IF EXISTS ONLY public.bank_transaction DROP CONSTRAINT IF EXISTS bank_transaction_pkey;
@@ -283,10 +315,12 @@ DROP TABLE IF EXISTS public.tang;
 DROP TABLE IF EXISTS public.tai_san_phong;
 DROP TABLE IF EXISTS public.su_co;
 DROP TABLE IF EXISTS public.refresh_token;
+DROP TABLE IF EXISTS public.quyet_toan_tra_phong;
 DROP TABLE IF EXISTS public.phuong_tien;
 DROP TABLE IF EXISTS public.phu_luc_hop_dong;
 DROP TABLE IF EXISTS public.phong_tien_ich;
 DROP TABLE IF EXISTS public.phong;
+DROP TABLE IF EXISTS public.notification_delivery;
 DROP TABLE IF EXISTS public.nha_tro;
 DROP TABLE IF EXISTS public.nguoi_dung_vai_tro;
 DROP TABLE IF EXISTS public.nguoi_dung_nha_tro;
@@ -294,6 +328,7 @@ DROP TABLE IF EXISTS public.nguoi_dung;
 DROP TABLE IF EXISTS public.meter_anomaly_alert;
 DROP TABLE IF EXISTS public.login_history;
 DROP TABLE IF EXISTS public.lich_thanh_toan;
+DROP TABLE IF EXISTS public.lich_su_phuong_tien;
 DROP TABLE IF EXISTS public.lich_su_kho_tai_san;
 DROP TABLE IF EXISTS public.lich_su_hoa_don;
 DROP TABLE IF EXISTS public.lich_hen;
@@ -301,9 +336,9 @@ DROP TABLE IF EXISTS public.kho_tai_san;
 DROP TABLE IF EXISTS public.khach_thue;
 DROP TABLE IF EXISTS public.invoice_generation_log;
 DROP TABLE IF EXISTS public.invoice_generation_batch;
-DROP TABLE IF EXISTS public.quyet_toan_tra_phong;
 DROP TABLE IF EXISTS public.hop_dong;
 DROP TABLE IF EXISTS public.hoa_don;
+DROP TABLE IF EXISTS public.giao_dich_tien_coc;
 DROP TABLE IF EXISTS public.file_media;
 DROP TABLE IF EXISTS public.email_verification_token;
 DROP TABLE IF EXISTS public.dich_vu_hop_dong;
@@ -315,8 +350,10 @@ DROP TABLE IF EXISTS public.cuoc_tro_chuyen;
 DROP TABLE IF EXISTS public.contract_signature;
 DROP TABLE IF EXISTS public.chu_tro;
 DROP TABLE IF EXISTS public.chi_tiet_hoa_don;
+DROP TABLE IF EXISTS public.chi_tiet_ban_giao_tai_san;
 DROP TABLE IF EXISTS public.chi_so_dien_nuoc;
 DROP TABLE IF EXISTS public.chan_nguoi_dung;
+DROP TABLE IF EXISTS public.cau_hinh_phi_xe;
 DROP TABLE IF EXISTS public.cau_hinh_gia;
 DROP TABLE IF EXISTS public.bao_cao_tin_nhan;
 DROP TABLE IF EXISTS public.bank_transaction;
@@ -759,6 +796,7 @@ CREATE TYPE public.trang_thai_dat_coc AS ENUM (
 
 CREATE TYPE public.trang_thai_hoa_don AS ENUM (
     'DRAFT',
+    'ISSUED',
     'UNPAID',
     'PARTIAL',
     'PAID',
@@ -1438,6 +1476,26 @@ CREATE TABLE public.cau_hinh_gia (
 
 
 --
+-- Name: cau_hinh_phi_xe; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cau_hinh_phi_xe (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    loai_xe character varying(100) NOT NULL,
+    don_gia numeric(18,2) NOT NULL,
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    dang_ap_dung boolean DEFAULT true NOT NULL,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT cau_hinh_phi_xe_don_gia_check CHECK ((don_gia >= (0)::numeric)),
+    CONSTRAINT cau_hinh_phi_xe_hieu_luc_check CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
+);
+
+
+--
 -- Name: chan_nguoi_dung; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1477,6 +1535,30 @@ CREATE TABLE public.chi_so_dien_nuoc (
 
 
 --
+-- Name: chi_tiet_ban_giao_tai_san; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chi_tiet_ban_giao_tai_san (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    quyet_toan_tra_phong_id uuid NOT NULL,
+    tai_san_phong_id uuid,
+    ten_tai_san character varying(255) NOT NULL,
+    so_luong_ban_dau integer NOT NULL,
+    tinh_trang_ban_dau character varying(255) NOT NULL,
+    anh_tai_san_ban_dau text,
+    so_luong_thuc_te integer,
+    tinh_trang_thuc_te character varying(255),
+    chung_tu_url text,
+    ghi_chu text,
+    da_xac_nhan boolean DEFAULT false NOT NULL,
+    xac_nhan_luc timestamp with time zone,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chi_tiet_ban_giao_tai_san_quantity_check CHECK (((so_luong_ban_dau >= 0) AND ((so_luong_thuc_te IS NULL) OR ((so_luong_thuc_te >= 0) AND (so_luong_thuc_te <= so_luong_ban_dau)))))
+);
+
+
+--
 -- Name: chi_tiet_hoa_don; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1492,6 +1574,12 @@ CREATE TABLE public.chi_tiet_hoa_don (
     don_gia numeric(38,2) DEFAULT 0 NOT NULL,
     thanh_tien numeric(38,2) DEFAULT 0 NOT NULL,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    source_type character varying(64) NOT NULL,
+    source_id uuid,
+    pricing_rule_version character varying(128) NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    calculation_hash character varying(64) NOT NULL,
     CONSTRAINT chk_cthd_tien CHECK (((so_luong >= (0)::numeric) AND (don_gia >= (0)::numeric) AND (((loai = 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien <= (0)::numeric)) OR ((loai <> 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien >= (0)::numeric)))))
 );
 
@@ -1608,7 +1696,7 @@ CREATE TABLE public.debt_reminder_log (
     hoa_don_id uuid NOT NULL,
     recipient_id uuid,
     CONSTRAINT debt_reminder_log_channel_check CHECK (((channel)::text = ANY (ARRAY[('EMAIL'::character varying)::text, ('SYSTEM_NOTIFICATION'::character varying)::text]))),
-    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY[('DUE_IN_3_DAYS'::character varying)::text, ('DUE_TOMORROW'::character varying)::text, ('OVERDUE_1_DAY'::character varying)::text, ('OVERDUE_7_DAYS'::character varying)::text, ('OVERDUE_15_DAYS'::character varying)::text, ('OVERDUE_30_DAYS'::character varying)::text, ('MANUAL'::character varying)::text])))
+    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY['DUE_IN_3_DAYS'::text, 'DUE_TOMORROW'::text, 'DUE_TODAY'::text, 'OVERDUE_1_DAY'::text, 'OVERDUE_3_DAYS'::text, 'OVERDUE_7_DAYS'::text, 'OVERDUE_15_DAYS'::text, 'OVERDUE_30_DAYS'::text, 'MANUAL'::text])))
 );
 
 
@@ -1681,6 +1769,27 @@ CREATE TABLE public.file_media (
 
 
 --
+-- Name: giao_dich_tien_coc; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.giao_dich_tien_coc (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    thanh_toan_id uuid,
+    quyet_toan_tra_phong_id uuid,
+    loai character varying(32) NOT NULL,
+    so_tien numeric(18,2) NOT NULL,
+    thoi_diem timestamp with time zone DEFAULT now() NOT NULL,
+    dien_giai text NOT NULL,
+    ma_tham_chieu character varying(150),
+    chung_tu_url text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT giao_dich_tien_coc_loai_check CHECK (((loai)::text = ANY ((ARRAY['LEGACY_OPENING'::character varying, 'HELD'::character varying, 'DEDUCTION'::character varying, 'REFUND'::character varying])::text[]))),
+    CONSTRAINT giao_dich_tien_coc_so_tien_positive CHECK ((so_tien > (0)::numeric))
+);
+
+
+--
 -- Name: hoa_don; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1690,7 +1799,6 @@ CREATE TABLE public.hoa_don (
     phong_id uuid NOT NULL,
     khach_thue_id uuid NOT NULL,
     ma_hoa_don character varying(100) NOT NULL,
-    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     ky_nam integer NOT NULL,
     ky_thang integer NOT NULL,
     tu_ngay date NOT NULL,
@@ -1710,38 +1818,11 @@ CREATE TABLE public.hoa_don (
     auto_generated boolean DEFAULT false,
     generation_batch_id uuid,
     source_schedule_id uuid,
+    hoa_don_goc_id uuid,
+    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     CONSTRAINT chk_hoa_don_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND ((ky_nam >= 2000) AND (ky_nam <= 2100)))),
     CONSTRAINT chk_hoa_don_ngay CHECK (((den_ngay >= tu_ngay) AND (han_tra >= tu_ngay))),
     CONSTRAINT chk_hoa_don_tien CHECK (((tong_tien_phat_sinh >= (0)::numeric) AND (tong_tien >= (0)::numeric) AND (da_tra >= (0)::numeric)))
-);
-
-
---
--- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.quyet_toan_tra_phong (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    hop_dong_id uuid NOT NULL,
-    hoa_don_id uuid NOT NULL,
-    ngay_tra_phong date NOT NULL,
-    tien_coc_ban_dau numeric(18,2) DEFAULT 0 NOT NULL,
-    tien_coc_da_can_tru numeric(18,2) DEFAULT 0 NOT NULL,
-    tien_coc_can_hoan numeric(18,2) DEFAULT 0 NOT NULL,
-    tien_phai_thu_them numeric(18,2) DEFAULT 0 NOT NULL,
-    khoan_khau_tru jsonb DEFAULT '[]'::jsonb NOT NULL,
-    trang_thai character varying(32) NOT NULL,
-    ban_giao_da_xac_nhan boolean DEFAULT false NOT NULL,
-    ve_sinh_kiem_tra_xong boolean DEFAULT false NOT NULL,
-    hoan_coc_luc timestamp with time zone,
-    ban_giao_luc timestamp with time zone,
-    kiem_tra_luc timestamp with time zone,
-    hoan_tat_luc timestamp with time zone,
-    ghi_chu text,
-    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
-    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= 0) AND (tien_coc_da_can_tru >= 0) AND (tien_coc_can_hoan >= 0) AND (tien_phai_thu_them >= 0))),
-    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau))
 );
 
 
@@ -1921,6 +2002,23 @@ CREATE TABLE public.lich_su_kho_tai_san (
 
 
 --
+-- Name: lich_su_phuong_tien; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lich_su_phuong_tien (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    phuong_tien_id uuid NOT NULL,
+    khach_thue_id uuid NOT NULL,
+    phong_id uuid NOT NULL,
+    nha_tro_id uuid NOT NULL,
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_lich_su_phuong_tien_dates CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
+);
+
+
+--
 -- Name: lich_thanh_toan; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2077,6 +2175,25 @@ CREATE TABLE public.nha_tro (
 
 
 --
+-- Name: notification_delivery; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notification_delivery (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    aggregate_type character varying(64) NOT NULL,
+    aggregate_id uuid NOT NULL,
+    rule_code character varying(128) NOT NULL,
+    scheduled_for date NOT NULL,
+    channel character varying(32) NOT NULL,
+    recipient_id uuid NOT NULL,
+    status character varying(16) DEFAULT 'PENDING'::character varying NOT NULL,
+    error_message text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: phong; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2153,7 +2270,39 @@ CREATE TABLE public.phuong_tien (
     ten_dong_xe character varying(100),
     mau_xe character varying(50),
     ten_chu_xe character varying(100),
-    so_ve_xe character varying(50)
+    so_ve_xe character varying(50),
+    hieu_luc_tu date NOT NULL,
+    hieu_luc_den date,
+    CONSTRAINT phuong_tien_hieu_luc_check CHECK (((hieu_luc_den IS NULL) OR (hieu_luc_den >= hieu_luc_tu)))
+);
+
+
+--
+-- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quyet_toan_tra_phong (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    hoa_don_id uuid NOT NULL,
+    ngay_tra_phong date NOT NULL,
+    tien_coc_ban_dau numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_da_can_tru numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_can_hoan numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_phai_thu_them numeric(18,2) DEFAULT 0 NOT NULL,
+    khoan_khau_tru jsonb DEFAULT '[]'::jsonb NOT NULL,
+    trang_thai character varying(32) NOT NULL,
+    ban_giao_da_xac_nhan boolean DEFAULT false NOT NULL,
+    ve_sinh_kiem_tra_xong boolean DEFAULT false NOT NULL,
+    hoan_coc_luc timestamp with time zone,
+    ban_giao_luc timestamp with time zone,
+    kiem_tra_luc timestamp with time zone,
+    hoan_tat_luc timestamp with time zone,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau)),
+    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= (0)::numeric) AND (tien_coc_da_can_tru >= (0)::numeric) AND (tien_coc_can_hoan >= (0)::numeric) AND (tien_phai_thu_them >= (0)::numeric)))
 );
 
 
@@ -2682,6 +2831,11 @@ f937c4ab-9633-4b79-a9f6-c79e474227bb	00000000-0000-0000-0000-000000000001	UPDATE
 2b40abca-9e89-4322-b59a-3f36688f8407	00000000-0000-0000-0000-000000000001	CANCEL	thanh_toan	e6ac95af-f463-487a-bc10-c5c07311b53f	\N	\N	\N	\N	2026-08-01 17:36:29.495698+00
 0b8e6bb5-d864-4ae5-a9d3-36293dc150c6	00000000-0000-0000-0000-000000000001	CREATE	thanh_toan	f85baedc-3405-46a3-8a0f-8d395595d6e2	\N	\N	\N	\N	2026-08-01 17:39:23.117762+00
 a14f53ee-8df5-425c-a6d5-1865a8e19660	00000000-0000-0000-0000-000000000001	DELETE	nguoi_dung	396b790e-9403-42a9-9ec5-f3b9240fd55b	\N	\N	\N	\N	2026-08-01 17:41:33.623819+00
+4f4a0887-2a3c-441d-9c3a-90fed39a5080	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	LOGIN	nguoi_dung	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	\N	\N	\N	\N	2026-08-01 18:38:42.705919+00
+67173eb8-7ed9-4e6f-9c6b-1a505838acb8	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	CREATE	thanh_toan	5ad0edf6-8092-445e-a9b6-6a6fcf7a772a	\N	\N	\N	\N	2026-08-01 18:47:28.795186+00
+f706baad-3db7-4c83-a027-cf20df2dc13b	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	CREATE	chi_so_dien_nuoc	01e0c367-ea21-4c85-99a3-a17994ca0801	\N	\N	\N	\N	2026-08-01 19:48:05.955068+00
+8520d188-85af-406b-a7d7-1d167a8f6eae	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	CREATE	hoa_don	0915eb87-0111-4a17-b685-74b5be6bde06	\N	\N	\N	\N	2026-08-01 19:51:06.73547+00
+5be5c6d3-1461-47aa-bc56-718b4d3a029c	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	SEND_EVENT	hoa_don	0915eb87-0111-4a17-b685-74b5be6bde06	\N	\N	\N	\N	2026-08-01 19:51:06.739142+00
 \.
 
 
@@ -2719,6 +2873,14 @@ cc1ebc00-c495-4557-a207-590c6e67da35	528511dc-672f-45a4-88c6-663ec06a2f8c	\N	ELE
 
 
 --
+-- Data for Name: cau_hinh_phi_xe; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cau_hinh_phi_xe (id, nha_tro_id, loai_xe, don_gia, hieu_luc_tu, hieu_luc_den, dang_ap_dung, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
+\.
+
+
+--
 -- Data for Name: chan_nguoi_dung; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -2733,6 +2895,15 @@ COPY public.chan_nguoi_dung (id, nguoi_chan_id, nguoi_bi_chan_id, tao_luc) FROM 
 COPY public.chi_so_dien_nuoc (id, phong_id, hop_dong_id, loai, ky_nam, ky_thang, ngay_ghi, chi_so_cu, chi_so_moi, anh_dong_ho, nguoi_ghi_id, trang_thai, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
 ac78bbb9-05ad-4e93-b598-720409eaf402	399a5e5a-5a54-452a-85cd-dbf99325750b	122cb046-8a81-4b53-937d-70256e13a62e	ELECTRICITY	2026	7	2026-07-23	0	200	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	CONFIRMED		2026-07-23 19:04:20.005959+00	2026-07-23 19:04:20.005959+00
 6278b410-762e-4e7f-aaeb-f065bf9f1fc6	399a5e5a-5a54-452a-85cd-dbf99325750b	122cb046-8a81-4b53-937d-70256e13a62e	WATER	2026	7	2026-07-23	0	12	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	CONFIRMED		2026-07-23 19:04:34.982264+00	2026-07-23 19:04:34.982264+00
+01e0c367-ea21-4c85-99a3-a17994ca0801	30a37c17-33bb-4b9c-b0ab-99302af6b391	21f02101-a8a4-437c-aa2d-1cc3f60f151d	ELECTRICITY	2026	8	2026-08-30	0	200	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	BILLED		2026-08-01 19:48:05.938441+00	2026-08-01 19:51:06.707181+00
+\.
+
+
+--
+-- Data for Name: chi_tiet_ban_giao_tai_san; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.chi_tiet_ban_giao_tai_san (id, quyet_toan_tra_phong_id, tai_san_phong_id, ten_tai_san, so_luong_ban_dau, tinh_trang_ban_dau, anh_tai_san_ban_dau, so_luong_thuc_te, tinh_trang_thuc_te, chung_tu_url, ghi_chu, da_xac_nhan, xac_nhan_luc, tao_luc, cap_nhat_luc) FROM stdin;
 \.
 
 
@@ -2740,11 +2911,16 @@ ac78bbb9-05ad-4e93-b598-720409eaf402	399a5e5a-5a54-452a-85cd-dbf99325750b	122cb0
 -- Data for Name: chi_tiet_hoa_don; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.chi_tiet_hoa_don (id, hoa_don_id, dich_vu_id, chi_so_dien_nuoc_id, su_co_id, loai, mo_ta, so_luong, don_gia, thanh_tien, tao_luc) FROM stdin;
-242e6b90-ea1e-40eb-9125-6906b4eaa0bc	4d6ed482-cb76-4a7f-9426-149208f9f960	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	3200000.00	3200000.00	2026-07-23 19:08:45.678038+00
-d738c675-a390-4d89-ac0a-aae391d0af73	36e84a73-e225-4da1-8eda-4e2292b8459d	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-07-26 17:36:03.941166+00
-42f12d6f-449b-451c-a8ca-f36386100fd1	2932cb65-8a96-4dc6-9484-2975ac31701e	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-08-01 17:21:32.690385+00
-3a68e44e-afc1-42d3-a168-ade89c5c8d29	35b3ce1b-4cdc-49e6-9526-695a08373b60	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-08-01 17:30:29.253539+00
+COPY public.chi_tiet_hoa_don (id, hoa_don_id, dich_vu_id, chi_so_dien_nuoc_id, su_co_id, loai, mo_ta, so_luong, don_gia, thanh_tien, tao_luc, source_type, source_id, pricing_rule_version, period_start, period_end, calculation_hash) FROM stdin;
+242e6b90-ea1e-40eb-9125-6906b4eaa0bc	4d6ed482-cb76-4a7f-9426-149208f9f960	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	3200000.00	3200000.00	2026-07-23 19:08:45.678038+00	LEGACY_UNKNOWN	\N	LEGACY_V1	2026-07-23	2026-07-23	a0d7bb976cc3b1a7faa8adea539dc596
+d738c675-a390-4d89-ac0a-aae391d0af73	36e84a73-e225-4da1-8eda-4e2292b8459d	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-07-26 17:36:03.941166+00	LEGACY_UNKNOWN	\N	LEGACY_V1	2026-07-26	2026-07-26	12e4f737f90ccb807a02978dc574c7ae
+42f12d6f-449b-451c-a8ca-f36386100fd1	2932cb65-8a96-4dc6-9484-2975ac31701e	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-08-01 17:21:32.690385+00	LEGACY_UNKNOWN	\N	LEGACY_V1	2026-08-01	2026-08-01	db50fc41cce4ac7d8d4d9dc676485435
+3a68e44e-afc1-42d3-a168-ade89c5c8d29	35b3ce1b-4cdc-49e6-9526-695a08373b60	\N	\N	\N	DEPOSIT	Tiền cọc hợp đồng	1.00	2500000.00	2500000.00	2026-08-01 17:30:29.253539+00	LEGACY_UNKNOWN	\N	LEGACY_V1	2026-08-01	2026-08-01	acfc63677d0a801c3b389aab7651cdd1
+afcd72a0-2b14-4acd-af27-f27d8525940c	0915eb87-0111-4a17-b685-74b5be6bde06	\N	\N	\N	ROOM	Tiền phòng 30/31 ngày	1.00	3096774.19	3096774.19	2026-08-01 19:51:06.733891+00	CONTRACT_RENT	\N	LEGACY_V1	2026-08-01	2026-08-30	d0d47fdb2dbc9cd115e439faca9ac154
+5ed8abb7-d9de-46ed-b526-ab64b19f5f91	0915eb87-0111-4a17-b685-74b5be6bde06	\N	01e0c367-ea21-4c85-99a3-a17994ca0801	\N	ELECTRICITY	Tiền điện 0-200	200.00	3800.00	760000.00	2026-08-01 19:51:06.734922+00	METER_READING	01e0c367-ea21-4c85-99a3-a17994ca0801	LEGACY_V1	2026-08-01	2026-08-30	30c5a05e03aa49f42b5cdb56dee7fc65
+1b1ab088-7a9c-4def-bb94-a8076205ef46	0915eb87-0111-4a17-b685-74b5be6bde06	ba073e3f-6f54-4f10-89e4-7ca012906bda	\N	\N	SERVICE	Tiền Vệ Sinh	1.00	20000.00	20000.00	2026-08-01 19:51:06.734922+00	CONTRACT_SERVICE	ba073e3f-6f54-4f10-89e4-7ca012906bda	LEGACY_V1	2026-08-01	2026-08-30	575436c391177103b0223c955797c285
+d11864e2-c272-48f4-830f-a279153859cb	0915eb87-0111-4a17-b685-74b5be6bde06	470389b5-ebcf-4da4-be0e-d9a3022dca22	\N	\N	SERVICE	Thang máy	1.00	20000.00	20000.00	2026-08-01 19:51:06.734922+00	CONTRACT_SERVICE	470389b5-ebcf-4da4-be0e-d9a3022dca22	LEGACY_V1	2026-08-01	2026-08-30	4cd6520bb4a6c3d8f919f8ddc21e59c6
+9162c72b-2a0b-4dca-a36b-8a4493e94609	0915eb87-0111-4a17-b685-74b5be6bde06	20e7d7b3-6202-49a3-b9e5-fe9facc2504e	\N	\N	SERVICE	Internet	1.00	100000.00	100000.00	2026-08-01 19:51:06.73547+00	CONTRACT_SERVICE	20e7d7b3-6202-49a3-b9e5-fe9facc2504e	LEGACY_V1	2026-08-01	2026-08-30	106cd7db9f23c6da2dcd6181ce236b78
 \.
 
 
@@ -2776,6 +2952,7 @@ a689a94f-219f-4ec1-ac44-a0eb2e92aac0	BUILDING	Cả nhà Tòa Nhà Sông Đà	\N	
 eecda8e9-83ed-483c-8ca9-5a0823c761de	FLOOR	Tang 2	\N	77d63858-dd11-436a-b31f-3739f15af084	d410fcf9-cb4e-48cf-866b-7b93db8181a1	\N	ACTIVE	floor_d410fcf9-cb4e-48cf-866b-7b93db8181a1	\N	\N	2026-07-24 15:23:25.443999+00	2026-07-24 15:23:25.443999+00	\N
 5155729e-fd60-49ed-9150-23be8832b11b	DIRECT	\N	\N	7e7978b2-8535-4d5f-851a-65960f801e95	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	ACTIVE	direct_08a8fef1-b65f-4b0d-b87f-fb883877e1db_3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	2026-07-24 15:42:35.545405+00	xin chao	2026-07-22 13:28:42.492691+00	2026-07-24 15:42:35.579298+00	\N
 9bf2c9f0-07b3-4ee5-a57f-22072e54278b	FLOOR	Tang 5	\N	77d63858-dd11-436a-b31f-3739f15af084	632d647b-27b3-489a-a5a9-ead90e79bfdb	\N	ACTIVE	floor_632d647b-27b3-489a-a5a9-ead90e79bfdb	\N	\N	2026-07-25 03:30:00.185991+00	2026-07-25 03:30:00.185991+00	\N
+a2ec3abd-7757-4ce6-8344-9ed65c574225	DIRECT	\N	\N	528511dc-672f-45a4-88c6-663ec06a2f8c	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	ACTIVE	direct_2a31bcec-143b-46b6-ad1f-e93acc103d9b_3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	2026-08-01 19:15:44.661688+00	done	2026-08-01 19:15:42.352881+00	2026-08-01 19:15:44.676138+00	\N
 \.
 
 
@@ -2792,6 +2969,7 @@ COPY public.dang_ky_push (id, nguoi_dung_id, nen_tang, endpoint, khoa_p256dh, kh
 --
 
 COPY public.dat_coc_phong (id, phong_id, khach_thue_id, hop_dong_id, so_tien_coc, ngay_dat_coc, ngay_du_kien_vao, trang_thai, ghi_chu, tao_luc, cap_nhat_luc, cancelled_at, confirmed_at, ly_do_huy, nguoi_xac_nhan_id) FROM stdin;
+6b6f79f1-650a-4bb1-9968-614596fd75ed	38157c1d-6ac4-482d-b286-a881fbe47414	fd307a5a-35f6-4b2e-9b8c-fabcb12dd047	\N	2000000.00	2026-08-01 19:13:39.691434+00	2026-08-04	CONFIRMED		2026-08-01 19:13:39.691434+00	2026-08-01 19:13:45.888894+00	\N	2026-08-01 19:13:45.885229+00	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349
 \.
 
 
@@ -2979,15 +3157,26 @@ a75b9f57-925e-414f-b8fc-5772326d843e	ROOM	32410f45-ea0a-4465-a496-c4efb89014cb	h
 
 
 --
+-- Data for Name: giao_dich_tien_coc; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.giao_dich_tien_coc (id, hop_dong_id, thanh_toan_id, quyet_toan_tra_phong_id, loai, so_tien, thoi_diem, dien_giai, ma_tham_chieu, chung_tu_url, tao_luc) FROM stdin;
+f3bbd2ff-b141-471d-be01-af88e724b4f4	666ba0cb-2e49-4307-b5fb-0585bb12ec19	\N	\N	LEGACY_OPENING	2500000.00	2026-08-01 17:21:32.628186+00	S??? d?? c???c chuy???n ?????i t??? h???p ?????ng c??	HD-PHONG-102-202608-8C1808	\N	2026-08-14 05:42:26.601054+00
+ed1db760-bdbb-460c-a02c-07699a7dca80	032ad88d-acab-4f0a-8bfe-e3e8fb5182d4	\N	\N	LEGACY_OPENING	2500000.00	2026-07-26 17:36:03.869457+00	S??? d?? c???c chuy???n ?????i t??? h???p ?????ng c??	HD-PHONG-101-202607-CFB0ED	\N	2026-08-14 05:42:26.601054+00
+\.
+
+
+--
 -- Data for Name: hoa_don; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_nam, ky_thang, tu_ngay, den_ngay, so_du_dau_ky, tong_tien_phat_sinh, tong_tien, da_tra, trang_thai, han_tra, ngay_lap_hoa_don, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc, auto_generated, generation_batch_id, source_schedule_id) FROM stdin;
-c01c0433-0996-4087-a14c-a5535ed18dd6	122cb046-8a81-4b53-937d-70256e13a62e	399a5e5a-5a54-452a-85cd-dbf99325750b	a8dfc6bd-b2df-43ea-9611-4edb70498dcc	HD17848333789871E000F	2026	7	2026-07-23	2026-07-23	0.00	0.00	0.00	0.00	CANCELLED	2026-07-31	2026-07-23 19:02:58.98848+00	Thu tiền cọc hợp đồng	2026-07-23 19:02:58.989025+00	2026-07-23 19:06:38.188149+00	2026-07-23 19:04:50.123484+00	t	\N	\N
-4d6ed482-cb76-4a7f-9426-149208f9f960	21f02101-a8a4-437c-aa2d-1cc3f60f151d	30a37c17-33bb-4b9c-b0ab-99302af6b391	95094c9c-f0df-49e0-9dae-d4646963e7fa	HD1784833725676AA6D5E	2026	7	2026-07-23	2026-07-23	0.00	3200000.00	3200000.00	3199999.00	PARTIAL	2026-07-31	2026-07-23 19:08:45.677505+00	Thu tiền cọc hợp đồng	2026-07-23 19:08:45.677505+00	2026-07-23 19:11:01.595885+00	\N	t	\N	\N
-36e84a73-e225-4da1-8eda-4e2292b8459d	032ad88d-acab-4f0a-8bfe-e3e8fb5182d4	21a5bd17-2bd3-4eb2-892e-7495323327d8	5d35f277-e142-472b-ab39-18d7011fddf3	HD178508736393896C615	2026	7	2026-07-26	2026-07-26	0.00	2500000.00	2500000.00	0.00	UNPAID	2026-08-02	2026-07-26 17:36:03.93984+00	Thu tiền cọc hợp đồng	2026-07-26 17:36:03.940292+00	2026-07-26 17:36:03.817611+00	\N	t	\N	\N
-35b3ce1b-4cdc-49e6-9526-695a08373b60	7cc71a9c-3afe-496c-aabe-2c3df04c4167	a24653ae-ba1a-48c4-83aa-3fbf7b278d33	c3c1eebe-74c7-4cf4-be9d-c62f5daf6dde	HD17856054292523E20C8	2026	8	2026-08-01	2026-08-01	0.00	2500000.00	2500000.00	0.00	CANCELLED	2026-08-08	2026-08-01 17:30:29.252823+00	Thu tiền cọc hợp đồng	2026-08-01 17:30:29.253018+00	2026-08-01 17:33:10.603941+00	2026-08-01 17:33:10.618004+00	t	\N	\N
-2932cb65-8a96-4dc6-9484-2975ac31701e	666ba0cb-2e49-4307-b5fb-0585bb12ec19	d18c25b0-841d-4f35-92f3-bb09550e86c6	adff0e4d-77ed-42d2-939b-df4d61386323	HD1785604892685A14545	2026	8	2026-08-01	2026-08-01	0.00	2500000.00	2500000.00	2500000.00	PAID	2026-08-08	2026-08-01 17:21:32.688063+00	Thu tiền cọc hợp đồng	2026-08-01 17:21:32.688694+00	2026-08-01 17:37:07.818186+00	\N	t	\N	\N
+COPY public.hoa_don (id, hop_dong_id, phong_id, khach_thue_id, ma_hoa_don, ky_nam, ky_thang, tu_ngay, den_ngay, so_du_dau_ky, tong_tien_phat_sinh, tong_tien, da_tra, trang_thai, han_tra, ngay_lap_hoa_don, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc, auto_generated, generation_batch_id, source_schedule_id, hoa_don_goc_id, loai_hoa_don) FROM stdin;
+c01c0433-0996-4087-a14c-a5535ed18dd6	122cb046-8a81-4b53-937d-70256e13a62e	399a5e5a-5a54-452a-85cd-dbf99325750b	a8dfc6bd-b2df-43ea-9611-4edb70498dcc	HD17848333789871E000F	2026	7	2026-07-23	2026-07-23	0.00	0.00	0.00	0.00	CANCELLED	2026-07-31	2026-07-23 19:02:58.98848+00	Thu tiền cọc hợp đồng	2026-07-23 19:02:58.989025+00	2026-07-23 19:06:38.188149+00	2026-07-23 19:04:50.123484+00	t	\N	\N	\N	REGULAR
+4d6ed482-cb76-4a7f-9426-149208f9f960	21f02101-a8a4-437c-aa2d-1cc3f60f151d	30a37c17-33bb-4b9c-b0ab-99302af6b391	95094c9c-f0df-49e0-9dae-d4646963e7fa	HD1784833725676AA6D5E	2026	7	2026-07-23	2026-07-23	0.00	3200000.00	3200000.00	3199999.00	PARTIAL	2026-07-31	2026-07-23 19:08:45.677505+00	Thu tiền cọc hợp đồng	2026-07-23 19:08:45.677505+00	2026-08-14 05:34:46.154615+00	\N	t	\N	\N	\N	REGULAR
+36e84a73-e225-4da1-8eda-4e2292b8459d	032ad88d-acab-4f0a-8bfe-e3e8fb5182d4	21a5bd17-2bd3-4eb2-892e-7495323327d8	5d35f277-e142-472b-ab39-18d7011fddf3	HD178508736393896C615	2026	7	2026-07-26	2026-07-26	0.00	2500000.00	2500000.00	2500000.00	PAID	2026-08-02	2026-07-26 17:36:03.93984+00	Thu tiền cọc hợp đồng	2026-07-26 17:36:03.940292+00	2026-08-14 05:34:46.154615+00	\N	t	\N	\N	\N	REGULAR
+2932cb65-8a96-4dc6-9484-2975ac31701e	666ba0cb-2e49-4307-b5fb-0585bb12ec19	d18c25b0-841d-4f35-92f3-bb09550e86c6	adff0e4d-77ed-42d2-939b-df4d61386323	HD1785604892685A14545	2026	8	2026-08-01	2026-08-01	0.00	2500000.00	2500000.00	2500000.00	PAID	2026-08-08	2026-08-01 17:21:32.688063+00	Thu tiền cọc hợp đồng	2026-08-01 17:21:32.688694+00	2026-08-14 05:34:46.154615+00	\N	t	\N	\N	\N	REGULAR
+35b3ce1b-4cdc-49e6-9526-695a08373b60	7cc71a9c-3afe-496c-aabe-2c3df04c4167	a24653ae-ba1a-48c4-83aa-3fbf7b278d33	c3c1eebe-74c7-4cf4-be9d-c62f5daf6dde	HD17856054292523E20C8	2026	8	2026-08-01	2026-08-01	0.00	2500000.00	2500000.00	0.00	CANCELLED	2026-08-08	2026-08-01 17:30:29.252823+00	Thu tiền cọc hợp đồng	2026-08-01 17:30:29.253018+00	2026-08-14 05:34:46.154615+00	2026-08-01 17:33:10.618004+00	t	\N	\N	\N	REGULAR
+0915eb87-0111-4a17-b685-74b5be6bde06	21f02101-a8a4-437c-aa2d-1cc3f60f151d	30a37c17-33bb-4b9c-b0ab-99302af6b391	95094c9c-f0df-49e0-9dae-d4646963e7fa	HD20260802790	2026	8	2026-08-01	2026-08-30	0.00	3996774.19	3996774.19	0.00	OVERDUE	2026-08-05	2026-08-01 19:51:06.712849+00		2026-08-01 19:51:06.712849+00	2026-08-14 06:33:35.548321+00	\N	\N	\N	\N	\N	REGULAR
 \.
 
 
@@ -2998,9 +3187,9 @@ c01c0433-0996-4087-a14c-a5535ed18dd6	122cb046-8a81-4b53-937d-70256e13a62e	399a5e
 COPY public.hop_dong (id, phong_id, khach_thue_id, ma_hop_dong, ngay_bat_dau, ngay_ket_thuc, ngay_ket_thuc_thuc_te, gia_thue_hop_dong, tien_coc, trang_thai_coc, trang_thai, chu_ky_thanh_toan, ngay_thanh_toan_hang_thang, tu_dong_gia_han, chi_so_dien_ban_dau, chi_so_nuoc_ban_dau, noi_dung_hop_dong, file_pdf, ghi_chu, tao_luc, cap_nhat_luc, xoa_luc, template_version, previewed_at, confirmed_at, locked_at, signed_pdf_url, tenant_signed_at, landlord_signed_at, signature_status) FROM stdin;
 122cb046-8a81-4b53-937d-70256e13a62e	399a5e5a-5a54-452a-85cd-dbf99325750b	a8dfc6bd-b2df-43ea-9611-4edb70498dcc	HD-PHONG-507-202607-43FAD5	2026-07-23	2026-10-23	\N	3200000.00	3200000.00	NOT_PAID	ACTIVE	MONTHLY	5	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-07-23 19:02:58.948327+00	2026-07-23 19:03:07.473506+00	\N	default-v1	\N	2026-07-23 19:03:07.480856+00	2026-07-23 19:03:07.480856+00	\N	\N	\N	UNSIGNED
 21f02101-a8a4-437c-aa2d-1cc3f60f151d	30a37c17-33bb-4b9c-b0ab-99302af6b391	95094c9c-f0df-49e0-9dae-d4646963e7fa	HD-PHONG-206-202607-AE977F	2026-07-23	2026-10-23	\N	3200000.00	3200000.00	NOT_PAID	ACTIVE	MONTHLY	5	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-07-23 19:08:45.644303+00	2026-07-23 19:09:02.839943+00	\N	default-v1	\N	2026-07-23 19:09:02.847324+00	2026-07-23 19:09:02.847324+00	\N	\N	\N	UNSIGNED
-032ad88d-acab-4f0a-8bfe-e3e8fb5182d4	21a5bd17-2bd3-4eb2-892e-7495323327d8	5d35f277-e142-472b-ab39-18d7011fddf3	HD-PHONG-101-202607-CFB0ED	2026-07-26	2027-01-26	\N	2500000.00	2500000.00	NOT_PAID	PENDING	MONTHLY	14	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-07-26 17:36:03.869457+00	2026-07-26 17:36:03.869457+00	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED
 666ba0cb-2e49-4307-b5fb-0585bb12ec19	d18c25b0-841d-4f35-92f3-bb09550e86c6	adff0e4d-77ed-42d2-939b-df4d61386323	HD-PHONG-102-202608-8C1808	2026-08-01	2027-02-01	\N	2500000.00	2500000.00	KEPT	ACTIVE	MONTHLY	5	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-08-01 17:21:32.628186+00	2026-08-01 17:26:12.861092+00	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED
-7cc71a9c-3afe-496c-aabe-2c3df04c4167	a24653ae-ba1a-48c4-83aa-3fbf7b278d33	c3c1eebe-74c7-4cf4-be9d-c62f5daf6dde	HD-PHONG-201-202608-C6165E	2026-08-01	2027-02-01	\N	2500000.00	2500000.00	NOT_PAID	PENDING	MONTHLY	5	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-08-01 17:30:29.232015+00	2026-08-01 17:30:29.232015+00	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED
+032ad88d-acab-4f0a-8bfe-e3e8fb5182d4	21a5bd17-2bd3-4eb2-892e-7495323327d8	5d35f277-e142-472b-ab39-18d7011fddf3	HD-PHONG-101-202607-CFB0ED	2026-07-26	2027-01-26	\N	2500000.00	2500000.00	KEPT	ACTIVE	MONTHLY	14	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	\N		2026-07-26 17:36:03.869457+00	2026-08-01 18:47:13.778007+00	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED
+7cc71a9c-3afe-496c-aabe-2c3df04c4167	a24653ae-ba1a-48c4-83aa-3fbf7b278d33	c3c1eebe-74c7-4cf4-be9d-c62f5daf6dde	HD-PHONG-201-202608-C6165E	2026-08-01	2027-02-01	\N	2500000.00	2500000.00	NOT_PAID	PENDING	MONTHLY	5	f	0	0	ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n1. BÊN CHO THUÊ (Chủ nhà):\n- Cung cấp phòng ở đầy đủ tiện nghi theo thỏa thuận\n- Đảm bảo an ninh, an toàn cho khách thuê\n- Bảo trì, sửa chữa các hư hỏng do hao mòn tự nhiên\n\n2. BÊN THUÊ (Khách thuê):\n- Thanh toán đúng hạn tiền thuê và các chi phí khác\n- Sử dụng phòng đúng mục đích, giữ gìn vệ sinh\n- Không được cải tạo, sửa chữa phòng mà không có sự đồng ý\n- Báo cáo kịp thời các hư hỏng, sự cố\n\n3. ĐIỀU KHOẢN CHUNG:\n- Thời hạn hợp đồng: Từ ngày bắt đầu đến ngày kết thúc\n- Tiền cọc: Được hoàn trả khi kết thúc hợp đồng (trừ các khoản phát sinh)\n- Thanh toán: Hàng tháng vào ngày quy định\n- Điện, nước: Tính theo chỉ số đồng hồ và giá quy định\n- Phí dịch vụ: Theo thỏa thuận riêng\n\n4. CHẤM DỨT HỢP ĐỒNG:\n- Bên thuê có thể chấm dứt hợp đồng trước thời hạn với thông báo trước 30 ngày\n- Bên cho thuê có thể chấm dứt hợp đồng nếu vi phạm nghiêm trọng\n- Hoàn trả tiền cọc sau khi kiểm tra tình trạng phòng\n\n5. ĐIỀU KHOẢN KHÁC:\n- Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận\n- Mọi tranh chấp sẽ được giải quyết thông qua thương lượng\n- Hợp đồng có hiệu lực kể từ ngày ký	https://res.cloudinary.com/dlkh28yfs/raw/upload/v1785611991/quanlyphongtro/contracts/contract_17671783336019410567		2026-08-01 17:30:29.232015+00	2026-08-01 19:19:45.715458+00	\N	\N	\N	\N	\N	\N	\N	\N	UNSIGNED
 \.
 
 
@@ -3030,6 +3219,7 @@ a8dfc6bd-b2df-43ea-9611-4edb70498dcc	ebc6a196-06ab-4566-84d6-1772eabf3892	3e9643
 5d35f277-e142-472b-ab39-18d7011fddf3	2a31bcec-143b-46b6-ad1f-e93acc103d9b	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Hương Trà	0825382338	hngtra2205@gmail.com	052455656365	2006-05-22	nu	\N	Hoà Bình	Tự Do	\N	t	2026-07-26 17:32:34.974168+00	2026-07-26 17:32:34.974168+00	\N
 adff0e4d-77ed-42d2-939b-df4d61386323	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	00000000-0000-0000-0000-000000000001	Trần Triệu Vỹ	0374729356	vyt22052006@gmail.com	066206005123	2026-08-02	nam	\N	Hà Nội	ad	\N	t	2026-08-01 17:14:27.270274+00	2026-08-01 17:14:27.270274+00	\N
 c3c1eebe-74c7-4cf4-be9d-c62f5daf6dde	396b790e-9403-42a9-9ec5-f3b9240fd55b	00000000-0000-0000-0000-000000000001	Trần Vỹ Hợp Đồng	0374729352	\N	066206005125	\N	\N	\N	\N	\N	\N	t	2026-08-01 17:30:21.80404+00	2026-08-01 17:30:21.80404+00	\N
+fd307a5a-35f6-4b2e-9b8c-fabcb12dd047	63b3d5b2-4568-479b-bb29-0f401e66ef51	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Hoàng Văn Trung	0357165018	trunghanhclone@gmail.com	066206004005	2026-08-15	nam	\N	Hà Nội	Sinh Viên	\N	t	2026-08-01 18:43:06.543074+00	2026-08-01 18:43:06.543074+00	\N
 \.
 
 
@@ -3042,6 +3232,7 @@ COPY public.kho_tai_san (id, nha_tro_id, ten_tai_san, hinh_anh, tong_so_luong, s
 08fcdd2b-706b-484f-a709-b8a257e05ed7	7e7978b2-8535-4d5f-851a-65960f801e95	Tivi	https://cellphones.com.vn/tivi.html	20	19	1	0	Mới		2026-07-22 16:11:33.570954+00	2026-07-22 16:12:19.553693+00	\N
 6f788397-b654-4bf3-bd79-8b0cf220f5f6	528511dc-672f-45a4-88c6-663ec06a2f8c	Tủ lạnh	https://www.google.com/imgres?q=t%E1%BB%A7%20l%E1%BA%A1nh&imgurl=https%3A%2F%2Fpos.nvncdn.com%2F543aed-43249%2Fps%2F20220822_LZ7VwY7G2FHUWIYvMvYtaoGE.jpg%3Fv%3D1673582084&imgrefurl=https%3A%2F%2Fdienmaysunny.com%2Ftu-lanh-sharp-inverter-150l-sjx176esl-p38333284.html&docid=r7m0eV_Ed2cyYM&tbnid=JW6aAbysAnsAuM&vet=12ahUKEwini_2L7_CVAxVhh1YBHV07IIYQnPAOegUIgAEQAA..i&w=587&h=600&hcb=2&ved=2ahUKEwini_2L7_CVAxVhh1YBHV07IIYQnPAOegUIgAEQAA	5	5	0	0	Tốt		2026-07-26 17:29:27.358036+00	2026-07-26 17:29:53.648209+00	2026-07-26 17:29:53.64785+00
 246b1757-ea23-4cc8-a6c3-caf4fac3ed23	528511dc-672f-45a4-88c6-663ec06a2f8c	Giường	https://noithatsdp.com/wp-content/uploads/giuong-go-1.2-m-gia-re.webp	10	9	1	0	Tốt		2026-07-26 17:25:30.268965+00	2026-07-26 17:34:42.084798+00	\N
+e93037b8-8864-4603-897c-650b28f679e8	528511dc-672f-45a4-88c6-663ec06a2f8c	Tủ lạnh	http://res.cloudinary.com/dlkh28yfs/image/upload/v1785610395/quanlyphongtro/jej26implue1tucnj48e.webp	20	20	0	0	Mới		2026-08-01 18:53:14.24269+00	2026-08-01 18:53:14.24269+00	\N
 \.
 
 
@@ -3071,6 +3262,16 @@ fbaf09cb-feec-4190-b087-c876026e52c5	616da7d7-6c05-4620-93a3-f2e44eedfb94	b3d3c1
 deca9855-c412-4772-ad74-1ccd9e309ca5	08fcdd2b-706b-484f-a709-b8a257e05ed7	\N	NHAP_KHO	20	Nhập kho ban đầu	2026-07-22 16:11:33.571481+00
 86b06661-18d2-44e1-941d-06bfc341a5ab	246b1757-ea23-4cc8-a6c3-caf4fac3ed23	\N	NHAP_KHO	10	Nhập kho ban đầu	2026-07-26 17:25:30.270724+00
 049f3cda-cba8-4cac-9b77-7b5d81ebbeb7	6f788397-b654-4bf3-bd79-8b0cf220f5f6	\N	NHAP_KHO	5	Nhập kho ban đầu	2026-07-26 17:29:27.35862+00
+6464e124-ba0e-4038-99a2-ceb0fb1a30f1	e93037b8-8864-4603-897c-650b28f679e8	\N	NHAP_KHO	20	Nhập kho ban đầu	2026-08-01 18:53:14.243204+00
+\.
+
+
+--
+-- Data for Name: lich_su_phuong_tien; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.lich_su_phuong_tien (id, phuong_tien_id, khach_thue_id, phong_id, nha_tro_id, hieu_luc_tu, hieu_luc_den, tao_luc) FROM stdin;
+1a9af53a-0838-4f4e-aec6-020f8daf370d	4bff4b6e-fe34-4160-8877-cccf8afac765	adff0e4d-77ed-42d2-939b-df4d61386323	d18c25b0-841d-4f35-92f3-bb09550e86c6	528511dc-672f-45a4-88c6-663ec06a2f8c	2026-08-02	\N	2026-08-14 06:18:15.681507+00
 \.
 
 
@@ -3161,6 +3362,11 @@ bbb71f80-85e9-45e8-b0a0-d53cddacd874	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	vyt220
 c82925c7-ae3d-46c0-b995-cc27491355bb	396b790e-9403-42a9-9ec5-f3b9240fd55b	tenant_0374729352@easyhouse.local	t	172.18.0.5	node	\N	2026-08-01 17:31:06.401138+00
 0ecd4d90-ac8f-464f-a810-db8c191fb132	396b790e-9403-42a9-9ec5-f3b9240fd55b	tenant_0374729352@easyhouse.local	t	172.18.0.5	node	\N	2026-08-01 17:31:33.736978+00
 a620c055-02cf-4342-bdfe-c762631a2126	396b790e-9403-42a9-9ec5-f3b9240fd55b	tenant_0374729352@easyhouse.local	t	172.18.0.5	node	\N	2026-08-01 17:42:09.063274+00
+2b477153-2ed3-4720-8a2c-839b56c7ff85	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	docong989@gmail.com	t	::1	node	\N	2026-08-01 18:38:42.648129+00
+b5d98650-f412-415b-80a2-0d39eecd5be4	63b3d5b2-4568-479b-bb29-0f401e66ef51	trunghanhclone@gmail.com	t	::1	node	\N	2026-08-01 18:43:37.938065+00
+e73886df-9128-4168-b0ca-8266a081653a	63b3d5b2-4568-479b-bb29-0f401e66ef51	trunghanhclone@gmail.com	t	::1	node	\N	2026-08-01 18:43:51.966447+00
+729857f0-2f59-4618-92e4-50eaefc0d60c	08a8fef1-b65f-4b0d-b87f-fb883877e1db	ptho2601@gmail.com	t	::1	node	\N	2026-08-01 19:51:27.337549+00
+df5d3b5e-5d62-4d5e-afcf-2c65eff447be	08a8fef1-b65f-4b0d-b87f-fb883877e1db	ptho2601@gmail.com	t	::1	node	\N	2026-08-14 05:17:06.110475+00
 \.
 
 
@@ -3180,10 +3386,11 @@ COPY public.nguoi_dung (id, email, ho_ten, so_dien_thoai, anh_dai_dien, ngay_sin
 08a8fef1-b65f-4b0d-b87f-fb883877e1db	ptho2601@gmail.com	Phùng Văn Thọ	0357165019	\N	2006-01-22	nam	\N	Hà Nội	066206004001	ACTIVE	0	\N	\N	\N	2026-07-22 13:08:59.793399+00	2026-07-22 13:10:02.484179+00	\N	$2a$10$mZIv9NEI8yQr.qp0IkwhAO6e4NgbGlGnc9Xe/hvm9omAJXotlgR8O	NONE	\N	\N	\N
 ebc6a196-06ab-4566-84d6-1772eabf3892	tenant_0396822875@easyhouse.local	hàng thị trúc giang	0396822875	\N	\N	\N	\N	\N	066206004002	ACTIVE	0	\N	\N	\N	2026-07-23 18:55:21.858698+00	2026-07-23 18:55:21.858698+00	\N	$2a$10$jqw681aZO.dqsxfKdTqg6u./HNRw8LTdlFizc/pdXGjXNHYvavR4K	NONE	\N	\N	\N
 2a31bcec-143b-46b6-ad1f-e93acc103d9b	hngtra2205@gmail.com	Hương Trà	0825382338	\N	2006-05-22	nu	\N	Hoà Bình	052455656365	ACTIVE	0	\N	\N	\N	2026-07-26 17:32:34.968274+00	2026-07-26 17:37:31.439602+00	\N	$2a$10$P3bKbmylnny6y5IavnjxqueR.t3BgAZnclVdbXIYX2cz1RS2N76pO	NONE	\N	\N	\N
-3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	docong989@gmail.com	đỗ chí công	0369963725	\N	\N	\N	\N	\N	\N	INACTIVE	0	\N	2026-07-29 15:32:54.557376+00	\N	2026-07-22 11:16:02.050004+00	2026-07-29 15:32:54.440635+00	\N	$2a$10$eZ8mmP3SmSZii81yrlskKuq5/ZAYjeTNkRUQ140rlr9Z83ZotT7OG	NONE	\N	\N	\N
-00000000-0000-0000-0000-000000000001	admin@easyhouse.local	EasyHouse Admin	\N	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-08-01 17:11:24.437872+00	\N	2026-07-24 09:21:24.272843+00	2026-08-01 17:11:24.342556+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G	NONE	\N	\N	\N
 e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	vyt22052006@gmail.com	Trần Triệu Vỹ	0374729356	\N	2026-08-02	nam	\N	Hà Nội	066206005123	ACTIVE	0	\N	\N	\N	2026-08-01 17:14:27.265434+00	2026-08-01 17:19:07.768756+00	\N	$2a$10$gyT1x73dsfxwKJyefaF3S.ImZhNmZuBK9oDaJMzTe0WD5YLHFRL/K	NONE	\N	\N	\N
 396b790e-9403-42a9-9ec5-f3b9240fd55b	tenant_0374729352@easyhouse.local	Trần Vỹ Hợp Đồng	0374729352	\N	\N	\N	\N	\N	066206005125	ACTIVE	0	\N	\N	\N	2026-08-01 17:30:21.802532+00	2026-08-01 17:41:33.621227+00	2026-08-01 17:41:33.622471+00	$2a$10$Lw4KJQTLhjkBzV03WUIABOJaTzCjbfXon60vN/4kd/P0IB.yBqLJ6	NONE	\N	\N	\N
+00000000-0000-0000-0000-000000000001	admin@easyhouse.local	EasyHouse Admin	\N	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-08-01 17:11:24.437872+00	\N	2026-07-24 09:21:24.272843+00	2026-08-01 17:57:40.003576+00	\N	$2a$10$9HgmP3LHXFShX6LXoCjinOy0E51QCxzfVmywozLxD/qSnD0u0bY1G	NONE	\N	\N	\N
+3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	docong989@gmail.com	đỗ chí công	0369963725	\N	\N	\N	\N	\N	\N	ACTIVE	0	\N	2026-08-01 18:38:42.641963+00	\N	2026-07-22 11:16:02.050004+00	2026-08-01 18:38:42.568486+00	\N	$2a$10$eZ8mmP3SmSZii81yrlskKuq5/ZAYjeTNkRUQ140rlr9Z83ZotT7OG	NONE	\N	\N	\N
+63b3d5b2-4568-479b-bb29-0f401e66ef51	trunghanhclone@gmail.com	Hoàng Văn Trung	0357165018	\N	2026-08-15	nam	\N	Hà Nội	066206004005	ACTIVE	0	\N	\N	\N	2026-08-01 18:43:06.541002+00	2026-08-01 18:43:45.042923+00	\N	$2a$10$P7kaNJkMZj6kOvHWvXyNZOaUTDf8RKLZO.Y1/5jTVqG630sW7kLbe	NONE	\N	\N	\N
 \.
 
 
@@ -3216,6 +3423,14 @@ cf6edb0e-afcf-47bd-8a7b-56b09ad5140c	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Tòa N
 f99082a3-1c1c-44f0-a05a-25dc11fd5c46	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Nhà Trọ Hải Dương	13 Trịnh Văn Bô, Phường Xuân Phương, Quận Nam Từ Liêm, Thành phố Hà Nội	13	Trịnh Văn Bô	Phường Xuân Phương	Quận Nam Từ Liêm	Thành phố Hà Nội	new	camera,baoVe,giuXe,sanPhoi,nhaVeSinhChung,khuBepChung	\N	ACTIVE	2026-07-23 10:33:21.017902+00	2026-07-23 10:33:21.017902+00	\N	\N	\N	\N	\N
 63fe73ae-b22c-4a78-abd5-33cc79ceffbd	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Nhà Trọ Trung Lập	136  cầu diễn, Phường Minh Khai, Quận Bắc Từ Liêm, Thành phố Hà Nội	136 	cầu diễn	Phường Minh Khai	Quận Bắc Từ Liêm	Thành phố Hà Nội	phòng new	camera,baoVe,giuXe,sanPhoi,nhaVeSinhChung,khuBepChung	\N	ACTIVE	2026-07-23 17:17:49.408982+00	2026-07-23 17:17:49.408982+00	\N	21.0496940	105.7414170	\N	\N
 528511dc-672f-45a4-88c6-663ec06a2f8c	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	Dãy Trọ Mỹ Đình	25/52/25/43 Đường Phú Mỹ, Phường Mỹ Đình 2, Quận Nam Từ Liêm, Thành phố Hà Nội	25/52/25/43	Đường Phú Mỹ	Phường Mỹ Đình 2	Quận Nam Từ Liêm	Thành phố Hà Nội		camera,baoVe,giuXe,sanPhoi,nhaVeSinhChung,khuBepChung	\N	ACTIVE	2026-07-26 17:17:54.083129+00	2026-07-26 17:17:54.083129+00	\N	21.0284100	105.7778800	\N	\N
+\.
+
+
+--
+-- Data for Name: notification_delivery; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.notification_delivery (id, aggregate_type, aggregate_id, rule_code, scheduled_for, channel, recipient_id, status, error_message, tao_luc, cap_nhat_luc) FROM stdin;
 \.
 
 
@@ -3281,7 +3496,6 @@ f0124893-6eb5-46b6-8a88-d6e118b0b742	77d63858-dd11-436a-b31f-3739f15af084	Phòng
 4db01bf4-dd3a-4a0c-9bec-0b0bd116a6af	77d63858-dd11-436a-b31f-3739f15af084	Phòng 505	\N	5	25.00	4	AVAILABLE	3200000.00	3200000.00	\N	2026-07-23 17:41:59.01592+00	2026-07-23 17:41:59.01592+00	\N	632d647b-27b3-489a-a5a9-ead90e79bfdb
 c1c7027d-9286-43a5-9692-151315e0e96c	77d63858-dd11-436a-b31f-3739f15af084	Phòng 506	\N	5	25.00	4	AVAILABLE	3200000.00	3200000.00	\N	2026-07-23 17:41:59.01592+00	2026-07-23 17:41:59.01592+00	\N	632d647b-27b3-489a-a5a9-ead90e79bfdb
 399a5e5a-5a54-452a-85cd-dbf99325750b	77d63858-dd11-436a-b31f-3739f15af084	Phòng 507	\N	5	25.00	4	RENTED	3200000.00	3200000.00	\N	2026-07-23 17:41:59.01592+00	2026-07-23 19:03:07.473506+00	\N	632d647b-27b3-489a-a5a9-ead90e79bfdb
-38157c1d-6ac4-482d-b286-a881fbe47414	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 202	\N	2	20.00	2	AVAILABLE	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-07-26 17:17:54.067971+00	\N	7b642019-c642-467f-bb93-46d1f29086d2
 c61a9b5b-5701-44c3-bfa4-9a048187d804	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 301	\N	3	20.00	2	AVAILABLE	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-07-26 17:17:54.067971+00	\N	2b31db0b-cc9c-429c-8281-99a39f8df266
 c1c8f6ee-60fd-4a54-8ab7-9c4078857af5	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 302	\N	3	20.00	2	AVAILABLE	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-07-26 17:17:54.067971+00	\N	2b31db0b-cc9c-429c-8281-99a39f8df266
 5683d5a6-9fa9-4e10-8669-749b420805b1	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 401	\N	4	20.00	2	AVAILABLE	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-07-26 17:17:54.067971+00	\N	6578a648-78d4-4a73-94e9-5dd414857228
@@ -3292,6 +3506,7 @@ ad414712-92d6-43fc-be89-1b3854a4a51e	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng
 299f61a6-d138-4e1f-9d9b-ba26959d2991	528511dc-672f-45a4-88c6-663ec06a2f8c	PHÒNG 5010		5	24.00	1	AVAILABLE	3000000.00	3000000.00		2026-08-01 16:01:03.363856+00	2026-08-01 17:13:26.064592+00	2026-08-01 17:13:26.079575+00	51a00900-80e6-4567-8898-9e2651efa8f7
 d18c25b0-841d-4f35-92f3-bb09550e86c6	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 102	\N	1	20.00	2	RESERVED	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-08-01 17:21:32.60366+00	\N	24ab7d7d-f1a9-44f4-8fb2-7895e13e19d1
 a24653ae-ba1a-48c4-83aa-3fbf7b278d33	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 201	\N	2	20.00	2	RESERVED	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-08-01 17:30:29.22364+00	\N	7b642019-c642-467f-bb93-46d1f29086d2
+38157c1d-6ac4-482d-b286-a881fbe47414	528511dc-672f-45a4-88c6-663ec06a2f8c	Phòng 202	\N	2	20.00	2	RESERVED	2500000.00	2500000.00	\N	2026-07-26 17:17:54.067971+00	2026-08-01 19:13:45.883872+00	\N	7b642019-c642-467f-bb93-46d1f29086d2
 \.
 
 
@@ -3881,7 +4096,16 @@ COPY public.phu_luc_hop_dong (id, hop_dong_id, loai, noi_dung, ngay_hieu_luc, gi
 -- Data for Name: phuong_tien; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.phuong_tien (id, ma_pt, loai_xe, bien_so, khach_thue_id, phong_id, nha_tro_id, chu_tro_id, trang_thai, created_at, updated_at, anh_xe, loai_phuong_tien, ten_dong_xe, mau_xe, ten_chu_xe, so_ve_xe) FROM stdin;
+COPY public.phuong_tien (id, ma_pt, loai_xe, bien_so, khach_thue_id, phong_id, nha_tro_id, chu_tro_id, trang_thai, created_at, updated_at, anh_xe, loai_phuong_tien, ten_dong_xe, mau_xe, ten_chu_xe, so_ve_xe, hieu_luc_tu, hieu_luc_den) FROM stdin;
+4bff4b6e-fe34-4160-8877-cccf8afac765	PT1785687663007	Xe máy - Exciter	98AH-05733	adff0e4d-77ed-42d2-939b-df4d61386323	d18c25b0-841d-4f35-92f3-bb09550e86c6	528511dc-672f-45a4-88c6-663ec06a2f8c	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	HIEU_LUC	2026-08-02 16:21:03.016522+00	2026-08-02 16:21:03.016522+00	http://res.cloudinary.com/dlkh28yfs/image/upload/v1785687661/quanlyphongtro/tfzc2ibczxespyieapow.jpg	Xe máy	Exciter	trắng đen	\N		2026-08-02	\N
+\.
+
+
+--
+-- Data for Name: quyet_toan_tra_phong; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.quyet_toan_tra_phong (id, hop_dong_id, hoa_don_id, ngay_tra_phong, tien_coc_ban_dau, tien_coc_da_can_tru, tien_coc_can_hoan, tien_phai_thu_them, khoan_khau_tru, trang_thai, ban_giao_da_xac_nhan, ve_sinh_kiem_tra_xong, hoan_coc_luc, ban_giao_luc, kiem_tra_luc, hoan_tat_luc, ghi_chu, tao_luc, cap_nhat_luc) FROM stdin;
 \.
 
 
@@ -3956,6 +4180,9 @@ ea8f3d33-bcb5-4af4-b3ea-1ebdfe607039	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	eyJhbG
 1e24fe2f-f925-4a33-b173-7d9512f219f6	396b790e-9403-42a9-9ec5-f3b9240fd55b	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIzOTZiNzkwZS05NDAzLTQyYTktOWVjNS1mM2I5MjQwZmQ1NWIiLCJqdGkiOiJkN2ViNTY1ZS00NjQ2LTQwODgtOGYxMy1kMTQwOTFkNTMwMWMiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg1NjA1NDkzLCJleHAiOjE3ODgxOTc0OTN9.ME0jBD4Ot4jc6J558e3Y2gtk4t9Tnv1WEiJxMNx2WWeIJvVSPqQfgbIh6NRAlD6l	2026-08-31 17:31:33.739+00	2026-08-01 17:31:33.739768+00
 39b52304-6a4c-48ca-bb76-fe452bb754c2	396b790e-9403-42a9-9ec5-f3b9240fd55b	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIzOTZiNzkwZS05NDAzLTQyYTktOWVjNS1mM2I5MjQwZmQ1NWIiLCJqdGkiOiJlZTJiNTExZS0xNzNhLTRiZjMtYWM4Ni0wYjEzMGI5MzU4NGMiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg1NjA2MTI5LCJleHAiOjE3ODgxOTgxMjl9.JY7FmCN4r7N7CUjFWEk0rzA8gLAKOMTGShODJzU6hwIALRlsw3j6dpavM6bmqoXe	2026-08-31 17:42:09.072+00	2026-08-01 17:42:09.073189+00
 3191ee18-c909-4890-a337-ae5eb8291bff	00000000-0000-0000-0000-000000000001	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJqdGkiOiJlMzEwNWMwMy1hNDk0LTQ5YzctOTQ3Zi1hNjY1NTc0YTM1OTQiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg1NjA2MTMyLCJleHAiOjE3ODgxOTgxMzJ9.3oc3hs3sxRdXuoHWUj9CvZULAX_uy3zogILSUD0q1wksIseQ6_QI4eLuKc3xFejA	2026-08-31 17:42:12.44+00	2026-08-01 17:42:12.440998+00
+0db92c2a-9d39-4458-a64a-a58d66f0195f	08a8fef1-b65f-4b0d-b87f-fb883877e1db	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIwOGE4ZmVmMS1iNjVmLTRiMGQtYjg3Zi1mYjg4Mzg3N2UxZGIiLCJqdGkiOiIwMjY2MzkxNC1jODM2LTQ2M2UtYTg1OC04YWJiZTJmNjVkZjQiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg1Njg2MjA4LCJleHAiOjE3ODgyNzgyMDh9.3A8Mk7nDEz-uMdRoN0jZYzgMIjzgU54cGlpK7jIuxPBWclt8nNyTuTzKjR0UQyLa	2026-09-01 15:56:48.793+00	2026-08-02 15:56:48.793848+00
+698e428e-f923-4fab-8ce1-0c0e1411bd0d	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIzZTk2NDNiNC03ZGQ5LTQ4MjMtYWRlOS1hN2QzY2QyYjkzNDkiLCJqdGkiOiJjMTdkYjgwZC05YjM1LTRkYjMtYTZlNS05YTE3N2RjMGM0YmIiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg2Njg0MjU3LCJleHAiOjE3ODkyNzYyNTd9.lO14zGOUOIOU_hWWut85s1twfgOQbrDh_hXGXeN-QGXoK7UcFZB5u1rIFeRu2EKI	2026-09-13 05:10:57.053+00	2026-08-14 05:10:57.059118+00
+40e1eeab-b479-4827-8c67-2016165118e0	08a8fef1-b65f-4b0d-b87f-fb883877e1db	eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIwOGE4ZmVmMS1iNjVmLTRiMGQtYjg3Zi1mYjg4Mzg3N2UxZGIiLCJqdGkiOiI0YmM4YWJkNy0wMGM4LTQ5MGItOWMyZi05ZmVjMzU4MGQ4OWIiLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzg2Njg0NjI2LCJleHAiOjE3ODkyNzY2MjZ9.s9WDPVtvWeNMh97DL6ZEYTieUgR24MtYTxgM_Hc-H_b4xLKv5gTwe3Y5d1vebrXw	2026-09-13 05:17:06.114+00	2026-08-14 05:17:06.114944+00
 \.
 
 
@@ -4014,6 +4241,7 @@ COPY public.thanh_toan (id, hoa_don_id, khach_thue_id, so_tien, ngay_thanh_toan,
 dbbf85fd-deca-422f-b1a1-fc27a7da4de3	4d6ed482-cb76-4a7f-9426-149208f9f960	95094c9c-f0df-49e0-9dae-d4646963e7fa	3199999.00	2026-07-22 17:00:00+00	CASH	\N	\N	SUCCESS	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349		2026-07-23 19:11:01.602796+00
 e6ac95af-f463-487a-bc10-c5c07311b53f	2932cb65-8a96-4dc6-9484-2975ac31701e	adff0e4d-77ed-42d2-939b-df4d61386323	2500000.00	2026-08-01 00:00:00+00	CASH	\N	\N	CANCELLED	\N	00000000-0000-0000-0000-000000000001		2026-08-01 17:26:12.903171+00
 f85baedc-3405-46a3-8a0f-8d395595d6e2	2932cb65-8a96-4dc6-9484-2975ac31701e	adff0e4d-77ed-42d2-939b-df4d61386323	2500000.00	2026-08-01 00:00:00+00	CASH	\N	\N	SUCCESS	\N	00000000-0000-0000-0000-000000000001		2026-08-01 17:37:07.823979+00
+5ad0edf6-8092-445e-a9b6-6a6fcf7a772a	36e84a73-e225-4da1-8eda-4e2292b8459d	5d35f277-e142-472b-ab39-18d7011fddf3	2500000.00	2026-07-31 17:00:00+00	CASH	\N	\N	SUCCESS	\N	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349		2026-08-01 18:47:13.797711+00
 \.
 
 
@@ -4030,6 +4258,8 @@ dc2d499b-c4bc-4676-be88-c070f004330b	5155729e-fd60-49ed-9150-23be8832b11b	08a8fe
 03ac6ec0-0e55-472d-ad73-46e7a8a7b41b	5155729e-fd60-49ed-9150-23be8832b11b	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	MEMBER	2026-07-22 13:28:42.495893+00	\N	76	2026-07-24 15:42:35.815459+00	f	f	f	0	\N	\N
 2db5d21d-3b89-4cc5-be21-e39d21cb513c	a689a94f-219f-4ec1-ac44-a0eb2e92aac0	ebc6a196-06ab-4566-84d6-1772eabf3892	MEMBER	2026-07-25 03:30:00.19511+00	\N	0	\N	f	f	f	0	\N	\N
 67958a90-b0dd-4803-a4f8-3e9e9b800aa1	9bf2c9f0-07b3-4ee5-a57f-22072e54278b	ebc6a196-06ab-4566-84d6-1772eabf3892	MEMBER	2026-07-25 03:30:00.195294+00	\N	0	\N	f	f	f	0	\N	\N
+3f02575f-1ff8-487e-a647-d7fd2fde7f4b	a2ec3abd-7757-4ce6-8344-9ed65c574225	2a31bcec-143b-46b6-ad1f-e93acc103d9b	MEMBER	2026-08-01 19:15:42.355494+00	\N	0	\N	f	f	f	0	\N	\N
+8aebdbc2-9ec6-42e4-af67-2eddb59caf39	a2ec3abd-7757-4ce6-8344-9ed65c574225	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	MEMBER	2026-08-01 19:15:42.355494+00	\N	77	2026-08-01 19:15:44.715522+00	f	f	f	0	\N	\N
 \.
 
 
@@ -4085,6 +4315,8 @@ a9a464fe-a3f4-4297-b1ec-f3ac429ee4ba	755a8efe-b632-4208-8eda-408f5028d004	e7b86b
 8cf248ed-320b-4044-95c7-6e45a34b3fee	ca7e592f-7852-4724-b993-9eb51f0e0f2f	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	t	2026-08-01 17:20:50.25834+00	2026-08-01 17:20:50.258522+00	\N
 63d28f85-d49b-444b-aed2-3eee69b3e1aa	92f0a59c-c1a3-4389-9b4d-5c3943636023	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	t	2026-08-01 17:20:50.35082+00	2026-08-01 17:20:50.351041+00	\N
 1c69ee45-044d-4f47-a9df-93de18fd0731	0fe35f57-0a8b-4aaa-9324-0af0ae5282e2	e7b86be1-4078-42af-9cd1-43bcbbd8a3fd	t	2026-08-01 17:20:50.439942+00	2026-08-01 17:20:50.440194+00	\N
+4be73278-b9ce-496c-8eb9-3cb29a66d4a2	4fec1f1b-9b3a-4267-afe1-fbf3af5d065a	63b3d5b2-4568-479b-bb29-0f401e66ef51	t	2026-08-01 18:50:39.697244+00	2026-08-01 18:50:39.697765+00	\N
+7afef976-826c-458a-9aae-a74781c371d7	a589b84e-46aa-4415-8dac-75b8da9db441	63b3d5b2-4568-479b-bb29-0f401e66ef51	t	2026-08-01 18:50:40.156369+00	2026-08-01 18:50:40.156887+00	\N
 \.
 
 
@@ -4200,6 +4432,7 @@ d09a195e-f2d9-4197-aa12-9dd2a54c67d2	70	5155729e-fd60-49ed-9150-23be8832b11b	3e9
 cde815ff-6b0f-4a20-8bec-cbce8f3c45b6	74	5155729e-fd60-49ed-9150-23be8832b11b	08a8fef1-b65f-4b0d-b87f-fb883877e1db	TEXT	bạn khỏe ko	\N	\N	1784907368639-0.5272632970404612	f	2026-07-24 15:36:13.146777+00	2026-07-24 15:36:13.146777+00	\N	\N	\N	\N
 23b6c079-1732-4793-8d80-2d9212351640	75	5155729e-fd60-49ed-9150-23be8832b11b	08a8fef1-b65f-4b0d-b87f-fb883877e1db	TEXT	hello	\N	\N	1784907742447-0.7413468542627998	f	2026-07-24 15:42:27.03664+00	2026-07-24 15:42:27.03664+00	\N	\N	\N	\N
 5db9ea77-d02d-44a1-9f1d-d72bdd3f59ab	76	5155729e-fd60-49ed-9150-23be8832b11b	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	TEXT	xin chao	\N	\N	1784907751010-0.5831607946361507	f	2026-07-24 15:42:35.545405+00	2026-07-24 15:42:35.545405+00	\N	\N	\N	\N
+2583856a-d9a5-483e-86b9-e629ef1b447e	77	a2ec3abd-7757-4ce6-8344-9ed65c574225	3e9643b4-7dd9-4823-ade9-a7d3cd2b9349	TEXT	done	\N	\N	f3fec3f1-1671-4800-9e1a-d38509ec23f8	f	2026-08-01 19:15:44.661688+00	2026-08-01 19:15:44.661688+00	\N	\N	\N	\N
 \.
 
 
@@ -4224,7 +4457,7 @@ COPY public.yeu_cau_o_ghep (id, khach_thue_id, hop_dong_id, trang_thai, loi_nhan
 -- Name: tin_nhan_so_thu_tu_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.tin_nhan_so_thu_tu_seq', 76, true);
+SELECT pg_catalog.setval('public.tin_nhan_so_thu_tu_seq', 77, true);
 
 
 --
@@ -4268,6 +4501,14 @@ ALTER TABLE ONLY public.cau_hinh_gia
 
 
 --
+-- Name: cau_hinh_phi_xe cau_hinh_phi_xe_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cau_hinh_phi_xe
+    ADD CONSTRAINT cau_hinh_phi_xe_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: chan_nguoi_dung chan_nguoi_dung_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4289,6 +4530,14 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
     ADD CONSTRAINT chi_so_dien_nuoc_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_pkey PRIMARY KEY (id);
 
 
 --
@@ -4436,7 +4685,23 @@ ALTER TABLE ONLY public.file_media
 
 
 --
--- Name: hoa_don hoa_don_hop_dong_id_ky_nam_ky_thang_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_thanh_toan_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_thanh_toan_id_key UNIQUE (thanh_toan_id);
+
+
+--
+-- Name: hoa_don hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hoa_don
@@ -4457,18 +4722,6 @@ ALTER TABLE ONLY public.hoa_don
 
 ALTER TABLE ONLY public.hoa_don
     ADD CONSTRAINT hoa_don_pkey PRIMARY KEY (id);
-
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
-
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
-
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
 
 
 --
@@ -4557,6 +4810,14 @@ ALTER TABLE ONLY public.lich_su_hoa_don
 
 ALTER TABLE ONLY public.lich_su_kho_tai_san
     ADD CONSTRAINT lich_su_kho_tai_san_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_pkey PRIMARY KEY (id);
 
 
 --
@@ -4656,6 +4917,14 @@ ALTER TABLE ONLY public.nha_tro
 
 
 --
+-- Name: notification_delivery notification_delivery_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_delivery
+    ADD CONSTRAINT notification_delivery_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: phong phong_nha_tro_id_ten_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4701,6 +4970,30 @@ ALTER TABLE ONLY public.phuong_tien
 
 ALTER TABLE ONLY public.phuong_tien
     ADD CONSTRAINT phuong_tien_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
 
 
 --
@@ -4872,6 +5165,14 @@ ALTER TABLE ONLY public.dang_ky_push
 
 
 --
+-- Name: notification_delivery uq_notification_delivery_rule; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_delivery
+    ADD CONSTRAINT uq_notification_delivery_rule UNIQUE (aggregate_type, aggregate_id, rule_code, scheduled_for, channel, recipient_id);
+
+
+--
 -- Name: thanh_vien_cuoc_tro_chuyen uq_thanh_vien_cuoc_tro_chuyen; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4925,6 +5226,13 @@ CREATE INDEX idx_cau_hinh_gia_nha_tro ON public.cau_hinh_gia USING btree (nha_tr
 
 
 --
+-- Name: idx_cau_hinh_phi_xe_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cau_hinh_phi_xe_lookup ON public.cau_hinh_phi_xe USING btree (nha_tro_id, loai_xe, hieu_luc_tu DESC);
+
+
+--
 -- Name: idx_chan_theo_nguoi_bi_chan; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4936,6 +5244,20 @@ CREATE INDEX idx_chan_theo_nguoi_bi_chan ON public.chan_nguoi_dung USING btree (
 --
 
 CREATE INDEX idx_chi_so_phong_ky ON public.chi_so_dien_nuoc USING btree (phong_id, loai, ky_nam, ky_thang);
+
+
+--
+-- Name: idx_chi_tiet_ban_giao_tai_san_quyet_toan; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chi_tiet_ban_giao_tai_san_quyet_toan ON public.chi_tiet_ban_giao_tai_san USING btree (quyet_toan_tra_phong_id);
+
+
+--
+-- Name: idx_chi_tiet_hoa_don_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chi_tiet_hoa_don_source ON public.chi_tiet_hoa_don USING btree (source_type, source_id);
 
 
 --
@@ -4973,9 +5295,6 @@ CREATE INDEX idx_dang_ky_push_nguoi_dung ON public.dang_ky_push USING btree (ngu
 CREATE INDEX idx_dat_coc_phong ON public.dat_coc_phong USING btree (phong_id, trang_thai);
 
 
-CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
-
-
 --
 -- Name: idx_dvhd_hop_dong; Type: INDEX; Schema: public; Owner: -
 --
@@ -4988,6 +5307,20 @@ CREATE INDEX idx_dvhd_hop_dong ON public.dich_vu_hop_dong USING btree (hop_dong_
 --
 
 CREATE INDEX idx_file_media_target ON public.file_media USING btree (doi_tuong, doi_tuong_id);
+
+
+--
+-- Name: idx_giao_dich_tien_coc_hop_dong_thoi_diem; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_giao_dich_tien_coc_hop_dong_thoi_diem ON public.giao_dich_tien_coc USING btree (hop_dong_id, thoi_diem);
+
+
+--
+-- Name: idx_hoa_don_hoa_don_goc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hoa_don_hoa_don_goc ON public.hoa_don USING btree (hoa_don_goc_id) WHERE (hoa_don_goc_id IS NOT NULL);
 
 
 --
@@ -5054,6 +5387,13 @@ CREATE INDEX idx_lich_hen_phong_time ON public.lich_hen USING btree (phong_id, n
 
 
 --
+-- Name: idx_lich_su_phuong_tien_billable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_lich_su_phuong_tien_billable ON public.lich_su_phuong_tien USING btree (phong_id, hieu_luc_tu, hieu_luc_den);
+
+
+--
 -- Name: idx_lich_thanh_toan_han; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5110,6 +5450,13 @@ CREATE INDEX idx_nha_tro_location_active ON public.nha_tro USING btree (vi_do, k
 
 
 --
+-- Name: idx_notification_delivery_aggregate; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notification_delivery_aggregate ON public.notification_delivery USING btree (aggregate_type, aggregate_id, scheduled_for DESC);
+
+
+--
 -- Name: idx_phong_nha_tro; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5135,6 +5482,13 @@ CREATE INDEX idx_phong_tang_id ON public.phong USING btree (tang_id) WHERE (xoa_
 --
 
 CREATE INDEX idx_phong_trang_thai ON public.phong USING btree (trang_thai);
+
+
+--
+-- Name: idx_quyet_toan_tra_phong_trang_thai; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
 
 
 --
@@ -5219,6 +5573,20 @@ CREATE INDEX idx_tin_nhan_noi_dung_trgm ON public.tin_nhan USING gin (public.f_k
 --
 
 CREATE INDEX idx_tvhd_hop_dong ON public.thanh_vien_hop_dong USING btree (hop_dong_id);
+
+
+--
+-- Name: uq_debt_reminder_delivery; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_debt_reminder_delivery ON public.debt_reminder_log USING btree (hoa_don_id, reminder_type, channel, COALESCE(recipient_contact, ''::character varying));
+
+
+--
+-- Name: uq_giao_dich_tien_coc_quyet_toan_loai; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_giao_dich_tien_coc_quyet_toan_loai ON public.giao_dich_tien_coc USING btree (quyet_toan_tra_phong_id, loai) WHERE (quyet_toan_tra_phong_id IS NOT NULL);
 
 
 --
@@ -5420,6 +5788,14 @@ ALTER TABLE ONLY public.cau_hinh_gia
 
 
 --
+-- Name: cau_hinh_phi_xe cau_hinh_phi_xe_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cau_hinh_phi_xe
+    ADD CONSTRAINT cau_hinh_phi_xe_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE CASCADE;
+
+
+--
 -- Name: chan_nguoi_dung chan_nguoi_dung_nguoi_bi_chan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5457,6 +5833,22 @@ ALTER TABLE ONLY public.chi_so_dien_nuoc
 
 ALTER TABLE ONLY public.chi_so_dien_nuoc
     ADD CONSTRAINT chi_so_dien_nuoc_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_quyet_toan_tra_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_quyet_toan_tra_phong_id_fkey FOREIGN KEY (quyet_toan_tra_phong_id) REFERENCES public.quyet_toan_tra_phong(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chi_tiet_ban_giao_tai_san chi_tiet_ban_giao_tai_san_tai_san_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chi_tiet_ban_giao_tai_san
+    ADD CONSTRAINT chi_tiet_ban_giao_tai_san_tai_san_phong_id_fkey FOREIGN KEY (tai_san_phong_id) REFERENCES public.tai_san_phong(id) ON DELETE SET NULL;
 
 
 --
@@ -5708,6 +6100,38 @@ ALTER TABLE ONLY public.yeu_cau_o_ghep
 
 
 --
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_quyet_toan_tra_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_quyet_toan_tra_phong_id_fkey FOREIGN KEY (quyet_toan_tra_phong_id) REFERENCES public.quyet_toan_tra_phong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: giao_dich_tien_coc giao_dich_tien_coc_thanh_toan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giao_dich_tien_coc
+    ADD CONSTRAINT giao_dich_tien_coc_thanh_toan_id_fkey FOREIGN KEY (thanh_toan_id) REFERENCES public.thanh_toan(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: hoa_don hoa_don_hoa_don_goc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hoa_don
+    ADD CONSTRAINT hoa_don_hoa_don_goc_id_fkey FOREIGN KEY (hoa_don_goc_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
+
+
+--
 -- Name: hoa_don hoa_don_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5745,14 +6169,6 @@ ALTER TABLE ONLY public.hop_dong
 
 ALTER TABLE ONLY public.hop_dong
     ADD CONSTRAINT hop_dong_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE RESTRICT;
-
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
-
-
-ALTER TABLE ONLY public.quyet_toan_tra_phong
-    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
 
 
 --
@@ -5825,6 +6241,38 @@ ALTER TABLE ONLY public.lich_su_kho_tai_san
 
 ALTER TABLE ONLY public.lich_su_kho_tai_san
     ADD CONSTRAINT lich_su_kho_tai_san_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id);
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_khach_thue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_khach_thue_id_fkey FOREIGN KEY (khach_thue_id) REFERENCES public.khach_thue(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_nha_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_nha_tro_id_fkey FOREIGN KEY (nha_tro_id) REFERENCES public.nha_tro(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_phong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: lich_su_phuong_tien lich_su_phuong_tien_phuong_tien_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lich_su_phuong_tien
+    ADD CONSTRAINT lich_su_phuong_tien_phuong_tien_id_fkey FOREIGN KEY (phuong_tien_id) REFERENCES public.phuong_tien(id) ON DELETE RESTRICT;
 
 
 --
@@ -5977,6 +6425,22 @@ ALTER TABLE ONLY public.phuong_tien
 
 ALTER TABLE ONLY public.phuong_tien
     ADD CONSTRAINT phuong_tien_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE SET NULL;
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id);
 
 
 --
@@ -6401,4 +6865,5 @@ ALTER TABLE public.vai_tro ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict tUIxbeI4SFrDAzreKZzuSpJZCje4PYXzFXRxnnivZec8wYO0PXrS26tqGggK13D
+\unrestrict 1rFuteirbYnIPuyqHqJyMX4vs1zm8cY00lsHRnkWMsbKVaeAJLYwhAHlmwbP8SV
+

@@ -27,7 +27,8 @@ public class DebtReminderService {
     @Transactional
     public void runDailyDebtReminders() {
         log.info("Bắt đầu chạy luồng nhắc nợ tự động nhiều cấp...");
-        List<HoaDon> invoices = hoaDonRepository.findByTrangThaiIn(List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.OVERDUE));
+        List<HoaDon> invoices = hoaDonRepository.findByTrangThaiIn(List.of(
+                TrangThaiHoaDon.ISSUED, TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.OVERDUE));
         LocalDate today = LocalDate.now();
 
         for (HoaDon hd : invoices) {
@@ -47,8 +48,12 @@ public class DebtReminderService {
                 typeToTrigger = ReminderType.DUE_IN_3_DAYS;
             } else if (daysDiff == -1) {
                 typeToTrigger = ReminderType.DUE_TOMORROW;
+            } else if (daysDiff == 0) {
+                typeToTrigger = ReminderType.DUE_TODAY;
             } else if (daysDiff == 1) {
                 typeToTrigger = ReminderType.OVERDUE_1_DAY;
+            } else if (daysDiff == 3) {
+                typeToTrigger = ReminderType.OVERDUE_3_DAYS;
             } else if (daysDiff == 7) {
                 typeToTrigger = ReminderType.OVERDUE_7_DAYS;
             } else if (daysDiff == 15) {
@@ -71,14 +76,13 @@ public class DebtReminderService {
         // 1. Gửi Email (nếu chưa gửi)
         String email = khachThue.getEmail();
         if (email != null && !email.isBlank()) {
-            boolean alreadyEmailed = logRepository.existsByHoaDonIdAndReminderTypeAndChannelAndRecipientContact(
-                    hd.getId(), type, ReminderChannel.EMAIL, email);
-            if (!alreadyEmailed) {
+            DebtReminderLog delivery = reserveDelivery(hd, type, ReminderChannel.EMAIL, null, email);
+            if (delivery != null) {
                 try {
                     sendReminderEmail(hd, type, email);
-                    saveLog(hd, type, ReminderChannel.EMAIL, null, email, "SENT", null);
+                    finishDelivery(delivery, "SENT", null);
                 } catch (Exception e) {
-                    saveLog(hd, type, ReminderChannel.EMAIL, null, email, "FAILED", e.getMessage());
+                    finishDelivery(delivery, "FAILED", e.getMessage());
                 }
             }
         }
@@ -86,14 +90,14 @@ public class DebtReminderService {
         // 2. Gửi In-app Notification (nếu chưa gửi)
         if (khachThue.getNguoiDung() != null) {
             String contact = khachThue.getNguoiDung().getId().toString();
-            boolean alreadyNotified = logRepository.existsByHoaDonIdAndReminderTypeAndChannelAndRecipientContact(
-                    hd.getId(), type, ReminderChannel.SYSTEM_NOTIFICATION, contact);
-            if (!alreadyNotified) {
+            DebtReminderLog delivery = reserveDelivery(hd, type, ReminderChannel.SYSTEM_NOTIFICATION,
+                    khachThue.getNguoiDung(), contact);
+            if (delivery != null) {
                 try {
                     sendReminderNotification(hd, type, khachThue.getNguoiDung().getId());
-                    saveLog(hd, type, ReminderChannel.SYSTEM_NOTIFICATION, khachThue.getNguoiDung(), contact, "SENT", null);
+                    finishDelivery(delivery, "SENT", null);
                 } catch (Exception e) {
-                    saveLog(hd, type, ReminderChannel.SYSTEM_NOTIFICATION, khachThue.getNguoiDung(), contact, "FAILED", e.getMessage());
+                    finishDelivery(delivery, "FAILED", e.getMessage());
                 }
             }
         }
@@ -104,9 +108,9 @@ public class DebtReminderService {
                 NguoiDung chuTroUser = hd.getPhong().getNhaTro().getChuTro();
                 if (chuTroUser != null) {
                     String contact = chuTroUser.getId().toString();
-                    boolean alreadyNotifiedAdmin = logRepository.existsByHoaDonIdAndReminderTypeAndChannelAndRecipientContact(
-                            hd.getId(), type, ReminderChannel.SYSTEM_NOTIFICATION, contact);
-                    if (!alreadyNotifiedAdmin) {
+                    DebtReminderLog delivery = reserveDelivery(hd, type, ReminderChannel.SYSTEM_NOTIFICATION,
+                            chuTroUser, contact);
+                    if (delivery != null) {
                         try {
                             thongBaoService.createSystemNotification(
                                     "Cảnh báo nợ nghiêm trọng: Hóa đơn phòng " + hd.getPhong().getTen(),
@@ -114,9 +118,9 @@ public class DebtReminderService {
                                     LoaiThongBao.INVOICE,
                                     List.of(chuTroUser.getId())
                             );
-                            saveLog(hd, type, ReminderChannel.SYSTEM_NOTIFICATION, chuTroUser, contact, "SENT", null);
+                            finishDelivery(delivery, "SENT", null);
                         } catch (Exception e) {
-                            saveLog(hd, type, ReminderChannel.SYSTEM_NOTIFICATION, chuTroUser, contact, "FAILED", e.getMessage());
+                            finishDelivery(delivery, "FAILED", e.getMessage());
                         }
                     }
                 }
@@ -127,8 +131,10 @@ public class DebtReminderService {
     private void sendReminderEmail(HoaDon hd, ReminderType type, String email) {
         // Có thể gọi emailService.sendInvoiceUpcomingReminderEmail hoặc overdue, 
         // tùy theo Type. Ở đây tận dụng lại các hàm trong EmailService.
-        if (type == ReminderType.DUE_IN_3_DAYS || type == ReminderType.DUE_TOMORROW) {
-            int days = type == ReminderType.DUE_IN_3_DAYS ? 3 : 1;
+        if (type == ReminderType.DUE_IN_3_DAYS || type == ReminderType.DUE_TOMORROW
+                || type == ReminderType.DUE_TODAY) {
+            int days = type == ReminderType.DUE_IN_3_DAYS ? 3
+                    : type == ReminderType.DUE_TOMORROW ? 1 : 0;
             emailService.sendInvoiceUpcomingReminderEmail(hd, hd.getKhachThue(), days);
         } else {
             emailService.sendInvoiceOverdueEmail(hd, hd.getKhachThue());
@@ -139,9 +145,12 @@ public class DebtReminderService {
         String title = "Nhắc nợ hóa đơn " + hd.getMaHoaDon();
         String body = "Hóa đơn của bạn có trạng thái: " + type.name() + ". Vui lòng thanh toán.";
         
-        if (type == ReminderType.DUE_IN_3_DAYS || type == ReminderType.DUE_TOMORROW) {
+        if (type == ReminderType.DUE_IN_3_DAYS || type == ReminderType.DUE_TOMORROW
+                || type == ReminderType.DUE_TODAY) {
             title = "Hóa đơn sắp đến hạn " + hd.getMaHoaDon();
-            body = "Hóa đơn của bạn sắp đến hạn thanh toán. Vui lòng kiểm tra.";
+            body = type == ReminderType.DUE_TODAY
+                    ? "Hóa đơn của bạn đến hạn thanh toán hôm nay. Vui lòng thanh toán đúng hạn."
+                    : "Hóa đơn của bạn sắp đến hạn thanh toán. Vui lòng kiểm tra.";
         } else if (type == ReminderType.OVERDUE_1_DAY) {
             title = "Cảnh báo: Hóa đơn quá hạn " + hd.getMaHoaDon();
             body = "Hóa đơn của bạn đã quá hạn thanh toán 1 ngày.";
@@ -152,17 +161,25 @@ public class DebtReminderService {
         thongBaoService.createSystemNotification(title, body, LoaiThongBao.INVOICE, List.of(recipientId));
     }
 
-    private void saveLog(HoaDon hd, ReminderType type, ReminderChannel channel, NguoiDung recipient, String contact, String status, String error) {
-        DebtReminderLog log = DebtReminderLog.builder()
-                .hoaDon(hd)
-                .reminderType(type)
-                .channel(channel)
-                .recipient(recipient)
-                .recipientContact(contact)
-                .status(status)
-                .errorMessage(error)
-                .build();
-        logRepository.save(log);
+    private DebtReminderLog reserveDelivery(HoaDon hd, ReminderType type, ReminderChannel channel, NguoiDung recipient, String contact) {
+        java.util.Optional<DebtReminderLog> existing = logRepository
+                .findFirstByHoaDonIdAndReminderTypeAndChannelAndRecipientContactOrderBySentAtDesc(hd.getId(), type, channel, contact);
+        if (existing.isPresent()) {
+            DebtReminderLog delivery = existing.get();
+            if ("SENT".equals(delivery.getStatus()) || "PENDING".equals(delivery.getStatus())) return null;
+            delivery.setStatus("PENDING");
+            delivery.setErrorMessage(null);
+            return logRepository.save(delivery);
+        }
+        return logRepository.save(DebtReminderLog.builder()
+                .hoaDon(hd).reminderType(type).channel(channel).recipient(recipient)
+                .recipientContact(contact).status("PENDING").build());
+    }
+
+    private void finishDelivery(DebtReminderLog delivery, String status, String error) {
+        delivery.setStatus(status);
+        delivery.setErrorMessage(error);
+        logRepository.save(delivery);
     }
 
     @Transactional

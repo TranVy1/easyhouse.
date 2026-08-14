@@ -592,6 +592,7 @@ CREATE TYPE public.trang_thai_dat_coc AS ENUM (
 
 CREATE TYPE public.trang_thai_hoa_don AS ENUM (
     'DRAFT',
+    'ISSUED',
     'UNPAID',
     'PARTIAL',
     'PAID',
@@ -1261,6 +1262,12 @@ CREATE TABLE public.chi_tiet_hoa_don (
     so_luong numeric(38,2) DEFAULT 1 NOT NULL,
     don_gia numeric(38,2) DEFAULT 0 NOT NULL,
     thanh_tien numeric(38,2) DEFAULT 0 NOT NULL,
+    source_type character varying(64) DEFAULT 'LEGACY_UNKNOWN'::character varying NOT NULL,
+    source_id uuid,
+    pricing_rule_version character varying(128) DEFAULT 'LEGACY_V1'::character varying NOT NULL,
+    period_start date DEFAULT '1970-01-01'::date NOT NULL,
+    period_end date DEFAULT '1970-01-01'::date NOT NULL,
+    calculation_hash character varying(64) DEFAULT 'LEGACY'::character varying NOT NULL,
     tao_luc timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT chk_cthd_tien CHECK (((so_luong >= (0)::numeric) AND (don_gia >= (0)::numeric) AND (((loai = 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien <= (0)::numeric)) OR ((loai <> 'DISCOUNT'::public.loai_muc_hoa_don) AND (thanh_tien >= (0)::numeric)))))
 );
@@ -1339,7 +1346,7 @@ CREATE TABLE public.debt_reminder_log (
     hoa_don_id uuid NOT NULL,
     recipient_id uuid,
     CONSTRAINT debt_reminder_log_channel_check CHECK (((channel)::text = ANY (ARRAY[('EMAIL'::character varying)::text, ('SYSTEM_NOTIFICATION'::character varying)::text]))),
-    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY[('DUE_IN_3_DAYS'::character varying)::text, ('DUE_TOMORROW'::character varying)::text, ('OVERDUE_1_DAY'::character varying)::text, ('OVERDUE_7_DAYS'::character varying)::text, ('OVERDUE_15_DAYS'::character varying)::text, ('OVERDUE_30_DAYS'::character varying)::text, ('MANUAL'::character varying)::text])))
+    CONSTRAINT debt_reminder_log_reminder_type_check CHECK (((reminder_type)::text = ANY (ARRAY[('DUE_IN_3_DAYS'::character varying)::text, ('DUE_TOMORROW'::character varying)::text, ('OVERDUE_1_DAY'::character varying)::text, ('OVERDUE_3_DAYS'::character varying)::text, ('OVERDUE_7_DAYS'::character varying)::text, ('OVERDUE_15_DAYS'::character varying)::text, ('OVERDUE_30_DAYS'::character varying)::text, ('MANUAL'::character varying)::text])))
 );
 
 
@@ -1422,6 +1429,7 @@ CREATE TABLE public.hoa_don (
     khach_thue_id uuid NOT NULL,
     ma_hoa_don character varying(100) NOT NULL,
     loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
+    hoa_don_goc_id uuid,
     ky_nam integer NOT NULL,
     ky_thang integer NOT NULL,
     tu_ngay date NOT NULL,
@@ -4610,6 +4618,7 @@ CREATE INDEX idx_chi_so_phong_ky ON public.chi_so_dien_nuoc USING btree (phong_i
 --
 
 CREATE INDEX idx_cthd_hoa_don ON public.chi_tiet_hoa_don USING btree (hoa_don_id);
+CREATE INDEX idx_chi_tiet_hoa_don_source ON public.chi_tiet_hoa_don USING btree (source_type, source_id);
 
 
 --
@@ -4641,6 +4650,7 @@ CREATE INDEX idx_file_media_target ON public.file_media USING btree (doi_tuong, 
 --
 
 CREATE INDEX idx_hoa_don_hop_dong_ky ON public.hoa_don USING btree (hop_dong_id, ky_nam, ky_thang);
+CREATE INDEX idx_hoa_don_hoa_don_goc ON public.hoa_don USING btree (hoa_don_goc_id) WHERE (hoa_don_goc_id IS NOT NULL);
 
 
 --
@@ -5198,6 +5208,9 @@ ALTER TABLE ONLY public.invoice_generation_log
 
 ALTER TABLE ONLY public.hoa_don
     ADD CONSTRAINT hoa_don_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
+
+ALTER TABLE ONLY public.hoa_don
+    ADD CONSTRAINT hoa_don_hoa_don_goc_id_fkey FOREIGN KEY (hoa_don_goc_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
 
 
 --

@@ -18,6 +18,7 @@ public class HoaDonResponse {
     private UUID id;
     private String maHoaDon;
     private String loaiHoaDon;
+    private UUID hoaDonGocId;
     private Object hopDong;
     private Object phong;
     private Object khachThue;
@@ -65,6 +66,12 @@ public class HoaDonResponse {
         private BigDecimal soLuong;
         private BigDecimal donGia;
         private BigDecimal thanhTien;
+        private String sourceType;
+        private UUID sourceId;
+        private String pricingRuleVersion;
+        private LocalDate periodStart;
+        private LocalDate periodEnd;
+        private String calculationHash;
     }
 
     @Data
@@ -105,6 +112,12 @@ public class HoaDonResponse {
                         .soLuong(ct.getSoLuong())
                         .donGia(ct.getDonGia())
                         .thanhTien(ct.getThanhTien())
+                        .sourceType(ct.getSourceType())
+                        .sourceId(ct.getSourceId())
+                        .pricingRuleVersion(ct.getPricingRuleVersion())
+                        .periodStart(ct.getPeriodStart())
+                        .periodEnd(ct.getPeriodEnd())
+                        .calculationHash(ct.getCalculationHash())
                         .build());
                 if (ct.getLoai() == LoaiMucHoaDon.SERVICE) {
                     phiDichVu.add(PhiDichVuItem.builder()
@@ -143,6 +156,7 @@ public class HoaDonResponse {
                 .id(hd.getId())
                 .maHoaDon(hd.getMaHoaDon())
                 .loaiHoaDon(hd.getLoaiHoaDon() != null ? hd.getLoaiHoaDon().name() : null)
+                .hoaDonGocId(hd.getHoaDonGoc() != null ? hd.getHoaDonGoc().getId() : null)
                 .hopDong(hdObj)
                 .phong(phongObj)
                 .khachThue(ktObj)

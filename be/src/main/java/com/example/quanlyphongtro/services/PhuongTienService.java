@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +22,7 @@ public class PhuongTienService {
     private final KhachThueRepository khachThueRepository;
     private final HopDongRepository hopDongRepository;
     private final PermissionService permissionService;
+    private final LichSuPhuongTienRepository lichSuPhuongTienRepository;
 
     public PaginatedResponse<PhuongTienDto> getAll(String keyword, String nhaTroId, String phongId, String trangThai, int page, int limit) {
         UUID chuTroId = permissionService.currentUserId().orElseThrow(() -> new RuntimeException("Unauthorized"));
@@ -104,11 +106,13 @@ public class PhuongTienService {
         pt.setMauXe(request.getMauXe());
         pt.setTenChuXe(request.getTenChuXe());
         pt.setSoVeXe(request.getSoVeXe());
+        applyEffectiveDates(pt, request);
         pt.setChuTro(chuTro);
         
         assignCurrentResidence(pt, request.getKhachThueId(), chuTroId);
         
         PhuongTien saved = phuongTienRepository.save(pt);
+        recordAssignment(saved);
         return mapToDto(saved);
     }
 
@@ -139,10 +143,13 @@ public class PhuongTienService {
         pt.setMauXe(request.getMauXe());
         pt.setTenChuXe(request.getTenChuXe());
         pt.setSoVeXe(request.getSoVeXe());
+        applyEffectiveDates(pt, request);
         
         assignCurrentResidence(pt, request.getKhachThueId(), chuTroId);
         
-        return mapToDto(phuongTienRepository.save(pt));
+        PhuongTien saved = phuongTienRepository.save(pt);
+        recordAssignment(saved);
+        return mapToDto(saved);
     }
 
     @Transactional
@@ -150,7 +157,18 @@ public class PhuongTienService {
         UUID chuTroId = permissionService.currentUserId().orElseThrow(() -> new RuntimeException("Unauthorized"));
         PhuongTien pt = phuongTienRepository.findByIdAndChuTroId(id, chuTroId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phương tiện"));
-        phuongTienRepository.delete(pt);
+        pt.setTrangThai(TrangThaiPhuongTien.HET_HIEU_LUC);
+        if (pt.getHieuLucDen() == null || pt.getHieuLucDen().isAfter(LocalDate.now())) {
+            pt.setHieuLucDen(LocalDate.now());
+        }
+        phuongTienRepository.save(pt);
+        lichSuPhuongTienRepository.findFirstByPhuongTienIdAndHieuLucDenIsNullOrderByHieuLucTuDesc(pt.getId())
+                .ifPresent(history -> {
+                    LocalDate end = pt.getHieuLucDen();
+                    if (end.isBefore(history.getHieuLucTu())) end = history.getHieuLucTu();
+                    history.setHieuLucDen(end);
+                    lichSuPhuongTienRepository.save(history);
+                });
     }
 
     /**
@@ -179,6 +197,42 @@ public class PhuongTienService {
         pt.setPhong(phong);
         pt.setNhaTro(phong.getNhaTro());
     }
+
+    private void applyEffectiveDates(PhuongTien pt, PhuongTienRequest request) {
+        LocalDate start = request.getHieuLucTu() != null ? request.getHieuLucTu()
+                : (pt.getHieuLucTu() != null ? pt.getHieuLucTu() : LocalDate.now());
+        LocalDate end = request.getHieuLucDen();
+        if (end != null && end.isBefore(start)) {
+            throw new RuntimeException("Ngày hết hiệu lực xe không được trước ngày bắt đầu hiệu lực");
+        }
+        if (request.getTrangThai() == TrangThaiPhuongTien.HET_HIEU_LUC && end == null) end = LocalDate.now();
+        pt.setHieuLucTu(start);
+        pt.setHieuLucDen(end);
+    }
+
+    private void recordAssignment(PhuongTien pt) {
+        LichSuPhuongTien current = lichSuPhuongTienRepository
+                .findFirstByPhuongTienIdAndHieuLucDenIsNullOrderByHieuLucTuDesc(pt.getId()).orElse(null);
+        if (current != null && current.getPhong().getId().equals(pt.getPhong().getId())
+                && current.getKhachThue().getId().equals(pt.getKhachThue().getId())) {
+            current.setHieuLucTu(pt.getHieuLucTu());
+            current.setHieuLucDen(pt.getHieuLucDen());
+            lichSuPhuongTienRepository.save(current);
+            return;
+        }
+        if (current != null) {
+            if (pt.getHieuLucTu().isBefore(current.getHieuLucTu())) {
+                throw new RuntimeException("Ngày hiệu lực khi chuyển xe phải từ ngày bắt đầu lịch sử hiện tại trở đi");
+            }
+            LocalDate end = pt.getHieuLucTu().minusDays(1);
+            if (end.isBefore(current.getHieuLucTu())) end = current.getHieuLucTu();
+            current.setHieuLucDen(end);
+            lichSuPhuongTienRepository.save(current);
+        }
+        lichSuPhuongTienRepository.save(LichSuPhuongTien.builder().phuongTien(pt).khachThue(pt.getKhachThue())
+                .phong(pt.getPhong()).nhaTro(pt.getNhaTro()).hieuLucTu(pt.getHieuLucTu())
+                .hieuLucDen(pt.getHieuLucDen()).build());
+    }
     
     private PhuongTienDto mapToDto(PhuongTien entity) {
         PhuongTienDto dto = new PhuongTienDto();
@@ -193,6 +247,8 @@ public class PhuongTienService {
         dto.setMauXe(entity.getMauXe());
         dto.setTenChuXe(entity.getTenChuXe());
         dto.setSoVeXe(entity.getSoVeXe());
+        dto.setHieuLucTu(entity.getHieuLucTu());
+        dto.setHieuLucDen(entity.getHieuLucDen());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         

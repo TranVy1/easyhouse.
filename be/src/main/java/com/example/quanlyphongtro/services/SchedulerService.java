@@ -35,6 +35,9 @@ public class SchedulerService {
     @org.springframework.beans.factory.annotation.Autowired
     private ChatMembershipService chatMembershipService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private NotificationDeliveryService notificationDeliveryService;
+
     /**
      * Doi soat thanh vien nhom chat tu dong (nhom theo nha tro / theo tang).
      *
@@ -121,44 +124,54 @@ public class SchedulerService {
                 continue;
             }
 
-            long totalDurationDays = ChronoUnit.DAYS.between(hd.getNgayBatDau(), hd.getNgayKetThuc());
             long daysRemaining = ChronoUnit.DAYS.between(today, hd.getNgayKetThuc());
 
-            boolean shouldAlert = false;
-            if (totalDurationDays < 180) { // Ngắn hạn (< 6 tháng): Báo trước 7 ngày
-                shouldAlert = (daysRemaining == 7);
-            } else if (totalDurationDays < 365) { // Trung hạn (6-12 tháng): Báo trước 15 ngày
-                shouldAlert = (daysRemaining == 15);
-            } else { // Dài hạn (>= 12 tháng): Báo trước 30 ngày
-                shouldAlert = (daysRemaining == 30);
+            // Hết hạn hợp đồng không đồng nghĩa phòng trống: chỉ đánh dấu EXPIRED
+            // để chờ gia hạn hoặc hoàn tất quy trình trả phòng/quyết toán.
+            if (daysRemaining < 0) {
+                hd.setTrangThai(TrangThaiHopDong.EXPIRED);
+                hd.setGhiChu((hd.getGhiChu() == null ? "" : hd.getGhiChu() + "\n")
+                        + "Tự động chuyển hết hạn ngày " + today + "; phòng vẫn được giữ cho đến khi trả phòng hoàn tất.");
+                hopDongRepository.save(hd);
+                if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null
+                        && hd.getPhong().getNhaTro().getChuTro() != null) {
+                    sendContractInAppOnce(hd, "CONTRACT_EXPIRED_OWNER",
+                            hd.getPhong().getNhaTro().getChuTro().getId(),
+                            "Hợp đồng đã hết hạn: " + hd.getMaHopDong(),
+                            "Hợp đồng phòng " + hd.getPhong().getTen()
+                                    + " đã hết hạn và vẫn đang chiếm phòng. Hãy gia hạn hoặc lập quyết toán trả phòng.");
+                }
+                sendContractInAppOnce(hd, "CONTRACT_EXPIRED_TENANT", hd.getKhachThue().getId(),
+                        "Hợp đồng thuê đã hết hạn",
+                        "Hợp đồng " + hd.getMaHopDong()
+                                + " đã hết hạn. Vui lòng liên hệ chủ trọ để gia hạn hoặc thực hiện trả phòng.");
+                continue;
             }
+
+            boolean shouldAlert = daysRemaining == 30 || daysRemaining == 15 || daysRemaining == 7;
 
             if (shouldAlert) {
                 log.info("Hợp đồng {} hết hạn sau {} ngày. Tiến hành gửi thông báo.", hd.getMaHopDong(), daysRemaining);
                 try {
                     // 1. Gửi thông báo In-app cho Chủ trọ
                     if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
-                        thongBaoService.createSystemNotification(
+                        sendContractInAppOnce(hd, "CONTRACT_EXPIRING_" + daysRemaining + "_OWNER",
+                                hd.getPhong().getNhaTro().getChuTro().getId(),
                                 "Cảnh báo: Hợp đồng phòng " + hd.getPhong().getTen() + " sắp hết hạn",
-                                "Hợp đồng mã " + hd.getMaHopDong() + " của phòng " + hd.getPhong().getTen() + 
-                                " (" + hd.getKhachThue().getHoTen() + ") sẽ hết hạn sau " + daysRemaining + " ngày (ngày " + hd.getNgayKetThuc() + ").",
-                                com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
-                                List.of(hd.getPhong().getNhaTro().getChuTro().getId())
-                        );
+                                "Hợp đồng mã " + hd.getMaHopDong() + " của phòng " + hd.getPhong().getTen() +
+                                " (" + hd.getKhachThue().getHoTen() + ") sẽ hết hạn sau " + daysRemaining + " ngày (ngày " + hd.getNgayKetThuc() + ").");
                     }
 
                     // 2. Gửi thông báo In-app cho Khách thuê
-                    thongBaoService.createSystemNotification(
+                    sendContractInAppOnce(hd, "CONTRACT_EXPIRING_" + daysRemaining + "_TENANT", hd.getKhachThue().getId(),
                             "Thông báo: Hợp đồng thuê phòng sắp hết hạn",
                             "Hợp đồng thuê phòng của bạn (Mã: " + hd.getMaHopDong() + ", Phòng: " + 
                             (hd.getPhong() != null ? hd.getPhong().getTen() : "N/A") + ") sẽ hết hạn sau " + daysRemaining + 
-                            " ngày (ngày " + hd.getNgayKetThuc() + "). Vui lòng liên hệ chủ trọ để tiến hành gia hạn hoặc thanh lý phòng.",
-                            com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
-                            List.of(hd.getKhachThue().getId())
-                    );
+                            " ngày (ngày " + hd.getNgayKetThuc() + "). Vui lòng liên hệ chủ trọ để tiến hành gia hạn hoặc thanh lý phòng.");
 
                     // 3. Gửi Email cho Khách thuê
-                    emailService.sendContractExpiringEmail(hd, hd.getKhachThue(), (int) daysRemaining);
+                    sendContractEmailOnce(hd, "CONTRACT_EXPIRING_" + daysRemaining + "_TENANT", hd.getKhachThue().getId(),
+                            (int) daysRemaining);
 
                     // 4. Gia hạn tự động nếu được bật
                     if (Boolean.TRUE.equals(hd.getTuDongGiaHan()) && daysRemaining <= 7) {
@@ -172,12 +185,10 @@ public class SchedulerService {
                             
                             // Gửi thông báo cho Chủ trọ về việc đã tạo hợp đồng gia hạn (DRAFT)
                             if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
-                                thongBaoService.createSystemNotification(
+                                sendContractInAppOnce(hd, "CONTRACT_RENEWAL_DRAFT_OWNER",
+                                        hd.getPhong().getNhaTro().getChuTro().getId(),
                                         "Hệ thống: Đã tự động tạo bản nháp gia hạn hợp đồng",
-                                        "Hợp đồng phòng " + hd.getPhong().getTen() + " đã được hệ thống tự động tạo bản nháp gia hạn. Vui lòng vào kiểm tra và xác nhận.",
-                                        com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT,
-                                        List.of(hd.getPhong().getNhaTro().getChuTro().getId())
-                                );
+                                        "Hợp đồng phòng " + hd.getPhong().getTen() + " đã được hệ thống tự động tạo bản nháp gia hạn. Vui lòng vào kiểm tra và xác nhận.");
                             }
                         }
                     }
@@ -187,6 +198,29 @@ public class SchedulerService {
                 }
             }
         }
+    }
+
+    private void sendContractInAppOnce(HopDong hopDong, String ruleCode, java.util.UUID recipientId,
+            String title, String body) {
+        Runnable send = () -> thongBaoService.createSystemNotification(title, body,
+                com.example.quanlyphongtro.entity.LoaiThongBao.CONTRACT, List.of(recipientId));
+        if (notificationDeliveryService == null) {
+            send.run();
+            return;
+        }
+        notificationDeliveryService.deliverOnce("CONTRACT", hopDong.getId(), ruleCode, LocalDate.now(),
+                "IN_APP", recipientId, send);
+    }
+
+    private void sendContractEmailOnce(HopDong hopDong, String ruleCode, java.util.UUID recipientId,
+            int daysRemaining) {
+        Runnable send = () -> emailService.sendContractExpiringEmail(hopDong, hopDong.getKhachThue(), daysRemaining);
+        if (notificationDeliveryService == null) {
+            send.run();
+            return;
+        }
+        notificationDeliveryService.deliverOnce("CONTRACT", hopDong.getId(), ruleCode, LocalDate.now(),
+                "EMAIL", recipientId, send);
     }
 
     @org.springframework.beans.factory.annotation.Autowired

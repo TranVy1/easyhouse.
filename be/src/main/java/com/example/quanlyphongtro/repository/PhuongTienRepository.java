@@ -21,6 +21,14 @@ public interface PhuongTienRepository extends JpaRepository<PhuongTien, UUID>, J
     boolean existsByBienSoAndTrangThaiAndChuTroId(String bienSo, com.example.quanlyphongtro.entity.TrangThaiPhuongTien trangThai, UUID chuTroId);
     
     java.util.List<PhuongTien> findByPhongIdAndTrangThai(UUID phongId, com.example.quanlyphongtro.entity.TrangThaiPhuongTien trangThai);
+
+    @org.springframework.data.jpa.repository.Query("""
+            select pt from PhuongTien pt where pt.phong.id = :phongId
+              and pt.hieuLucTu <= :denNgay and (pt.hieuLucDen is null or pt.hieuLucDen >= :tuNgay)
+            """)
+    java.util.List<PhuongTien> findBillableInPeriod(@org.springframework.data.repository.query.Param("phongId") UUID phongId,
+            @org.springframework.data.repository.query.Param("tuNgay") java.time.LocalDate tuNgay,
+            @org.springframework.data.repository.query.Param("denNgay") java.time.LocalDate denNgay);
     
     // Custom spec query can be used for filtering by nhaTro, phong, trangThai, keyword
 }

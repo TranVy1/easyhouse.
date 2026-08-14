@@ -10,6 +10,7 @@ import com.example.quanlyphongtro.dto.ChiSoDienNuocRequest;
 import com.example.quanlyphongtro.dto.ChiSoDienNuocResponse;
 import com.example.quanlyphongtro.entity.ChiSoDienNuoc;
 import com.example.quanlyphongtro.entity.HopDong;
+import com.example.quanlyphongtro.entity.LoaiChiSo;
 import com.example.quanlyphongtro.entity.Phong;
 import com.example.quanlyphongtro.entity.NguoiDung;
 import com.example.quanlyphongtro.entity.TrangThaiChiSo;
@@ -110,6 +111,9 @@ class ChiSoDienNuocServiceTest {
 
         ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
         req.setPhongId(phongId);
+        req.setLoai(LoaiChiSo.ELECTRICITY);
+        req.setKyNam(2026);
+        req.setKyThang(8);
         req.setChiSoCu(150);
         req.setChiSoMoi(100); // Invalid
 
@@ -129,6 +133,9 @@ class ChiSoDienNuocServiceTest {
 
         ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
         req.setPhongId(phongId);
+        req.setLoai(LoaiChiSo.ELECTRICITY);
+        req.setKyNam(2026);
+        req.setKyThang(8);
         req.setChiSoCu(100);
         req.setChiSoMoi(110);
         req.setTrangThai(TrangThaiChiSo.BILLED);
@@ -146,13 +153,16 @@ class ChiSoDienNuocServiceTest {
         when(permissionService.requireCurrentUserId()).thenReturn(userId);
         when(permissionService.canWritePhong(userId, phongId)).thenReturn(true);
         when(phongRepository.findById(phongId)).thenReturn(Optional.of(phong));
-        when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, null, null, null))
+        when(chiSoDienNuocRepository.findByPhongIdAndLoaiAndKyNamAndKyThang(phongId, LoaiChiSo.ELECTRICITY, 2026, 8))
                 .thenReturn(Optional.empty());
         when(hopDongRepository.findRoomOccupyingContracts(phongId, List.of(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE)))
                 .thenReturn(List.of());
 
         ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
         req.setPhongId(phongId);
+        req.setLoai(LoaiChiSo.ELECTRICITY);
+        req.setKyNam(2026);
+        req.setKyThang(8);
         req.setChiSoCu(100);
         req.setChiSoMoi(110);
 
@@ -205,6 +215,11 @@ class ChiSoDienNuocServiceTest {
 
         ChiSoDienNuocRequest req = new ChiSoDienNuocRequest();
         req.setPhongId(phongId);
+        req.setLoai(LoaiChiSo.ELECTRICITY);
+        req.setKyNam(2026);
+        req.setKyThang(8);
+        req.setChiSoCu(100);
+        req.setChiSoMoi(110);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(req));
         assertEquals("Khong co quyen thay doi chi so nay", error.getMessage());

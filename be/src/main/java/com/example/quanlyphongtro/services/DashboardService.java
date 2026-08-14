@@ -72,7 +72,7 @@ public class DashboardService {
 
         BigDecimal tienDaThu = doanhThuThang != null ? doanhThuThang : BigDecimal.ZERO;
         
-        List<TrangThaiHoaDon> unpaidStatuses = List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL, TrangThaiHoaDon.OVERDUE);
+        List<TrangThaiHoaDon> unpaidStatuses = List.of(TrangThaiHoaDon.ISSUED, TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL, TrangThaiHoaDon.OVERDUE);
         BigDecimal tienChuaThu = nhaTroIds == null 
             ? hoaDonRepository.sumUnpaidAmount(unpaidStatuses)
             : hoaDonRepository.sumUnpaidAmountAndNhaTroIdIn(unpaidStatuses, nhaTroIds);

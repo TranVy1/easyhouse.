@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -26,6 +27,7 @@ public class QuyetToanTraPhongResponse {
     private ZonedDateTime hoanCocLuc;
     private ZonedDateTime hoanTatLuc;
     private String ghiChu;
+    private List<ChiTietBanGiaoTaiSanResponse> taiSanBanGiao;
 
     public static QuyetToanTraPhongResponse fromEntity(QuyetToanTraPhong entity, HoaDonResponse hoaDon) {
         return QuyetToanTraPhongResponse.builder()
