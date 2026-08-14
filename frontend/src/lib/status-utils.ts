@@ -48,7 +48,7 @@ export function isPhongAvailable(status: TrangThaiPhong): boolean {
 }
 
 export function isHoaDonPaid(status: TrangThaiHoaDon): boolean {
-  return status === 'PAID' || status === 'OVERPAID' || status === 'daThanhToan' || status === 'thanhToanDu';
+  return status === 'PAID' || status === 'daThanhToan';
 }
 
 export function calculatePhongStatusFromContracts(
@@ -61,7 +61,7 @@ export function calculatePhongStatusFromContracts(
     const sameRoom = (hopDong.phongId || getId(hopDong.phong)) === phongId;
     const start = toDate(hopDong.ngayBatDau);
     const end = toDate(hopDong.ngayKetThuc);
-    return sameRoom && isHopDongActive(hopDong.trangThai) && (!start || start <= now) && (!end || end >= now);
+    return sameRoom && isHopDongActive(hopDong.trangThai) && (!start || start <= now);
   });
 
   if (hasActiveContract) return 'dangThue';

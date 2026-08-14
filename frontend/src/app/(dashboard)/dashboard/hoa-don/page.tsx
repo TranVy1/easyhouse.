@@ -513,10 +513,8 @@ export default function HoaDonPage() {
               <SelectItem value="all">Mọi trạng thái</SelectItem>
               <SelectItem value="DRAFT">Nháp</SelectItem>
               <SelectItem value="UNPAID">Chưa thanh toán</SelectItem>
-              <SelectItem value="PARTIAL">Thanh toán một phần</SelectItem>
               <SelectItem value="OVERDUE">Quá hạn</SelectItem>
               <SelectItem value="PAID">Đã thanh toán</SelectItem>
-              <SelectItem value="OVERPAID">Thu dư</SelectItem>
               <SelectItem value="CANCELLED">Đã hủy</SelectItem>
             </SelectContent>
           </Select>

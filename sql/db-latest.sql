@@ -239,6 +239,7 @@ ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS hop_dong_ma
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_pkey;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_ma_hoa_don_key;
 ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hop_dong_id_ky_nam_ky_thang_key;
+ALTER TABLE IF EXISTS ONLY public.hoa_don DROP CONSTRAINT IF EXISTS hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key;
 ALTER TABLE IF EXISTS ONLY public.file_media DROP CONSTRAINT IF EXISTS file_media_pkey;
 ALTER TABLE IF EXISTS ONLY public.hop_dong DROP CONSTRAINT IF EXISTS excl_hop_dong_phong_active_overlap;
 ALTER TABLE IF EXISTS ONLY public.email_verification_token DROP CONSTRAINT IF EXISTS email_verification_token_token_key;
@@ -300,6 +301,7 @@ DROP TABLE IF EXISTS public.kho_tai_san;
 DROP TABLE IF EXISTS public.khach_thue;
 DROP TABLE IF EXISTS public.invoice_generation_log;
 DROP TABLE IF EXISTS public.invoice_generation_batch;
+DROP TABLE IF EXISTS public.quyet_toan_tra_phong;
 DROP TABLE IF EXISTS public.hop_dong;
 DROP TABLE IF EXISTS public.hoa_don;
 DROP TABLE IF EXISTS public.file_media;
@@ -1688,6 +1690,7 @@ CREATE TABLE public.hoa_don (
     phong_id uuid NOT NULL,
     khach_thue_id uuid NOT NULL,
     ma_hoa_don character varying(100) NOT NULL,
+    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     ky_nam integer NOT NULL,
     ky_thang integer NOT NULL,
     tu_ngay date NOT NULL,
@@ -1710,6 +1713,35 @@ CREATE TABLE public.hoa_don (
     CONSTRAINT chk_hoa_don_ky CHECK (((ky_thang >= 1) AND (ky_thang <= 12) AND ((ky_nam >= 2000) AND (ky_nam <= 2100)))),
     CONSTRAINT chk_hoa_don_ngay CHECK (((den_ngay >= tu_ngay) AND (han_tra >= tu_ngay))),
     CONSTRAINT chk_hoa_don_tien CHECK (((tong_tien_phat_sinh >= (0)::numeric) AND (tong_tien >= (0)::numeric) AND (da_tra >= (0)::numeric)))
+);
+
+
+--
+-- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.quyet_toan_tra_phong (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    hoa_don_id uuid NOT NULL,
+    ngay_tra_phong date NOT NULL,
+    tien_coc_ban_dau numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_da_can_tru numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_can_hoan numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_phai_thu_them numeric(18,2) DEFAULT 0 NOT NULL,
+    khoan_khau_tru jsonb DEFAULT '[]'::jsonb NOT NULL,
+    trang_thai character varying(32) NOT NULL,
+    ban_giao_da_xac_nhan boolean DEFAULT false NOT NULL,
+    ve_sinh_kiem_tra_xong boolean DEFAULT false NOT NULL,
+    hoan_coc_luc timestamp with time zone,
+    ban_giao_luc timestamp with time zone,
+    kiem_tra_luc timestamp with time zone,
+    hoan_tat_luc timestamp with time zone,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= 0) AND (tien_coc_da_can_tru >= 0) AND (tien_coc_can_hoan >= 0) AND (tien_phai_thu_them >= 0))),
+    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau))
 );
 
 
@@ -4408,7 +4440,7 @@ ALTER TABLE ONLY public.file_media
 --
 
 ALTER TABLE ONLY public.hoa_don
-    ADD CONSTRAINT hoa_don_hop_dong_id_ky_nam_ky_thang_key UNIQUE (hop_dong_id, ky_nam, ky_thang);
+    ADD CONSTRAINT hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key UNIQUE (hop_dong_id, ky_nam, ky_thang, loai_hoa_don);
 
 
 --
@@ -4425,6 +4457,18 @@ ALTER TABLE ONLY public.hoa_don
 
 ALTER TABLE ONLY public.hoa_don
     ADD CONSTRAINT hoa_don_pkey PRIMARY KEY (id);
+
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
+
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
+
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
 
 
 --
@@ -4927,6 +4971,9 @@ CREATE INDEX idx_dang_ky_push_nguoi_dung ON public.dang_ky_push USING btree (ngu
 --
 
 CREATE INDEX idx_dat_coc_phong ON public.dat_coc_phong USING btree (phong_id, trang_thai);
+
+
+CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
 
 
 --
@@ -5700,6 +5747,14 @@ ALTER TABLE ONLY public.hop_dong
     ADD CONSTRAINT hop_dong_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE RESTRICT;
 
 
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
+
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
+
+
 --
 -- Name: khach_thue khach_thue_chu_tro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -6347,4 +6402,3 @@ ALTER TABLE public.vai_tro ENABLE ROW LEVEL SECURITY;
 --
 
 \unrestrict tUIxbeI4SFrDAzreKZzuSpJZCje4PYXzFXRxnnivZec8wYO0PXrS26tqGggK13D
-

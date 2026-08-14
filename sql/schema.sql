@@ -1286,6 +1286,7 @@ CREATE TABLE public.hoa_don (
     phong_id uuid NOT NULL,
     khach_thue_id uuid NOT NULL,
     ma_hoa_don character varying(100) NOT NULL,
+    loai_hoa_don character varying(32) DEFAULT 'REGULAR'::character varying NOT NULL,
     ky_nam integer NOT NULL,
     ky_thang integer NOT NULL,
     tu_ngay date NOT NULL,
@@ -1712,6 +1713,35 @@ CREATE TABLE public.phuong_tien (
     mau_xe character varying(50),
     ten_chu_xe character varying(100),
     so_ve_xe character varying(50)
+);
+
+
+--
+-- Name: quyet_toan_tra_phong; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.quyet_toan_tra_phong (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    hop_dong_id uuid NOT NULL,
+    hoa_don_id uuid NOT NULL,
+    ngay_tra_phong date NOT NULL,
+    tien_coc_ban_dau numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_da_can_tru numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_coc_can_hoan numeric(18,2) DEFAULT 0 NOT NULL,
+    tien_phai_thu_them numeric(18,2) DEFAULT 0 NOT NULL,
+    khoan_khau_tru jsonb DEFAULT '[]'::jsonb NOT NULL,
+    trang_thai character varying(32) NOT NULL,
+    ban_giao_da_xac_nhan boolean DEFAULT false NOT NULL,
+    ve_sinh_kiem_tra_xong boolean DEFAULT false NOT NULL,
+    hoan_coc_luc timestamp with time zone,
+    ban_giao_luc timestamp with time zone,
+    kiem_tra_luc timestamp with time zone,
+    hoan_tat_luc timestamp with time zone,
+    ghi_chu text,
+    tao_luc timestamp with time zone DEFAULT now() NOT NULL,
+    cap_nhat_luc timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT quyet_toan_tra_phong_tien_non_negative CHECK (((tien_coc_ban_dau >= 0) AND (tien_coc_da_can_tru >= 0) AND (tien_coc_can_hoan >= 0) AND (tien_phai_thu_them >= 0))),
+    CONSTRAINT quyet_toan_tra_phong_coc_balance CHECK (((tien_coc_da_can_tru + tien_coc_can_hoan) = tien_coc_ban_dau))
 );
 
 
@@ -2225,7 +2255,7 @@ ALTER TABLE ONLY public.file_media
 --
 
 ALTER TABLE ONLY public.hoa_don
-    ADD CONSTRAINT hoa_don_hop_dong_id_ky_nam_ky_thang_key UNIQUE (hop_dong_id, ky_nam, ky_thang);
+    ADD CONSTRAINT hoa_don_hop_dong_id_ky_nam_ky_thang_loai_key UNIQUE (hop_dong_id, ky_nam, ky_thang, loai_hoa_don);
 
 
 --
@@ -2242,6 +2272,30 @@ ALTER TABLE ONLY public.hoa_don
 
 ALTER TABLE ONLY public.hoa_don
     ADD CONSTRAINT hoa_don_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_key UNIQUE (hop_dong_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_key UNIQUE (hoa_don_id);
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_pkey PRIMARY KEY (id);
 
 
 --
@@ -2637,6 +2691,9 @@ CREATE INDEX idx_cthd_hoa_don ON public.chi_tiet_hoa_don USING btree (hoa_don_id
 --
 
 CREATE INDEX idx_dat_coc_phong ON public.dat_coc_phong USING btree (phong_id, trang_thai);
+
+
+CREATE INDEX idx_quyet_toan_tra_phong_trang_thai ON public.quyet_toan_tra_phong USING btree (trang_thai);
 
 
 --
@@ -3256,6 +3313,22 @@ ALTER TABLE ONLY public.hop_dong
 
 ALTER TABLE ONLY public.hop_dong
     ADD CONSTRAINT hop_dong_phong_id_fkey FOREIGN KEY (phong_id) REFERENCES public.phong(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hoa_don_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hoa_don_id_fkey FOREIGN KEY (hoa_don_id) REFERENCES public.hoa_don(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: quyet_toan_tra_phong quyet_toan_tra_phong_hop_dong_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.quyet_toan_tra_phong
+    ADD CONSTRAINT quyet_toan_tra_phong_hop_dong_id_fkey FOREIGN KEY (hop_dong_id) REFERENCES public.hop_dong(id) ON DELETE RESTRICT;
 
 
 --

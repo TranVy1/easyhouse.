@@ -34,6 +34,11 @@ public class HoaDon {
     @Column(nullable = false, unique = true)
     private String maHoaDon;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "loai_hoa_don", nullable = false)
+    @Builder.Default
+    private LoaiHoaDon loaiHoaDon = LoaiHoaDon.REGULAR;
+
     @Column(nullable = false)
     private Integer kyNam;
 

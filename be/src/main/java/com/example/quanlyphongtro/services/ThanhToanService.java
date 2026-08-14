@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -115,11 +116,15 @@ public class ThanhToanService {
 
     @Transactional
     public ThanhToanResponse create(ThanhToanRequest req) {
-        if (req.getIdempotencyKey() != null && !req.getIdempotencyKey().isBlank()) {
-            String externalId = "MANUAL:" + req.getIdempotencyKey();
-            if (thanhToanRepository.findByExternalTransactionId(externalId).isPresent()) {
-                throw new RuntimeException("Giao dá»‹ch Ä‘Ã£ Ä‘Æ°á»£c thá»±c hiá»‡n (TrÃ¹ng láº·p)");
-            }
+        if (req.getIdempotencyKey() == null || req.getIdempotencyKey().isBlank()) {
+            throw new RuntimeException("Idempotency key là bắt buộc khi ghi nhận thanh toán");
+        }
+        String externalId = "MANUAL:" + req.getIdempotencyKey().trim();
+        Optional<ThanhToan> previousPayment = thanhToanRepository.findByExternalTransactionId(externalId);
+        if (previousPayment.isPresent()) {
+            ThanhToan existing = previousPayment.get();
+            assertCanWriteHoaDon(existing.getHoaDon(), permissionService.requireCurrentUserId());
+            return toResponse(existing, chiTietHoaDonRepository.findByHoaDonId(existing.getHoaDon().getId()));
         }
 
         HoaDon hoaDon = hoaDonRepository.findById(req.getHoaDonId())
@@ -145,7 +150,7 @@ public class ThanhToanService {
                 .soTien(req.getSoTien())
                 .phuongThucThanhToan(parsePhuongThuc(req.getPhuongThuc()))
                 .maThamChieu(req.getThongTinChuyenKhoan() != null ? req.getThongTinChuyenKhoan().getSoGiaoDich() : null)
-                .externalTransactionId(req.getIdempotencyKey() != null && !req.getIdempotencyKey().isBlank() ? "MANUAL:" + req.getIdempotencyKey() : null)
+                .externalTransactionId(externalId)
                 .ngayThanhToan(parseNgayThanhToan(req.getNgayThanhToan()))
                 .nguoiGhiNhan(NguoiDung.builder().id(userId).build())
                 .ghiChu(req.getGhiChu())
@@ -201,6 +206,9 @@ public class ThanhToanService {
                 .orElseThrow(() -> new RuntimeException("Khong tim thay thanh toan"));
         UUID userId = permissionService.requireCurrentUserId();
         assertCanWriteHoaDon(tt.getHoaDon(), userId);
+        if (tt.getTrangThai() == TrangThaiThanhToan.SUCCESS) {
+            throw new RuntimeException("Không thể sửa giao dịch thanh toán đã thành công; hãy lập chứng từ điều chỉnh riêng");
+        }
         UUID oldHoaDonId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
 
         boolean oldIsDeposit = tt.getTrangThai() == TrangThaiThanhToan.SUCCESS && tt.getPhuongThucThanhToan() == PhuongThucThanhToan.DEPOSIT;
@@ -259,6 +267,9 @@ public class ThanhToanService {
         ThanhToan tt = thanhToanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thanh toán"));
         assertCanWriteHoaDon(tt.getHoaDon(), permissionService.requireCurrentUserId());
+        if (tt.getTrangThai() == TrangThaiThanhToan.SUCCESS) {
+            throw new RuntimeException("Không thể hủy giao dịch thanh toán đã thành công; hãy lập chứng từ điều chỉnh riêng");
+        }
         UUID hdId = tt.getHoaDon() != null ? tt.getHoaDon().getId() : null;
         
         // Chuyển delete vật lý thành cancel
@@ -284,7 +295,7 @@ public class ThanhToanService {
         hoaDonRepository.save(hd);
 
         // Kích hoạt hợp đồng nếu thanh toán đủ và hợp đồng đang chờ kích hoạt
-        if (hd.getTrangThai() == TrangThaiHoaDon.PAID || hd.getTrangThai() == TrangThaiHoaDon.OVERPAID) {
+        if (hd.getTrangThai() == TrangThaiHoaDon.PAID) {
             com.example.quanlyphongtro.entity.HopDong hopDong = hd.getHopDong();
             if (hopDong != null && hopDong.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHopDong.PENDING) {
                 hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
@@ -299,16 +310,16 @@ public class ThanhToanService {
         if (soTien == null || soTien.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("So tien thanh toan phai lon hon 0");
         }
-        BigDecimal paid = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDon.getId()).stream()
+        List<ThanhToan> successfulPayments = thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDon.getId()).stream()
                 .filter(thanhToan -> thanhToan.getTrangThai() == TrangThaiThanhToan.SUCCESS)
                 .filter(thanhToan -> excludePaymentId == null || !excludePaymentId.equals(thanhToan.getId()))
-                .map(ThanhToan::getSoTien)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .toList();
+        if (!successfulPayments.isEmpty()) {
+            throw new RuntimeException("Hóa đơn đã có giao dịch thanh toán thành công");
+        }
         BigDecimal total = hoaDon.getTongTien() != null ? hoaDon.getTongTien() : BigDecimal.ZERO;
-        BigDecimal conPhaiThu = total.subtract(paid).max(BigDecimal.ZERO);
-        if (soTien.compareTo(conPhaiThu) > 0) {
-            throw new RuntimeException("So tien thanh toan vuot qua so con phai thu: " + conPhaiThu);
+        if (soTien.compareTo(total) != 0) {
+            throw new RuntimeException("Số tiền thanh toán phải đúng bằng tổng hóa đơn: " + total);
         }
     }
 
@@ -427,11 +438,9 @@ public class ThanhToanService {
 
     private TrangThaiHoaDon resolveInvoiceStatus(BigDecimal paid, BigDecimal total, LocalDate hanTra) {
         BigDecimal safeTotal = total != null ? total : BigDecimal.ZERO;
-        if (paid.compareTo(BigDecimal.ZERO) == 0 && hanTra != null && hanTra.isBefore(LocalDate.now())) return TrangThaiHoaDon.OVERDUE;
-        if (paid.compareTo(BigDecimal.ZERO) == 0) return TrangThaiHoaDon.UNPAID;
-        if (paid.compareTo(safeTotal) < 0) return TrangThaiHoaDon.PARTIAL;
-        if (paid.compareTo(safeTotal) == 0) return TrangThaiHoaDon.PAID;
-        return TrangThaiHoaDon.OVERPAID;
+        if (paid.compareTo(safeTotal) == 0 && safeTotal.compareTo(BigDecimal.ZERO) > 0) return TrangThaiHoaDon.PAID;
+        if (hanTra != null && hanTra.isBefore(LocalDate.now())) return TrangThaiHoaDon.OVERDUE;
+        return TrangThaiHoaDon.UNPAID;
     }
 
     private ThanhToanResponse toResponse(ThanhToan thanhToan, List<ChiTietHoaDon> chiTietList) {

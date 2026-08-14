@@ -2,6 +2,7 @@ package com.example.quanlyphongtro.repository;
 
 import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.entity.TrangThaiHoaDon;
+import com.example.quanlyphongtro.entity.LoaiHoaDon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,7 +64,13 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndXoaLucIsNull(UUID hopDongId, Integer kyNam, Integer kyThang);
 
+    Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndLoaiHoaDonAndXoaLucIsNull(
+            UUID hopDongId, Integer kyNam, Integer kyThang, LoaiHoaDon loaiHoaDon);
+
     Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndIdNotAndXoaLucIsNull(UUID hopDongId, Integer kyNam, Integer kyThang, UUID id);
+
+    Optional<HoaDon> findByHopDongIdAndKyNamAndKyThangAndLoaiHoaDonAndIdNotAndXoaLucIsNull(
+            UUID hopDongId, Integer kyNam, Integer kyThang, LoaiHoaDon loaiHoaDon, UUID id);
 
     @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai IN :trangThaiList AND h.hanTra >= :start AND h.hanTra <= :end AND h.xoaLuc IS NULL")
     long countUnpaidInvoicesDueBetween(

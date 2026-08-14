@@ -108,6 +108,7 @@ public class HoaDonController {
         ttRequest.setGhiChu((String) body.get("ghiChu"));
         ttRequest.setAnhBienLai((String) body.get("anhBienLai"));
         ttRequest.setNgayThanhToan((String) body.get("ngayThanhToan"));
+        ttRequest.setIdempotencyKey((String) body.get("idempotencyKey"));
 
         if (body.get("thongTinChuyenKhoan") instanceof Map<?, ?> thongTin) {
             ThanhToanRequest.ThongTinChuyenKhoan thongTinCK = new ThanhToanRequest.ThongTinChuyenKhoan();

@@ -6,9 +6,14 @@ import com.example.quanlyphongtro.dto.HopDongRequest;
 import com.example.quanlyphongtro.dto.HopDongResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.HopDongService;
+import com.example.quanlyphongtro.services.QuyetToanTraPhongService;
+import com.example.quanlyphongtro.dto.TaoQuyetToanTraPhongRequest;
+import com.example.quanlyphongtro.dto.HoanTatQuyetToanTraPhongRequest;
+import com.example.quanlyphongtro.dto.QuyetToanTraPhongResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +39,7 @@ import com.example.quanlyphongtro.entity.HopDong;
 public class HopDongController {
 
     private final HopDongService hopDongService;
+    private final QuyetToanTraPhongService quyetToanTraPhongService;
     private final ContractDocumentService contractDocumentService;
 
 
@@ -128,7 +134,25 @@ public class HopDongController {
     public ResponseEntity<com.example.quanlyphongtro.dto.ApiResponse<com.example.quanlyphongtro.dto.HopDongResponse>> terminateContract(
             @PathVariable java.util.UUID id,
             @RequestBody com.example.quanlyphongtro.dto.KetThucHopDongRequest req) {
-        return ResponseEntity.ok(com.example.quanlyphongtro.dto.ApiResponse.success(hopDongService.terminateContract(id, req), "Kết thúc hợp đồng thành công"));
+        return ResponseEntity.status(HttpStatus.GONE).body(com.example.quanlyphongtro.dto.ApiResponse.error(
+                "Hãy dùng quy trình quyết toán trả phòng để bảo đảm cọc, chứng từ, bàn giao và kiểm tra được ghi nhận"));
+    }
+
+    @PostMapping("/{id}/quyet-toan-tra-phong")
+    public ResponseEntity<ApiResponse<QuyetToanTraPhongResponse>> taoQuyetToanTraPhong(
+            @PathVariable UUID id, @RequestBody TaoQuyetToanTraPhongRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(quyetToanTraPhongService.tao(id, request), "Đã lập quyết toán trả phòng"));
+    }
+
+    @GetMapping("/{id}/quyet-toan-tra-phong")
+    public ResponseEntity<ApiResponse<QuyetToanTraPhongResponse>> getQuyetToanTraPhong(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(quyetToanTraPhongService.getByHopDong(id)));
+    }
+
+    @PostMapping("/{id}/quyet-toan-tra-phong/hoan-tat")
+    public ResponseEntity<ApiResponse<HopDongResponse>> hoanTatQuyetToanTraPhong(
+            @PathVariable UUID id, @RequestBody HoanTatQuyetToanTraPhongRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(quyetToanTraPhongService.hoanTat(id, request), "Đã hoàn tất trả phòng"));
     }
 
     @PutMapping("/{id}/gia-han")

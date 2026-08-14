@@ -114,7 +114,7 @@ export default function ThemMoiHoaDonPage() {
     tongTien: 0,
     daThanhToan: 0,
     conLai: 0,
-    trangThai: 'chuaThanhToan' as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan',
+    trangThai: 'chuaThanhToan' as 'nhap' | 'chuaThanhToan',
     hanThanhToan: '',
     ghiChu: '',
     soDuDauKy: 0,
@@ -1022,15 +1022,13 @@ export default function ThemMoiHoaDonPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="trangThai" className="text-sm font-semibold text-[#243B5A]">Trạng thái</Label>
-                    <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'chuaThanhToan' | 'daThanhToanMotPhan' | 'daThanhToan' | 'quaHan' }))}>
+                    <Select value={formData.trangThai} onValueChange={(value) => setFormData(prev => ({ ...prev, trangThai: value as 'nhap' | 'chuaThanhToan' }))}>
                       <SelectTrigger className="h-12 shadow-sm rounded-xl border-gray-200">
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="chuaThanhToan">Chưa thanh toán</SelectItem>
-                        <SelectItem value="daThanhToanMotPhan">Thanh toán một phần</SelectItem>
-                        <SelectItem value="daThanhToan">Đã thanh toán</SelectItem>
-                        <SelectItem value="quaHan">Quá hạn</SelectItem>
+                        <SelectItem value="nhap">Nháp</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

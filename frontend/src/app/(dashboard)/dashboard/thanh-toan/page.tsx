@@ -79,6 +79,7 @@ type PaymentForm = {
   soGiaoDich: string
   ghiChu: string
   anhBienLai: string
+  idempotencyKey: string
 }
 
 const today = new Date().toISOString().slice(0, 10)
@@ -93,6 +94,9 @@ const blankForm = (): PaymentForm => ({
   soGiaoDich: "",
   ghiChu: "",
   anhBienLai: "",
+  idempotencyKey: typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 })
 
 const currency = (amount?: number) =>
@@ -311,6 +315,10 @@ export default function ThanhToanPage() {
   }
 
   const openEdit = (item: PaymentRecord) => {
+    if (item.trangThai === "SUCCESS") {
+      toast.error("Giao dịch thành công không được sửa. Hãy lập chứng từ điều chỉnh riêng nếu cần.")
+      return
+    }
     const invoice = invoiceFor(item)
     setEditing(item)
     setFormData({
@@ -323,6 +331,7 @@ export default function ThanhToanPage() {
       soGiaoDich: item.maThamChieu || "",
       ghiChu: item.ghiChu || "",
       anhBienLai: item.anhBienLai || "",
+      idempotencyKey: "",
     })
     setFormOpen(true)
   }
@@ -335,6 +344,11 @@ export default function ThanhToanPage() {
     }
     if (!formData.soTien || Number(formData.soTien) <= 0) {
       toast.error("Số tiền thanh toán phải lớn hơn 0")
+      return
+    }
+    const selectedInvoice = invoices.find((invoice) => (invoice._id || invoice.id) === formData.hoaDonId)
+    if (!editing && selectedInvoice && Number(formData.soTien) !== Number(selectedInvoice.tongTien || 0)) {
+      toast.error(`Hóa đơn phải được thanh toán đủ ${currency(Number(selectedInvoice.tongTien || 0))}`)
       return
     }
     setSubmitting(true)
@@ -357,6 +371,7 @@ export default function ThanhToanPage() {
               : { nganHang: formData.nganHang, soGiaoDich: formData.soGiaoDich },
           ghiChu: formData.ghiChu,
           anhBienLai: formData.anhBienLai,
+          idempotencyKey: formData.idempotencyKey,
         }),
       })
       const result: ApiResponse<PaymentRecord> = await response.json()

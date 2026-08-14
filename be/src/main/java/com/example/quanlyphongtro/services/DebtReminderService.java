@@ -27,7 +27,7 @@ public class DebtReminderService {
     @Transactional
     public void runDailyDebtReminders() {
         log.info("Bắt đầu chạy luồng nhắc nợ tự động nhiều cấp...");
-        List<HoaDon> invoices = hoaDonRepository.findByTrangThaiIn(List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.PARTIAL));
+        List<HoaDon> invoices = hoaDonRepository.findByTrangThaiIn(List.of(TrangThaiHoaDon.UNPAID, TrangThaiHoaDon.OVERDUE));
         LocalDate today = LocalDate.now();
 
         for (HoaDon hd : invoices) {

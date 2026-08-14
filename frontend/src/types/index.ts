@@ -417,6 +417,7 @@ export interface HoaDon {
   id?: ID;
   _id?: ID;
   maHoaDon: string;
+  loaiHoaDon?: 'REGULAR' | 'FINAL_SETTLEMENT';
   hopDongId?: ID;
   hopDong: Ref<HopDong>;
   phongId?: ID;

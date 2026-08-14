@@ -94,7 +94,9 @@ class ThanhToanServiceTest {
         ThanhToanRequest request = new ThanhToanRequest();
         request.setHoaDonId(hoaDonId);
         request.setSoTien(BigDecimal.valueOf(500_000));
+        request.setIdempotencyKey("tenant-payment");
 
+        when(thanhToanRepository.findByExternalTransactionId("MANUAL:tenant-payment")).thenReturn(Optional.empty());
         when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
         when(permissionService.requireCurrentUserId()).thenReturn(tenantUserId);
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
@@ -111,7 +113,9 @@ class ThanhToanServiceTest {
         ThanhToanRequest request = new ThanhToanRequest();
         request.setHoaDonId(hoaDonId);
         request.setSoTien(BigDecimal.valueOf(1_000_001));
+        request.setIdempotencyKey("payment-above-balance");
 
+        when(thanhToanRepository.findByExternalTransactionId("MANUAL:payment-above-balance")).thenReturn(Optional.empty());
         when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
         when(hoaDonRepository.findByIdForUpdate(hoaDonId)).thenReturn(Optional.of(hoaDon));
         when(thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId)).thenReturn(List.of());
@@ -121,7 +125,31 @@ class ThanhToanServiceTest {
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
 
-        assertEquals("So tien thanh toan vuot qua so con phai thu: 1000000", error.getMessage());
+        assertEquals("Số tiền thanh toán phải đúng bằng tổng hóa đơn: 1000000", error.getMessage());
+    }
+
+    @Test
+    void createRejectsPartialPayment() {
+        UUID adminId = UUID.randomUUID();
+        UUID hoaDonId = UUID.randomUUID();
+        HoaDon hoaDon = invoice(UUID.randomUUID(), UUID.randomUUID(), null);
+        hoaDon.setId(hoaDonId);
+        ThanhToanRequest request = new ThanhToanRequest();
+        request.setHoaDonId(hoaDonId);
+        request.setSoTien(BigDecimal.valueOf(500_000));
+        request.setIdempotencyKey("partial-payment");
+
+        when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
+        when(hoaDonRepository.findByIdForUpdate(hoaDonId)).thenReturn(Optional.of(hoaDon));
+        when(thanhToanRepository.findByExternalTransactionId("MANUAL:partial-payment")).thenReturn(Optional.empty());
+        when(thanhToanRepository.findByHoaDonIdOrderByNgayThanhToanDesc(hoaDonId)).thenReturn(List.of());
+        when(permissionService.requireCurrentUserId()).thenReturn(adminId);
+        when(permissionService.canWriteNhaTro(adminId, hoaDon.getPhong().getNhaTro().getId(),
+                hoaDon.getPhong().getNhaTro().getChuTro().getId())).thenReturn(true);
+
+        RuntimeException error = assertThrows(RuntimeException.class, () -> service.create(request));
+
+        assertEquals("Số tiền thanh toán phải đúng bằng tổng hóa đơn: 1000000", error.getMessage());
     }
 
     @Test

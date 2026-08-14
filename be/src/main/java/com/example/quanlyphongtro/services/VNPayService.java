@@ -209,7 +209,13 @@ public class VNPayService {
 
             // ===== CẬP NHẬT DB NẾU THÀNH CÔNG =====
             if ("00".equals(responseCode)) {
-                long expectedAmount = toWholeVnd(outstandingAmount(hoaDon));
+                if (hoaDon.getDaTra() != null && hoaDon.getDaTra().compareTo(BigDecimal.ZERO) > 0) {
+                    log.warn("VNPay IPN: Hóa đơn {} đã có thanh toán, từ chối giao dịch bổ sung", hoaDonId);
+                    response.put("RspCode", "02");
+                    response.put("Message", "Invoice already paid");
+                    return response;
+                }
+                long expectedAmount = toWholeVnd(hoaDon.getTongTien());
                 if (amount != expectedAmount) {
                     log.warn("VNPay IPN: Số tiền không khớp hóa đơn. received={}, expected={}", amount, expectedAmount);
                     response.put("RspCode", "04");
@@ -234,22 +240,12 @@ public class VNPayService {
                 ThanhToan saved = thanhToanRepository.save(thanhToan);
                 log.info("VNPay: Đã lưu ThanhToan id={} cho hoaDon={}", saved.getId(), hoaDonId);
 
-                // Cập nhật HoaDon - tính daTra và trạng thái
-                BigDecimal daTraMoi = hoaDon.getDaTra().add(BigDecimal.valueOf(amount));
-                BigDecimal conLai   = hoaDon.getTongTien().subtract(daTraMoi);
-
-                if (conLai.abs().compareTo(BigDecimal.ONE) < 0) {
-                    // VNPay only accepts whole VND. Normalize the sub-VND rounding
-                    // difference so a prorated invoice cannot retain an unpayable balance.
-                    hoaDon.setDaTra(hoaDon.getTongTien());
-                    hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
-                } else {
-                    hoaDon.setDaTra(daTraMoi);
-                    hoaDon.setTrangThai(TrangThaiHoaDon.PARTIAL);
-                }
+                // A VNPay confirmation always settles the full invoice in one transaction.
+                hoaDon.setDaTra(hoaDon.getTongTien());
+                hoaDon.setTrangThai(TrangThaiHoaDon.PAID);
 
                 hoaDonRepository.save(hoaDon);
-                log.info("VNPay: Đã cập nhật HoaDon={} daTra={} trangThai={}", hoaDonId, daTraMoi, hoaDon.getTrangThai());
+                log.info("VNPay: Đã cập nhật HoaDon={} daTra={} trangThai={}", hoaDonId, hoaDon.getDaTra(), hoaDon.getTrangThai());
 
                 // ===== LƯU LOG VÀO bank_transaction (transaction độc lập REQUIRES_NEW) =====
                 // Gọi qua bean inject (không gọi this.method()) → Spring AOP mới interceptđược

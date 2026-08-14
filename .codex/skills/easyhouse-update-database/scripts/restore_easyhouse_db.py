@@ -7,6 +7,7 @@ import argparse
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 
@@ -85,6 +86,28 @@ def restore_sql(sql_file: Path, container: str, db_user: str, database: str) -> 
         )
     if result.returncode != 0:
         raise RuntimeError(f"Restore failed (exit {result.returncode})")
+
+
+def backup_before_restore(project_root: Path, container: str, db_user: str, database: str) -> Path:
+    recovery_dir = project_root / "sql" / "recovery"
+    recovery_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_file = recovery_dir / f"recovery-before-restore-{timestamp}.sql"
+    with output_file.open("wb") as dump_out:
+        result = run(
+            [
+                "docker", "exec", container, "pg_dump",
+                "-U", db_user,
+                "-d", database,
+                "--clean", "--if-exists", "--no-owner", "--no-privileges",
+            ],
+            stdout=dump_out,
+        )
+    if result.returncode != 0:
+        if output_file.exists():
+            output_file.unlink()
+        raise RuntimeError(f"Pre-restore backup failed (exit {result.returncode})")
+    return output_file
 
 
 def ensure_admin(container: str, db_user: str, database: str) -> None:
@@ -252,13 +275,14 @@ ORDER BY nd.email;
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--sql-file", default="sql/easyhouse-after-fix.sql", help="Complete SQL dump to restore")
+    parser.add_argument("--sql-file", default="sql/db-latest.sql", help="Complete SQL dump to restore")
     parser.add_argument("--project-root", default=None, help="EasyHouse project root")
     parser.add_argument("--compose-file", default="docker-compose.easyhouse.yml")
     parser.add_argument("--container", default="easyhouse-postgres")
     parser.add_argument("--database", default="postgres")
     parser.add_argument("--db-user", default="postgres")
     parser.add_argument("--skip-ensure-admin", action="store_true")
+    parser.add_argument("--skip-backup-before-restore", action="store_true")
     return parser.parse_args()
 
 
@@ -274,6 +298,10 @@ def main() -> int:
 
     ensure_postgres_running(args.container, compose_file)
     wait_for_postgres(args.container, args.db_user, args.database)
+    recovery_file = None
+    if not args.skip_backup_before_restore:
+        recovery_file = backup_before_restore(project_root, args.container, args.db_user, args.database)
+        print(f"Pre-restore recovery dump: {recovery_file}")
     restore_sql(sql_file, args.container, args.db_user, args.database)
 
     if not args.skip_ensure_admin:

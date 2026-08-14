@@ -17,6 +17,7 @@ public class HoaDonResponse {
     @JsonProperty("_id")
     private UUID id;
     private String maHoaDon;
+    private String loaiHoaDon;
     private Object hopDong;
     private Object phong;
     private Object khachThue;
@@ -141,6 +142,7 @@ public class HoaDonResponse {
         return HoaDonResponse.builder()
                 .id(hd.getId())
                 .maHoaDon(hd.getMaHoaDon())
+                .loaiHoaDon(hd.getLoaiHoaDon() != null ? hd.getLoaiHoaDon().name() : null)
                 .hopDong(hdObj)
                 .phong(phongObj)
                 .khachThue(ktObj)
