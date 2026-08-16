@@ -11,14 +11,14 @@ import java.util.UUID;
 public interface CauHinhPhiXeRepository extends JpaRepository<CauHinhPhiXe, UUID> {
     @Query("""
             select p from CauHinhPhiXe p where p.nhaTro.id = :nhaTroId
-              and (:loaiXe is null or lower(p.loaiXe) = lower(:loaiXe))
+              and (cast(:loaiXe as string) is null or lower(p.loaiXe) = lower(cast(:loaiXe as string)))
             order by lower(p.loaiXe), p.hieuLucTu desc
             """)
     List<CauHinhPhiXe> findAllForNhaTro(@Param("nhaTroId") UUID nhaTroId, @Param("loaiXe") String loaiXe);
 
     @Query("""
             select p from CauHinhPhiXe p where p.nhaTro.id = :nhaTroId
-              and lower(p.loaiXe) = lower(:loaiXe) and p.dangApDung = true
+              and lower(p.loaiXe) = lower(cast(:loaiXe as string)) and p.dangApDung = true
               and p.hieuLucTu <= :denNgay and (p.hieuLucDen is null or p.hieuLucDen >= :tuNgay)
             order by p.hieuLucTu asc
             """)
@@ -27,7 +27,7 @@ public interface CauHinhPhiXeRepository extends JpaRepository<CauHinhPhiXe, UUID
 
     @Query("""
             select p from CauHinhPhiXe p where p.nhaTro.id = :nhaTroId
-              and lower(p.loaiXe) = lower(:loaiXe) and p.dangApDung = true
+              and lower(p.loaiXe) = lower(cast(:loaiXe as string)) and p.dangApDung = true
               and p.hieuLucTu <= :ngay and (p.hieuLucDen is null or p.hieuLucDen >= :ngay)
             order by p.hieuLucTu desc
             """)

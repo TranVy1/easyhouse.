@@ -103,7 +103,7 @@ public class CauHinhPhiXeService {
     private void checkRead(NhaTro nhaTro) { UUID userId = permissionService.requireCurrentUserId(); if (!permissionService.canReadNhaTro(userId, nhaTro.getId(), ownerId(nhaTro))) throw new RuntimeException("Bạn không có quyền xem biểu phí xe"); }
     private void checkWrite(NhaTro nhaTro) { UUID userId = permissionService.requireCurrentUserId(); if (!permissionService.canWriteNhaTro(userId, nhaTro.getId(), ownerId(nhaTro))) throw new RuntimeException("Bạn không có quyền thay đổi biểu phí xe"); }
     private UUID ownerId(NhaTro nhaTro) { return nhaTro.getChuTro() == null ? null : nhaTro.getChuTro().getId(); }
-    private BigDecimal requireMoney(BigDecimal value) { if (value == null || value.compareTo(BigDecimal.ZERO) < 0) throw new RuntimeException("Đơn giá không được âm"); return value; }
+    private BigDecimal requireMoney(BigDecimal value) { if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) throw new RuntimeException("Đơn giá phải lớn hơn 0"); return value; }
     private void validateRange(LocalDate from, LocalDate to) { if (from == null) throw new RuntimeException("Ngày hiệu lực là bắt buộc"); if (to != null && to.isBefore(from)) throw new RuntimeException("Ngày hết hiệu lực không hợp lệ"); }
     private String normalizeType(String value) { String type = blankToNull(value); if (type == null) throw new RuntimeException("Loại xe là bắt buộc"); return type; }
     private String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }
