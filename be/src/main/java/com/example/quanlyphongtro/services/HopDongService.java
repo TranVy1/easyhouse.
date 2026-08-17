@@ -448,6 +448,17 @@ public class HopDongService {
             throw new RuntimeException("Hợp đồng đã được xác nhận trước đó");
         }
 
+        // Hop dong chi co hieu luc khi ca hai ben da ky dien tu. Truoc day buoc
+        // "Xac nhan" khoa du lieu va chuyen ACTIVE ma khong can chu ky nao, khien
+        // chu ky dien tu mat y nghia va hop dong bi khoa truoc khi kip bo sung
+        // thong tin con thieu. Viec khoa + chuyen ACTIVE do signContract lo khi
+        // signatureStatus = COMPLETED.
+        if (hd.getSignatureStatus() != SignatureStatus.COMPLETED) {
+            throw new RuntimeException(
+                    "Hợp đồng chỉ có hiệu lực sau khi cả hai bên ký điện tử. "
+                    + "Vui lòng vào tab \"Văn bản & Ký điện tử\" để ký.");
+        }
+
         validateRoomCanContract(hd.getPhong(), TrangThaiHopDong.ACTIVE);
         validateTenantBelongsToRoomOwner(hd.getKhachThue(), hd.getPhong());
         hd.setKhachThue(khachThueService.ensureTaiKhoanDangNhap(hd.getKhachThue()));
@@ -582,7 +593,9 @@ public class HopDongService {
         }
     }
 
-    private void assertCanWrite(HopDong hopDong, UUID userId) {
+    // public de ContractDocumentService.boSungThongTin() dung lai khi admin bo
+    // sung thong tin bat buoc ngay tren dialog ky.
+    public void assertCanWrite(HopDong hopDong, UUID userId) {
         if (!canWriteHopDong(hopDong, userId)) {
             throw new RuntimeException("Bạn không có quyền sửa hợp đồng này");
         }

@@ -228,12 +228,22 @@ export default function ThemMoiHopDongPage() {
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
   const [previewHopDongId, setPreviewHopDongId] = useState<string | null>(null);
   const [loadingAddKhachThue, setLoadingAddKhachThue] = useState(false);
-  const [newKhachThueData, setNewKhachThueData] = useState({ hoTen: '', soDienThoai: '', cccd: '' });
+  // Cac truong nay dung bang danh sach bat buoc o ContractDocumentService.
+  // thieuThongTin(). Thu thap du ngay tu dau de sau nay khong bi chan luc ky.
+  const [newKhachThueData, setNewKhachThueData] = useState({
+    hoTen: '', soDienThoai: '', cccd: '', ngaySinh: '', diaChi: '',
+  });
 
   const handleQuickAddKhachThue = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newKhachThueData.hoTen || !newKhachThueData.soDienThoai) {
-      toast.error('Vui lòng nhập họ tên và số điện thoại');
+    const thieu: string[] = [];
+    if (!newKhachThueData.hoTen.trim()) thieu.push('họ và tên');
+    if (!newKhachThueData.soDienThoai.trim()) thieu.push('số điện thoại');
+    if (!newKhachThueData.cccd.trim()) thieu.push('CCCD/CMND');
+    if (!newKhachThueData.ngaySinh) thieu.push('ngày sinh');
+    if (!newKhachThueData.diaChi.trim()) thieu.push('địa chỉ thường trú');
+    if (thieu.length > 0) {
+      toast.error(`Vui lòng nhập ${thieu.join(', ')} — đây là thông tin bắt buộc để ký hợp đồng`);
       return;
     }
     setLoadingAddKhachThue(true);
@@ -271,7 +281,7 @@ export default function ThemMoiHopDongPage() {
         // Gọi mutate để fetch lại data từ server background
         mutateKhachThue();
         setOpenAddKhachThue(false);
-        setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '' });
+        setNewKhachThueData({ hoTen: '', soDienThoai: '', cccd: '', ngaySinh: '', diaChi: '' });
       } else {
         toast.error(result.message || 'Thêm khách thuê thất bại');
       }
@@ -1136,14 +1146,38 @@ export default function ThemMoiHopDongPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cccd">CCCD / CMND</Label>
+              <Label htmlFor="cccd">CCCD / CMND *</Label>
               <Input
                 id="cccd"
+                required
                 value={newKhachThueData.cccd}
                 onChange={(e) => setNewKhachThueData(prev => ({ ...prev, cccd: e.target.value }))}
                 placeholder="012345678912"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="ngaySinh">Ngày sinh *</Label>
+              <Input
+                id="ngaySinh"
+                type="date"
+                required
+                value={newKhachThueData.ngaySinh}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, ngaySinh: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="diaChi">Địa chỉ thường trú *</Label>
+              <Input
+                id="diaChi"
+                required
+                value={newKhachThueData.diaChi}
+                onChange={(e) => setNewKhachThueData(prev => ({ ...prev, diaChi: e.target.value }))}
+                placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Các trường trên đều bắt buộc vì hợp đồng cần đủ thông tin mới ký điện tử được.
+            </p>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpenAddKhachThue(false)} disabled={loadingAddKhachThue}>
                 Hủy

@@ -15,7 +15,12 @@ export default withAuth(
     const accessToken = req.nextauth.token?.accessToken;
 
     const isTenantDashboard = req.nextUrl.pathname.startsWith('/khach-thue/dashboard');
-    const tenantToken = isTenantDashboard
+    const isApi = req.nextUrl.pathname.startsWith('/api/');
+    // Doc ca phien khach thue cho /api/: withAuth ben duoi chi duoc cau hinh voi
+    // cookie cua admin, nen req.nextauth.token luon null khi nguoi dung la khach
+    // thue. Khong doc them o day thi moi request /api/ khong the tu dat header
+    // Authorization (dien hinh la <iframe src> xem PDF hop dong) se bi 403.
+    const tenantToken = (isTenantDashboard || isApi)
       ? await getToken({
           req,
           secret: process.env.NEXTAUTH_SECRET,
@@ -30,14 +35,51 @@ export default withAuth(
       return NextResponse.redirect(new URL('/khach-thue/dang-nhap', req.url));
     }
 
+    const tenantAccessToken = typeof tenantToken?.accessToken === 'string'
+      ? tenantToken.accessToken
+      : '';
+    const adminAccessToken = typeof accessToken === 'string' ? accessToken : '';
+
+    // Mot trinh duyet co the giu DONG THOI ca hai phien (vua test admin vua test
+    // khach thue). Neu cu uu tien admin thi request tu cong khach thue se mang
+    // token admin — va neu token do het han (accessTokenExpires chi 15 phut) thi
+    // backend tra 403, dien hinh la <iframe> xem PDF hop dong.
+    // Chon theo NGU CANH goi: request phat ra tu cong khach thue thi dung token
+    // khach thue. Referer la thu duy nhat cho biet ngu canh, vi duong dan /api/
+    // cua hai ben giong het nhau.
+    const referer = req.headers.get('referer') || '';
+    const laNguCanhKhachThue = referer.includes('/khach-thue/')
+      || req.nextUrl.pathname.startsWith('/api/auth-tenant/');
+
+    const conHan = (t: unknown) =>
+      typeof t === 'number' ? Date.now() < t : true;
+    const adminConHan = conHan(req.nextauth.token?.accessTokenExpires);
+    const tenantConHan = conHan(tenantToken?.accessTokenExpires);
+
+    const uuTien = laNguCanhKhachThue
+      ? [
+          { token: tenantAccessToken, conHan: tenantConHan },
+          { token: adminAccessToken, conHan: adminConHan },
+        ]
+      : [
+          { token: adminAccessToken, conHan: adminConHan },
+          { token: tenantAccessToken, conHan: tenantConHan },
+        ];
+
+    // Uu tien token dung ngu canh VA con han; neu ca hai het han thi van gui cai
+    // dung ngu canh de backend tra loi 401/403 co y nghia thay vi khong gui gi.
+    const tokenDeGan =
+      uuTien.find((x) => x.token.length > 0 && x.conHan)?.token
+      || uuTien.find((x) => x.token.length > 0)?.token
+      || '';
+
     if (
-      req.nextUrl.pathname.startsWith('/api/') &&
+      isApi &&
       !isNextAuthEndpoint(req.nextUrl.pathname) &&
       !requestHeaders.has('Authorization') &&
-      typeof accessToken === 'string' &&
-      accessToken.length > 0
+      tokenDeGan.length > 0
     ) {
-      requestHeaders.set('Authorization', `Bearer ${accessToken}`);
+      requestHeaders.set('Authorization', `Bearer ${tokenDeGan}`);
     }
 
     return NextResponse.next({

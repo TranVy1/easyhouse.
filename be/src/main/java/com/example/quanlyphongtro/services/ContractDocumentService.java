@@ -34,6 +34,10 @@ public class ContractDocumentService {
     private final ContractSignatureRepository signatureRepository;
     private final DichVuHopDongRepository dichVuHopDongRepository;
     private final com.example.quanlyphongtro.repository.ThanhVienHopDongRepository thanhVienHopDongRepository;
+    private final com.example.quanlyphongtro.repository.NguoiDungRepository nguoiDungRepository;
+    private final com.example.quanlyphongtro.repository.KhachThueRepository khachThueRepository;
+    private final HopDongService hopDongService;
+    private final PermissionService permissionService;
     private final CloudinaryService cloudinaryService;
     private final TaiSanPhongRepository taiSanPhongRepository;
     private final TienIchService tienIchService;
@@ -162,7 +166,7 @@ public class ContractDocumentService {
         if (noiDung == null || noiDung.trim().isEmpty()) {
             noiDung = getDefaultTerms();
         }
-        context.setVariable("noiDungHopDong", noiDung);
+        context.setVariable("noiDungHopDong", chuanHoaDieuKhoan(noiDung));
 
         context.setVariable("chiSoDienBanDau", hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0);
         context.setVariable("chiSoNuocBanDau", hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0);
@@ -331,10 +335,12 @@ public class ContractDocumentService {
 
         // Khong cho ky khi ho so con thieu: ky xong hop dong bi khoa du lieu
         // (lockedAt) nen sau do khong the bo sung CCCD/dia chi... duoc nua.
-        List<String> thieu = thieuThongTin(hd);
+        List<com.example.quanlyphongtro.dto.ThieuThongTinResponse> thieu = thieuThongTin(hd);
         if (!thieu.isEmpty()) {
-            throw new RuntimeException("Chưa thể ký hợp đồng, còn thiếu thông tin bắt buộc: "
-                    + String.join("; ", thieu));
+            String moTa = thieu.stream()
+                    .map(t -> benLabel(t.getBen()) + ": " + t.getNhan())
+                    .collect(java.util.stream.Collectors.joining("; "));
+            throw new RuntimeException("Chưa thể ký hợp đồng, còn thiếu thông tin bắt buộc: " + moTa);
         }
 
         String role = request.getRole() != null ? request.getRole() : "LANDLORD";
@@ -446,44 +452,150 @@ public class ContractDocumentService {
      * Danh sach rong = day du. Dung chung cho ca viec chan ky o backend lan
      * hien canh bao tren giao dien truoc khi nguoi dung dat but ky.
      */
+    /**
+     * Kiem tra quyen doc hop dong BEN TRONG transaction.
+     *
+     * Controller khong duoc tu findById roi goi assertCanRead: canReadHopDong
+     * duyet quan he lazy (khachThue -> nguoiDung) nen se nem
+     * LazyInitializationException khi session da dong. Admin khong dinh loi nay
+     * vi isAdmin() tra true truoc khi cham toi khachThue — chi khach thue moi vap.
+     */
     @Transactional(readOnly = true)
-    public List<String> kiemTraThongTinBatBuoc(UUID hopDongId) {
+    public String kiemTraQuyenDoc(UUID hopDongId, UUID userId) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        hopDongService.assertCanRead(hd, userId);
+        // Tra ve ma hop dong luon de controller dat ten file tai xuong cho de doc,
+        // thay vi phai cham lai entity ben ngoai transaction.
+        return hd.getMaHopDong() != null ? hd.getMaHopDong() : hopDongId.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.example.quanlyphongtro.dto.ThieuThongTinResponse> kiemTraThongTinBatBuoc(UUID hopDongId) {
         HopDong hd = hopDongRepository.findById(hopDongId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         return thieuThongTin(hd);
     }
 
-    private List<String> thieuThongTin(HopDong hd) {
-        List<String> thieu = new ArrayList<>();
+    private com.example.quanlyphongtro.dto.ThieuThongTinResponse muc(
+            String ma, String nhan, String ben, boolean suaTaiCho) {
+        return com.example.quanlyphongtro.dto.ThieuThongTinResponse.builder()
+                .ma(ma).nhan(nhan).ben(ben).suaTaiCho(suaTaiCho).build();
+    }
+
+    private List<com.example.quanlyphongtro.dto.ThieuThongTinResponse> thieuThongTin(HopDong hd) {
+        List<com.example.quanlyphongtro.dto.ThieuThongTinResponse> thieu = new ArrayList<>();
 
         NguoiDung chuTro = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null)
                 ? hd.getPhong().getNhaTro().getChuTro() : null;
         if (chuTro == null) {
-            thieu.add("Bên A: chưa xác định được chủ trọ của tòa nhà");
+            thieu.add(muc("BEN_A_THIEU", "Chưa xác định được chủ trọ của tòa nhà", "BEN_A", false));
         } else {
-            if (isBlank(chuTro.getHoTen())) thieu.add("Bên A: họ và tên");
-            if (isBlank(chuTro.getSoCccd())) thieu.add("Bên A: số CCCD/CMND");
-            if (isBlank(chuTro.getDiaChi())) thieu.add("Bên A: địa chỉ thường trú");
-            if (isBlank(chuTro.getSoDienThoai())) thieu.add("Bên A: số điện thoại");
+            if (isBlank(chuTro.getHoTen())) thieu.add(muc("BEN_A_HO_TEN", "Họ và tên", "BEN_A", true));
+            if (isBlank(chuTro.getSoCccd())) thieu.add(muc("BEN_A_SO_CCCD", "Số CCCD/CMND", "BEN_A", true));
+            if (isBlank(chuTro.getDiaChi())) thieu.add(muc("BEN_A_DIA_CHI", "Địa chỉ thường trú", "BEN_A", true));
+            if (isBlank(chuTro.getSoDienThoai())) thieu.add(muc("BEN_A_SO_DIEN_THOAI", "Số điện thoại", "BEN_A", true));
         }
 
         KhachThue kt = hd.getKhachThue();
         if (kt == null) {
-            thieu.add("Bên B: chưa gán khách thuê cho hợp đồng");
+            thieu.add(muc("BEN_B_THIEU", "Chưa gán khách thuê cho hợp đồng", "BEN_B", false));
         } else {
-            if (isBlank(kt.getHoTen())) thieu.add("Bên B: họ và tên");
-            if (isBlank(kt.getSoCccd())) thieu.add("Bên B: số CCCD/CMND");
-            if (isBlank(kt.getSoDienThoai())) thieu.add("Bên B: số điện thoại");
-            if (kt.getNgaySinh() == null) thieu.add("Bên B: ngày sinh");
-            if (isBlank(kt.getDiaChi())) thieu.add("Bên B: địa chỉ thường trú");
+            if (isBlank(kt.getHoTen())) thieu.add(muc("BEN_B_HO_TEN", "Họ và tên", "BEN_B", true));
+            if (isBlank(kt.getSoCccd())) thieu.add(muc("BEN_B_SO_CCCD", "Số CCCD/CMND", "BEN_B", true));
+            if (isBlank(kt.getSoDienThoai())) thieu.add(muc("BEN_B_SO_DIEN_THOAI", "Số điện thoại", "BEN_B", true));
+            if (kt.getNgaySinh() == null) thieu.add(muc("BEN_B_NGAY_SINH", "Ngày sinh", "BEN_B", true));
+            if (isBlank(kt.getDiaChi())) thieu.add(muc("BEN_B_DIA_CHI", "Địa chỉ thường trú", "BEN_B", true));
         }
 
-        if (hd.getNgayBatDau() == null || hd.getNgayKetThuc() == null) thieu.add("Thời hạn thuê");
-        if (hd.getGiaThueHopDong() == null || hd.getGiaThueHopDong().signum() <= 0) thieu.add("Giá thuê");
-        if (hd.getTienCoc() == null) thieu.add("Tiền đặt cọc");
-        if (hd.getNgayThanhToanHangThang() == null) thieu.add("Ngày thanh toán hằng tháng");
+        // Cac muc duoi thuoc ve hop dong, phai sua o form hop dong nen suaTaiCho = false.
+        if (hd.getNgayBatDau() == null || hd.getNgayKetThuc() == null) {
+            thieu.add(muc("HD_THOI_HAN", "Thời hạn thuê", "HOP_DONG", false));
+        }
+        if (hd.getGiaThueHopDong() == null || hd.getGiaThueHopDong().signum() <= 0) {
+            thieu.add(muc("HD_GIA_THUE", "Giá thuê", "HOP_DONG", false));
+        }
+        if (hd.getTienCoc() == null) {
+            thieu.add(muc("HD_TIEN_COC", "Tiền đặt cọc", "HOP_DONG", false));
+        }
+        if (hd.getNgayThanhToanHangThang() == null) {
+            thieu.add(muc("HD_NGAY_THANH_TOAN", "Ngày thanh toán hằng tháng", "HOP_DONG", false));
+        }
 
         return thieu;
+    }
+
+    /**
+     * Bo sung cac truong bat buoc con thieu ngay tu dialog ky, thay vi bat admin
+     * vao tung man hinh khac (hoac vao DB) de them tay.
+     *
+     * Chi ghi de truong nao duoc gui len va khac rong, nen goi mot phan an toan.
+     * Tra ve danh sach con thieu sau khi luu de giao dien cap nhat ngay.
+     */
+    @Transactional
+    public List<com.example.quanlyphongtro.dto.ThieuThongTinResponse> boSungThongTin(
+            UUID hopDongId, com.example.quanlyphongtro.dto.BoSungThongTinRequest req) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        hopDongService.assertCanWrite(hd, permissionService.requireCurrentUserId());
+
+        NguoiDung chuTro = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null)
+                ? hd.getPhong().getNhaTro().getChuTro() : null;
+        if (chuTro != null) {
+            if (coGiaTri(req.getBenAHoTen())) chuTro.setHoTen(req.getBenAHoTen().trim());
+            if (coGiaTri(req.getBenASoCccd())) chuTro.setSoCccd(req.getBenASoCccd().trim());
+            if (coGiaTri(req.getBenASoDienThoai())) chuTro.setSoDienThoai(req.getBenASoDienThoai().trim());
+            if (coGiaTri(req.getBenADiaChi())) chuTro.setDiaChi(req.getBenADiaChi().trim());
+            nguoiDungRepository.save(chuTro);
+        }
+
+        KhachThue kt = hd.getKhachThue();
+        if (kt != null) {
+            if (coGiaTri(req.getBenBHoTen())) kt.setHoTen(req.getBenBHoTen().trim());
+            if (coGiaTri(req.getBenBSoCccd())) kt.setSoCccd(req.getBenBSoCccd().trim());
+            if (coGiaTri(req.getBenBSoDienThoai())) kt.setSoDienThoai(req.getBenBSoDienThoai().trim());
+            if (coGiaTri(req.getBenBDiaChi())) kt.setDiaChi(req.getBenBDiaChi().trim());
+            if (req.getBenBNgaySinh() != null) kt.setNgaySinh(req.getBenBNgaySinh());
+            khachThueRepository.save(kt);
+        }
+
+        return thieuThongTin(hd);
+    }
+
+    private boolean coGiaTri(String s) {
+        return s != null && !s.trim().isEmpty();
+    }
+
+    private String benLabel(String ben) {
+        if (ben == null) return "";
+        return switch (ben) {
+            case "BEN_A" -> "Bên A";
+            case "BEN_B" -> "Bên B";
+            default -> "Hợp đồng";
+        };
+    }
+
+    /**
+     * Dieu khoan duoc luu vao noi_dung_hop_dong duoi dang plain text (moi muc cach
+     * nhau bang dong trong), nhung template render bang th:utext nen HTML nuot het
+     * xuong dong va tat ca don thanh mot khoi lien tuc.
+     *
+     * Neu chuoi da co san the HTML thi giu nguyen; nguoc lai thi escape roi boc moi
+     * doan vao <p> de moi muc nam mot dong rieng.
+     */
+    private String chuanHoaDieuKhoan(String noiDung) {
+        if (noiDung == null || noiDung.isBlank()) return "";
+        if (noiDung.contains("<p") || noiDung.contains("<ul") || noiDung.contains("<div")) {
+            return noiDung;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String doan : noiDung.trim().split("\\r?\\n\\s*\\r?\\n|\\r?\\n")) {
+            String t = doan.trim();
+            if (t.isEmpty()) continue;
+            String an = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+            sb.append("<p style=\"margin:0 0 6px 0\">").append(an).append("</p>");
+        }
+        return sb.toString();
     }
 
     private boolean isBlank(String s) {

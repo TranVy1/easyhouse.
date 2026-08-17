@@ -758,17 +758,17 @@ export default function ChinhSuaHopDongPage() {
             />
             <WorkflowStep
               active={isPreviewed}
-              done={isConfirmed}
+              done={hopDong?.signatureStatus === 'COMPLETED'}
               icon={<FileCheck2 className="h-4 w-4" />}
-              title="Xác nhận"
-              description="Khóa dữ liệu, chuyển phòng sang đang thuê."
+              title="Ký điện tử"
+              description="Hai bên ký trên tab Văn bản & Ký điện tử."
             />
             <WorkflowStep
-              active={isConfirmed}
+              active={hopDong?.signatureStatus === 'COMPLETED'}
               done={isLocked}
               icon={<CheckCircle2 className="h-4 w-4" />}
-              title="Lịch thanh toán"
-              description="Tạo lịch thu tiền theo chu kỳ hợp đồng."
+              title="Có hiệu lực"
+              description="Khóa dữ liệu, chuyển phòng sang đang thuê, tạo lịch thu tiền."
             />
           </div>
           {isLocked && (
@@ -1335,22 +1335,11 @@ export default function ChinhSuaHopDongPage() {
                 )}
                 Xem trước
               </Button>
+              {/* Nut "Xac nhan" da bo: no khoa du lieu va chuyen hop dong sang
+                  ACTIVE ma khong can chu ky nao, khien chu ky dien tu mat y nghia
+                  va hop dong bi khoa truoc khi kip bo sung thong tin con thieu.
+                  Hop dong gio chi co hieu luc khi ca hai ben da ky (COMPLETED). */}
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => runContractWorkflow('confirm')}
-                disabled={submitting || Boolean(workflowSubmitting) || isLocked}
-                className="w-full sm:w-auto sm:min-w-[120px]"
-              >
-                {workflowSubmitting === 'confirm' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <FileCheck2 className="h-4 w-4 mr-2" />
-                )}
-                Xác nhận
-              </Button>
-              <Button 
                 type="button" 
                 variant="outline"
                 size="sm"

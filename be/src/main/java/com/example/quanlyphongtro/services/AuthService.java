@@ -42,6 +42,7 @@ public class AuthService {
     private final HoaDonRepository hoaDonRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final LoginHistoryRepository loginHistoryRepository;
+    private final LoginHistoryService loginHistoryService;
     private final SuCoRepository suCoRepository;
     private final ThongBaoNguoiNhanRepository thongBaoNguoiNhanRepository;
     private final ThongBaoRepository thongBaoRepository;
@@ -529,23 +530,13 @@ public class AuthService {
         return tokenValue;
     }
     
+    /**
+     * Uy quyen sang LoginHistoryService de ban ghi nam trong transaction rieng.
+     * Neu ghi ngay tai day, moi lan dang nhap that bai se throw exception va cuon
+     * nguoc ca ban ghi vua luu — bang login_history se khong bao gio co dong FAIL.
+     */
     private void saveLoginHistory(NguoiDung user, String email, boolean thanhCong, String ipAddress, String userAgent, String lyDoThatBai) {
-        try {
-            String safeUserAgent = userAgent != null && userAgent.length() > 255 ? userAgent.substring(0, 255) : userAgent;
-            String safeLyDo = lyDoThatBai != null && lyDoThatBai.length() > 255 ? lyDoThatBai.substring(0, 255) : lyDoThatBai;
-            LoginHistory history = LoginHistory.builder()
-                    .nguoiDung(user)
-                    .email(email)
-                    .thanhCong(thanhCong)
-                    .ipAddress(ipAddress)
-                    .userAgent(safeUserAgent)
-                    .lyDoThatBai(safeLyDo)
-                    .taoLuc(ZonedDateTime.now())
-                    .build();
-            loginHistoryRepository.save(history);
-        } catch (Exception e) {
-            log.warn("Could not save login history: {}", e.getMessage());
-        }
+        loginHistoryService.ghiNhan(user, email, thanhCong, ipAddress, userAgent, lyDoThatBai);
     }
 
     private void logAudit(NguoiDung user, String hanhDong) {

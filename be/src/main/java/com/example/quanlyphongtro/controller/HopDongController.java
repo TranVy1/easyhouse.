@@ -76,13 +76,13 @@ public class HopDongController {
             @RequestParam(defaultValue = "pdf") String format,
             @RequestParam(required = false) Integer download) {
         UUID currentUserId = permissionService.requireCurrentUserId();
-        HopDong hd = hopDongRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-        hopDongService.assertCanRead(hd, currentUserId);
+        // Kiem tra quyen trong transaction cua service. Neu findById roi
+        // assertCanRead ngay tai controller thi voi khach thue se nem
+        // LazyInitializationException (canReadHopDong duyet khachThue -> nguoiDung).
+        String maHopDong = contractDocumentService.kiemTraQuyenDoc(id, currentUserId);
 
         // Goi overload nhan UUID: chung co @Transactional nen cac quan he lazy
-        // (phong -> nha_tro -> chu_tro) van nap duoc. Truyen thang entity `hd`
-        // lay o tren se nem LazyInitializationException vi session da dong.
+        // (phong -> nha_tro -> chu_tro) van nap duoc.
         if ("html".equalsIgnoreCase(format)) {
             String html = contractDocumentService.renderHtml(id);
             return ResponseEntity.ok()
@@ -94,7 +94,7 @@ public class HopDongController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         String disposition = (download != null && download == 1) ? "attachment" : "inline";
-        String filename = "hop-dong-" + (hd.getMaHopDong() != null ? hd.getMaHopDong() : hd.getId()) + ".pdf";
+        String filename = "hop-dong-" + maHopDong + ".pdf";
         headers.setContentDisposition(ContentDisposition.builder(disposition)
                 .filename(filename)
                 .build());
@@ -161,8 +161,22 @@ public class HopDongController {
      * dung bam ky roi moi bao loi.
      */
     @GetMapping("/{id}/kiem-tra-truoc-ky")
-    public ResponseEntity<ApiResponse<List<String>>> kiemTraTruocKy(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<List<com.example.quanlyphongtro.dto.ThieuThongTinResponse>>> kiemTraTruocKy(
+            @PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(contractDocumentService.kiemTraThongTinBatBuoc(id)));
+    }
+
+    /**
+     * Bo sung cac truong bat buoc con thieu ngay tai dialog ky, de admin khong
+     * phai roi man hinh (hoac vao DB) chi de them CCCD / ngay sinh / dia chi.
+     * Tra ve danh sach con thieu sau khi luu.
+     */
+    @PostMapping("/{id}/bo-sung-thong-tin")
+    public ResponseEntity<ApiResponse<List<com.example.quanlyphongtro.dto.ThieuThongTinResponse>>> boSungThongTin(
+            @PathVariable UUID id,
+            @RequestBody com.example.quanlyphongtro.dto.BoSungThongTinRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                contractDocumentService.boSungThongTin(id, request), "Đã bổ sung thông tin hợp đồng"));
     }
 
     @GetMapping("/{id}/signatures")
