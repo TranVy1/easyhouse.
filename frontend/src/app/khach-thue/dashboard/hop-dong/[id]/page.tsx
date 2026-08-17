@@ -1,5 +1,7 @@
 'use client';
 
+import { HopDongDocumentViewer } from '@/components/hop-dong/HopDongDocumentViewer';
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -37,109 +39,13 @@ import {
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
-// Canvas component cho vẽ chữ ký
-function SignatureCanvas({ onSave, onCancel }: { onSave: (base64: string) => void; onCancel?: () => void }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-  }, []);
-
-  const getPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
-  };
-
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    setIsDrawing(true);
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-  };
-
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
-
-  const clear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const save = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const base64 = canvas.toDataURL('image/png');
-    onSave(base64);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-[#F8F3EC] p-1">
-        <canvas
-          ref={canvasRef}
-          width={500}
-          height={200}
-          className="w-full h-[200px] border border-dashed border-slate-300 rounded-md bg-white cursor-crosshair touch-none"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-        />
-      </div>
-      <div className="flex justify-between items-center">
-        <span className="text-xs text-muted-foreground italic">Vẽ chữ ký của bạn vào khung phía trên</span>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" type="button" onClick={clear}>Xóa vẽ lại</Button>
-          <Button size="sm" type="button" onClick={save}>Xác nhận chữ ký</Button>
-          {onCancel && <Button variant="ghost" size="sm" type="button" onClick={onCancel}>Hủy</Button>}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function TenantContractDetailPage() {
   const router = useRouter();
   const params = useParams();
   const hopDongId = params.id as string;
   const session = useSession()?.data;
-  const accessToken = session?.accessToken;
+  const accessToken = session?.accessToken as string | undefined;
 
   const [contract, setContract] = useState<any | null>(null);
   const [signatures, setSignatures] = useState<any[]>([]);
@@ -331,140 +237,32 @@ export default function TenantContractDetailPage() {
         </Card>
       </div>
 
-      {/* PDF Viewer & Actions */}
+      {/* PDF Document Viewer & Actions */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <CardTitle className="text-lg">Văn bản hợp đồng</CardTitle>
+            <CardTitle className="text-lg text-[#243B5A] font-bold">Văn bản hợp đồng & Ký điện tử</CardTitle>
             <CardDescription>Xem trước tài liệu PDF và thực hiện ký điện tử xác nhận.</CardDescription>
           </div>
-          <div className="flex gap-2">
-            {!hasSigned && !isCompleted && !isRejected && contract.filePdf && (
-              <>
-                <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setOpenRejectDialog(true)}>
-                  <XCircle className="h-4 w-4 mr-2" /> Từ chối ký
-                </Button>
-                <Button onClick={() => setOpenSignDialog(true)}>
-                  <PenTool className="h-4 w-4 mr-2" /> Ký hợp đồng
-                </Button>
-              </>
-            )}
-            {contract.filePdf && (
-              <Button asChild variant="outline">
-                <a href={contract.filePdf} target="_blank" rel="noreferrer">
-                  <FileDown className="h-4 w-4 mr-2" /> Tải PDF
-                </a>
+          {contract.signatureStatus !== 'COMPLETED' && contract.signatureStatus !== 'TENANT_SIGNED' && contract.signatureStatus !== 'REJECTED' && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50 text-xs" onClick={() => setOpenRejectDialog(true)}>
+                <XCircle className="h-4 w-4 mr-1.5" /> Từ chối ký
               </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {contract.filePdf ? (
-            <div className="border rounded-lg overflow-hidden bg-slate-100 shadow-inner">
-              <iframe 
-                src={`https://docs.google.com/viewer?url=${encodeURIComponent(contract.filePdf + '?t=' + pdfTimestamp)}&embedded=true`}
-                className="w-full h-[600px] border-0"
-                title="Contract PDF Viewer"
-              />
-              <div className="bg-white p-2 border-t text-center text-xs text-muted-foreground">
-                Nếu tài liệu không hiển thị, vui lòng <a href={contract.filePdf} target="_blank" rel="noreferrer" className="text-[#4FA7A0] underline font-semibold">bấm vào đây để tải xuống trực tiếp</a>.
-              </div>
-            </div>
-          ) : contract.noiDungHopDong ? (
-            <div 
-              className="border rounded-lg p-6 md:p-8 bg-white shadow-sm overflow-x-auto text-sm md:text-base max-h-[800px] overflow-y-auto prose max-w-none" 
-              dangerouslySetInnerHTML={{ __html: contract.noiDungHopDong }} 
-            />
-          ) : (
-            <div className="space-y-6">
-              <div className="text-center p-6 border border-dashed rounded-lg bg-[#F8F3EC] text-[#6B7A8C]">
-                Chưa có văn bản PDF. Dưới đây là thông tin chi tiết của hợp đồng.
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-xl bg-white shadow-sm">
-                <div>
-                  <h4 className="font-bold text-[#243B5A] mb-4 flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-full bg-[#4FA7A0]/10 flex items-center justify-center text-[#4FA7A0]">A</span>
-                    Bên Cho Thuê (Bên A)
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="text-gray-500">Người đại diện:</span> <strong>{contract.phong?.toaNha?.chuTro?.ten || 'Ban quản lý'}</strong></p>
-                    <p><span className="text-gray-500">Điện thoại:</span> <strong>{contract.phong?.toaNha?.chuTro?.soDienThoai || '---'}</strong></p>
-                    <p><span className="text-gray-500">Tòa nhà:</span> <strong>{contract.phong?.toaNha?.tenToaNha || '---'}</strong></p>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-bold text-[#243B5A] mb-4 flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">B</span>
-                    Bên Thuê (Bên B)
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="text-gray-500">Họ và tên:</span> <strong>{contract.khachThue?.hoTen || '---'}</strong></p>
-                    <p><span className="text-gray-500">Điện thoại:</span> <strong>{contract.khachThue?.soDienThoai || '---'}</strong></p>
-                    <p><span className="text-gray-500">CCCD/CMND:</span> <strong>{contract.khachThue?.cccd || '---'}</strong></p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
-                <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
-                  <Home className="h-5 w-5 text-gray-500" /> Thông tin thuê chi tiết
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p><span className="text-gray-500">Phòng thuê:</span> <strong>{contract.phong?.maPhong || '---'}</strong></p>
-                  <p><span className="text-gray-500">Kỳ thanh toán:</span> <strong>{contract.chuKyThanhToan === 'MONTHLY' ? 'Hàng tháng' : contract.chuKyThanhToan}</strong></p>
-                  <p><span className="text-gray-500">Giá thuê:</span> <strong>{formatCurrency(contract.giaThue || contract.giaThueHopDong || 0)} / tháng</strong></p>
-                  <p><span className="text-gray-500">Tiền cọc:</span> <strong>{formatCurrency(contract.tienCoc || 0)}</strong></p>
-                  <p><span className="text-gray-500">Ngày bắt đầu:</span> <strong>{formatDate(contract.ngayBatDau)}</strong></p>
-                  <p><span className="text-gray-500">Ngày kết thúc:</span> <strong>{formatDate(contract.ngayKetThuc)}</strong></p>
-                  {contract.phong?.dienTich && <p><span className="text-gray-500">Diện tích phòng:</span> <strong>{contract.phong.dienTich} m2</strong></p>}
-                  {contract.phong?.soNguoiToiDa && <p><span className="text-gray-500">Số người ở tối đa:</span> <strong>{contract.phong.soNguoiToiDa} người</strong></p>}
-                </div>
-              </div>
-
-              {(contract.dichVuHopDongs && contract.dichVuHopDongs.length > 0) ? (
-                <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
-                  <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-500" /> Các phí dịch vụ đính kèm
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contract.dichVuHopDongs.map((dv: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <div>
-                          <p className="font-semibold text-gray-800">{dv.dichVu?.tenDichVu || 'Dịch vụ'}</p>
-                          <p className="text-xs text-gray-500">
-                            {dv.loaiTinhPhi === 'PER_USER' ? 'Tính theo người' : 
-                             dv.loaiTinhPhi === 'PER_ROOM' ? 'Tính theo phòng' : 
-                             dv.loaiTinhPhi === 'METERED' ? 'Tính theo chỉ số' : 'Cố định'}
-                          </p>
-                        </div>
-                        <p className="font-bold text-[#4FA7A0]">{formatCurrency(dv.donGiaApDung || dv.dichVu?.donGia || 0)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (contract.phong?.dichVus && contract.phong.dichVus.length > 0) ? (
-                <div className="p-6 border rounded-xl bg-white shadow-sm space-y-4 text-sm">
-                  <h4 className="font-bold text-[#243B5A] mb-2 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-500" /> Các phí dịch vụ cơ bản của phòng
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contract.phong.dichVus.map((dv: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <div>
-                          <p className="font-semibold text-gray-800">{dv.tenDichVu || 'Dịch vụ'}</p>
-                          <p className="text-xs text-gray-500">
-                            {dv.loaiTinhPhi === 'PER_USER' ? 'Tính theo người' : 
-                             dv.loaiTinhPhi === 'PER_ROOM' ? 'Tính theo phòng' : 
-                             dv.loaiTinhPhi === 'METERED' ? 'Tính theo chỉ số' : 'Cố định'}
-                          </p>
-                        </div>
-                        <p className="font-bold text-[#4FA7A0]">{formatCurrency(dv.donGia || 0)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </div>
           )}
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <HopDongDocumentViewer
+            hopDongId={hopDongId}
+            maHopDong={contract.maHopDong}
+            signatureStatus={contract.signatureStatus}
+            role="TENANT"
+            accessToken={accessToken}
+            onSigned={() => {
+              void fetchContractData();
+            }}
+          />
 
           {/* Nhật ký ký số */}
           <div className="space-y-3 pt-4 border-t">
@@ -508,61 +306,7 @@ export default function TenantContractDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog vẽ chữ ký cho khách thuê */}
-      <Dialog open={openSignDialog} onOpenChange={setOpenSignDialog}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Ký hợp đồng thuê phòng (Bên B - Khách thuê)</DialogTitle>
-            <CardDescription>
-              Vui lòng vẽ chữ ký tay của bạn hoặc tải ảnh chữ ký lên. Bằng việc ký tên, bạn xác nhận đồng ý với toàn bộ điều khoản ghi trong văn bản hợp đồng.
-            </CardDescription>
-          </DialogHeader>
-          <Tabs defaultValue="draw" className="w-full mt-2">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="draw">Vẽ chữ ký</TabsTrigger>
-              <TabsTrigger value="upload">Tải ảnh lên</TabsTrigger>
-            </TabsList>
-            <TabsContent value="draw" className="py-2">
-              <SignatureCanvas 
-                onSave={handleSign} 
-                onCancel={() => setOpenSignDialog(false)} 
-              />
-            </TabsContent>
-            <TabsContent value="upload" className="py-4 space-y-4">
-              <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center space-y-4 text-center">
-                <div className="rounded-full bg-slate-100 p-3">
-                  <FileDown className="h-6 w-6 text-slate-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Chọn file ảnh chữ ký (PNG, JPG)</p>
-                  <p className="text-xs text-muted-foreground mt-1">Nên dùng ảnh nền trong suốt (PNG) để hiển thị đẹp nhất.</p>
-                </div>
-                <Input 
-                  type="file" 
-                  accept="image/*" 
-                  className="max-w-[250px]"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        const base64 = reader.result as string;
-                        handleSign(base64);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex justify-end pt-2">
-                <Button variant="outline" onClick={() => setOpenSignDialog(false)}>
-                  Hủy
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      
 
       {/* Dialog từ chối ký */}
       <Dialog open={openRejectDialog} onOpenChange={setOpenRejectDialog}>

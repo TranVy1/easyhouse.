@@ -4,141 +4,248 @@
     <meta charset="UTF-8"/>
     <title>Hợp Đồng Thuê Phòng</title>
     <style>
-        body { font-family: 'Roboto', sans-serif; padding: 40px; line-height: 1.6; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-        .section-title { font-size: 18px; font-weight: bold; margin-top: 20px; text-decoration: underline; }
-        .info-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .info-table td { padding: 8px; border: 1px solid #ddd; }
-        .signatures { margin-top: 50px; width: 100%; }
-        .signatures td { width: 50%; text-align: center; vertical-align: top; }
-        .signature-box { min-height: 100px; margin-top: 10px; font-style: italic; color: #555; }
+        @page { size: A4; margin: 18mm 16mm; }
+        body { font-family: 'Roboto', sans-serif; font-size: 12px; line-height: 1.55; color: #000; }
+        .quoc-hieu { text-align: center; font-weight: bold; font-size: 12px; }
+        .tieu-ngu { text-align: center; font-weight: bold; font-size: 13px; margin-top: 2px; }
+        .gach-ngang { text-align: center; margin: 2px 0 18px 0; }
+        .tieu-de { text-align: center; font-size: 17px; font-weight: bold; margin-top: 14px; }
+        .so-hd { text-align: center; font-size: 12px; margin: 4px 0 14px 0; }
+        .can-cu { font-style: italic; margin: 2px 0; }
+        .dia-diem { margin: 12px 0 4px 0; }
+        .dieu { font-weight: bold; margin-top: 14px; margin-bottom: 4px; }
+        .ben { font-weight: bold; margin-top: 12px; margin-bottom: 4px; }
+        table.info { width: 100%; border-collapse: collapse; margin: 4px 0 6px 0; }
+        table.info td { padding: 3px 4px; vertical-align: top; }
+        table.grid { width: 100%; border-collapse: collapse; margin: 6px 0; }
+        table.grid th, table.grid td { border: 1px solid #333; padding: 5px 6px; }
+        table.grid th { background: #eee; font-weight: bold; text-align: center; }
+        .center { text-align: center; }
+        .right { text-align: right; }
+        ul.dk { margin: 4px 0 4px 0; padding-left: 20px; }
+        ul.dk li { margin-bottom: 3px; }
+        .signatures { width: 100%; margin-top: 26px; border-collapse: collapse; }
+        .signatures td { width: 50%; text-align: center; vertical-align: top; padding: 6px; }
+        .signature-box { min-height: 96px; margin-top: 6px; font-style: italic; color: #444; }
+        .ghi-chu-ky { font-style: italic; font-size: 11px; }
+        .no-break { page-break-inside: avoid; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="title">HỢP ĐỒNG THUÊ PHÒNG</div>
-    <div>Mã hợp đồng: <span th:text="${maHopDong}">HD-001</span></div>
-    <div>Ngày lập: <span th:text="${ngayLap}">01/01/2026</span></div>
-</div>
+<div class="quoc-hieu">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+<div class="tieu-ngu">Độc lập - Tự do - Hạnh phúc</div>
+<div class="gach-ngang">---------------o0o---------------</div>
 
-<div class="section-title">BÊN CHO THUÊ (BÊN A)</div>
-<table class="info-table">
+<div class="tieu-de">HỢP ĐỒNG THUÊ PHÒNG TRỌ</div>
+<div class="so-hd">Số: <span th:text="${maHopDong}">HD-001</span>/HĐTPT</div>
+
+<div class="can-cu">- Căn cứ Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015 của Quốc hội nước Cộng hòa xã hội chủ nghĩa Việt Nam;</div>
+<div class="can-cu">- Căn cứ Luật Nhà ở số 27/2023/QH15 ngày 27/11/2023 và các văn bản hướng dẫn thi hành;</div>
+<div class="can-cu">- Căn cứ nhu cầu và khả năng thực tế của hai bên.</div>
+
+<div class="dia-diem">Hôm nay, ngày <span th:text="${ngayLap}">01/01/2026</span>, tại <span th:text="${diaChi}">địa chỉ nhà trọ</span>, chúng tôi gồm:</div>
+
+<div class="ben">BÊN CHO THUÊ (BÊN A):</div>
+<table class="info">
     <tr>
-        <td><strong>Họ và tên:</strong> <span th:text="${tenChuTro}">Nguyễn Văn A</span></td>
-        <td><strong>SĐT:</strong> <span th:text="${sdtChuTro}">0987654321</span></td>
+        <td style="width:50%">Ông/Bà: <strong th:text="${tenChuTro}">Nguyễn Văn A</strong></td>
+        <td style="width:50%">Điện thoại: <span th:text="${sdtChuTro}">0987654321</span></td>
     </tr>
     <tr>
-        <td><strong>CCCD:</strong> <span th:text="${cccdChuTro}"></span></td>
-        <td><strong>Email:</strong> <span th:text="${emailChuTro}"></span></td>
+        <td>CCCD/CMND số: <span th:text="${cccdChuTro}">…………………</span></td>
+        <td>Email: <span th:text="${emailChuTro}">…………………</span></td>
     </tr>
     <tr>
-        <td colspan="2"><strong>Địa chỉ:</strong> <span th:text="${diaChiChuTro}"></span></td>
+        <td colspan="2">Địa chỉ thường trú: <span th:text="${diaChiChuTro}">…………………</span></td>
     </tr>
 </table>
 
-<div class="section-title">BÊN THUÊ (BÊN B)</div>
-<table class="info-table">
+<div class="ben">BÊN THUÊ (BÊN B):</div>
+<table class="info">
     <tr>
-        <td><strong>Họ và tên:</strong> <span th:text="${tenKhachThue}">Trần Văn B</span></td>
-        <td><strong>SĐT:</strong> <span th:text="${sdtKhachThue}">0123456789</span></td>
+        <td style="width:50%">Ông/Bà: <strong th:text="${tenKhachThue}">Trần Văn B</strong></td>
+        <td style="width:50%">Sinh ngày: <span th:text="${ngaySinhKhachThue}">…………………</span></td>
     </tr>
     <tr>
-        <td><strong>CCCD:</strong> <span th:text="${cccdKhachThue}">001234567890</span></td>
-        <td><strong>Ngày sinh:</strong> <span th:text="${ngaySinhKhachThue}"></span></td>
+        <td>CCCD/CMND số: <span th:text="${cccdKhachThue}">…………………</span></td>
+        <td>Giới tính: <span th:text="${gioiTinhKhachThue}">…………………</span></td>
     </tr>
     <tr>
-        <td><strong>Email:</strong> <span th:text="${emailKhachThue}"></span></td>
-        <td><strong>Giới tính:</strong> <span th:text="${gioiTinhKhachThue}"></span></td>
+        <td>Điện thoại: <span th:text="${sdtKhachThue}">0123456789</span></td>
+        <td>Email: <span th:text="${emailKhachThue}">…………………</span></td>
     </tr>
     <tr>
-        <td colspan="2"><strong>Địa chỉ thường trú:</strong> <span th:text="${diaChiKhachThue}"></span></td>
-    </tr>
-</table>
-
-<div class="section-title">NỘI DUNG HỢP ĐỒNG</div>
-<table class="info-table">
-    <tr><td><strong>Phòng thuê:</strong> <span th:text="${tenPhong}">Phòng 101</span></td></tr>
-    <tr><td><strong>Địa chỉ:</strong> <span th:text="${diaChi}">123 Đường ABC</span></td></tr>
-    <tr><td><strong>Thời hạn thuê:</strong> <span th:text="${thoiHan}">12 tháng</span> (Từ <span th:text="${ngayBatDau}">01/01/2026</span> đến <span th:text="${ngayKetThuc}">31/12/2026</span>)</td></tr>
-    <tr><td><strong>Giá thuê:</strong> <span th:text="${giaThue}">5,000,000</span> VNĐ/tháng</td></tr>
-    <tr><td><strong>Tiền cọc:</strong> <span th:text="${tienCoc}">5,000,000</span> VNĐ</td></tr>
-    <tr>
-        <td><strong>Chỉ số điện ban đầu:</strong> <span th:text="${chiSoDienBanDau}">0</span></td>
-    </tr>
-    <tr>
-        <td><strong>Chỉ số nước ban đầu:</strong> <span th:text="${chiSoNuocBanDau}">0</span></td>
+        <td colspan="2">Địa chỉ thường trú: <span th:text="${diaChiKhachThue}">…………………</span></td>
     </tr>
 </table>
 
-<div class="section-title">DỊCH VỤ / TIỆN ÍCH</div>
-<table class="info-table">
+<div>Sau khi bàn bạc, hai bên cùng thống nhất ký kết hợp đồng thuê phòng trọ với các điều khoản sau:</div>
+
+<div class="dieu">ĐIỀU 1: ĐỐI TƯỢNG CỦA HỢP ĐỒNG</div>
+<div>Bên A đồng ý cho Bên B thuê 01 phòng trọ với thông tin như sau:</div>
+<table class="info">
+    <tr><td style="width:34%">- Tên phòng:</td><td><strong th:text="${tenPhong}">Phòng 101</strong></td></tr>
+    <tr><td>- Địa chỉ:</td><td th:text="${diaChi}">123 Đường ABC</td></tr>
+    <tr th:if="${dienTich != null}"><td>- Diện tích:</td><td><span th:text="${dienTich}">20</span> m²</td></tr>
+    <tr th:if="${soNguoiToiDa != null}"><td>- Số người ở tối đa:</td><td><span th:text="${soNguoiToiDa}">2</span> người</td></tr>
+</table>
+<div>Mục đích thuê: dùng để ở. Bên B không được sử dụng phòng vào mục đích trái pháp luật.</div>
+
+<div class="dieu">ĐIỀU 2: THỜI HẠN THUÊ</div>
+<div>Thời hạn thuê là <strong th:text="${thoiHan}">12 tháng</strong>, kể từ ngày <strong th:text="${ngayBatDau}">01/01/2026</strong> đến hết ngày <strong th:text="${ngayKetThuc}">31/12/2026</strong>.</div>
+<div>Khi hết hạn, nếu hai bên có nhu cầu tiếp tục thì ký phụ lục gia hạn hoặc hợp đồng mới.</div>
+
+<div class="dieu">ĐIỀU 3: GIÁ THUÊ VÀ PHƯƠNG THỨC THANH TOÁN</div>
+<table class="info">
+    <tr><td style="width:34%">- Giá thuê:</td><td><strong><span th:text="${giaThue}">5,000,000</span> VNĐ/tháng</strong> (chưa bao gồm tiền điện, nước và phí dịch vụ)</td></tr>
+    <tr><td>- Chu kỳ thanh toán:</td><td th:text="${chuKyThanhToanLabel}">Hàng tháng</td></tr>
+    <tr th:if="${ngayThanhToan != null}"><td>- Thời điểm thanh toán:</td><td>Ngày <strong th:text="${ngayThanhToan}">05</strong> hàng tháng</td></tr>
+    <tr><td>- Hình thức:</td><td>Tiền mặt hoặc chuyển khoản theo thỏa thuận giữa hai bên</td></tr>
+</table>
+<div>Bên B có trách nhiệm thanh toán đúng hạn. Trường hợp chậm thanh toán quá 07 ngày mà không có lý do chính đáng, Bên A có quyền áp dụng các biện pháp theo Điều 10 của hợp đồng này.</div>
+
+<div class="dieu">ĐIỀU 4: TIỀN ĐẶT CỌC</div>
+<div>Bên B đặt cọc cho Bên A số tiền <strong><span th:text="${tienCoc}">5,000,000</span> VNĐ</strong> để bảo đảm thực hiện hợp đồng.</div>
+<ul class="dk">
+    <li>Tiền cọc được hoàn trả đầy đủ cho Bên B khi kết thúc hợp đồng, sau khi trừ các khoản còn nợ và chi phí khắc phục hư hỏng do lỗi của Bên B (nếu có).</li>
+    <li>Nếu Bên B đơn phương chấm dứt hợp đồng trước thời hạn mà không báo trước theo quy định, Bên B chịu mất tiền cọc.</li>
+    <li>Nếu Bên A đơn phương chấm dứt hợp đồng trước thời hạn mà không báo trước theo quy định, Bên A hoàn trả tiền cọc và bồi thường một khoản tương đương tiền cọc cho Bên B.</li>
+</ul>
+
+<div class="dieu">ĐIỀU 5: ĐIỆN, NƯỚC VÀ PHÍ DỊCH VỤ</div>
+<table class="grid no-break">
     <thead>
         <tr>
-            <th>Tên dịch vụ</th>
-            <th>Đơn giá (VNĐ)</th>
-            <th>Đơn vị tính</th>
+            <th style="width:45%">Tên dịch vụ</th>
+            <th style="width:30%">Đơn giá (VNĐ)</th>
+            <th style="width:25%">Đơn vị tính</th>
         </tr>
     </thead>
     <tbody>
         <tr th:each="dv : ${dichVuList}">
             <td th:text="${dv.ten}">Tên dịch vụ</td>
-            <td th:text="${dv.donGia}">0</td>
-            <td th:text="${dv.donVi}"></td>
+            <td class="right" th:text="${dv.donGia}">0</td>
+            <td class="center" th:text="${dv.donVi}">—</td>
         </tr>
         <tr th:if="${#lists.isEmpty(dichVuList)}" th:each="tienIch : ${tienIchList}">
             <td th:text="${tienIch}">Tên dịch vụ</td>
-            <td>Theo quy định của tòa nhà</td>
-            <td></td>
+            <td class="center">Theo quy định của tòa nhà</td>
+            <td class="center">—</td>
         </tr>
     </tbody>
 </table>
+<div>Chỉ số công tơ tại thời điểm bàn giao: điện <strong th:text="${chiSoDienBanDau}">0</strong> kWh, nước <strong th:text="${chiSoNuocBanDau}">0</strong> m³.</div>
+<div>Tiền điện, nước được tính theo chỉ số thực tế sử dụng nhân với đơn giá nêu trên và thanh toán cùng kỳ tiền thuê phòng.</div>
 
-<div class="section-title">DANH SÁCH TÀI SẢN (NỘI THẤT) BÀN GIAO</div>
-<table class="info-table">
+<div class="dieu">ĐIỀU 6: TÀI SẢN, TRANG THIẾT BỊ BÀN GIAO</div>
+<table class="grid no-break">
     <thead>
         <tr>
-            <th>Tên tài sản</th>
-            <th>Số lượng</th>
-            <th>Tình trạng</th>
-            <th>Giá trị đền bù (VNĐ)</th>
+            <th style="width:40%">Tên tài sản</th>
+            <th style="width:15%">Số lượng</th>
+            <th style="width:20%">Tình trạng</th>
+            <th style="width:25%">Giá trị đền bù (VNĐ)</th>
         </tr>
     </thead>
     <tbody>
         <tr th:each="ts : ${taiSanList}">
             <td th:text="${ts.tenTaiSan}">Giường</td>
-            <td th:text="${ts.soLuong}">1</td>
-            <td th:text="${ts.tinhTrang}">Mới 100%</td>
-            <td th:text="${#numbers.formatDecimal(ts.giaTri, 0, 'COMMA', 0, 'POINT')}">1,000,000</td>
+            <td class="center" th:text="${ts.soLuong}">1</td>
+            <td class="center" th:text="${ts.tinhTrang}">Mới 100%</td>
+            <td class="right" th:text="${#numbers.formatDecimal(ts.giaTri, 0, 'COMMA', 0, 'POINT')}">1,000,000</td>
         </tr>
         <tr th:if="${#lists.isEmpty(taiSanList)}">
-            <td colspan="4" style="text-align: center;">Không có tài sản bàn giao</td>
+            <td colspan="4" class="center">Không có tài sản, trang thiết bị bàn giao kèm theo</td>
         </tr>
     </tbody>
 </table>
+<div>Bên B có trách nhiệm bảo quản; nếu làm hư hỏng hoặc mất mát thì phải sửa chữa hoặc bồi thường theo giá trị ghi trên.</div>
 
-<div class="section-title">ĐIỀU KHOẢN HỢP ĐỒNG</div>
-<div th:utext="${noiDungHopDong}">
-</div>
+<div class="dieu">ĐIỀU 7: NGƯỜI CÙNG Ở</div>
+<table class="grid no-break" th:if="${!#lists.isEmpty(thanhVienList)}">
+    <thead>
+        <tr>
+            <th style="width:40%">Họ và tên</th>
+            <th style="width:25%">CCCD/CMND</th>
+            <th style="width:20%">Điện thoại</th>
+            <th style="width:15%">Vai trò</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="tv : ${thanhVienList}">
+            <td th:text="${tv.hoTen}">Nguyễn Văn C</td>
+            <td class="center" th:text="${tv.soCccd}">—</td>
+            <td class="center" th:text="${tv.soDienThoai}">—</td>
+            <td class="center" th:text="${tv.vaiTro}">Thành viên</td>
+        </tr>
+    </tbody>
+</table>
+<div th:if="${#lists.isEmpty(thanhVienList)}">Ngoài Bên B, chưa đăng ký thành viên nào khác cùng ở tại phòng.</div>
+<div>Bên B phải thông báo cho Bên A khi có thay đổi về số người ở và phối hợp thực hiện đăng ký tạm trú theo quy định.</div>
 
-<table class="signatures">
+<div class="dieu">ĐIỀU 8: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
+<ul class="dk">
+    <li>Bàn giao phòng và các trang thiết bị đúng hiện trạng đã thỏa thuận, đúng thời hạn.</li>
+    <li>Bảo đảm quyền sử dụng ổn định phòng cho Bên B trong suốt thời hạn hợp đồng.</li>
+    <li>Cung cấp đầy đủ điện, nước và các dịch vụ đã cam kết.</li>
+    <li>Sửa chữa các hư hỏng do hao mòn tự nhiên hoặc do lỗi kết cấu công trình.</li>
+    <li>Thông báo trước ít nhất 03 ngày khi cần vào kiểm tra phòng, trừ trường hợp khẩn cấp.</li>
+    <li>Được nhận tiền thuê và các khoản phí đúng hạn; được yêu cầu Bên B bồi thường khi gây thiệt hại.</li>
+</ul>
+
+<div class="dieu">ĐIỀU 9: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
+<ul class="dk">
+    <li>Thanh toán tiền thuê, tiền điện, nước và phí dịch vụ đầy đủ, đúng hạn.</li>
+    <li>Sử dụng phòng đúng mục đích để ở; giữ gìn vệ sinh chung và trật tự khu trọ.</li>
+    <li>Không tự ý sửa chữa, cải tạo, thay đổi kết cấu phòng khi chưa có sự đồng ý bằng văn bản của Bên A.</li>
+    <li>Không chuyển nhượng hợp đồng hoặc cho thuê lại phòng khi chưa được Bên A đồng ý.</li>
+    <li>Chấp hành quy định pháp luật về an ninh trật tự, phòng cháy chữa cháy và nội quy khu trọ.</li>
+    <li>Báo ngay cho Bên A khi phát hiện hư hỏng, sự cố để phối hợp xử lý.</li>
+    <li>Bàn giao lại phòng và tài sản đúng hiện trạng khi kết thúc hợp đồng.</li>
+</ul>
+
+<div class="dieu">ĐIỀU 10: CHẤM DỨT HỢP ĐỒNG</div>
+<ul class="dk">
+    <li>Hợp đồng chấm dứt khi hết thời hạn hoặc khi hai bên thỏa thuận chấm dứt trước hạn.</li>
+    <li>Bên có nhu cầu chấm dứt trước thời hạn phải thông báo cho bên còn lại trước ít nhất 30 ngày.</li>
+    <li>Bên A được đơn phương chấm dứt hợp đồng khi Bên B chậm thanh toán quá 15 ngày, sử dụng phòng sai mục đích, hoặc vi phạm nghiêm trọng nghĩa vụ đã cam kết.</li>
+    <li>Bên vi phạm gây thiệt hại cho bên còn lại phải bồi thường theo thiệt hại thực tế.</li>
+</ul>
+
+<div class="dieu">ĐIỀU 11: ĐIỀU KHOẢN BỔ SUNG</div>
+<div th:utext="${noiDungHopDong}"></div>
+
+<div class="dieu">ĐIỀU 12: ĐIỀU KHOẢN CHUNG</div>
+<ul class="dk">
+    <li>Hai bên cam kết thực hiện đúng và đầy đủ các điều khoản đã thỏa thuận trong hợp đồng này.</li>
+    <li>Mọi thay đổi, bổ sung phải được lập thành phụ lục và có xác nhận của cả hai bên.</li>
+    <li>Tranh chấp phát sinh được giải quyết trước hết bằng thương lượng; nếu không đạt được thỏa thuận thì đưa ra Tòa án có thẩm quyền giải quyết.</li>
+    <li>Hợp đồng có hiệu lực kể từ ngày hai bên cùng ký và được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.</li>
+    <li>Hợp đồng này được hai bên xác nhận bằng chữ ký điện tử trên hệ thống EasyHouse; bản điện tử có giá trị như bản giấy theo thỏa thuận của hai bên.</li>
+</ul>
+
+<table class="signatures no-break">
     <tr>
         <td>
             <strong>ĐẠI DIỆN BÊN B (BÊN THUÊ)</strong>
+            <div class="ghi-chu-ky">(Ký, ghi rõ họ tên)</div>
             <div class="signature-box">
-                <img th:if="${tenantSignatureImg != null}" th:src="${tenantSignatureImg}" style="max-width: 200px; max-height: 100px; display: block; margin: 10px auto;" />
+                <img th:if="${tenantSignatureImg != null}" th:src="${tenantSignatureImg}" style="max-width: 190px; max-height: 90px; display: block; margin: 8px auto;" />
                 <span th:if="${tenantSignatureImg == null}" th:text="${tenantSignatureText}">(Chưa ký)</span>
             </div>
-            <div th:if="${tenantSignedAt != null}">Đã ký lúc: <span th:text="${tenantSignedAt}">...</span></div>
+            <div><strong th:text="${tenKhachThue}">Trần Văn B</strong></div>
+            <div th:if="${tenantSignedAt != null}" class="ghi-chu-ky">Đã ký lúc: <span th:text="${tenantSignedAt}">...</span></div>
         </td>
         <td>
             <strong>ĐẠI DIỆN BÊN A (BÊN CHO THUÊ)</strong>
+            <div class="ghi-chu-ky">(Ký, ghi rõ họ tên)</div>
             <div class="signature-box">
-                <img th:if="${landlordSignatureImg != null}" th:src="${landlordSignatureImg}" style="max-width: 200px; max-height: 100px; display: block; margin: 10px auto;" />
+                <img th:if="${landlordSignatureImg != null}" th:src="${landlordSignatureImg}" style="max-width: 190px; max-height: 90px; display: block; margin: 8px auto;" />
                 <span th:if="${landlordSignatureImg == null}" th:text="${landlordSignatureText}">(Chưa ký)</span>
             </div>
-            <div th:if="${landlordSignedAt != null}">Đã ký lúc: <span th:text="${landlordSignedAt}">...</span></div>
+            <div><strong th:text="${tenChuTro}">Nguyễn Văn A</strong></div>
+            <div th:if="${landlordSignedAt != null}" class="ghi-chu-ky">Đã ký lúc: <span th:text="${landlordSignedAt}">...</span></div>
         </td>
     </tr>
 </table>

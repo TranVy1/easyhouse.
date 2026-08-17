@@ -192,6 +192,29 @@ export default function ThemMoiHopDongPage() {
     trangThai: 'nhap' as 'nhap' | 'choKichHoat' | 'hoatDong' | 'hetHan' | 'daKetThuc' | 'daHuy',
   });
 
+  
+  useEffect(() => {
+    fetch('/api/hop-dong/default-terms')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData?.data) {
+          const rawText = resData.data
+            .replace(/<p>/g, '')
+            .replace(/<\/p>/g, '\n\n')
+            .replace(/<strong>/g, '')
+            .replace(/<\/strong>/g, '')
+            .trim();
+          setFormData((prev) => {
+            if (!prev.dieuKhoan || prev.dieuKhoan.includes('ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG')) {
+              return { ...prev, dieuKhoan: rawText };
+            }
+            return prev;
+          });
+        }
+      })
+      .catch((err) => console.error('Error loading default terms:', err));
+  }, []);
+
   const { data: taiSanListData } = useSWR(
     formData.phong ? `/api/tai-san-phong/phong/${formData.phong}` : null,
     fetcher
@@ -203,6 +226,7 @@ export default function ThemMoiHopDongPage() {
   const [openNguoiDaiDien, setOpenNguoiDaiDien] = useState(false);
   const [openAddKhachThue, setOpenAddKhachThue] = useState(false);
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
+  const [previewHopDongId, setPreviewHopDongId] = useState<string | null>(null);
   const [loadingAddKhachThue, setLoadingAddKhachThue] = useState(false);
   const [newKhachThueData, setNewKhachThueData] = useState({ hoTen: '', soDienThoai: '', cccd: '' });
 
@@ -384,19 +408,8 @@ export default function ThemMoiHopDongPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validationError = validateContractForm();
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-    setOpenPreviewModal(true);
-  };
-
-  const handleConfirmAndSave = async () => {
-    if (submitting) return;
-
     const validationError = validateContractForm();
     if (validationError) {
       toast.error(validationError);
@@ -404,15 +417,8 @@ export default function ThemMoiHopDongPage() {
     }
 
     setSubmitting(true);
-
     try {
       const thanhVienIds = Array.from(new Set([formData.nguoiDaiDien, ...formData.khachThueId].filter(Boolean)));
-      
-      let apiUrl = '/api/hop-dong';
-      if (datCocId) {
-        apiUrl = `/api/dat-coc/${datCocId}/convert-to-contract`;
-      }
-
       const hopDongPayload = {
         ...formData,
         nguoiDaiDien: formData.nguoiDaiDien,
@@ -421,6 +427,7 @@ export default function ThemMoiHopDongPage() {
         ngayBatDau: ensureISODate(formData.ngayBatDau),
         ngayKetThuc: ensureISODate(formData.ngayKetThuc),
         giaThueHopDong: Number(formData.giaThue || 0),
+        trangThai: 'nhap',
         phiDichVu: [
           ...formData.phiDichVu
             .filter((phi: PhiDichVuForm) =>
@@ -438,12 +445,18 @@ export default function ThemMoiHopDongPage() {
         ],
       };
 
-      const requestBody = datCocId 
+      let apiUrl = previewHopDongId ? `/api/hop-dong/${previewHopDongId}` : '/api/hop-dong';
+      let method = previewHopDongId ? 'PUT' : 'POST';
+      if (!previewHopDongId && datCocId) {
+        apiUrl = `/api/dat-coc/${datCocId}/convert-to-contract`;
+      }
+
+      const requestBody = (!previewHopDongId && datCocId)
         ? { hopDongRequest: hopDongPayload }
         : hopDongPayload;
 
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
@@ -453,38 +466,15 @@ export default function ThemMoiHopDongPage() {
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
-        toast.success(result.message || 'Đã lưu hợp đồng thành công');
-        
-        try {
-          const contractId = result.data?._id || result.data?.id;
-          if (contractId && accessToken) {
-            const pdfResponse = await fetch(`/api/hop-dong/${contractId}/generate-pdf`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            const pdfResult = await pdfResponse.json().catch(() => ({}));
-            const pdfUrl = pdfResult.data?.filePdf || pdfResult.data?.pdfUrl;
-            if (pdfResponse.ok && pdfResult.success && pdfUrl) {
-              window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-            } else {
-              toast.error(pdfResult.message || 'Lưu thành công nhưng chưa sinh được PDF');
-            }
-          }
-        } catch (err) {
-          console.error('Lỗi sinh PDF hợp đồng:', err);
-          toast.error('Lưu thành công nhưng lỗi tạo file PDF');
-        }
-        
-        setOpenPreviewModal(false);
-        sessionStorage.removeItem('hop-dong-data');
-        router.push('/dashboard/hop-dong');
-        router.refresh();
+        const savedId = result.data?._id || result.data?.id || previewHopDongId;
+        setPreviewHopDongId(savedId);
+        setOpenPreviewModal(true);
       } else {
-        toast.error(result.message || 'Có lỗi xảy ra khi lưu hợp đồng');
+        toast.error(result.message || 'Có lỗi khi chuẩn bị xem trước hợp đồng');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Có lỗi xảy ra khi lưu hợp đồng');
+      console.error('Lỗi xem trước:', error);
+      toast.error('Có lỗi xảy ra');
     } finally {
       setSubmitting(false);
     }
@@ -1063,113 +1053,56 @@ export default function ThemMoiHopDongPage() {
       </Card>
             {/* Modal Preview Hop Dong */}
       <Dialog open={openPreviewModal} onOpenChange={setOpenPreviewModal}>
-        <DialogContent className="sm:max-w-[800px] h-[80vh] flex flex-col">
+        <DialogContent className="sm:max-w-[900px] h-[85vh] flex flex-col p-6">
           <DialogHeader>
-            <DialogTitle>Xem trước Hợp đồng</DialogTitle>
+            <DialogTitle className="text-[#243B5A] flex items-center gap-2">
+              <FileText className="h-5 w-5 text-[#4FA7A0]" />
+              Xem trước Văn bản Hợp đồng
+            </DialogTitle>
+            <p className="text-xs text-[#6B7A90]">
+              Văn bản được tạo trực tiếp từ biểu mẫu chuẩn duy nhất của hệ thống.
+            </p>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-4 border rounded-md bg-white text-black">
-            <div className="max-w-2xl mx-auto space-y-4 font-legal text-sm leading-relaxed">
-              <div className="text-center font-bold">
-                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br/>
-                Độc lập - Tự do - Hạnh phúc<br/>
-                -----------------
+
+          <div className="flex-1 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-inner my-2">
+            {previewHopDongId ? (
+              <iframe
+                src={`/api/hop-dong/${previewHopDongId}/document?format=html`}
+                className="w-full h-full border-0"
+                title="Xem trước Hợp đồng"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-sm text-slate-500">
+                Đang tải văn bản...
               </div>
-              <h2 className="text-xl font-bold text-center mt-6 mb-4">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h2>
-              
-              <p className="italic mb-6 text-justify">
-                - Căn cứ Bộ Luật Dân sự số 91/2015/QH13 của Quốc hội nước Cộng hòa Xã hội Chủ nghĩa Việt Nam;<br/>
-                - Căn cứ vào nhu cầu và khả năng của hai bên;
-              </p>
-              
-              <p>Hôm nay, ngày ... tháng ... năm ..., tại địa chỉ nhà trọ, chúng tôi gồm:</p>
-
-              <p className="font-bold uppercase mt-4">BÊN CHO THUÊ (BÊN A):</p>
-              <p>Ông/Bà: <strong>Ban Quản Lý Tòa Nhà</strong></p>
-              <p>Đại diện cho nhà trọ: {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}</p>
-              
-              <p className="font-bold uppercase mt-4">BÊN THUÊ (BÊN B):</p>
-              <p>Ông/Bà: <strong>{khachThueList.find(k => k._id === formData.nguoiDaiDien)?.hoTen || '[Chưa chọn]'}</strong></p>
-              <p>SĐT: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.soDienThoai}</p>
-              <p>CCCD: {khachThueList.find(k => k._id === formData.nguoiDaiDien)?.cccd}</p>
-              
-              <p className="mt-4 italic font-bold">Hai bên cùng thỏa thuận và ký kết Hợp đồng thuê phòng trọ với các điều khoản sau:</p>
-
-              <div className="font-bold mt-4 uppercase">ĐIỀU 1: ĐỐI TƯỢNG HỢP ĐỒNG VÀ THỜI GIAN THUÊ</div>
-              <p>1.1 Bên A đồng ý cho bên B thuê phòng số <strong>{phongList.find(p => p._id === formData.phong)?.maPhong}</strong> tại {nhaTroList.find(t => t._id === selectedNhaTro)?.tenToaNha}.</p>
-              <p>1.2 Mục đích thuê: Để ở. Số lượng người ở tối đa theo quy định của tòa nhà.</p>
-              <p>1.3 Thời hạn thuê: Từ ngày <strong>{formData.ngayBatDau}</strong> đến ngày <strong>{formData.ngayKetThuc}</strong>.</p>
-
-              <div className="font-bold mt-6 uppercase">ĐIỀU 2: GIÁ THUÊ VÀ PHƯƠNG THỨC THANH TOÁN</div>
-              <p>2.1 Giá thuê phòng: <strong>{formatCurrency(Number(formData.giaThue))}</strong> /tháng (Giá thuê này chưa bao gồm các chi phí dịch vụ khác).</p>
-              <p>2.2 Phí dịch vụ:</p>
-              <ul className="list-disc pl-5 mb-2 space-y-1">
-                <li>Tiền điện: (Theo thỏa thuận / Dịch vụ)</li>
-                <li>Tiền nước: (Theo thỏa thuận / Dịch vụ)</li>
-                {formData.phiDichVu.map((phi, i) => (
-                  <li key={i}>{phi.ten}: {formatCurrency(phi.gia)}</li>
-                ))}
-              </ul>
-              <p>2.3 Tiền đặt cọc: <strong>{formatCurrency(Number(formData.tienCoc))}</strong>. Bên A sẽ hoàn trả lại số tiền cọc này cho Bên B khi chấm dứt hợp đồng và Bên B đã thanh toán đầy đủ các khoản chi phí phát sinh.</p>
-              <p>2.4 Phương thức thanh toán: Thanh toán bằng tiền mặt hoặc chuyển khoản vào ngày <strong>{formData.ngayThanhToan}</strong> hàng tháng.</p>
-
-              <div className="font-bold mt-6 uppercase">ĐIỀU 3: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Bàn giao phòng trọ và trang thiết bị kèm theo (nếu có) cho Bên B đúng thời gian thỏa thuận.</li>
-                <li>Đảm bảo quyền sử dụng trọn vẹn, độc lập của Bên B trong thời gian thuê.</li>
-                <li>Hỗ trợ Bên B trong việc đăng ký tạm trú (nếu Bên B có yêu cầu và cung cấp đủ giấy tờ).</li>
-                <li>Được quyền chấm dứt hợp đồng đơn phương nếu Bên B vi phạm các điều khoản trong hợp đồng hoặc quy định của khu trọ.</li>
-              </ul>
-
-              <div className="font-bold mt-6 uppercase">ĐIỀU 4: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Sử dụng phòng trọ đúng mục đích, không sử dụng vào các mục đích vi phạm pháp luật.</li>
-                <li>Thanh toán tiền thuê phòng và các chi phí dịch vụ đầy đủ và đúng hạn.</li>
-                <li>Có trách nhiệm bảo quản tài sản, trang thiết bị do Bên A cung cấp. Nếu làm hư hỏng, mất mát phải bồi thường theo giá trị hiện tại.</li>
-                <li>Không được tự ý sửa chữa, thay đổi cấu trúc phòng trọ khi chưa có sự đồng ý của Bên A.</li>
-                <li>Chấp hành nghiêm chỉnh các quy định về an ninh trật tự, phòng cháy chữa cháy và quy chế của khu trọ.</li>
-                <li>Không được cho thuê lại hoặc chuyển nhượng hợp đồng thuê phòng cho người khác.</li>
-                <li>Nếu cho khách ở qua đêm phải báo trước và được sự đồng ý của Bên A, chịu trách nhiệm về các hành vi của khách.</li>
-              </ul>
-
-              <div className="font-bold mt-6 uppercase">ĐIỀU 5: ĐIỀU KHOẢN CHẤM DỨT HỢP ĐỒNG VÀ XỬ LÝ TIỀN CỌC</div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Hợp đồng đương nhiên chấm dứt khi hết hạn. Nếu Bên B muốn gia hạn phải thông báo cho Bên A trước 15 ngày.</li>
-                <li>Nếu Bên B đơn phương chấm dứt hợp đồng trước hạn, Bên B phải báo trước cho Bên A ít nhất 30 ngày và sẽ KHÔNG được hoàn lại tiền cọc.</li>
-                <li>Nếu Bên A đơn phương chấm dứt hợp đồng trước hạn không do lỗi của Bên B, Bên A phải báo trước ít nhất 30 ngày và hoàn lại tiền cọc cùng một khoản bồi thường tương đương tiền cọc cho Bên B.</li>
-                <li>Bên A có quyền đơn phương chấm dứt hợp đồng không cần báo trước, không hoàn cọc và yêu cầu Bên B dời đi ngay lập tức nếu Bên B vi phạm nghiêm trọng (Tàng trữ chất cấm, đánh nhau gây rối, chậm thanh toán tiền phòng quá 15 ngày...).</li>
-              </ul>
-
-              <div className="font-bold mt-6 uppercase">ĐIỀU 6: ĐIỀU KHOẢN CHUNG</div>
-              <ul className="list-disc pl-5 mb-4 space-y-1">
-                <li>Hai bên cam kết thực hiện đúng các điều khoản đã ghi trong hợp đồng.</li>
-                <li>Những vấn đề phát sinh chưa được ghi trong hợp đồng sẽ được hai bên thỏa thuận giải quyết trên tinh thần hợp tác.</li>
-                <li>Hợp đồng được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.</li>
-              </ul>
-
-              {formData.dieuKhoan && (
-                <div className="mt-6">
-                  <div className="font-bold mt-6 uppercase">ĐIỀU KHOẢN BỔ SUNG (NỘI QUY)</div>
-                  <div className="whitespace-pre-line ml-4 mt-2">{formData.dieuKhoan}</div>
-                </div>
-              )}
-
-              <div className="mt-8 flex justify-between font-bold text-center">
-                <div>
-                  <p>ĐẠI DIỆN BÊN A</p>
-                  <p className="font-normal italic text-sm mt-1">(Ký và ghi họ tên)</p>
-                </div>
-                <div>
-                  <p>ĐẠI DIỆN BÊN B</p>
-                  <p className="font-normal italic text-sm mt-1">(Ký và ghi họ tên)</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-          <DialogFooter className="mt-4 gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpenPreviewModal(false)} disabled={submitting}>Quay lại chỉnh sửa</Button>
-            <Button onClick={handleConfirmAndSave} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận, Lưu & In Hợp đồng
+
+          <DialogFooter className="mt-2 gap-2 flex flex-col sm:flex-row justify-between items-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpenPreviewModal(false)}
+              disabled={submitting}
+              className="text-xs"
+            >
+              Quay lại chỉnh sửa
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                toast.success('Hợp đồng đã được lưu thành công');
+                sessionStorage.removeItem('hop-dong-data');
+                if (previewHopDongId) {
+                  router.push(`/dashboard/hop-dong/${previewHopDongId}`);
+                } else {
+                  router.push('/dashboard/hop-dong');
+                }
+              }}
+              disabled={submitting}
+              className="bg-[#243B5A] hover:bg-[#1D304A] text-white text-xs font-semibold"
+            >
+              Hoàn tất & Đến trang Hợp đồng
             </Button>
           </DialogFooter>
         </DialogContent>

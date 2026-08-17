@@ -315,23 +315,9 @@ export default function HopDongPage() {
   };
 
   const handleDownload = async (hopDong: HopDong) => {
-    try {
-      if (!accessToken || !hopDong._id) throw new Error('Phiên đăng nhập đã hết hạn');
-      const response = await fetch(`/api/hop-dong/${hopDong._id}/generate-pdf`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const result = await response.json().catch(() => ({}));
-      const pdfUrl = result.data?.filePdf || result.data?.pdfUrl;
-      if (!response.ok || !result.success || !pdfUrl) {
-        throw new Error(result.message || 'Không thể sinh file PDF');
-      }
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-      toast.success('Đã sinh file PDF hợp đồng');
-    } catch (error) {
-      console.error('Lỗi sinh PDF hợp đồng:', error);
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi sinh PDF');
-    }
+    if (!hopDong._id) return;
+    const downloadUrl = `/api/hop-dong/${hopDong._id}/document?format=pdf&download=1`;
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 
   const ensureISODate = (dateStr: string) => {

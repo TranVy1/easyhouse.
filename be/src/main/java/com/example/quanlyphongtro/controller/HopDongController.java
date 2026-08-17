@@ -6,15 +6,25 @@ import com.example.quanlyphongtro.dto.HopDongRequest;
 import com.example.quanlyphongtro.dto.HopDongResponse;
 import com.example.quanlyphongtro.dto.PaginatedResponse;
 import com.example.quanlyphongtro.services.HopDongService;
+import com.example.quanlyphongtro.services.PermissionService;
 import com.example.quanlyphongtro.services.QuyetToanTraPhongService;
+import com.example.quanlyphongtro.services.ContractDocumentService;
+import com.example.quanlyphongtro.repository.HopDongRepository;
 import com.example.quanlyphongtro.dto.TaoQuyetToanTraPhongRequest;
 import com.example.quanlyphongtro.dto.HoanTatQuyetToanTraPhongRequest;
 import com.example.quanlyphongtro.dto.QuyetToanTraPhongResponse;
 import com.example.quanlyphongtro.dto.BanGiaoTaiSanRequest;
+import com.example.quanlyphongtro.dto.ContractSignRequest;
+import com.example.quanlyphongtro.dto.ContractSignatureResponse;
+import com.example.quanlyphongtro.entity.ContractSignature;
+import com.example.quanlyphongtro.entity.HopDong;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.quanlyphongtro.services.ContractDocumentService;
-import com.example.quanlyphongtro.dto.ContractSignRequest;
-import com.example.quanlyphongtro.dto.ContractSignatureResponse;
-import com.example.quanlyphongtro.entity.ContractSignature;
-import com.example.quanlyphongtro.entity.HopDong;
-
 @RestController
 @RequestMapping("/api/hop-dong")
 @RequiredArgsConstructor
@@ -42,7 +46,8 @@ public class HopDongController {
     private final HopDongService hopDongService;
     private final QuyetToanTraPhongService quyetToanTraPhongService;
     private final ContractDocumentService contractDocumentService;
-
+    private final HopDongRepository hopDongRepository;
+    private final PermissionService permissionService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<HopDongResponse>>> getAll(
@@ -55,9 +60,45 @@ public class HopDongController {
         return ResponseEntity.ok(ApiResponse.success(hopDongService.getAll(phongId, toaNha, trangThai, search, page, limit)));
     }
 
+    @GetMapping("/default-terms")
+    public ResponseEntity<ApiResponse<String>> getDefaultTerms() {
+        return ResponseEntity.ok(ApiResponse.success(contractDocumentService.getDefaultTerms()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HopDongResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id)));
+    }
+
+    @GetMapping("/{id}/document")
+    public ResponseEntity<?> getDocument(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "pdf") String format,
+            @RequestParam(required = false) Integer download) {
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        HopDong hd = hopDongRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        hopDongService.assertCanRead(hd, currentUserId);
+
+        // Goi overload nhan UUID: chung co @Transactional nen cac quan he lazy
+        // (phong -> nha_tro -> chu_tro) van nap duoc. Truyen thang entity `hd`
+        // lay o tren se nem LazyInitializationException vi session da dong.
+        if ("html".equalsIgnoreCase(format)) {
+            String html = contractDocumentService.renderHtml(id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.valueOf("text/html;charset=UTF-8"))
+                    .body(html);
+        }
+
+        byte[] pdfBytes = contractDocumentService.generatePdfBytes(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String disposition = (download != null && download == 1) ? "attachment" : "inline";
+        String filename = "hop-dong-" + (hd.getMaHopDong() != null ? hd.getMaHopDong() : hd.getId()) + ".pdf";
+        headers.setContentDisposition(ContentDisposition.builder(disposition)
+                .filename(filename)
+                .build());
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
 
     @GetMapping("/dich-vu")
@@ -114,11 +155,20 @@ public class HopDongController {
         return ResponseEntity.ok(ApiResponse.success(hopDongService.getById(id), "Từ chối ký hợp đồng thành công"));
     }
 
+    /**
+     * Tra ve danh sach truong bat buoc con thieu. Rong = du dieu kien ky.
+     * Giao dien dung de tat nut ky va chi ro can bo sung gi, thay vi de nguoi
+     * dung bam ky roi moi bao loi.
+     */
+    @GetMapping("/{id}/kiem-tra-truoc-ky")
+    public ResponseEntity<ApiResponse<List<String>>> kiemTraTruocKy(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(contractDocumentService.kiemTraThongTinBatBuoc(id)));
+    }
+
     @GetMapping("/{id}/signatures")
     public ResponseEntity<ApiResponse<List<ContractSignatureResponse>>> getSignatures(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(contractDocumentService.getSignatures(id)));
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {

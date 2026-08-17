@@ -435,8 +435,7 @@ public class HopDongService {
         }
 
         hd.setTemplateVersion(hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1");
-        hd.setNoiDungHopDong(buildContractPreview(hd));
-        hd.setPreviewedAt(java.time.ZonedDateTime.now());
+                hd.setPreviewedAt(java.time.ZonedDateTime.now());
         return toResponse(hopDongRepository.save(hd));
     }
 
@@ -458,9 +457,6 @@ public class HopDongService {
                 TrangThaiHopDong.ACTIVE);
 
         java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
-        if (hd.getNoiDungHopDong() == null || hd.getNoiDungHopDong().isBlank()) {
-            hd.setNoiDungHopDong(buildContractPreview(hd));
-        }
         hd.setTemplateVersion(hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1");
         hd.setTrangThai(TrangThaiHopDong.ACTIVE);
         hd.setConfirmedAt(now);
@@ -580,7 +576,7 @@ public class HopDongService {
         return toResponse(saved);
     }
 
-    private void assertCanRead(HopDong hopDong, UUID userId) {
+    public void assertCanRead(HopDong hopDong, UUID userId) {
         if (!canReadHopDong(hopDong, userId)) {
             throw new RuntimeException("Bạn không có quyền xem hợp đồng này");
         }
@@ -1000,36 +996,6 @@ public class HopDongService {
         }
     }
 
-    private String buildContractPreview(HopDong hd) {
-        String tenPhong = hd.getPhong() != null ? hd.getPhong().getTen() : "";
-        String tenToa = hd.getPhong() != null && hd.getPhong().getNhaTro() != null ? hd.getPhong().getNhaTro().getTen() : "";
-        String khachThue = hd.getKhachThue() != null ? hd.getKhachThue().getHoTen() : "";
-        return """
-                HỢP ĐỒNG THUÊ PHÒNG
-
-                Mã hợp đồng: %s
-                Tòa nhà: %s
-                Phòng: %s
-                Khách thuê đại diện: %s
-                Thời hạn: %s đến %s
-                Giá thuê: %s
-                Tiền cọc: %s
-                Ngày thanh toán hằng tháng: %s
-
-                Nội dung này được sinh từ template %s để phục vụ bước xem trước hợp đồng.
-                """.formatted(
-                hd.getMaHopDong(),
-                tenToa,
-                tenPhong,
-                khachThue,
-                hd.getNgayBatDau(),
-                hd.getNgayKetThuc(),
-                defaultMoney(hd.getGiaThueHopDong()).toPlainString(),
-                defaultMoney(hd.getTienCoc()).toPlainString(),
-                hd.getNgayThanhToanHangThang(),
-                hd.getTemplateVersion() != null ? hd.getTemplateVersion() : "default-v1"
-        );
-    }
 
     private void validateInitialReadings(Integer chiSoDien, Integer chiSoNuoc) {
         if (chiSoDien != null && chiSoDien < 0) {

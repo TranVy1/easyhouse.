@@ -17,10 +17,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -36,6 +33,7 @@ public class ContractDocumentService {
     private final PhongRepository phongRepository;
     private final ContractSignatureRepository signatureRepository;
     private final DichVuHopDongRepository dichVuHopDongRepository;
+    private final com.example.quanlyphongtro.repository.ThanhVienHopDongRepository thanhVienHopDongRepository;
     private final CloudinaryService cloudinaryService;
     private final TaiSanPhongRepository taiSanPhongRepository;
     private final TienIchService tienIchService;
@@ -46,6 +44,25 @@ public class ContractDocumentService {
     private String formatMoney(BigDecimal amount) {
         if (amount == null) return "0";
         return String.format("%,.0f", amount);
+    }
+
+    private String chuKyThanhToanLabel(String chuKy) {
+        if (chuKy == null) return "Hàng tháng";
+        return switch (chuKy.trim().toUpperCase()) {
+            case "QUARTERLY", "QUY" -> "Hàng quý (03 tháng/lần)";
+            case "YEARLY", "ANNUAL", "NAM" -> "Hàng năm (12 tháng/lần)";
+            default -> "Hàng tháng";
+        };
+    }
+
+    // Dien va Nuoc trong bang dich_vu dang co don_vi NULL. Thay vi de trong o
+    // giua hop dong, suy ra don vi do luong chuan theo ten dich vu.
+    private String donViMacDinh(String tenDichVu) {
+        if (tenDichVu == null) return "";
+        String t = tenDichVu.toLowerCase();
+        if (t.contains("điện")) return "kWh";
+        if (t.contains("nước")) return "m³";
+        return "";
     }
 
     private String getBase64Image(String urlStr) {
@@ -63,16 +80,34 @@ public class ContractDocumentService {
         }
     }
 
-    @Transactional
-    public HopDong generatePdf(UUID hopDongId) {
-        HopDong hd = hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-        
+    public String getDefaultTerms() {
+        return """
+                <p>1. <strong>Bên cho thuê (Bên A):</strong> Cung cấp phòng ở và các trang thiết bị kèm theo (nếu có) đúng thỏa thuận; bảo đảm quyền sử dụng phòng ổn định và hợp pháp của Bên B.</p>
+                <p>2. <strong>Bên thuê (Bên B):</strong> Thanh toán đầy đủ và đúng hạn tiền thuê phòng và các khoản chi phí dịch vụ; sử dụng phòng đúng mục đích, chấp hành nghiêm túc quy định an ninh trật tự, phòng cháy chữa cháy và vệ sinh chung; bảo quản tài sản trong phòng.</p>
+                <p>3. <strong>Tiền đặt cọc:</strong> Tiền cọc được bên A giữ để bảo đảm thực hiện hợp đồng và sẽ được hoàn trả cho Bên B sau khi thanh lý hợp đồng và khấu trừ các chi phí/thiệt hại phát sinh (nếu có).</p>
+                <p>4. <strong>Chấm dứt và gia hạn hợp đồng:</strong> Khi hợp đồng hết hạn, nếu hai bên có nhu cầu tiếp tục thuê thì tiến hành gia hạn hợp đồng. Trường hợp một trong hai bên muốn chấm dứt hợp đồng trước hạn phải thông báo trước cho bên kia ít nhất 30 ngày.</p>
+                <p>5. <strong>Điều khoản chung:</strong> Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận trong hợp đồng. Mọi tranh chấp phát sinh sẽ được giải quyết trên tinh thần thiện chí và thương lượng.</p>
+                """;
+    }
+
+    public Context buildContractContext(HopDong hd) {
         Context context = new Context();
         context.setVariable("maHopDong", hd.getMaHopDong());
-        context.setVariable("ngayLap", hd.getTaoLuc() != null ? hd.getTaoLuc().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        
+        // Ngay lap phai co dinh theo du lieu hop dong. KHONG dung LocalDate.now()
+        // lam gia tri du phong: PDF duoc sinh lai moi lan mo, nen ngay lap se nhay
+        // theo ngay xem — cung mot hop dong hom nay in ra mot ngay, mai mot ngay khac.
+        String ngayLap;
+        if (hd.getTaoLuc() != null) {
+            ngayLap = hd.getTaoLuc().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } else if (hd.getNgayBatDau() != null) {
+            ngayLap = hd.getNgayBatDau().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } else {
+            ngayLap = "…../…../……….";
+        }
+        context.setVariable("ngayLap", ngayLap);
+
         if (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) {
-            NguoiDung chuTro = hd.getPhong().getNhaTro().getChuTro(); 
+            NguoiDung chuTro = hd.getPhong().getNhaTro().getChuTro();
             context.setVariable("tenChuTro", chuTro.getHoTen() != null ? chuTro.getHoTen() : "Chủ trọ");
             context.setVariable("sdtChuTro", chuTro.getSoDienThoai() != null ? chuTro.getSoDienThoai() : "");
             context.setVariable("cccdChuTro", chuTro.getSoCccd() != null ? chuTro.getSoCccd() : "");
@@ -86,138 +121,224 @@ public class ContractDocumentService {
             context.setVariable("diaChiChuTro", "");
         }
 
-        context.setVariable("tenKhachThue", hd.getKhachThue().getHoTen());
-        context.setVariable("sdtKhachThue", hd.getKhachThue().getSoDienThoai());
-        context.setVariable("cccdKhachThue", hd.getKhachThue().getSoCccd());
-        context.setVariable("ngaySinhKhachThue", hd.getKhachThue().getNgaySinh() != null ? hd.getKhachThue().getNgaySinh().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-        context.setVariable("emailKhachThue", hd.getKhachThue().getEmail() != null ? hd.getKhachThue().getEmail() : "");
-        context.setVariable("gioiTinhKhachThue", hd.getKhachThue().getGioiTinh() != null ? hd.getKhachThue().getGioiTinh() : "");
-        context.setVariable("diaChiKhachThue", hd.getKhachThue().getDiaChi() != null ? hd.getKhachThue().getDiaChi() : "");
+        if (hd.getKhachThue() != null) {
+            context.setVariable("tenKhachThue", hd.getKhachThue().getHoTen());
+            context.setVariable("sdtKhachThue", hd.getKhachThue().getSoDienThoai());
+            context.setVariable("cccdKhachThue", hd.getKhachThue().getSoCccd());
+            context.setVariable("ngaySinhKhachThue", hd.getKhachThue().getNgaySinh() != null
+                    ? hd.getKhachThue().getNgaySinh().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
+            context.setVariable("emailKhachThue", hd.getKhachThue().getEmail() != null ? hd.getKhachThue().getEmail() : "");
+            context.setVariable("gioiTinhKhachThue", hd.getKhachThue().getGioiTinh() != null ? hd.getKhachThue().getGioiTinh() : "");
+            context.setVariable("diaChiKhachThue", hd.getKhachThue().getDiaChi() != null ? hd.getKhachThue().getDiaChi() : "");
+        } else {
+            context.setVariable("tenKhachThue", "Chưa xác định");
+            context.setVariable("sdtKhachThue", "");
+            context.setVariable("cccdKhachThue", "");
+            context.setVariable("ngaySinhKhachThue", "");
+            context.setVariable("emailKhachThue", "");
+            context.setVariable("gioiTinhKhachThue", "");
+            context.setVariable("diaChiKhachThue", "");
+        }
 
-        context.setVariable("tenPhong", hd.getPhong().getTen());
-        context.setVariable("diaChi", hd.getPhong().getNhaTro() != null ? hd.getPhong().getNhaTro().getDiaChi() : "Chưa xác định");
-        
-        long months = java.time.temporal.ChronoUnit.MONTHS.between(hd.getNgayBatDau(), hd.getNgayKetThuc());
+        context.setVariable("tenPhong", hd.getPhong() != null ? hd.getPhong().getTen() : "Chưa xác định");
+        context.setVariable("diaChi", hd.getPhong() != null && hd.getPhong().getNhaTro() != null
+                ? hd.getPhong().getNhaTro().getDiaChi() : "Chưa xác định");
+        context.setVariable("dienTich", hd.getPhong() != null ? hd.getPhong().getDienTich() : null);
+        context.setVariable("soNguoiToiDa", hd.getPhong() != null ? hd.getPhong().getSoNguoiToiDa() : null);
+
+        long months = (hd.getNgayBatDau() != null && hd.getNgayKetThuc() != null)
+                ? java.time.temporal.ChronoUnit.MONTHS.between(hd.getNgayBatDau(), hd.getNgayKetThuc()) : 0;
         context.setVariable("thoiHan", months + " tháng");
-        context.setVariable("ngayBatDau", hd.getNgayBatDau().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        context.setVariable("ngayKetThuc", hd.getNgayKetThuc().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        context.setVariable("ngayBatDau", hd.getNgayBatDau() != null
+                ? hd.getNgayBatDau().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
+        context.setVariable("ngayKetThuc", hd.getNgayKetThuc() != null
+                ? hd.getNgayKetThuc().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
         context.setVariable("giaThue", formatMoney(hd.getGiaThueHopDong()));
         context.setVariable("tienCoc", formatMoney(hd.getTienCoc()));
-        context.setVariable("ngayThanhToan", hd.getNgayThanhToanHangThang());
+        context.setVariable("ngayThanhToan", hd.getNgayThanhToanHangThang() != null ? hd.getNgayThanhToanHangThang() : 5);
+        context.setVariable("chuKyThanhToanLabel", chuKyThanhToanLabel(hd.getChuKyThanhToan()));
 
         String noiDung = hd.getNoiDungHopDong();
         if (noiDung == null || noiDung.trim().isEmpty()) {
-            noiDung = "<p>1. Bên B cam kết thanh toán tiền thuê phòng đúng hạn (ngày " + (hd.getNgayThanhToanHangThang() != null ? hd.getNgayThanhToanHangThang() : "5") + " hàng tháng).</p>" +
-                      "<p>2. Bên B có trách nhiệm bảo quản tài sản trong phòng.</p>" +
-                      "<p>3. Các điều khoản khác tuân theo quy định pháp luật hiện hành.</p>";
+            noiDung = getDefaultTerms();
         }
         context.setVariable("noiDungHopDong", noiDung);
 
-        context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null ? "Đã ký điện tử bởi " + hd.getKhachThue().getHoTen() : "(Chưa ký)");
-        context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
-        
         context.setVariable("chiSoDienBanDau", hd.getChiSoDienBanDau() != null ? hd.getChiSoDienBanDau() : 0);
         context.setVariable("chiSoNuocBanDau", hd.getChiSoNuocBanDau() != null ? hd.getChiSoNuocBanDau() : 0);
-        
-        // Fetch services (TienIch) to get prices
-        var tienIchs = tienIchService.listByPhong(hd.getPhong().getId());
-        context.setVariable("tienIchList", tienIchs);
 
-        // Dịch vụ áp dụng cho hợp đồng KÈM đơn giá thật (thay cho text cứng
-        // "Theo quy định của tòa nhà"). Lấy từ dich_vu_hop_dong đã chốt khi lập HĐ.
+        if (hd.getPhong() != null && hd.getPhong().getId() != null) {
+            var tienIchs = tienIchService.listByPhong(hd.getPhong().getId());
+            context.setVariable("tienIchList", tienIchs);
+            List<TaiSanPhong> taiSanList = taiSanPhongRepository.findByPhongId(hd.getPhong().getId());
+            context.setVariable("taiSanList", taiSanList);
+        } else {
+            context.setVariable("tienIchList", List.of());
+            context.setVariable("taiSanList", List.of());
+        }
+
         List<java.util.Map<String, String>> dichVuList = new ArrayList<>();
-        for (DichVuHopDong dv : dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId)) {
-            java.util.Map<String, String> row = new java.util.LinkedHashMap<>();
-            row.put("ten", dv.getDichVu() != null && dv.getDichVu().getTenDichVu() != null
-                    ? dv.getDichVu().getTenDichVu() : "");
-            row.put("donGia", dv.getDonGiaApDung() != null
-                    ? formatMoney(dv.getDonGiaApDung()) : "Theo quy định của tòa nhà");
-            row.put("donVi", dv.getDichVu() != null && dv.getDichVu().getDonVi() != null
-                    ? dv.getDichVu().getDonVi() : "");
-            dichVuList.add(row);
+        if (hd.getId() != null) {
+            for (DichVuHopDong dv : dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hd.getId())) {
+                java.util.Map<String, String> row = new java.util.LinkedHashMap<>();
+                row.put("ten", dv.getDichVu() != null && dv.getDichVu().getTenDichVu() != null
+                        ? dv.getDichVu().getTenDichVu() : "");
+                row.put("donGia", dv.getDonGiaApDung() != null
+                        ? formatMoney(dv.getDonGiaApDung()) : "Theo quy định của tòa nhà");
+                String tenDv = row.get("ten");
+                String donVi = dv.getDichVu() != null && dv.getDichVu().getDonVi() != null
+                        ? dv.getDichVu().getDonVi() : "";
+                // Dien/Nuoc trong DB khong co don_vi, de trong thi bang gia trong hop
+                // dong bi hong. Suy ra don vi chuan tu ten dich vu.
+                if (donVi.isBlank()) {
+                    donVi = donViMacDinh(tenDv);
+                }
+                row.put("donVi", donVi.isBlank() ? "—" : donVi);
+                dichVuList.add(row);
+            }
         }
         context.setVariable("dichVuList", dichVuList);
-        
-        // Fetch furniture
-        List<TaiSanPhong> taiSanList = taiSanPhongRepository.findByPhongId(hd.getPhong().getId());
-        context.setVariable("taiSanList", taiSanList);
-        
-        String landlordName = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null) ? hd.getPhong().getNhaTro().getChuTro().getHoTen() : "Chủ trọ";
-        context.setVariable("landlordSignatureText", hd.getLandlordSignedAt() != null ? "Đã ký điện tử bởi " + landlordName : "(Chưa ký)");
-        context.setVariable("landlordSignedAt", hd.getLandlordSignedAt() != null ? hd.getLandlordSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
+
+        List<java.util.Map<String, String>> thanhVienList = new ArrayList<>();
+        if (hd.getId() != null) {
+            for (ThanhVienHopDong tv : thanhVienHopDongRepository
+                    .findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hd.getId())) {
+                if (Boolean.FALSE.equals(tv.getDangO())) {
+                    continue;
+                }
+                java.util.Map<String, String> row = new java.util.LinkedHashMap<>();
+                row.put("hoTen", tv.getHoTen() != null ? tv.getHoTen() : "");
+                row.put("soCccd", tv.getSoCccd() != null && !tv.getSoCccd().isBlank() ? tv.getSoCccd() : "—");
+                row.put("soDienThoai", tv.getSoDienThoai() != null && !tv.getSoDienThoai().isBlank()
+                        ? tv.getSoDienThoai() : "—");
+                row.put("vaiTro", Boolean.TRUE.equals(tv.getLaNguoiDaiDien()) ? "Người đại diện" : "Thành viên");
+                thanhVienList.add(row);
+            }
+        }
+        context.setVariable("thanhVienList", thanhVienList);
+
+        String landlordName = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null && hd.getPhong().getNhaTro().getChuTro() != null)
+                ? hd.getPhong().getNhaTro().getChuTro().getHoTen() : "Chủ trọ";
+        context.setVariable("landlordSignatureText", hd.getLandlordSignedAt() != null
+                ? "Đã ký điện tử bởi " + landlordName : "(Chưa ký)");
+        context.setVariable("landlordSignedAt", hd.getLandlordSignedAt() != null
+                ? hd.getLandlordSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
 
         String tenantName = hd.getKhachThue() != null ? hd.getKhachThue().getHoTen() : "Khách thuê";
-        context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null ? "Đã ký điện tử bởi " + tenantName : "(Chưa ký)");
-        context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
+        context.setVariable("tenantSignatureText", hd.getTenantSignedAt() != null
+                ? "Đã ký điện tử bởi " + tenantName : "(Chưa ký)");
+        context.setVariable("tenantSignedAt", hd.getTenantSignedAt() != null
+                ? hd.getTenantSignedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : null);
 
-        // Lấy hình ảnh chữ ký nếu có
-        List<ContractSignature> signatures = signatureRepository.findByHopDongIdOrderBySignedAtAsc(hopDongId);
         String tenantImg = null;
         String landlordImg = null;
-        for (ContractSignature sig : signatures) {
-            if ("TENANT".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
-                tenantImg = sig.getSignatureImageUrl();
-            }
-            if ("LANDLORD".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
-                landlordImg = sig.getSignatureImageUrl();
+        if (hd.getId() != null) {
+            List<ContractSignature> signatures = signatureRepository.findByHopDongIdOrderBySignedAtAsc(hd.getId());
+            for (ContractSignature sig : signatures) {
+                if ("TENANT".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
+                    tenantImg = sig.getSignatureImageUrl();
+                }
+                if ("LANDLORD".equals(sig.getSignerRole()) && sig.getSignatureImageUrl() != null && !sig.getSignatureImageUrl().isEmpty()) {
+                    landlordImg = sig.getSignatureImageUrl();
+                }
             }
         }
         context.setVariable("tenantSignatureImg", getBase64Image(tenantImg));
         context.setVariable("landlordSignatureImg", getBase64Image(landlordImg));
 
-        String htmlContent = templateEngine.process("contract-template", context);
+        return context;
+    }
 
-        try {
-            File tempPdf = File.createTempFile("contract_", ".pdf");
-            try (FileOutputStream os = new FileOutputStream(tempPdf)) {
-                PdfRendererBuilder builder = new PdfRendererBuilder();
-                builder.useFastMode();
-                
-                try (java.io.InputStream fontStream = new org.springframework.core.io.ClassPathResource("fonts/Roboto-Regular.ttf").getInputStream()) {
-                    File fontFile = File.createTempFile("Roboto", ".ttf");
-                    fontFile.deleteOnExit();
-                    java.nio.file.Files.copy(fontStream, fontFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    builder.useFont(fontFile, "Roboto");
-                } catch (Exception fontEx) {
-                    log.warn("Could not load custom font", fontEx);
-                }
+    public String renderHtml(HopDong hd) {
+        Context context = buildContractContext(hd);
+        return templateEngine.process("contract-template", context);
+    }
 
-                builder.withHtmlContent(htmlContent, null);
-                builder.toStream(os);
-                builder.run();
+    // Phai chay trong transaction: buildContractContext duyet cac quan he lazy
+    // (phong -> nha_tro -> chu_tro, khach_thue...) nen session phai con mo.
+    @Transactional(readOnly = true)
+    public String renderHtml(UUID hopDongId) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        return renderHtml(hd);
+    }
+
+    public byte[] generatePdfBytes(HopDong hd) {
+        String htmlContent = renderHtml(hd);
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useFastMode();
+
+            try (java.io.InputStream fontStream = new org.springframework.core.io.ClassPathResource("fonts/Roboto-Regular.ttf").getInputStream()) {
+                File fontFile = File.createTempFile("Roboto", ".ttf");
+                fontFile.deleteOnExit();
+                java.nio.file.Files.copy(fontStream, fontFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                builder.useFont(fontFile, "Roboto");
+            } catch (Exception fontEx) {
+                log.warn("Could not load custom font", fontEx);
             }
 
-            // Upload to Cloudinary
-            java.util.Map<String, Object> uploadResult = cloudinaryService.uploadPdf(Files.readAllBytes(tempPdf.toPath()), tempPdf.getName());
-            String url = (String) uploadResult.get("secure_url");
-            Files.deleteIfExists(tempPdf.toPath());
+            builder.withHtmlContent(htmlContent, null);
+            builder.toStream(os);
+            builder.run();
+            return os.toByteArray();
+        } catch (Exception e) {
+            log.error("Lỗi sinh PDF cho hợp đồng {}: {}", hd.getId(), e.getMessage());
+            throw new RuntimeException("Không thể sinh file PDF: " + e.getMessage(), e);
+        }
+    }
 
-            // Luôn cập nhật file chính (filePdf) về bản PDF mới nhất — kể cả sau khi
-            // khách thuê ký — để mọi nơi hiển thị/tải hợp đồng đều thấy đầy đủ chữ ký.
-            // Khi hoàn tất, giữ thêm signedPdfUrl trỏ về cùng bản để không lệch dữ liệu.
+    // Xem ghi chu o renderHtml(UUID): can transaction cho cac quan he lazy.
+    @Transactional(readOnly = true)
+    public byte[] generatePdfBytes(UUID hopDongId) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        return generatePdfBytes(hd);
+    }
+
+    @Transactional
+    public HopDong generatePdf(UUID hopDongId) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+
+        byte[] pdfBytes = generatePdfBytes(hd);
+
+        try {
+            String fileName = "contract_" + hd.getId() + "_" + System.currentTimeMillis() + ".pdf";
+            java.util.Map<String, Object> uploadResult = cloudinaryService.uploadPdf(pdfBytes, fileName);
+            String url = (String) uploadResult.get("secure_url");
+
             hd.setFilePdf(url);
             if (hd.getSignatureStatus() == SignatureStatus.COMPLETED) {
                 hd.setSignedPdfUrl(url);
             }
 
             return hopDongRepository.save(hd);
-
         } catch (Exception e) {
-            log.error("Lỗi sinh PDF cho hợp đồng {}: {}", hopDongId, e.getMessage());
-            throw new RuntimeException("Không thể sinh file PDF: " + e.getMessage());
+            log.error("Lỗi tải lên PDF cho hợp đồng {}: {}", hopDongId, e.getMessage());
+            throw new RuntimeException("Không thể tải lên file PDF: " + e.getMessage(), e);
         }
     }
 
     @Transactional
     public ContractSignature signContract(UUID hopDongId, com.example.quanlyphongtro.dto.ContractSignRequest request) {
-        HopDong hd = hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-        
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+
         if (hd.getSignatureStatus() == SignatureStatus.COMPLETED) {
             throw new RuntimeException("Hợp đồng đã được ký hoàn tất");
         }
 
+        // Khong cho ky khi ho so con thieu: ky xong hop dong bi khoa du lieu
+        // (lockedAt) nen sau do khong the bo sung CCCD/dia chi... duoc nua.
+        List<String> thieu = thieuThongTin(hd);
+        if (!thieu.isEmpty()) {
+            throw new RuntimeException("Chưa thể ký hợp đồng, còn thiếu thông tin bắt buộc: "
+                    + String.join("; ", thieu));
+        }
+
         String role = request.getRole() != null ? request.getRole() : "LANDLORD";
-        
+
         String secureUrl = "";
         try {
             String base64Data = request.getSignatureBase64();
@@ -243,7 +364,7 @@ public class ContractDocumentService {
                 .ipAddress(request.getIpAddress())
                 .userAgent(request.getUserAgent())
                 .build();
-        
+
         signature = signatureRepository.save(signature);
 
         if ("TENANT".equals(role)) {
@@ -279,8 +400,8 @@ public class ContractDocumentService {
             syncRoomRented(hd);
             jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hd.getId());
         }
-        
-        // Re-generate PDF to include signatures
+
+        // Re-generate PDF to include signatures on Cloudinary
         generatePdf(hd.getId());
 
         // Notify
@@ -293,15 +414,14 @@ public class ContractDocumentService {
                     && hd.getPhong().getNhaTro().getChuTro().getId() != null) {
                 recipients.add(hd.getPhong().getNhaTro().getChuTro().getId());
             }
-            if (recipients.isEmpty()) {
-                return signature;
+            if (!recipients.isEmpty()) {
+                thongBaoService.createSystemNotification(
+                        "Hợp đồng đã được ký hoàn tất",
+                        "Hợp đồng thuê phòng " + hd.getPhong().getTen() + " đã được cả hai bên ký xác nhận thành công.",
+                        LoaiThongBao.CONTRACT,
+                        recipients
+                );
             }
-            thongBaoService.createSystemNotification(
-                    "Hợp đồng đã được ký hoàn tất",
-                    "Hợp đồng thuê phòng " + hd.getPhong().getTen() + " đã được cả hai bên ký xác nhận thành công.",
-                    LoaiThongBao.CONTRACT,
-                    recipients
-            );
         }
         return signature;
     }
@@ -321,11 +441,63 @@ public class ContractDocumentService {
         phongRepository.save(phong);
     }
 
+    /**
+     * Liet ke cac truong bat buoc con thieu de hop dong du dieu kien ky.
+     * Danh sach rong = day du. Dung chung cho ca viec chan ky o backend lan
+     * hien canh bao tren giao dien truoc khi nguoi dung dat but ky.
+     */
+    @Transactional(readOnly = true)
+    public List<String> kiemTraThongTinBatBuoc(UUID hopDongId) {
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        return thieuThongTin(hd);
+    }
+
+    private List<String> thieuThongTin(HopDong hd) {
+        List<String> thieu = new ArrayList<>();
+
+        NguoiDung chuTro = (hd.getPhong() != null && hd.getPhong().getNhaTro() != null)
+                ? hd.getPhong().getNhaTro().getChuTro() : null;
+        if (chuTro == null) {
+            thieu.add("Bên A: chưa xác định được chủ trọ của tòa nhà");
+        } else {
+            if (isBlank(chuTro.getHoTen())) thieu.add("Bên A: họ và tên");
+            if (isBlank(chuTro.getSoCccd())) thieu.add("Bên A: số CCCD/CMND");
+            if (isBlank(chuTro.getDiaChi())) thieu.add("Bên A: địa chỉ thường trú");
+            if (isBlank(chuTro.getSoDienThoai())) thieu.add("Bên A: số điện thoại");
+        }
+
+        KhachThue kt = hd.getKhachThue();
+        if (kt == null) {
+            thieu.add("Bên B: chưa gán khách thuê cho hợp đồng");
+        } else {
+            if (isBlank(kt.getHoTen())) thieu.add("Bên B: họ và tên");
+            if (isBlank(kt.getSoCccd())) thieu.add("Bên B: số CCCD/CMND");
+            if (isBlank(kt.getSoDienThoai())) thieu.add("Bên B: số điện thoại");
+            if (kt.getNgaySinh() == null) thieu.add("Bên B: ngày sinh");
+            if (isBlank(kt.getDiaChi())) thieu.add("Bên B: địa chỉ thường trú");
+        }
+
+        if (hd.getNgayBatDau() == null || hd.getNgayKetThuc() == null) thieu.add("Thời hạn thuê");
+        if (hd.getGiaThueHopDong() == null || hd.getGiaThueHopDong().signum() <= 0) thieu.add("Giá thuê");
+        if (hd.getTienCoc() == null) thieu.add("Tiền đặt cọc");
+        if (hd.getNgayThanhToanHangThang() == null) thieu.add("Ngày thanh toán hằng tháng");
+
+        return thieu;
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
     @Transactional
     public HopDong rejectContract(UUID hopDongId, com.example.quanlyphongtro.dto.ContractSignRequest request) {
-        HopDong hd = hopDongRepository.findById(hopDongId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        HopDong hd = hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         hd.setSignatureStatus(SignatureStatus.REJECTED);
-        hd.setGhiChu(hd.getGhiChu() != null ? hd.getGhiChu() + "\nTừ chối ký: " + request.getRejectionReason() : "Từ chối ký: " + request.getRejectionReason());
+        hd.setGhiChu(hd.getGhiChu() != null
+                ? hd.getGhiChu() + "\nTừ chối ký: " + request.getRejectionReason()
+                : "Từ chối ký: " + request.getRejectionReason());
         return hopDongRepository.save(hd);
     }
 

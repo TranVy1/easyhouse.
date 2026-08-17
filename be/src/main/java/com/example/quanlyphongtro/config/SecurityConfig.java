@@ -44,6 +44,12 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // Mac dinh cua Spring Security la X-Frame-Options: DENY, khien trinh
+            // duyet chan viec nhung PDF hop dong (/api/hop-dong/{id}/document) vao
+            // iframe cua HopDongDocumentViewer — request bi tra ERR_BLOCKED_BY_RESPONSE.
+            // Frontend goi qua rewrite cua Next nen cung origin, SAMEORIGIN la du;
+            // KHONG dung disable() vi nhu vay se cho phep moi trang ngoai nhung lai.
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
