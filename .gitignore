@@ -13,3 +13,8 @@ credentials/
 
 *.tar
 *.tar.gz
+
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class

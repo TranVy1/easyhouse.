@@ -66,7 +66,7 @@ export function YeuCauHopDongPanel({ hopDongId, trangThaiHopDong, accessToken, o
   useEffect(() => { void tai(); }, [tai]);
 
   const choDuyet = danhSach.find((y) => y.trangThai === 'CHO_DUYET');
-  const guiDuoc = trangThaiHopDong === 'ACTIVE' && !choDuyet;
+  const guiDuoc = (trangThaiHopDong === 'ACTIVE' || trangThaiHopDong === 'hoatDong') && !choDuyet;
 
   const gui = async () => {
     if (!dangMo) return;

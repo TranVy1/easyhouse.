@@ -1,0 +1,794 @@
+[0] TRƯỜNG CAO ĐẲNG FPT POLYTECHNIC
+[4]      TRƯỜNG CAO ĐẲNG FPT POLYTECHNIC
+[8] BÁO CÁO DỰ ÁN TỐT NGHIỆP
+[9] ĐỀ TÀI: XÂY DỰNG HỆ THỐNG QUẢN LÝ NHÀ TRỌ
+[10] EASYHOUSE
+[26] Hà Nội - 2026
+[28] MỤC LỤC
+[30] MỤC LỤC ẢNH
+[33] MỤC LỤC BẢNG
+[35] QUY ƯỚC TÀI LIỆU
+[38] BẢNG CHÚ GIẢI THUẬT NGỮ
+[41] DANH SÁCH THÀNH VIÊN
+[44] Nhóm dự án cam kết rằng tất cả thông tin, báo cáo, và nội dung được cung cấp trong tài liệu này là m
+[46] LỜI CẢM ƠN
+[47] Dự án Hệ thống Quản lý phòng trọ EasyHouse là thành quả của một hành trình dài đầy nỗ lực, từ khâu l
+[48] Trước hết, nhóm xin gửi lời tri ân sâu sắc nhất đến giảng viên hướng dẫn và Thầy/Cô. Cảm ơn Thầy/Cô 
+[49] Chúng em cũng xin bày tỏ lòng biết ơn tới các thầy cô thuộc bộ môn Phát triển phần mềm tại FPT Polyt
+[50] Cuối cùng, dù đã đầu tư nhiều tâm huyết và công sức, song do những hạn chế khách quan về mặt kinh ng
+[51] Chúng em xin chân thành cảm ơn!
+[58] GIẢNG VIÊN HƯỚNG DẪN
+[59] Họ và tên: Nguyễn Khánh Huyền 
+[60] Cơ quan tác vụ: Trường CĐ FPT Polytechnic 
+[61] Điện thoại: 0000000000	Email:huyennk6@fe.edu.vn 
+[62] Ý kiến nhận xét, đánh giá của cán bộ hướng dẫn: 
+[63] ....................................................................................................
+[64] ....................................................................................................
+[65] ....................................................................................................
+[66] ....................................................................................................
+[67] ....................................................................................................
+[68] ....................................................................................................
+[69] ....................................................................................................
+[70] ....................................................................................................
+[71] ....................................................................................................
+[72] ....................................................................................................
+[73] ....................................................................................................
+[74] ....................................................................................................
+[75] ....................................................................................................
+[76] ....................................................................................................
+[77] Giảng viên hướng dẫn 
+[78] (Ký và ghi rõ họ tên) 
+[82] Nguyễn Khánh Huyền
+[83] LỜI MỞ ĐẦU
+[84] Trong bối cảnh chuyển đổi số đang diễn ra mạnh mẽ trên hầu hết các lĩnh vực, việc ứng dụng công nghệ
+[85] Tuy nhiên, trên thực tế, nhiều chủ nhà hoặc đơn vị kinh doanh phòng trọ vẫn đang gặp không ít khó kh
+[86] Mục tiêu của đề tài là xây dựng một nền tảng phần mềm hoàn chỉnh, đáp ứng đồng thời nhu cầu trải ngh
+[87] Về phía khách thuê: Hệ thống cung cấp một nền tảng trực tuyến với giao diện thân thiện và dễ sử dụng
+[88] Về phía quản trị viên (Chủ trọ/Quản lý): Hệ thống đóng vai trò như một giải pháp quản trị toàn diện,
+[90] Thông qua đề tài này, nhóm chúng em mong muốn xây dựng một sản phẩm mang tính ứng dụng thực tế cao, 
+[91] Bên cạnh mục tiêu về mặt kỹ thuật, đề tài còn giúp nhóm rèn luyện kỹ năng làm việc nhóm, phân tích n
+[92] Cấu trúc của báo cáo bao gồm các nội dung chính sau:
+[93] Chương 1: Giới thiệu về bối cảnh, mục tiêu, nguồn lực, kế hoạch dự án và khảo sát.
+[94] Chương 2: Phân tích các thực thể, chức năng và sơ đồ quan hệ thực thể.
+[95] Chương 3: Thiết kế cơ sở dữ liệu và sơ đồ giao diện.
+[96] Chương 4: Thực thi mã nguồn, thư viện sử dụng và đặc tả chức năng.
+[97] Chương 5: Kiểm thử với tiêu chí, chiến lược và kết quả kiểm thử.
+[98] Chương 6: Hướng dẫn sử dụng hệ thống với các vai trò: Quản lý và Khách thuê
+[99] Phụ lục A: Đặc tả use case.
+[100] Phụ lục B: Đặc tả bảng.
+[101] Với tất cả những nội dung trên, nhóm chúng em hy vọng báo cáo này sẽ giúp người đọc có cái nhìn tổng
+[104] TÓM TẮT NỘI DUNG DỰ ÁN
+[105] Dự án Xây dựng hệ thống Quản lý phòng trọ EasyHouse được thực hiện nhằm giải quyết những hạn chế tro
+[106] Mục tiêu của dự án là xây dựng một nền tảng quản lý trực tuyến hiện đại, giúp khách thuê dễ dàng the
+[107] Về phía khách thuê, hệ thống cung cấp các chức năng như xem chi tiết thông tin phòng đang thuê, tra 
+[108] Về phía quản trị viên (chủ trọ và quản lý), hệ thống hỗ trợ quản lý danh mục tòa nhà, phòng trọ và c
+[109] Thông qua việc số hóa quy trình quản lý và vận hành phòng trọ, dự án góp phần nâng cao hiệu quả kinh
+[114] CHƯƠNG 1: GIỚI THIỆU 
+[115] 1.1. 	Bối cảnh - hiện trạng
+[116] Trong bối cảnh công nghệ số phát triển mạnh mẽ, việc ứng dụng công nghệ thông tin vào đời sống và ki
+[117] Đối với lĩnh vực cho thuê phòng trọ, sự thay đổi này diễn ra càng rõ nét hơn bởi cả chủ nhà và khách
+[118] Thực tế hiện nay cho thấy nhiều chủ nhà hoặc ban quản lý, đặc biệt là các mô hình phòng trọ, căn hộ 
+[119] Đối với mô hình kinh doanh phòng trọ, bài toán quản lý còn phức tạp hơn do mỗi phòng không chỉ có mộ
+[120] Ở góc độ khách thuê, hiện trạng phổ biến là việc theo dõi thông tin lưu trú vẫn chưa được tối ưu. Ng
+[121] Ở góc độ quản lý nội bộ, chủ trọ cũng gặp nhiều khó khăn khi chưa có một nền tảng đồng bộ để quản lý
+[122] Một vấn đề khác cũng cần được nhìn nhận là yêu cầu về tốc độ xử lý nghiệp vụ và chất lượng chăm sóc 
+[123] Xuất phát từ những vấn đề thực tế đó, nhóm chúng em lựa chọn triển khai đề tài Xây dựng hệ thống Quả
+[124] Trong phạm vi bài toán này, hệ thống hướng tới phục vụ các nhóm đối tượng chính: Thứ nhất là Khách t
+[125] Từ những phân tích trên có thể thấy rằng, việc xây dựng một nền tảng quản lý phòng trọ hiện đại, đồn
+[126] 1.2. Mục tiêu - Phạm vi
+[127] Mục tiêu của dự án Xây dựng hệ thống Quản lý phòng trọ EasyHouse là thiết lập một nền tảng phần mềm 
+[128] Hệ thống không chỉ đóng vai trò là một cổng thông tin trực tuyến dành cho người thuê, mà còn là một 
+[129] - Phía quản trị (Chủ trọ / Ban quản lý):
+[130] Quản lý danh mục tòa nhà và phòng trọ: Hệ thống cho phép quản lý danh sách các tòa nhà và hệ thống p
+[131] Quản lý cấu hình dịch vụ: Do đặc thù kinh doanh lưu trú đi kèm với nhiều loại phí, hệ thống hỗ trợ q
+[132] Quản lý hợp đồng và đặt cọc: Hệ thống hỗ trợ khởi tạo, theo dõi và quản lý vòng đời của hợp đồng thu
+[133] Quản lý chỉ số điện/nước và hóa đơn: Phân hệ quản trị cho phép ghi nhận chốt số điện/nước hàng tháng
+[134] Quản lý khách thuê: Hệ thống hỗ trợ lưu trữ và tra cứu thông tin khách thuê (thông tin cá nhân, CMND
+[135] Quản lý tiếp nhận và xử lý sự cố: Thay thế cho việc báo cáo qua Zalo hay điện thoại rời rạc, hệ thốn
+[136] Thống kê và báo cáo: Phân hệ cung cấp các chức năng thống kê cơ bản như tổng doanh thu, lợi nhuận, t
+[137] - Phía khách thuê (Người dùng cuối): Đối với khách thuê, hệ thống được xây dựng như một cổng thông t
+[138] Xem thông tin phòng và hợp đồng: Khách thuê có thể truy cập hệ thống để xem chi tiết thông tin căn p
+[139] Theo dõi hóa đơn và chi phí định kỳ: Người dùng có thể nhận thông báo và xem chi tiết hóa đơn hàng t
+[140] Tra cứu lịch sử thanh toán: Hệ thống hỗ trợ lưu trữ lịch sử các lần nộp tiền, giúp người thuê dễ dàn
+[141] Báo cáo sự cố và yêu cầu hỗ trợ: Khi có vấn đề phát sinh (hỏng hóc điện, tắc ống nước, lỗi thiết bị.
+[142] Đăng nhập và quản lý tài khoản bảo mật: Hệ thống hỗ trợ các chức năng tài khoản cơ bản như đăng nhập
+[146] ảnh thay thế
+[147] Hình 1.2.1: Activity diagram bán hàng online.
+[149] ảnh thay thế
+[150] Hình 1.2.2: Activity diagram bán hàng tại quầy.
+[152] 1.3. Nguồn lực - Kế hoạch. 
+[153] 1.3.1. Nguồn lực. 
+[154] Phiên bản tài liệu:
+[155] Bảng 1.3: Phiên bản tài liệu.
+[157] Nguồn lực:
+[158] Bảng 1.4: Nguồn lực.
+[159] 1.3.2. Kế hoạch.
+[160] Bảng 1.3.1: Kế hoạch.
+[161] 1.4. Khảo sát.
+[162] 1.4.1. Khảo sát offline nhà trọ 
+[163] Địa điểm: Số 5, ngõ 59 Lê Đức Thọ, Nam Từ Liêm, Hà Nội
+[164] Hình ảnh khảo sát: 
+[166] Hình 1.4.1: Khảo sát tại TingTong.
+[167] Kết luận khảo sát tại doanh nghiệp TingTong:
+[168] TingTong là đơn vị hoạt động trong lĩnh vực quản lý và cho thuê phòng trọ, căn hộ dịch vụ với quy tr
+[169] Quản lý phòng: TingTong quản lý nhiều phòng trọ và căn hộ dịch vụ với các trạng thái như còn trống, 
+[170] Quản lý khách thuê: Hệ thống cần lưu trữ đầy đủ thông tin khách thuê như họ tên, số điện thoại, căn 
+[171] Hóa đơn và thanh toán: Hệ thống cần tự động tạo hóa đơn hằng tháng bao gồm tiền thuê phòng, tiền điệ
+[172] Quản lý dịch vụ: Cần hỗ trợ quản lý các dịch vụ đi kèm như điện, nước, internet, gửi xe, vệ sinh hoặ
+[173] Thống kê: Hệ thống cần cung cấp các báo cáo doanh thu theo ngày, tháng và năm; thống kê tỷ lệ lấp đầ
+[195] 1.4.2. Khảo sát offline cửa hàng Adam Store.
+[196] Địa điểm: 360 đường Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội
+[197] Hình ảnh khảo sát:  
+[199] Hình 1.4.2: Khảo sát tại Adam Store.
+[200] Kết luận khảo sát tại cửa hàng này:
+[201] Bán hàng: Adam Store chú trọng xây dựng trải nghiệm khách hàng thông qua hình ảnh sản phẩm thực tế, 
+[202] Quản lý sản phẩm: Hệ thống quản lý sản phẩm của cửa hàng được phân chia theo các danh mục rõ ràng nh
+[203] Giảm giá & Phiếu giảm giá: Adam Store áp dụng cơ chế giảm giá linh hoạt bao gồm giảm theo phần trăm,
+[204] Thống kê: Để tối ưu quản lý và hỗ trợ ra quyết định, cửa hàng cần xây dựng hệ thống báo cáo toàn diệ
+[206] 1.4.3.	Khảo sát offline cửa hàng Mr Vest
+[207] Địa điểm: 350 Cầu Giấy, Dịch Vọng, Cầu Giấy, Hà Nội
+[208] Hình ảnh khảo sát:  
+[210] Hình 1.4.3: Khảo sát tại Mr.Vest.
+[211] Kết luận khảo sát tại cửa hàng này:
+[212] Bán hàng: Cho phép mua hàng với vai trò "Khách vãng lai" (không cần đăng nhập), vẫn có thể thanh toá
+[213] Quản lý sản phẩm: Đơn giản, ưu tiên hiển thị các mẫu bán chạy nhất (Best-seller).
+[214] Hóa đơn: Đồng bộ Online & Offline; xác nhận hóa đơn qua Email/SĐT ngay sau khi đặt hàng mà không cần
+[215] Giảm giá: Nên áp dụng các chương trình ưu đãi theo dịp cưới, lễ tết hoặc giảm giá trực tiếp trên đơn
+[216] Thống kê: So sánh doanh thu Online/Offline; báo cáo tổng kết cuối ngày qua điện thoại; chỉ số quan t
+[217] 1.4.4. Khảo sát online tại Adam Store & Mr.Vest 
+[218] Địa điểm: Online
+[219] Bán hàng:
+[220] Adam Store: website hỗ trợ bán hàng trực tuyến khá đầy đủ với các chức năng xem sản phẩm, thêm vào g
+[221] Mr Vest: website tập trung mạnh vào bán hàng trực tuyến với các nhóm sản phẩm như vest cưới, vest cô
+[222] Quản lý sản phẩm:
+[223]  Adam Store: Sản phẩm được tổ chức rõ ràng theo danh mục và bộ sưu tập như vest, suit cưới, lookbook
+[224] Mr Vest: website phân loại sản phẩm theo các nhóm chính như vest cưới, vest công sở, áo sơ mi và phụ
+[225] Quản lý hóa đơn:
+[226] Adam Store: website công khai hướng dẫn thanh toán, chính sách đổi trả, kiểm hàng và vận chuyển; đồn
+[227] Mr Vest: website công khai phương thức thanh toán, chính sách và quy định mua hàng; phần chính sách 
+[228] Quản lý phiếu giảm giá (Voucher):
+[229] Adam Store: Adam Store có chuyên mục khuyến mãi riêng trên website và từng triển khai các chương trì
+[230] Mr Vest: Trên giao diện công khai, Mr Vest tập trung nhiều hơn vào danh mục sản phẩm, mua hàng trực 
+[231] Thống kê – Báo cáo:
+[232] Adam Store: Từ góc độ người dùng bên ngoài, website không hiển thị trực tiếp các báo cáo quản trị nh
+[233] Mr Vest: Tương tự Adam Store, website Mr Vest không công khai các module báo cáo quản trị hay thống 
+[235] Tổng hợp kết quả khảo sát theo nhóm chức năng
+[236] Bảng 1.4.4: Bảng khảo sát kết quả
+[237] CHƯƠNG 2: PHÂN TÍCH
+[238] 2.1. Danh sách chức năng
+[240] Hình 2.1.1: Use case tổng.
+[241] Bảng 2.1.2: Danh sách các Use case.
+[249] 2.2. Quan hệ thực thể
+[250] 2.2.1. Danh sách thực thể
+[251] Bảng 2.2.1: Danh sách các thực thể.
+[252] 2.2.2. Sơ đồ quan hệ
+[254] Hình 2.2.2: Sơ đồ quan hệ thực thể.
+[256] CHƯƠNG 3: THIẾT KẾ
+[257] 3.1. Cơ sở dữ liệu
+[259] Hình 3.1.1: Danh sách bảng.
+[260] 3.1.1. Danh sách bảng.
+[261] Bảng 3.1.2: Danh sách các bảng.
+[262] 3.2. Giao diện người dùng.
+[263] 3.2.1. Sơ đồ giao diện người dùng
+[265] Hình 3.2.1: Sơ đồ giao diện người dùng.
+[266] 3.2.2. Bảng giao diện người dùng
+[267] Bảng 3.2.2: Danh sách các bảng.
+[268] CHƯƠNG 4: THỰC THI
+[269] 4.1. Tổ chức mã nguồn
+[270] 4.1.1. Sơ đồ tổ chức
+[272] Hình 4.1.1: Sơ đồ tổ chức.
+[274] 4.1.2. Thư viện sử dụng
+[275] Bảng 4.1.2:Danh sách thư viện sử dụng.
+[277] 4.2. Đặc tả chức năng
+[279] Hình 4.2.1: Sequence diagram bán hàng tại quầy.
+[281] Hình 4.2.2: Sequence diagram quản lý sản phẩm.
+[283] Hình 4.2.3: Sequence diagram quản lý thuộc tính.
+[285] Hình 4.2.4: Sequence diagram quản lý đơn hàng.
+[287] Hình 4.2.5: Sequence diagram quản lý nhân viên.
+[289] Hình 4.2.6: Sequence diagram quản lý khách hàng.
+[291] Hình 4.2.7: Sequence diagram quản lý phiếu giảm giá.
+[293] Hình 4.2.8: Sequence diagram quản lý ca làm.
+[295] Hình 4.2.9: Sequence diagram bán hàng online.
+[297] Hình 4.2.10: Sequence diagram thống kê.
+[298] CHƯƠNG 5: KIỂM THỬ
+[299] 5.1. Kế hoạch kiểm thử
+[300] 5.1.1. Tiêu chí cần đạt
+[301] Kiểm tra chức năng: 
+[302] Xác định xem tất cả chức năng cơ bản và các tính năng quan trọng đã hoạt động đúng cách hay không. 
+[303] Kiểm tra tất cả các tùy chọn và tính năng đã được triển khai một cách chính xác. 
+[304] Kiểm tra tích hợp: 
+[305] Kiểm tra việc tích hợp với các hệ thống khác hoặc dịch vụ bên ngoài để đảm bảo trang web hoạt động 1
+[306] Kiểm tra sự ổn định: 
+[307] Chạy thử nghiệm trang web trong một thời gian dài để kiểm tra sự ổn định và đảm bảo rằng không có lỗ
+[308] 5.1.2. Chiến lược triển khai
+[309] Xác định mục tiêu kiểm thử: Xác định rõ mục tiêu và tiêu chí kiểm thử. Bao gồm việc xác định các chứ
+[310] Lập kế hoạch kiểm thử: Lập kế hoạch kiểm thử chi tiết, bao gồm lịch trình, tài nguyên, và phương phá
+[311] Tạo các ca kiểm thử: Xác định các trường hợp kiểm thử cụ thể dựa trên mục tiêu và yêu cầu của trang 
+[312] Thực hiện kiểm thử: Thực hiện các ca kiểm thử theo kế hoạch đã xây dựng. Đảm bảo rằng bạn ghi lại kế
+[313] 5.2. Thống kê kết quả
+[314] Bảng 5.2.1: Kết quả kiểm thử.
+[315] Theo kiểm thử, thời gian thực hiện dự án, tester đã test được 2463 Testcase.
+[316] Sau khi thực hiện test, có 2463 Testcase pass , đạt tỷ lệ pass 100%.
+[317] CHƯƠNG 6: HƯỚNG DẪN SỬ DỤNG
+[318] 6.1. Vai trò chủ trọ
+[319] 6.1.1. Trang chủ
+[321] Hình 6.1.1: Màn hình trang chủ
+[322]  Giới thiệu chung:
+[323] Trang chủ EasyHouse là giao diện công khai giúp người dùng tìm kiếm và lựa chọn phòng trọ phù hợp. T
+[324]  Các chức năng chính:
+[325] Hiển thị danh sách phòng
+Trang chủ hiển thị các phòng hiện có dưới dạng thẻ thông tin, bao gồm hình 
+[326] Tìm kiếm phòng
+Người dùng có thể nhập tên phòng, khu vực hoặc từ khóa liên quan để tìm kiếm phòng ph
+[327] Lọc phòng theo giá
+Hệ thống hỗ trợ các khoảng giá như dưới 3 triệu, từ 3–5 triệu, từ 5–10 triệu và t
+[328] Lọc phòng theo diện tích
+Người dùng có thể lọc phòng theo các khoảng diện tích: dưới 20 m², từ 20–40
+[329] Hiển thị phòng nổi bật
+Một số phòng được đưa vào khu vực “Phòng nổi bật”, giúp người dùng nhanh chón
+[330] Xem chi tiết phòng
+Khi chọn một phòng, người dùng có thể xem đầy đủ hình ảnh, giá thuê, vị trí, mô t
+[331] Lưu phòng yêu thích
+Người dùng có thể đánh dấu những phòng quan tâm. Danh sách được lưu trên trình d
+[332] Xem danh sách phòng đã lưu
+Khu vực “Đã lưu” cho phép người dùng xem lại, mở chi tiết hoặc bỏ lưu các
+[333] Hiển thị thêm phòng
+Danh sách phòng được chia thành từng nhóm. Người dùng có thể chọn “Hiển thị thêm
+[334] Đăng nhập và truy cập hồ sơ
+Người chưa đăng nhập có thể chuyển đến màn hình đăng nhập. Người đã đăng
+[335] Truy cập hóa đơn
+Trên giao diện di động, thanh điều hướng dưới cùng cung cấp mục “Hóa đơn” để người 
+[336] Hỗ trợ trò chuyện
+Nút hỗ trợ nổi trên giao diện di động cho phép người dùng mở cửa sổ trò chuyện để 
+[337] Truy cập chính sách hệ thống
+Người dùng có thể xem chính sách bảo mật, điều khoản dịch vụ và quy chế
+[338] Giới thiệu lợi ích của EasyHouse
+Trang chủ trình bày các ưu điểm chính như thông tin minh bạch, dễ s
+[340] 6.1.2. Toà nhà
+[342] Hình 6.1.2: Màn hình bán hàng 
+[343]   Giới thiệu chung:
+[344] Chức năng quản lý tòa nhà của EasyHouse giúp chủ trọ và quản trị viên quản lý tập trung các tòa nhà 
+[345]   Các chức năng chính:
+[346] Hiển thị danh sách tòa nhà
+Hệ thống hiển thị các tòa nhà đang được quản lý cùng những thông tin cơ b
+[347] Tìm kiếm tòa nhà
+Người dùng có thể tìm kiếm theo tên, địa chỉ hoặc khu vực. Hệ thống hỗ trợ tìm kiếm
+[348] Lọc danh sách tòa nhà
+Cho phép lọc tòa nhà theo trạng thái hoạt động, khu vực hoặc mức độ lấp đầy để
+[349] Xem thống kê tổng quan
+Màn hình cung cấp các chỉ số như tổng số tòa nhà, tổng số phòng, số phòng trố
+[350] Thêm tòa nhà mới
+Chủ trọ có thể khai báo một tòa nhà mới với tên, địa chỉ, mô tả, tiện nghi chung, n
+[351] Cấu hình địa chỉ tòa nhà
+Người dùng có thể lựa chọn tỉnh hoặc thành phố, quận hoặc huyện, phường hoặ
+[352] Thiết lập cấu trúc tầng và phòng
+Khi tạo tòa nhà, người dùng có thể khai báo số tầng, số phòng trên 
+[353] Tạo phòng tự động
+Dựa trên cấu trúc tầng đã khai báo, hệ thống có thể tạo nhiều phòng cho tòa nhà, g
+[354] Quản lý dịch vụ và tiện nghi
+Người dùng có thể lựa chọn các dịch vụ, tiện ích và tiện nghi chung đượ
+[355] Cập nhật thông tin tòa nhà
+Cho phép chỉnh sửa tên, địa chỉ, mô tả, nội quy, tiện nghi, dịch vụ và cấ
+[356] Xóa tòa nhà
+Người dùng có quyền có thể xóa tòa nhà khỏi hệ thống sau khi xác nhận thao tác và đáp ứn
+[357] Nhập tòa nhà và phòng từ Excel
+Hệ thống cung cấp tệp mẫu, cho phép tải dữ liệu từ Excel, xem trước k
+[358] Xem chi tiết tòa nhà
+Khi chọn một tòa nhà, người dùng được chuyển đến màn hình /dashboard/toa-nha/[i
+[359] Xem sơ đồ phòng theo tầng
+Các phòng được bố trí theo từng tầng, giúp người quản lý quan sát trực qua
+[360] Lọc phòng theo trạng thái
+Trong màn hình chi tiết tòa nhà, người dùng có thể lọc phòng trống, phòng 
+[361] Xem danh sách phòng thuộc tòa nhà
+Hệ thống hiển thị toàn bộ phòng của tòa nhà kèm mã phòng, tầng, gi
+[362] Xem nhanh thông tin phòng
+Khi chọn một phòng trên sơ đồ, hệ thống hiển thị thông tin phòng, tiền cọc
+[363] 6.1.3. Hợp đồng
+[365] Hình 6.1.3: Màn hình hóa đơn
+[367] Hình 6.1.3: Màn hình chi tiết hóa đơn
+[368]   Giới thiệu chung:
+[369] Quản lý hợp đồng của EasyHouse giúp chủ trọ và quản trị viên quản lý toàn bộ quá trình thuê phòng, t
+[370]     Các chức năng chính:
+[371] Hiển thị danh sách hợp đồng
+Hiển thị các hợp đồng với mã hợp đồng, phòng, khách thuê, thời hạn, giá 
+[372] Tìm kiếm hợp đồng
+Cho phép tìm kiếm theo mã hợp đồng, tên khách thuê, phòng hoặc thông tin liên quan
+[373] Lọc hợp đồng
+Người dùng có thể lọc hợp đồng theo trạng thái như bản nháp, đang hoạt động, sắp hết hạ
+[374] Xem thống kê hợp đồng
+Màn hình tổng hợp số lượng hợp đồng, hợp đồng đang hoạt động, sắp hết hạn và c
+[375] Tạo hợp đồng mới
+Chủ trọ có thể lựa chọn phòng, khách thuê đại diện và nhập các điều khoản để lập hợ
+[376] Thiết lập thời hạn thuê
+Cho phép chọn ngày bắt đầu, ngày kết thúc hoặc thiết lập nhanh thời hạn thuê
+[377] Thiết lập thông tin tài chính
+Người dùng khai báo giá thuê theo hợp đồng, tiền đặt cọc, chu kỳ thanh
+[378] Ghi nhận chỉ số điện nước ban đầu
+Hệ thống lưu chỉ số điện và nước tại thời điểm bắt đầu thuê để làm
+[379] Quản lý dịch vụ hợp đồng
+Cho phép lựa chọn các dịch vụ đang áp dụng cho phòng hoặc tòa nhà, đồng thờ
+[380] Quản lý thành viên hợp đồng
+Người dùng có thể thêm, cập nhật hoặc xóa những khách thuê cùng ở trong 
+[381] Xem và cập nhật hợp đồng
+Màn hình chi tiết cho phép xem toàn bộ nội dung và chỉnh sửa hợp đồng khi t
+[382] Xem trước hợp đồng
+Hệ thống tạo nội dung xem trước để chủ trọ kiểm tra thông tin trước khi xác nhận 
+[383] Xác nhận hợp đồng
+Sau khi kiểm tra, chủ trọ xác nhận hợp đồng. Hệ thống khóa dữ liệu cần thiết và ch
+[384] Xuất hợp đồng PDF
+Hệ thống tạo tệp PDF từ dữ liệu hợp đồng để xem, tải xuống hoặc phục vụ ký điện tử
+[385] Ký hợp đồng điện tử
+Chủ trọ và khách thuê có thể vẽ chữ ký trực tiếp trên màn hình. Hệ thống lưu ngư
+[386] Theo dõi trạng thái ký
+Hệ thống hiển thị các trạng thái như chưa ký, chủ trọ đã ký, khách thuê đã ký
+[387] Từ chối ký hợp đồng
+Một bên có thể từ chối ký và ghi nhận lý do khi không đồng ý với nội dung hợp đồ
+[388] Gia hạn hợp đồng
+Chủ trọ có thể kéo dài ngày kết thúc và cập nhật các điều khoản liên quan cho hợp đ
+[389] Kết thúc hợp đồng
+Ghi nhận hợp đồng đã hoàn thành, lưu ngày kết thúc thực tế và cập nhật lại trạng t
+[390] Hủy hợp đồng
+Cho phép hủy hợp đồng khi hợp đồng không tiếp tục được thực hiện và ghi nhận trạng thái
+[391] Xóa hợp đồng
+Người dùng có quyền có thể xóa hợp đồng phù hợp với điều kiện nghiệp vụ sau khi xác nhậ
+[392] Liên kết hợp đồng với hóa đơn
+Hợp đồng cung cấp thông tin phòng, khách thuê, giá thuê, dịch vụ và ch
+[393] 6.1.4. Hoá đơn
+[395] Hình 6.1.4: Màn hình khách hàng
+[396]    Giới thiệu chung:
+[397] Trang quản lý hóa đơn của EasyHouse giúp chủ trọ và quản trị viên lập, theo dõi và thu các khoản tiề
+[398]   Các chức năng chính:
+[399] Hiển thị danh sách hóa đơn
+Hệ thống hiển thị mã hóa đơn, phòng, khách thuê, kỳ hóa đơn, tổng tiền, s
+[400] Tìm kiếm hóa đơn
+Cho phép tìm kiếm hóa đơn theo mã hóa đơn, tên khách thuê, phòng hoặc hợp đồng.
+[401] Lọc hóa đơn
+Người dùng có thể lọc theo tháng, năm và trạng thái thanh toán để tìm hóa đơn cần xử lý.
+[402] Xem thống kê hóa đơn
+Màn hình tổng hợp tổng số tiền cần thu, số tiền đã thu, số tiền còn nợ và số hó
+[403] Tạo hóa đơn mới
+Chủ trọ lựa chọn hợp đồng đang hoạt động, kỳ hóa đơn, thời gian sử dụng và hạn thanh
+[404] Tự động sinh mã hóa đơn
+Hệ thống hỗ trợ tạo mã hóa đơn tự động nhằm hạn chế trùng lặp và giảm thao t
+[405] Lấy thông tin từ hợp đồng
+Khi chọn hợp đồng, hệ thống tự động lấy phòng, khách thuê, giá thuê, tiền 
+[406] Ghi chỉ số điện và nước
+Người dùng nhập chỉ số điện nước đầu kỳ và cuối kỳ để tính mức tiêu thụ tron
+[407] Lấy chỉ số kỳ trước
+Hệ thống tìm chỉ số gần nhất của hợp đồng để sử dụng làm chỉ số đầu kỳ cho hóa đ
+[408] Tính tiền điện
+Tiền điện được tính dựa trên lượng điện tiêu thụ và đơn giá điện được áp dụng.
+[409] Tính tiền nước
+Tiền nước được tính dựa trên lượng nước tiêu thụ và đơn giá nước được áp dụng.
+[410] Quản lý phí dịch vụ
+Người dùng có thể thêm hoặc xóa các khoản như Internet, vệ sinh, gửi xe và những
+[411] Tự động tính tổng tiền
+Hệ thống tổng hợp tiền phòng, tiền điện, tiền nước, tiền cọc và phí dịch vụ đ
+[412] Xem chi tiết hóa đơn
+Màn hình chi tiết trình bày riêng từng khoản phí, số lượng sử dụng, đơn giá, th
+[413] Cập nhật hóa đơn
+Cho phép chỉnh sửa thông tin hóa đơn, chỉ số điện nước, phí dịch vụ, hạn thanh toán
+[414] Theo dõi trạng thái hóa đơn
+Hệ thống quản lý các trạng thái như bản nháp, chưa thanh toán, đã thanh 
+[415] Ghi nhận thanh toán
+Chủ trọ có thể chuyển đến chức năng thu tiền để ghi nhận khoản khách thuê đã tha
+[416] Cập nhật công nợ tự động
+Sau mỗi giao dịch, hệ thống cập nhật số tiền đã trả, số tiền còn nợ và trạn
+[417] Tạo hóa đơn hàng tháng
+Hệ thống hỗ trợ tạo hàng loạt hóa đơn định kỳ cho các hợp đồng đang hoạt động
+[418] Xem trước đợt tạo hóa đơn
+Trước khi tạo hàng loạt, người dùng có thể kiểm tra danh sách hợp đồng đủ 
+[419] Chia sẻ hóa đơn
+Hệ thống cung cấp đường dẫn công khai để khách thuê xem hóa đơn mà không cần truy cậ
+[420] Tải hoặc lưu hình ảnh hóa đơn
+Người dùng có thể tải hóa đơn hoặc chụp lại nội dung hóa đơn để gửi ch
+[421] Hủy hoặc xóa hóa đơn
+Chủ trọ có thể hủy hoặc xóa hóa đơn không còn hợp lệ sau khi xác nhận thao tác 
+[422] Xóa nhiều hóa đơn
+Màn hình danh sách hỗ trợ lựa chọn và xóa nhiều hóa đơn cùng lúc khi cần xử lý dữ 
+[431] 6.1.5. Thanh toán
+[433] Hình 6.1.5: Màn hình lịch của tôi
+[434]   Giới thiệu chung:
+[435] Trang thanh toán của EasyHouse giúp chủ trọ và quản trị viên ghi nhận, theo dõi và quản lý các khoản
+[436]   Các chức năng chính:
+[437] Hiển thị danh sách giao dịch
+Hệ thống hiển thị hóa đơn, khách thuê, phòng, số tiền, phương thức, thờ
+[438] Tìm kiếm giao dịch
+Cho phép tìm kiếm theo mã giao dịch, mã hóa đơn, tên khách thuê hoặc thông tin li
+[439] Lọc theo phương thức thanh toán
+Người dùng có thể lọc giao dịch theo tiền mặt, chuyển khoản ngân hàn
+[440] Lọc theo trạng thái
+Hệ thống hỗ trợ lọc các giao dịch thành công, đang chờ xử lý, đã hủy hoặc đã hoà
+[441] Lọc theo thời gian
+Người dùng có thể lựa chọn ngày bắt đầu và ngày kết thúc để tra cứu giao dịch tro
+[442] Xem thống kê thanh toán
+Màn hình tổng hợp số giao dịch thành công, tổng số tiền đã thu, giao dịch đa
+[443] Ghi nhận thanh toán mới
+Chủ trọ lựa chọn hóa đơn, nhập số tiền, phương thức, trạng thái và thông tin
+[444] Thanh toán một phần hóa đơn
+Hệ thống cho phép khách thuê thanh toán một phần. Hóa đơn được chuyển sa
+[445] Thanh toán toàn bộ hóa đơn
+Khi tổng số tiền đã trả bằng tổng tiền hóa đơn, hệ thống cập nhật hóa đơn
+[446] Chọn phương thức thanh toán
+Người dùng có thể ghi nhận thanh toán bằng tiền mặt, chuyển khoản hoặc h
+[447] Lưu mã giao dịch
+Với phương thức không dùng tiền mặt, hệ thống cho phép nhập mã tham chiếu hoặc mã g
+[448] Cập nhật giao dịch
+Cho phép chỉnh sửa hóa đơn liên kết, số tiền, phương thức, trạng thái và ghi chú 
+[449] Hủy giao dịch
+Chủ trọ có thể hủy một giao dịch không hợp lệ. Hệ thống đồng thời điều chỉnh lại số ti
+[450] Xem lịch sử thanh toán theo hóa đơn
+Một hóa đơn có thể có nhiều lần thanh toán. Hệ thống lưu đầy đủ 
+[451] Cập nhật trạng thái hóa đơn tự động
+Sau khi ghi nhận thanh toán, hệ thống tính lại số tiền đã trả và
+[452] Thanh toán trực tuyến qua VNPay
+Hệ thống tạo đường dẫn thanh toán VNPay để khách thuê thực hiện giao
+[453] Nhận kết quả từ VNPay
+Sau khi giao dịch kết thúc, VNPay gửi kết quả về hệ thống. Người dùng được chu
+[454] Đối soát giao dịch VietQR
+Màn hình đối soát hiển thị các giao dịch chuyển khoản, bao gồm số tiền, nộ
+[455] Lọc giao dịch đối soát
+Người dùng có thể xem tất cả giao dịch, giao dịch chưa đối soát hoặc giao dịc
+[456] Ghép giao dịch với hóa đơn
+Khi hệ thống chưa tự xác định được hóa đơn, chủ trọ có thể lựa chọn và gh
+[457] Xuất thông tin thanh toán
+Người dùng có thể xem chi tiết hoặc tải thông tin giao dịch phục vụ lưu tr
+[459] 6.1.6. Chat hỗ trợ
+[461] Hình 6.1.6: Màn hình doanh thu ca làm
+[462]   Giới thiệu chung: 
+[463] Chức năng tin nhắn của EasyHouse là kênh trao đổi trực tiếp giữa chủ trọ, nhân viên quản lý và khách
+[464]   Các chức năng chính:
+[465]  Hiển thị danh sách hội thoại
+Hệ thống hiển thị các cuộc trò chuyện mà người dùng đang tham gia cùng
+[466] Xem nội dung hội thoại
+Người dùng có thể mở một hội thoại để xem nội dung, người gửi và thời gian củ
+[467] Tạo hội thoại trực tiếp
+Cho phép bắt đầu cuộc trò chuyện riêng giữa hai người dùng, chẳng hạn giữa c
+[468] Tạo hội thoại nhóm
+Người dùng có thể tạo nhóm trò chuyện với nhiều thành viên để trao đổi các vấn đề
+[469] Mở kênh hỗ trợ
+Khách thuê có thể mở nhanh cuộc trò chuyện với chủ trọ hoặc ban quản lý khi cần hỗ tr
+[470] Gửi tin nhắn văn bản
+Người dùng nhập và gửi nội dung trao đổi trong hội thoại đã lựa chọn.
+[471] Nhận tin nhắn mới
+Hệ thống tải và hiển thị các tin nhắn mới trong cuộc trò chuyện.
+[472] Trả lời tin nhắn
+Người dùng có thể phản hồi một tin nhắn cụ thể để giữ đúng ngữ cảnh trao đổi.
+[473] Gửi hình ảnh và tệp đính kèm
+Hệ thống hỗ trợ tải lên và gửi hình ảnh hoặc tài liệu trong hội thoại.
+[474] Xem ảnh và tệp đã trao đổi
+Người dùng có thể xem lại danh sách hình ảnh và tệp đã được gửi trong từn
+[475] Xem các liên kết đã chia sẻ
+Hệ thống tổng hợp các đường dẫn đã xuất hiện trong cuộc trò chuyện để ng
+[476] Tìm kiếm tin nhắn
+Cho phép tìm kiếm nội dung theo từ khóa trong một hội thoại hoặc trong toàn bộ dan
+[477] Đánh dấu đã đọc
+Khi người dùng mở hội thoại, hệ thống cập nhật trạng thái đọc của các tin nhắn.
+[478] Theo dõi số tin chưa đọc
+Hệ thống thống kê số lượng tin nhắn chưa đọc để thông báo cho người dùng.
+[479] Ghim tin nhắn
+Người dùng có thể ghim những tin quan trọng để hiển thị tại khu vực đầu cuộc trò chuyệ
+[480] Bỏ ghim tin nhắn
+Tin nhắn không còn quan trọng có thể được bỏ khỏi danh sách đã ghim.
+[481] Chuyển tiếp tin nhắn
+Cho phép gửi lại một tin nhắn sang cuộc hội thoại khác.
+[482] Thu hồi tin nhắn
+Người gửi có thể thu hồi tin nhắn đã gửi khi đáp ứng điều kiện của hệ thống.
+[483] Xem chi tiết tin nhắn
+Hệ thống hiển thị người đã nhận, người đã xem và thời gian xem của một tin nhắ
+[484] Quản lý thành viên nhóm
+Người có quyền có thể thêm hoặc xóa thành viên khỏi hội thoại nhóm.
+[485] Rời khỏi hội thoại
+Thành viên có thể chủ động rời khỏi một cuộc trò chuyện nhóm.
+[486] Cập nhật thông tin hội thoại
+Cho phép thay đổi tên, thông tin hoặc các tùy chọn của hội thoại nhóm.
+[487] Đặt biệt danh thành viên
+Người dùng có thể thiết lập biệt danh cho thành viên trong cuộc trò chuyện.
+[488] Tắt thông báo hội thoại
+Cho phép tạm thời tắt thông báo của một cuộc trò chuyện trong khoảng thời gi
+[489] Xóa hội thoại
+Người dùng có thể xóa hoặc ẩn hội thoại khỏi danh sách cá nhân tùy theo quyền được cấp
+[490] Báo cáo tin nhắn vi phạm
+Người dùng có thể báo cáo tin nhắn có nội dung không phù hợp để quản trị vi
+[491] Chặn người dùng
+Cho phép chặn người dùng để hạn chế việc tiếp tục gửi tin nhắn.
+[492] Kiểm duyệt nội dung trò chuyện
+Quản trị viên có thể xem danh sách báo cáo, xử lý vi phạm và cập nhật
+[493]  6.1.7. Chat hỗ trợ
+[495] Hình 6.1.7: Màn hình chat hỗ trợ
+[497] Giới thiệu chung:
+[498] Chức năng Chat với AI của EasyHouse là trợ lý tư vấn trực tuyến, giúp khách hàng tìm phòng trọ và gi
+[499]   Các chức năng chính:
+[500] Trò chuyện bằng ngôn ngữ tự nhiên
+Người dùng có thể nhập câu hỏi bằng tiếng Việt và nhận phản hồi tr
+[501] Tìm kiếm phòng theo yêu cầu
+Khách hàng có thể yêu cầu tìm phòng theo mức giá, diện tích, địa chỉ hoặ
+[502] Sử dụng dữ liệu phòng thực tế
+Trước khi trả lời, hệ thống lấy danh sách phòng có trạng thái còn trốn
+[503] Gợi ý phòng phù hợp
+AI phân tích yêu cầu và ưu tiên đề xuất từ một đến hai phòng phù hợp nhất, tránh
+[504] Tư vấn phòng gần với yêu cầu
+Nếu không có phòng đáp ứng chính xác, AI có thể đề xuất các phòng có gi
+[505] Hiển thị thông tin phòng
+Kết quả tư vấn có thể bao gồm tên phòng, tên nhà trọ, địa chỉ, giá thuê và 
+[506] Hiển thị hình ảnh phòng
+Khi phòng có ảnh đại diện hoặc danh sách hình ảnh, trợ lý hiển thị ảnh trực 
+[507] Cung cấp liên kết xem chi tiết
+Mỗi phòng được đề xuất có thể kèm liên kết đến trang /phong/[id] để k
+[508] Giải đáp thông tin dịch vụ
+Trợ lý có thể trả lời các câu hỏi cơ bản về giá điện, giá nước và thông t
+[509] Giải đáp về hệ thống EasyHouse
+AI có thể giới thiệu chức năng và kiến trúc của dự án, gồm frontend N
+[510] Duy trì ngữ cảnh hội thoại
+Các tin nhắn trước đó trong phiên hiện tại được gửi cùng câu hỏi mới, giú
+[511] Câu hỏi gợi ý nhanh
+Giao diện cung cấp các lựa chọn như “Tìm phòng” và “Giá phòng” để người dùng bắt
+[512] Hỗ trợ định dạng nội dung
+Câu trả lời có thể sử dụng chữ in đậm, danh sách, hình ảnh và liên kết để 
+[513] Hiển thị trạng thái xử lý
+Trong lúc chờ phản hồi, giao diện hiển thị trạng thái “Đang suy nghĩ” và h
+[514] Tự động cuộn đến tin nhắn mới
+Khi có câu trả lời mới, cửa sổ trò chuyện tự động di chuyển đến nội du
+[515] Xử lý lỗi kết nối
+Nếu chưa cấu hình khóa Gemini hoặc xảy ra lỗi kết nối, hệ thống hiển thị thông báo
+[517] 6.2. Vai trò khách thuê
+[518] 6.2.1. Trang chủ
+[520] Hình 6.3.1: Giao diện trang chủ.
+[521] Giới thiệu chung:
+[522] Trang chủ khách thuê là màn hình tổng quan dành riêng cho người thuê phòng trong hệ thống EasyHouse.
+[523] Thông tin trên trang chủ được cá nhân hóa theo tài khoản khách thuê. Hệ thống chỉ hiển thị các phòng
+[524] Các chức năng chính:
+[525] Hiển thị lời chào cá nhân
+Trang chủ hiển thị tên khách thuê và thông tin chào mừng sau khi đăng nhập
+[526] Hiển thị trạng thái tổng quan
+Hệ thống xác định và hiển thị trạng thái quan trọng như:
+[527] Đang thuê phòng.
+[528] Có nợ cần thanh toán.
+[529] Có sự cố chờ xử lý.
+[530] Chưa có phòng đang thuê.
+[531] Xem phòng đang thuê
+Hiển thị mã phòng và tòa nhà mà khách thuê đang ở. Nếu khách thuê có nhiều hợp đ
+[532] Xem hợp đồng hiện tại
+Trang chủ trình bày thông tin cơ bản của hợp đồng đang hoạt động như mã hợp đồ
+[533] Truy cập chi tiết hợp đồng
+Khách thuê có thể chuyển nhanh đến màn hình hợp đồng để xem điều khoản, t
+[534] Xem số hóa đơn chưa thanh toán
+Hệ thống thống kê số lượng hóa đơn mà khách thuê chưa thanh toán hoặc
+[535] Xem hóa đơn gần nhất
+Trang chủ hiển thị mã hóa đơn, kỳ thanh toán, tổng tiền, hạn thanh toán và trạn
+[536] Thanh toán hóa đơn nhanh
+Nếu hóa đơn gần nhất chưa thanh toán hoặc đã quá hạn, khách thuê có thể chọ
+[537] Xem số sự cố đang mở
+Hệ thống hiển thị số lượng sự cố của khách thuê đang chờ tiếp nhận hoặc đang đư
+[538] Gửi báo cáo sự cố
+Lối tắt “Gửi sự cố” giúp khách thuê nhanh chóng chuyển đến màn hình khai báo hư hỏ
+[539] Xem thông tin liên hệ quản lý
+Trang chủ hiển thị họ tên, số điện thoại và email của người quản lý để
+[540] Gọi điện cho quản lý
+Khách thuê có thể nhấn vào số điện thoại để thực hiện cuộc gọi trực tiếp trên t
+[541] Truy cập nhanh danh sách phòng
+Chức năng “Tổng quan các phòng” đưa khách thuê đến khu vực xem và tìm
+[542] Truy cập nhanh hóa đơn
+Cho phép chuyển trực tiếp đến danh sách toàn bộ hóa đơn của khách thuê.
+[543] Truy cập nhanh hợp đồng
+Cho phép mở danh sách hợp đồng và theo dõi trạng thái hợp đồng hiện tại.
+[544] Truy cập tài khoản cá nhân
+Khách thuê có thể chuyển đến màn hình hồ sơ để cập nhật thông tin, ảnh đạ
+[545] Điều hướng đến thông báo và tin nhắn
+Thông qua menu khách thuê, người dùng có thể xem thông báo và t
+[555] 6.2.2. Hợp đồng khách thuê
+[557] Hình 6.3.2: Giao diện trang cửa hàng.
+[559] Giới thiệu chung:
+[560] Trang hợp đồng khách thuê giúp người thuê theo dõi các hợp đồng có liên quan trực tiếp đến tài khoản
+[561] Các chức năng chính:
+Xem danh sách hợp đồng
+Hệ thống hiển thị toàn bộ hợp đồng có liên quan đến khác
+[562] Xem trạng thái hợp đồng
+Khách thuê có thể theo dõi hợp đồng ở trạng thái bản nháp, đang hoạt động, s
+[563] Xem thông tin phòng thuê
+Hiển thị mã phòng, tòa nhà và thông tin phòng liên kết với hợp đồng.
+[564] Xem thời hạn thuê
+Hệ thống hiển thị ngày bắt đầu và ngày kết thúc của từng hợp đồng.
+[565] Xem giá thuê
+Khách thuê có thể kiểm tra mức giá thuê phòng được thỏa thuận theo tháng.
+[566] Xem tiền đặt cọc
+Màn hình hiển thị số tiền cọc và trạng thái xử lý tiền cọc của hợp đồng.
+[567] Xem dịch vụ áp dụng
+Khách thuê có thể kiểm tra các dịch vụ đi kèm, đơn giá và cách tính phí.
+[568] Xem chi tiết hợp đồng
+Khi chọn một hợp đồng, hệ thống hiển thị đầy đủ thông tin và điều khoản đã thỏ
+[569] Xem hợp đồng PDF
+Tài liệu hợp đồng được hiển thị trực tiếp trên màn hình để khách thuê đọc và kiểm t
+[570] Tải hợp đồng
+Nếu tài liệu không hiển thị trực tiếp, khách thuê có thể mở hoặc tải tệp PDF về thiết b
+[571] Theo dõi trạng thái ký
+Hệ thống hiển thị các trạng thái:
+[572] Chưa ký.
+[573] Chủ trọ đã ký, chờ khách thuê.
+[574] Khách thuê đã ký, chờ chủ trọ.
+[575] Hai bên đã ký hoàn tất.
+[576] Hợp đồng bị từ chối ký.
+[577] Ký hợp đồng điện tử
+Khách thuê có thể vẽ chữ ký trực tiếp trên màn hình và xác nhận sử dụng chữ ký đ
+[578] Vẽ lại chữ ký
+Nếu chữ ký chưa chính xác, khách thuê có thể xóa và thực hiện ký lại trước khi xác nhậ
+[579] Từ chối ký hợp đồng
+Khách thuê có thể từ chối ký nếu không đồng ý với nội dung hoặc điều khoản trong
+[580] Nhập lý do từ chối
+Khi từ chối, khách thuê phải nhập lý do để chủ trọ biết và điều chỉnh hợp đồng nế
+[581] Xem lịch sử chữ ký
+Hệ thống hiển thị tên người ký, vai trò, thời gian ký và thiết bị hoặc trình duyệ
+[582] Theo dõi hợp đồng hiện tại
+Hợp đồng đang hoạt động được sử dụng để xác định phòng khách thuê đang ở,
+[584] 6.3.3. Hoá đơn
+[586] Hình 6.3.3: Giao diện mục giảm giá.
+[587] Giới thiệu chung:
+[588] hóa đơn khách thuê giúp người thuê theo dõi các khoản chi phí phát sinh trong quá trình sử dụng phòn
+[589] Các chức năng chính:
+[590] Xem danh sách hóa đơn
+Hệ thống hiển thị các hóa đơn thuộc tài khoản khách thuê đang đăng nhập.
+[591] Xem mã và kỳ hóa đơn
+Mỗi hóa đơn hiển thị mã nhận diện cùng tháng, năm hoặc khoảng thời gian tính ph
+[592] Xem thông tin phòng
+Khách thuê có thể xác định phòng và hợp đồng phát sinh hóa đơn.
+[593] Xem hạn thanh toán
+Hệ thống hiển thị ngày cuối cùng khách thuê cần hoàn thành việc thanh toán.
+[594] Theo dõi trạng thái hóa đơn
+Các trạng thái chính gồm:
+[595] Chưa thanh toán.
+[596] Đã thanh toán một phần.
+[597] Đã thanh toán.
+[598] Quá hạn.
+[599] Đã hủy.
+[600] Xem tổng tiền hóa đơn
+Hiển thị tổng số tiền khách thuê cần thanh toán trong kỳ.
+[601] Xem số tiền đã trả
+Khách thuê có thể theo dõi tổng số tiền đã được hệ thống ghi nhận.
+[602] Xem số tiền còn nợ
+Hệ thống tính phần chênh lệch giữa tổng tiền hóa đơn và số tiền đã thanh toán.
+[603] Xem chi tiết các khoản thu
+Hóa đơn trình bày riêng từng khoản phí để khách thuê kiểm tra.
+[604] Xem tiền phòng
+Hiển thị số tiền thuê phòng theo mức giá được thỏa thuận trong hợp đồng.
+[605] Xem tiền điện
+Khách thuê có thể kiểm tra lượng điện tiêu thụ, đơn giá và thành tiền.
+[606] Xem tiền nước
+Hiển thị lượng nước sử dụng, đơn giá và số tiền phải trả.
+[607] Xem phí dịch vụ
+Hệ thống liệt kê các khoản như Internet, vệ sinh, gửi xe hoặc dịch vụ khác.
+[608] Xem chi tiết hóa đơn
+Khách thuê có thể mở một hóa đơn để xem toàn bộ thông tin và các khoản phí.
+[609] Thanh toán trực tuyến qua VNPay
+Nếu hóa đơn chưa được thanh toán đầy đủ, khách thuê có thể yêu cầu h
+[610] Nhận kết quả thanh toán
+Sau khi giao dịch kết thúc, khách thuê được chuyển đến màn hình thông báo kế
+[611] Thanh toán một phần
+Hệ thống hỗ trợ ghi nhận nhiều giao dịch cho một hóa đơn cho đến khi khách thuê 
+[612] Xem lịch sử giao dịch
+Màn hình chi tiết hiển thị các lần thanh toán đã phát sinh đối với hóa đơn.
+[613] Xem trạng thái giao dịch
+Khách thuê có thể kiểm tra giao dịch đã thành công, đang chờ xử lý, thất bạ
+[614] Nhận cảnh báo hóa đơn quá hạn
+Hóa đơn quá hạn được hiển thị bằng trạng thái và màu sắc nổi bật để kh
+[615] 6.3.4. Chat hỗ trợ
+[617] Hình 6.3.4: Giao diện trang liên hệ.
+[618] Giới thiệu chung:
+[619] Trang Chat hỗ trợ là kênh trao đổi trực tiếp giữa khách thuê với chủ trọ hoặc ban quản lý trong hệ t
+[620] Các chức năng chính:
+[621] Mở kênh hỗ trợ nhanh
+Khách thuê có thể nhấn nút hỗ trợ để tạo hoặc mở lại cuộc trò chuyện với ban qu
+[622] Xem danh sách hội thoại
+Hiển thị các cuộc trò chuyện mà khách thuê đang tham gia cùng nội dung tin n
+[623] Gửi tin nhắn văn bản
+Khách thuê có thể nhập và gửi nội dung cần hỗ trợ đến chủ trọ hoặc nhân viên qu
+[624] Nhận phản hồi từ ban quản lý
+Các câu trả lời của người quản lý được hiển thị trong cùng cuộc hội tho
+[625] Gửi hình ảnh
+Khách thuê có thể gửi ảnh hóa đơn, ảnh sự cố hoặc những hình ảnh liên quan đến yêu cầu 
+[626] Gửi tệp đính kèm
+Hệ thống hỗ trợ gửi tài liệu và các tệp cần thiết trong cuộc trò chuyện.
+[627] Trả lời tin nhắn cụ thể
+Người dùng có thể phản hồi một tin nhắn để làm rõ nội dung đang trao đổi.
+[628] Theo dõi trạng thái gửi
+Hệ thống hiển thị trạng thái đang gửi, gửi thành công hoặc gửi thất bại.
+[629] Đánh dấu đã đọc
+Khi người dùng mở cuộc trò chuyện, các tin nhắn mới được cập nhật thành đã đọc.
+[630] Theo dõi tin chưa đọc
+Số lượng tin nhắn chưa đọc được hiển thị để người dùng không bỏ lỡ phản hồi.
+[631] Tìm kiếm hội thoại
+Cho phép tìm cuộc trò chuyện theo tên hoặc thông tin người tham gia.
+[632] Tìm kiếm tin nhắn
+Khách thuê có thể tìm lại nội dung đã trao đổi theo từ khóa.
+[633] Ghim hội thoại
+Cuộc trò chuyện hỗ trợ quan trọng có thể được ghim lên đầu danh sách.
+[634] Ghim tin nhắn
+Những nội dung quan trọng như hướng dẫn thanh toán hoặc lịch sửa chữa có thể được ghim
+[635] Chuyển tiếp tin nhắn
+Người dùng có thể chuyển một tin nhắn sang cuộc hội thoại khác khi cần.
+[636] Thu hồi tin nhắn
+Người gửi có thể thu hồi tin nhắn do mình gửi khi phát hiện nhầm lẫn.
+[637] Xem chi tiết tin nhắn
+Hệ thống cung cấp thông tin về thời gian gửi và trạng thái người nhận đã xem.
+[638] Xem ảnh, tệp và liên kết đã gửi
+Người dùng có thể xem lại các hình ảnh, tài liệu và liên kết xuất hi
+[639] Tắt thông báo hội thoại
+Cho phép tạm thời ngừng nhận thông báo từ một cuộc hội thoại.
+[640] Báo cáo nội dung vi phạm
+Người dùng có thể báo cáo tin nhắn không phù hợp để quản trị viên kiểm tra 
+[641] PHỤ LỤC A: ĐẶC TẢ USE CASE
+[642] Bảng A: Ký hiệu sơ đồ UseCase.
+[643] Use case bán hàng tại quầy
+[645] Hình A.1.1: Use case bán hàng tại quầy.
+[646] Bảng A.1: Use case bán hàng tại quầy.
+[648] Hình A.1.2: Activity diagram bán hàng tại quầy.
+[650] Use case bán hàng online
+[652] Hình A.2.1: Use case bán hàng online.
+[653] Bảng A.2: Use case bán hàng online.
+[655] Hình A.2.2: Activity diagram bán hàng online.
+[656] Use case quản lý giỏ hàng
+[658] Hình A.3.1: Use case quản lý giỏ hàng.
+[659] Bảng A.3: Use case quản lý giỏ hàng.
+[661] Hình A.3.2: Activitiy digram quản lý giỏ hàng.
+[663] Use case tài khoản
+[665] Hình A.4.1: Use case quản lý tài khoản.
+[666] Bảng A.4: Use case quản lý tài khoản.
+[668] Hình A.4.2: Activitiy digram quản lý tài khoản.
+[670] Use case quản lý sản phẩm, biến thể
+[672] Hình A.5.1: Use case quản lý sản phẩm, biến thể.
+[673] Bảng A.5: Use case quản lý sản phẩm, biến thể.
+[675] Hình A.5.2: Activity diagram quản lý sản phẩm, biến thể.
+[676] Use case quản lý nhân viên
+[678] Hình A.6.1: Use case quản lý nhân viên.
+[679] Bảng A.6: Use case quản lý nhân viên.
+[681] Hình A.6.2: Activitiy digram quản lý nhân viên.
+[683] Use case quản lý khách hàng
+[685] Hình A.7.1: Use case quản lý khách hàng.
+[686] Bảng A.7: Use case quản lý khách hàng.
+[688] Hình A.7.2: Activitiy digram quản lý khách hàng.
+[689] Use case quản lý phiếu giảm giá
+[691] Hình A.8.1: Use case quản lý phiếu giảm giá.
+[692] Bảng A.8: Use case quản lý phiếu giảm giá.
+[694] Hình A.8.2: Activitiy digram quản lý phiếu giảm giá.
+[696] Use case quản lý hóa đơn
+[698] Hình A.9.1: Use case quản lý hóa đơn.
+[699] Bảng A.9: Use case quản lý hóa đơn.
+[701] Hình A.9.2: Activitiy digram quản lý hóa đơn.
+[702] PHỤ LỤC B: ĐẶC TẢ BẢNG
+[704] Hình B.1: ERD.
+[706] Bảng B.1: Bảng sản phẩm.
+[709] Bảng B.2: Bảng sản phẩm chi tiết.
+[711] Bảng B.3: Bảng nhân viên.
+[713] Bảng B.4: Bảng khách hàng.
+[715] Bảng B.5: Bảng ảnh chi tiết sản phẩm.
+[717] Bảng B.6: Bảng ảnh ca làm việc.
+[719] Bảng B.7: Bảng chất liệu.
+[720] Bảng B.8: Bảng client password reset otp.
+[722] Bảng B.9: Bảng conversations.
+[724] Bảng B.10: Bảng conversationsbackup before migrate.
+[726] Bảng B.11: Bảng địa chỉ khách hàng.
+[729] Bảng B.12: Bảng fit.
+[731] Bảng B.13: Bảng giao dịch thanh toán.
+[732] Bảng B.14: Bảng hóa đơn.
+[734] Bảng B.15: Bảng hóa đơn chi tiết.
+[736] Bảng B.16: Bảng kích cỡ.
+[738] Bảng B.17: Bảng kiểu túi.
+[740] Bảng B.18: Bảng lịch làm việc.
+[742] Bảng B.19: Bảng lịch sử hóa đơn.
+[744] Bảng B.20: Bảng lịch sử thanh toán.
+[746] Bảng B.21: Bảng loại sản phẩm.
+[749] Bảng B.22: Bảng màu sắc.
+[751] Bảng B.23: Bảng media asset.
+[753] Bảng B.24: Bảng message product suggestion.
+[755] Bảng B.25: Bảng messages.
+[757] Bảng B.26: Bảng messages backup before migrate.
+[759] Bảng B.27: Bảng password reset otp.
+[761] Bảng B.28: Bảng phiên ca.
+[763] Bảng B.29: Bảng phiếu giảm giá.
+[765] Bảng B.30: Bảng phiếu giảm giá cá nhân.
+[767] Bảng B.31: Bảng phương thức thanh toán.
+[769] Bảng B.32: Bảng quyền hạn.
+[771] Bảng B.33: Bảng số khuy.
+[773] Bảng B.34: Bảng thương hiệu.
+[775] Bảng B.35: Bảng ve áo.
+[777] Bảng B.36: Bảng xẻ tà.
+[779] Bảng B.37: Bảng xuất xứ.
