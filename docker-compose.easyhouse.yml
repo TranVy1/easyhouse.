@@ -26,6 +26,11 @@ services:
       - ./sql/migrations/20260722_add_chat_search.sql:/docker-entrypoint-initdb.d/06-chat-search.sql:ro
       - ./sql/migrations/20260804_share_support_with_admins.sql:/docker-entrypoint-initdb.d/07-share-support-admins.sql:ro
       - ./sql/migrations/20260801_expand_refresh_token.sql:/docker-entrypoint-initdb.d/08-expand-refresh-token.sql:ro
+      # Yeu cau huy/gia han hop dong + bien ban ban giao ky dien tu.
+      # Phu thuoc quyet_toan_tra_phong (co trong seed) va chi_tiet_ban_giao_tai_san
+      # (KHONG co trong seed, xem 20260814_asset_handover.sql) nen mount ca hai.
+      - ./sql/migrations/20260814_asset_handover.sql:/docker-entrypoint-initdb.d/09-asset-handover.sql:ro
+      - ./sql/migrations/20260818_yeu_cau_hop_dong_va_bien_ban_ban_giao.sql:/docker-entrypoint-initdb.d/10-yeu-cau-hop-dong.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s

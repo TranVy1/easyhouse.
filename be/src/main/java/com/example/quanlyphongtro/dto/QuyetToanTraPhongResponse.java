@@ -29,6 +29,13 @@ public class QuyetToanTraPhongResponse {
     private String ghiChu;
     private List<ChiTietBanGiaoTaiSanResponse> taiSanBanGiao;
 
+    // --- Bien ban ban giao ---
+    private String bienBanTrangThai;
+    private String bienBanPdfUrl;
+    private ZonedDateTime benAKyLuc;
+    private ZonedDateTime benBKyLuc;
+    private String gioBanGiao;
+
     public static QuyetToanTraPhongResponse fromEntity(QuyetToanTraPhong entity, HoaDonResponse hoaDon) {
         return QuyetToanTraPhongResponse.builder()
                 .id(entity.getId())
@@ -45,6 +52,12 @@ public class QuyetToanTraPhongResponse {
                 .hoanCocLuc(entity.getHoanCocLuc())
                 .hoanTatLuc(entity.getHoanTatLuc())
                 .ghiChu(entity.getGhiChu())
+                .bienBanTrangThai(entity.getBienBanTrangThai() != null
+                        ? entity.getBienBanTrangThai().name() : null)
+                .bienBanPdfUrl(entity.getBienBanPdfUrl())
+                .benAKyLuc(entity.getBenAKyLuc())
+                .benBKyLuc(entity.getBenBKyLuc())
+                .gioBanGiao(entity.getGioBanGiao())
                 .build();
     }
 }

@@ -16,5 +16,8 @@ public class BanGiaoTaiSanRequest {
         private String chungTuUrl;
         private String ghiChu;
         private Boolean daXacNhan;
+        /** Muc tien de xuat khau tru vao tien coc cho tai san nay. */
+        private java.math.BigDecimal mucKhauTru;
+        private String lyDoKhauTru;
     }
 }

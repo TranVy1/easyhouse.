@@ -45,6 +45,8 @@ public class HopDongController {
 
     private final HopDongService hopDongService;
     private final QuyetToanTraPhongService quyetToanTraPhongService;
+    private final com.example.quanlyphongtro.services.YeuCauHopDongService yeuCauHopDongService;
+    private final com.example.quanlyphongtro.services.BienBanBanGiaoService bienBanBanGiaoService;
     private final ContractDocumentService contractDocumentService;
     private final HopDongRepository hopDongRepository;
     private final PermissionService permissionService;
@@ -177,6 +179,60 @@ public class HopDongController {
             @RequestBody com.example.quanlyphongtro.dto.BoSungThongTinRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
                 contractDocumentService.boSungThongTin(id, request), "Đã bổ sung thông tin hợp đồng"));
+    }
+
+    /**
+     * Bien ban ban giao khi tra phong. Stream truc tiep tu backend nhu hop dong,
+     * khong tra URL Cloudinary tran.
+     */
+    @GetMapping("/{id}/bien-ban-ban-giao")
+    public ResponseEntity<?> getBienBanBanGiao(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "pdf") String format,
+            @RequestParam(required = false) Integer download) {
+        UUID currentUserId = permissionService.requireCurrentUserId();
+        String maHopDong = bienBanBanGiaoService.kiemTraQuyenDoc(id, currentUserId);
+
+        if ("html".equalsIgnoreCase(format)) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.valueOf("text/html;charset=UTF-8"))
+                    .body(bienBanBanGiaoService.renderHtml(id));
+        }
+
+        byte[] pdf = bienBanBanGiaoService.renderPdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String disposition = (download != null && download == 1) ? "attachment" : "inline";
+        headers.setContentDisposition(ContentDisposition.builder(disposition)
+                .filename("bien-ban-ban-giao-" + maHopDong + ".pdf")
+                .build());
+        return ResponseEntity.ok().headers(headers).body(pdf);
+    }
+
+    /** Ky bien ban ban giao. vaiTro: BEN_A (chu tro) hoac BEN_B (khach thue). */
+    @PostMapping("/{id}/bien-ban-ban-giao/ky")
+    public ResponseEntity<ApiResponse<QuyetToanTraPhongResponse>> kyBienBanBanGiao(
+            @PathVariable UUID id,
+            @RequestBody com.example.quanlyphongtro.dto.KyBienBanRequest request) {
+        bienBanBanGiaoService.ky(id, request.getVaiTro(), request.getChuKyBase64());
+        return ResponseEntity.ok(ApiResponse.success(
+                quyetToanTraPhongService.getByHopDong(id), "Đã ký biên bản bàn giao"));
+    }
+
+    /** Khach thue gui yeu cau huy hoac gia han hop dong nay. */
+    @PostMapping("/{id}/yeu-cau")
+    public ResponseEntity<ApiResponse<com.example.quanlyphongtro.dto.YeuCauHopDongResponse>> taoYeuCau(
+            @PathVariable UUID id,
+            @jakarta.validation.Valid @RequestBody com.example.quanlyphongtro.dto.YeuCauHopDongRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                yeuCauHopDongService.tao(id, request), "Đã gửi yêu cầu, vui lòng chờ chủ trọ duyệt"));
+    }
+
+    /** Lich su yeu cau cua hop dong nay. */
+    @GetMapping("/{id}/yeu-cau")
+    public ResponseEntity<ApiResponse<List<com.example.quanlyphongtro.dto.YeuCauHopDongResponse>>> dsYeuCau(
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(yeuCauHopDongService.theoHopDong(id)));
     }
 
     @GetMapping("/{id}/signatures")

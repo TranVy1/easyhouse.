@@ -60,6 +60,24 @@ public class QuyetToanTraPhong {
     private ZonedDateTime kiemTraLuc;
     private ZonedDateTime hoanTatLuc;
     private String ghiChu;
+
+    // --- Bien ban ban giao (ky dien tu hai ben) ---
+    // Ben A = chu tro (ben NHAN ban giao), Ben B = khach thue (ben BAN GIAO),
+    // dung theo mau "Bien ban ban giao nha cho thue".
+    private String bienBanPdfUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bien_ban_trang_thai", nullable = false, length = 20)
+    private TrangThaiBienBanBanGiao bienBanTrangThai = TrangThaiBienBanBanGiao.CHUA_LAP;
+
+    private ZonedDateTime benAKyLuc;
+    private ZonedDateTime benBKyLuc;
+    private String benAChuKyUrl;
+    private String benBChuKyUrl;
+
+    /** "Viec ban giao ket thuc vao luc .... h cung ngay" trong mau bien ban. */
+    private String gioBanGiao;
+
     private ZonedDateTime taoLuc;
     private ZonedDateTime capNhatLuc;
 }

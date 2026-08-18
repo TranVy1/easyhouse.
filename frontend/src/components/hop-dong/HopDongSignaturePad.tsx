@@ -24,6 +24,13 @@ interface HopDongSignaturePadProps {
   accessToken?: string;
   title?: string;
   description?: string;
+  /**
+   * Endpoint nhan chu ky. Mac dinh la ky hop dong thue.
+   * Truyen vao de dung lai pad nay cho bien ban ban giao.
+   */
+  endpoint?: string;
+  /** Dung than request rieng khi endpoint co contract khac. */
+  buildBody?: (signatureBase64: string) => Record<string, unknown>;
 }
 
 export function HopDongSignaturePad({
@@ -36,6 +43,8 @@ export function HopDongSignaturePad({
   accessToken,
   title,
   description,
+  endpoint,
+  buildBody,
 }: HopDongSignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -145,19 +154,23 @@ export function HopDongSignaturePad({
 
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/hop-dong/${hopDongId}/sign`, {
+      const response = await fetch(endpoint || `/api/hop-dong/${hopDongId}/sign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        body: JSON.stringify({
-          signerId: signerId || undefined,
-          role,
-          signatureBase64,
-          ipAddress: '127.0.0.1',
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Browser',
-        }),
+        body: JSON.stringify(
+          buildBody
+            ? buildBody(signatureBase64)
+            : {
+              signerId: signerId || undefined,
+              role,
+              signatureBase64,
+              ipAddress: '127.0.0.1',
+              userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Browser',
+            },
+        ),
       });
 
       const result = await response.json().catch(() => ({}));

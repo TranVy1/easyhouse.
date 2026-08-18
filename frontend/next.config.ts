@@ -106,6 +106,15 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/hop-dong/:path*`
       },
       {
+        // Hang doi duyet yeu cau huy / gia han hop dong.
+        source: '/api/yeu-cau-hop-dong',
+        destination: `${backendUrl}/api/yeu-cau-hop-dong`
+      },
+      {
+        source: '/api/yeu-cau-hop-dong/:path*',
+        destination: `${backendUrl}/api/yeu-cau-hop-dong/:path*`
+      },
+      {
         source: '/api/dich-vu',
         destination: `${backendUrl}/api/dich-vu`
       },

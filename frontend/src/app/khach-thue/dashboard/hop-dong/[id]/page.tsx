@@ -34,8 +34,11 @@ import {
   Network,
   History,
   Loader2,
-  Zap
+  Zap,
+  FileSignature
 } from 'lucide-react';
+import { YeuCauHopDongPanel } from '@/components/hop-dong/YeuCauHopDongPanel';
+import { BienBanBanGiaoViewer } from '@/components/hop-dong/BienBanBanGiaoViewer';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
@@ -49,6 +52,8 @@ export default function TenantContractDetailPage() {
 
   const [contract, setContract] = useState<any | null>(null);
   const [signatures, setSignatures] = useState<any[]>([]);
+  // Quyet toan tra phong: null khi hop dong chua den buoc tra phong.
+  const [quyetToan, setQuyetToan] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -81,6 +86,14 @@ export default function TenantContractDetailPage() {
       if (sigData.success) {
         setSignatures(sigData.data || []);
       }
+
+      // Quyet toan tra phong: hop dong chua den buoc nay thi backend bao loi,
+      // day la truong hop binh thuong nen chi de null.
+      const qtRes = await fetch(`/api/hop-dong/${hopDongId}/quyet-toan-tra-phong`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const qtData = await qtRes.json().catch(() => ({}));
+      setQuyetToan(qtRes.ok && qtData?.success ? qtData.data : null);
     } catch (error) {
       console.error(error);
       toast.error('Lỗi khi tải thông tin hợp đồng');
@@ -263,6 +276,42 @@ export default function TenantContractDetailPage() {
               void fetchContractData();
             }}
           />
+
+          {/* Bien ban ban giao khi tra phong: chi hien khi da co quyet toan */}
+          {quyetToan && (
+            <div className="space-y-3 pt-4 border-t">
+              <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
+                <FileSignature className="h-5 w-5 text-[#4FA7A0]" />
+                Biên bản bàn giao khi trả phòng
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Kiểm tra kỹ hiện trạng tài sản và số tiền khấu trừ trước khi ký. Đây là căn cứ
+                để chốt tiền đặt cọc.
+              </p>
+              <BienBanBanGiaoViewer
+                hopDongId={hopDongId}
+                maHopDong={contract.maHopDong}
+                bienBanTrangThai={quyetToan.bienBanTrangThai}
+                vaiTro="BEN_B"
+                accessToken={accessToken}
+                onSigned={() => { void fetchContractData(); }}
+              />
+            </div>
+          )}
+
+          {/* Yeu cau huy / gia han hop dong */}
+          <div className="space-y-3 pt-4 border-t">
+            <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
+              <FileSignature className="h-5 w-5 text-[#4FA7A0]" />
+              Yêu cầu hủy / gia hạn hợp đồng
+            </h3>
+            <YeuCauHopDongPanel
+              hopDongId={hopDongId}
+              trangThaiHopDong={contract.trangThai}
+              accessToken={accessToken}
+              onChanged={() => { void fetchContractData(); }}
+            />
+          </div>
 
           {/* Nhật ký ký số */}
           <div className="space-y-3 pt-4 border-t">

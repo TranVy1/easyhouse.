@@ -142,6 +142,13 @@ public class QuyetToanTraPhongService {
         if (!Boolean.TRUE.equals(request.getVeSinhKiemTraXong())) {
             throw new RuntimeException("Phòng chỉ được chuyển Trống sau khi vệ sinh và kiểm tra hoàn tất");
         }
+        // Bien ban ban giao co chu ky hai ben la CAN CU phap ly cho viec tru tien
+        // coc va boi thuong khau hao tai san. Khong co no thi moi khoan khau tru
+        // deu khong chung minh duoc khi tranh chap, nen chan tai day.
+        if (quyetToan.getBienBanTrangThai() != TrangThaiBienBanBanGiao.HOAN_TAT) {
+            throw new RuntimeException("Cần lập và ký biên bản bàn giao (đủ chữ ký hai bên) "
+                    + "trước khi hoàn tất trả phòng");
+        }
 
         ZonedDateTime now = ZonedDateTime.now();
         if (Boolean.TRUE.equals(request.getDaHoanCoc())) quyetToan.setHoanCocLuc(now);
@@ -204,8 +211,29 @@ public class QuyetToanTraPhongService {
             snapshot.setGhiChu(trimToNull(item.getGhiChu()));
             snapshot.setDaXacNhan(true);
             snapshot.setXacNhanLuc(ZonedDateTime.now());
+
+            // Muc khau tru la can cu tru tien coc nen bat buoc phai co ly do,
+            // neu khong thi khong giai trinh duoc voi khach khi tranh chap.
+            BigDecimal khauTru = item.getMucKhauTru() != null ? item.getMucKhauTru() : BigDecimal.ZERO;
+            if (khauTru.signum() < 0) {
+                throw new RuntimeException("Mức khấu trừ không được âm");
+            }
+            if (khauTru.signum() > 0 && (item.getLyDoKhauTru() == null || item.getLyDoKhauTru().isBlank())) {
+                throw new RuntimeException("Tài sản " + snapshot.getTenTaiSan()
+                        + " có khấu trừ thì phải ghi rõ lý do");
+            }
+            snapshot.setMucKhauTru(khauTru);
+            snapshot.setLyDoKhauTru(trimToNull(item.getLyDoKhauTru()));
         }
         chiTietBanGiaoRepository.saveAll(snapshots);
+
+        // Kiem ke xong thi bien ban san sang cho hai ben ky. Khong tu nhay trang
+        // thai neu bien ban da co chu ky, tranh xoa mat vet ky truoc do.
+        if (quyetToan.getBienBanTrangThai() == TrangThaiBienBanBanGiao.CHUA_LAP) {
+            quyetToan.setBienBanTrangThai(TrangThaiBienBanBanGiao.CHO_KY);
+            quyetToanRepository.save(quyetToan);
+        }
+
         logAudit(quyetToan, "CONFIRM_ASSET_HANDOVER");
         return toResponse(quyetToan);
     }

@@ -1,6 +1,8 @@
 'use client';
 
 import { HopDongDocumentViewer } from '@/components/hop-dong/HopDongDocumentViewer';
+import { BienBanBanGiaoViewer } from '@/components/hop-dong/BienBanBanGiaoViewer';
+import { FileSignature } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
@@ -119,6 +121,8 @@ export default function ChinhSuaHopDongPage() {
   // New esign states
   const [activeTab, setActiveTab] = useState<string>("info");
   const [signatures, setSignatures] = useState<any[]>([]);
+  // Quyet toan tra phong: chua trang thai bien ban ban giao.
+  const [quyetToan, setQuyetToan] = useState<any | null>(null);
   const [loadingSig, setLoadingSig] = useState<boolean>(false);
   const [generatingPdf, setGeneratingPdf] = useState<boolean>(false);
   const [signing, setSigning] = useState<boolean>(false);
@@ -330,6 +334,23 @@ export default function ChinhSuaHopDongPage() {
     }
   };
 
+  /**
+   * Tai quyet toan tra phong. Hop dong chua den buoc tra phong thi backend tra
+   * loi — day la truong hop binh thuong, chi de quyetToan = null.
+   */
+  const fetchQuyetToan = async () => {
+    if (!accessToken || !hopDongId) return;
+    try {
+      const res = await fetch(`/api/hop-dong/${hopDongId}/quyet-toan-tra-phong`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const data = await res.json().catch(() => ({}));
+      setQuyetToan(res.ok && data?.success ? data.data : null);
+    } catch {
+      setQuyetToan(null);
+    }
+  };
+
   const fetchSignatures = async () => {
     if (!accessToken || !hopDongId) return;
     setLoadingSig(true);
@@ -352,6 +373,7 @@ export default function ChinhSuaHopDongPage() {
     if (hopDongId && accessToken) {
       fetchData();
       fetchSignatures();
+      fetchQuyetToan();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, hopDongId]);
@@ -781,7 +803,7 @@ export default function ChinhSuaHopDongPage() {
 
       {/* Form & Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="info" className="flex items-center gap-2">
             <FileCheck2 className="h-4 w-4" />
             Thông tin hợp đồng
@@ -789,6 +811,10 @@ export default function ChinhSuaHopDongPage() {
           <TabsTrigger value="esign" className="flex items-center gap-2">
             <PenTool className="h-4 w-4" />
             Văn bản & Ký điện tử
+          </TabsTrigger>
+          <TabsTrigger value="ban-giao" className="flex items-center gap-2">
+            <FileSignature className="h-4 w-4" />
+            Bàn giao & Trả phòng
           </TabsTrigger>
         </TabsList>
 
@@ -1436,6 +1462,31 @@ export default function ChinhSuaHopDongPage() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="ban-giao" className="space-y-4">
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="p-4 md:p-6 pb-0">
+            <CardTitle className="text-lg md:text-xl font-bold text-[#243B5A] flex items-center gap-2">
+              <FileSignature className="h-5 w-5 text-[#4FA7A0]" />
+              Biên bản bàn giao & Trả phòng
+            </CardTitle>
+            <CardDescription>
+              Căn cứ để trừ tiền cọc và bồi thường khấu hao tài sản. Quyết toán chỉ hoàn tất
+              được khi biên bản có đủ chữ ký hai bên.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 space-y-6">
+            <BienBanBanGiaoViewer
+              hopDongId={hopDongId}
+              maHopDong={hopDong?.maHopDong}
+              bienBanTrangThai={quyetToan?.bienBanTrangThai}
+              vaiTro="BEN_A"
+              accessToken={accessToken}
+              onSigned={() => { void fetchQuyetToan(); }}
+            />
           </CardContent>
         </Card>
       </TabsContent>
