@@ -42,7 +42,8 @@ import {
   Building2,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Layers,
 } from 'lucide-react';
 import {
   Carousel,
@@ -60,6 +61,7 @@ import { DeleteConfirmPopover } from '@/components/ui/delete-confirm-popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { unwrapPageData } from '@/lib/api-response';
+import { BatchRoomDialog } from './BatchRoomDialog';
 
 type PhongTenant = {
   _id: string;
@@ -86,6 +88,7 @@ export default function PhongPage() {
   const [selectedTrangThai, setSelectedTrangThai] = useState(searchParams.get('trangThai') || '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPhong, setEditingPhong] = useState<Phong | null>(null);
+  const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [viewingImages, setViewingImages] = useState<string[]>([]);
   const [viewingPhongName, setViewingPhongName] = useState('');
@@ -332,6 +335,15 @@ export default function PhongPage() {
             <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{isRefreshing ? 'Đang tải...' : 'Tải mới'}</span>
           </HeroActionButton>
+          
+          <Button
+            variant="secondary"
+            className="h-11 rounded-xl border border-[#243B5A]/12 bg-[#FFFCF7] px-5 text-sm font-semibold text-[#243B5A] shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#4FA7A0]/40 hover:bg-white hover:text-[#243B5A] hover:shadow-md active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-[#4FA7A0]/20"
+            onClick={() => setIsBatchOpen(true)}
+          >
+            <Layers className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tạo hàng loạt</span>
+          </Button>
 
           <FolderImageUploader
             toaNhaList={toaNhaList}
@@ -1016,6 +1028,18 @@ export default function PhongPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isBatchOpen && (
+        <BatchRoomDialog
+          open={isBatchOpen}
+          onOpenChange={setIsBatchOpen}
+          onSuccess={() => {
+            fetchData();
+          }}
+          toaNhas={toaNhaList}
+          accessToken={session?.accessToken || ""}
+        />
+      )}
     </div>
   );
 }

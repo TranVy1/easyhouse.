@@ -405,6 +405,7 @@ export default function ThemMoiHopDongPage() {
     const start = new Date(startDate);
     const end = new Date(start);
     end.setMonth(end.getMonth() + months);
+    end.setDate(end.getDate() - 1);
     return end.toISOString().split('T')[0];
   };
 

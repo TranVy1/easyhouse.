@@ -36,15 +36,21 @@ public class PhongController {
      * Lookup a room by name (supports fuzzy: "101" matches "Phòng 101").
      * Used by the bulk folder-image upload feature.
      */
-    @GetMapping("/lookup-by-name")
-    public ApiResponse<Map<String, Object>> lookupByName(
-            @RequestParam("nhaTroId") UUID nhaTroId,
-            @RequestParam("tenPhong") String tenPhong) {
-        try {
-            return ApiResponse.success(phongService.lookupPhongByName(nhaTroId, tenPhong));
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    @GetMapping("/{nhaTroId}/lookup")
+    public ApiResponse<java.util.Map<String, Object>> lookupPhongByName(
+            @PathVariable UUID nhaTroId,
+            @RequestParam String tenPhong) {
+        return ApiResponse.success(phongService.lookupPhongByName(nhaTroId, tenPhong));
+    }
+
+    @PostMapping("/batch/preview")
+    public ApiResponse<com.example.quanlyphongtro.dto.PhongBatchResponse> previewBatchPhong(@Valid @RequestBody com.example.quanlyphongtro.dto.PhongBatchRequest req) {
+        return ApiResponse.success(phongService.previewBatchPhong(req));
+    }
+
+    @PostMapping("/batch")
+    public ApiResponse<com.example.quanlyphongtro.dto.PhongBatchResponse> createBatchPhong(@Valid @RequestBody com.example.quanlyphongtro.dto.PhongBatchRequest req) {
+        return ApiResponse.success(phongService.createBatchPhong(req));
     }
 
     @GetMapping("/nha-tro/{nhaTroId}")

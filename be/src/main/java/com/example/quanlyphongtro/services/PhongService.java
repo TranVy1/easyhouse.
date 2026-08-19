@@ -375,4 +375,92 @@ public class PhongService {
             return result;
         });
     }
+
+    public com.example.quanlyphongtro.dto.PhongBatchResponse previewBatchPhong(com.example.quanlyphongtro.dto.PhongBatchRequest req) {
+        NhaTro nt = nhaTroRepository.findById(req.getNhaTroId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        assertCanWrite(nt, permissionService.requireCurrentUserId());
+
+        int count = req.getEnd() - req.getStart() + 1;
+        if (count <= 0 || count > 100) {
+            throw new RuntimeException("Số lượng phòng tạo một lần phải từ 1 đến 100");
+        }
+
+        java.util.List<String> skipped = new java.util.ArrayList<>();
+        java.util.List<String> canCreate = new java.util.ArrayList<>();
+
+        for (int i = req.getStart(); i <= req.getEnd(); i++) {
+            String tenPhong = req.getPrefix() + i;
+            if (phongRepository.existsByNhaTroIdAndTen(nt.getId(), tenPhong)) {
+                skipped.add(tenPhong);
+            } else {
+                canCreate.add(tenPhong);
+            }
+        }
+
+        return com.example.quanlyphongtro.dto.PhongBatchResponse.builder()
+                .totalRequested(count)
+                .totalCreated(canCreate.size())
+                .totalSkipped(skipped.size())
+                .createdRooms(canCreate)
+                .skippedRooms(skipped)
+                .reason(skipped.isEmpty() ? null : "đã tồn tại")
+                .build();
+    }
+
+    @Transactional
+    public com.example.quanlyphongtro.dto.PhongBatchResponse createBatchPhong(com.example.quanlyphongtro.dto.PhongBatchRequest req) {
+        NhaTro nt = nhaTroRepository.findById(req.getNhaTroId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
+        assertCanWrite(nt, permissionService.requireCurrentUserId());
+
+        int count = req.getEnd() - req.getStart() + 1;
+        if (count <= 0 || count > 100) {
+            throw new RuntimeException("Số lượng phòng tạo một lần phải từ 1 đến 100");
+        }
+
+        java.util.List<String> skipped = new java.util.ArrayList<>();
+        java.util.List<String> created = new java.util.ArrayList<>();
+
+        com.example.quanlyphongtro.entity.Tang tangEntity = resolveTang(nt.getId(), req.getTangId(), req.getTang());
+        TrangThaiPhong tt = parseTrangThai(req.getTrangThai());
+        if (tt == null) tt = TrangThaiPhong.AVAILABLE;
+
+        for (int i = req.getStart(); i <= req.getEnd(); i++) {
+            String tenPhong = req.getPrefix() + i;
+            if (phongRepository.existsByNhaTroIdAndTen(nt.getId(), tenPhong)) {
+                skipped.add(tenPhong);
+                continue;
+            }
+            
+            Phong p = Phong.builder()
+                    .nhaTro(nt)
+                    .ten(tenPhong)
+                    .khuVuc(req.getKhuVuc())
+                    .tang(req.getTang())
+                    .tangEntity(tangEntity)
+                    .dienTich(req.getDienTich() != null ? req.getDienTich() : java.math.BigDecimal.ZERO)
+                    .giaHienTai(req.getGiaHienTai() != null ? req.getGiaHienTai() : java.math.BigDecimal.ZERO)
+                    .tienCocMacDinh(req.getTienCocMacDinh() != null ? req.getTienCocMacDinh() : java.math.BigDecimal.ZERO)
+                    .moTa(req.getMoTa())
+                    .soNguoiToiDa(req.getSoNguoiToiDa() != null ? req.getSoNguoiToiDa() : 2)
+                    .trangThai(tt)
+                    .build();
+            
+            Phong saved = phongRepository.saveAndFlush(p);
+            if (req.getTienNghi() != null && !req.getTienNghi().isEmpty()) {
+                tienIchService.replacePhongTienIch(saved.getId(), req.getTienNghi().stream().map(UUID::toString).collect(java.util.stream.Collectors.toList()));
+            }
+            created.add(tenPhong);
+        }
+
+        return com.example.quanlyphongtro.dto.PhongBatchResponse.builder()
+                .totalRequested(count)
+                .totalCreated(created.size())
+                .totalSkipped(skipped.size())
+                .createdRooms(created)
+                .skippedRooms(skipped)
+                .reason(skipped.isEmpty() ? null : "đã tồn tại")
+                .build();
+    }
 }

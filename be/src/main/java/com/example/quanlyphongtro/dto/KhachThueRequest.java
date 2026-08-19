@@ -14,6 +14,8 @@ public class KhachThueRequest {
     // nen he thong nhan ca so dien thoai 12 chu so nhu 037472938332.
     private UUID nguoiDungId;  // Optional link to existing NguoiDung
     private UUID chuTroId;     // Required: owner
+
+    @jakarta.validation.constraints.NotBlank(message = "Họ tên không được để trống")
     private String hoTen;
 
     @Email(message = "Email không đúng định dạng")

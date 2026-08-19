@@ -51,7 +51,7 @@ public class KhachThueService {
         }
         
         String filterTrangThai = (trangThai == null || trangThai.isBlank() || trangThai.equals("all")) ? null : trangThai;
-        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : "";
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<KhachThue> pageResult = khachThueRepository.findAllAccessible(
@@ -105,6 +105,9 @@ public class KhachThueService {
 
     @Transactional
     public KhachThueResponse createKhachThue(KhachThueRequest req) {
+        if (req.getHoTen() == null || req.getHoTen().trim().isEmpty()) {
+            throw new RuntimeException("Họ tên không được để trống");
+        }
         UUID userId = permissionService.requireCurrentUserId();
         NguoiDung owner = resolveOwnerForCreate(req, userId);
 
@@ -166,7 +169,12 @@ public class KhachThueService {
                 .orElseThrow(() -> new RuntimeException("Khong tim thay khach thue"));
         assertCanWrite(kt, findActiveContract(id), permissionService.requireCurrentUserId());
 
-        if (req.getHoTen() != null) kt.setHoTen(req.getHoTen());
+        if (req.getHoTen() != null) {
+            if (req.getHoTen().trim().isEmpty()) {
+                throw new RuntimeException("Họ tên không được để trống");
+            }
+            kt.setHoTen(req.getHoTen());
+        }
         if (req.getSoDienThoai() != null) kt.setSoDienThoai(req.getSoDienThoai());
         if (req.getEmail() != null) kt.setEmail(req.getEmail());
         String soCccd = firstNonBlank(req.getSoCccd(), req.getCccd());
@@ -219,7 +227,7 @@ public class KhachThueService {
         assertCanWrite(kt, findActiveContract(id), permissionService.requireCurrentUserId());
         kt.setXoaLuc(ZonedDateTime.now());
         khachThueRepository.save(kt);
-        // Vô hiệu hóa tài khoản đăng nhập liên kết, tránh người đã bị xóa vẫn đăng nhập được.
+        // VÃ´ hiá»‡u hÃ³a tÃ i khoáº£n Ä‘Äƒng nháº­p liÃªn káº¿t, trÃ¡nh ngÆ°á»i Ä‘Ã£ bá»‹ xÃ³a váº«n Ä‘Äƒng nháº­p Ä‘Æ°á»£c.
         if (kt.getNguoiDung() != null) {
             NguoiDung nguoiDung = kt.getNguoiDung();
             nguoiDung.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiNguoiDung.INACTIVE);
@@ -393,3 +401,4 @@ public class KhachThueService {
         return null;
     }
 }
+

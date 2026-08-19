@@ -755,6 +755,9 @@ export default function ChiSoDienNuocPage() {
               <div className="space-y-2">
                 <Label>Chỉ số mới</Label>
                 <Input type="number" min={0} value={formData.chiSoMoi} onChange={(event) => setFormData((current) => ({ ...current, chiSoMoi: Number(event.target.value) }))} />
+                {formData.chiSoMoi < formData.chiSoCu && (
+                  <p className="text-xs text-red-500 mt-1">⚠️ Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Tiêu thụ</Label>

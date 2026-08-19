@@ -18,6 +18,7 @@ public interface NhaTroRepository extends JpaRepository<NhaTro, UUID> {
     List<NhaTro> findByChuTroIdAndXoaLucIsNull(UUID chuTroId);
     List<NhaTro> findByXoaLucIsNullOrderByTaoLucDesc();
     Optional<NhaTro> findByIdAndXoaLucIsNull(UUID id);
+    boolean existsByTenAndDiaChiAndXoaLucIsNull(String ten, String diaChi);
 
     @Query("""
             SELECT n.chuTro.id
@@ -31,10 +32,10 @@ public interface NhaTroRepository extends JpaRepository<NhaTro, UUID> {
                                              @Param("trangThai") TrangThaiNguoiDung trangThai);
     
     @Query("SELECT n FROM NhaTro n WHERE n.xoaLuc IS NULL AND (:isAdmin = true OR n.id IN :nhaTroIds) " +
-           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(n.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
-           "OR LOWER(COALESCE(n.diaChi, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
-           "OR LOWER(COALESCE(n.phuong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
-           "OR LOWER(COALESCE(n.quan, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
+           "AND (:search = '' OR LOWER(COALESCE(n.ten, '')) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(COALESCE(n.diaChi, '')) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(COALESCE(n.phuong, '')) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(COALESCE(n.quan, '')) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<NhaTro> findAllAccessible(
             @Param("isAdmin") boolean isAdmin,
             @Param("nhaTroIds") List<UUID> nhaTroIds,

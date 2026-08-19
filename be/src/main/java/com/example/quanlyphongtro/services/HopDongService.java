@@ -1020,6 +1020,9 @@ public class HopDongService {
     }
 
     private void validateRoomCanContract(Phong phong, TrangThaiHopDong trangThai) {
+        if (phong != null && phong.getTrangThai() == TrangThaiPhong.RENTED) {
+            throw new RuntimeException("Phòng đang được thuê, không thể tạo hợp đồng mới");
+        }
         if (phong == null || phong.getXoaLuc() != null) {
             throw new RuntimeException("Phòng không tồn tại hoặc đã bị xóa");
         }

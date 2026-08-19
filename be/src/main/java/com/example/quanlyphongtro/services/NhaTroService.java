@@ -64,7 +64,7 @@ public class NhaTroService {
             }
         }
 
-        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : null;
+        String normalizedSearch = search != null && !search.isBlank() ? search.trim() : "";
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<NhaTro> pageResult = nhaTroRepository.findAllAccessible(isAdmin, nhaTroIds, normalizedSearch, pageable);
         
@@ -96,6 +96,11 @@ public class NhaTroService {
         NguoiDung currentUser = nguoiDungRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung hien tai"));
 
+        String fullDiaChi = buildFullDiaChi(request.getDiaChi());
+        if (request.getTenToaNha() != null && nhaTroRepository.existsByTenAndDiaChiAndXoaLucIsNull(request.getTenToaNha().trim(), fullDiaChi)) {
+            throw new RuntimeException("Đã tồn tại tòa nhà với tên và địa chỉ này trong hệ thống");
+        }
+
         NhaTro nt = new NhaTro();
         nt.setChuTro(currentUser);
         mapRequestToEntity(request, nt);
@@ -110,6 +115,16 @@ public class NhaTroService {
         NhaTro nt = nhaTroRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         assertCanWrite(nt, permissionService.requireCurrentUserId());
+
+        if (request.getTenToaNha() != null || request.getDiaChi() != null) {
+            String newTen = request.getTenToaNha() != null ? request.getTenToaNha().trim() : nt.getTen();
+            String newDiaChi = request.getDiaChi() != null ? buildFullDiaChi(request.getDiaChi()) : nt.getDiaChi();
+            if ((!newTen.equals(nt.getTen()) || !newDiaChi.equals(nt.getDiaChi()))
+                    && nhaTroRepository.existsByTenAndDiaChiAndXoaLucIsNull(newTen, newDiaChi)) {
+                throw new RuntimeException("Đã tồn tại tòa nhà với tên và địa chỉ này trong hệ thống");
+            }
+        }
+
         mapRequestToEntity(request, nt);
         NhaTro saved = nhaTroRepository.save(nt);
         if (request.getDichVuList() != null) {
@@ -124,7 +139,7 @@ public class NhaTroService {
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nha tro"));
         assertCanWrite(nt, permissionService.requireCurrentUserId());
         if (phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(id, TrangThaiPhong.RENTED) > 0) {
-            throw new RuntimeException("Khong the xoa nha tro vi dang co phong co nguoi thue");
+            throw new RuntimeException("Không thể xóa tòa nhà vì đang có phòng ở trạng thái đang thuê (có hợp đồng hoạt động)");
         }
         
         ZonedDateTime now = ZonedDateTime.now();
@@ -277,19 +292,7 @@ public class NhaTroService {
             nt.setTienNghiChung(String.join(",", request.getTienNghiChung()));
         }
         if (request.getDiaChi() != null) {
-            String soNha = request.getDiaChi().getSoNha() != null ? request.getDiaChi().getSoNha() : "";
-            String duong = request.getDiaChi().getDuong() != null ? request.getDiaChi().getDuong() : "";
-            String phuong = request.getDiaChi().getPhuong() != null ? ", " + request.getDiaChi().getPhuong() : "";
-            String quan = request.getDiaChi().getQuan() != null ? ", " + request.getDiaChi().getQuan() : "";
-            String thanhPho = request.getDiaChi().getThanhPho() != null ? ", " + request.getDiaChi().getThanhPho() : "";
-            
-            String fullDiaChi = (soNha + " " + duong).trim();
-            if (fullDiaChi.isEmpty()) {
-                String extended = (phuong + quan + thanhPho).replaceAll("^, ", "").trim();
-                fullDiaChi = extended.isEmpty() ? "Chưa cập nhật" : extended;
-            } else {
-                fullDiaChi = fullDiaChi + phuong + quan + thanhPho;
-            }
+            String fullDiaChi = buildFullDiaChi(request.getDiaChi());
             
             nt.setDiaChi(fullDiaChi);
             nt.setSoNha(request.getDiaChi().getSoNha());
@@ -298,6 +301,24 @@ public class NhaTroService {
             nt.setQuan(request.getDiaChi().getQuan());
             nt.setThanhPho(request.getDiaChi().getThanhPho());
         }
+    }
+
+    private String buildFullDiaChi(NhaTroRequest.DiaChiRequest diaChiReq) {
+        if (diaChiReq == null) return "";
+        String soNha = diaChiReq.getSoNha() != null ? diaChiReq.getSoNha() : "";
+        String duong = diaChiReq.getDuong() != null ? diaChiReq.getDuong() : "";
+        String phuong = diaChiReq.getPhuong() != null ? ", " + diaChiReq.getPhuong() : "";
+        String quan = diaChiReq.getQuan() != null ? ", " + diaChiReq.getQuan() : "";
+        String thanhPho = diaChiReq.getThanhPho() != null ? ", " + diaChiReq.getThanhPho() : "";
+        
+        String fullDiaChi = (soNha + " " + duong).trim();
+        if (fullDiaChi.isEmpty()) {
+            String extended = (phuong + quan + thanhPho).replaceAll("^, ", "").trim();
+            fullDiaChi = extended.isEmpty() ? "Chưa cập nhật" : extended;
+        } else {
+            fullDiaChi = fullDiaChi + phuong + quan + thanhPho;
+        }
+        return fullDiaChi;
     }
 
     private void validateLocation(BigDecimal viDo, BigDecimal kinhDo) {

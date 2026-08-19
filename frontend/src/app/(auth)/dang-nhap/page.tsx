@@ -26,8 +26,8 @@ import {
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.string().email('Email không hợp lệ'),
-  matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  email: z.string().trim().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+  matKhau: z.string().trim().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -57,6 +57,7 @@ export default function LoginPage() {
   }, []);
 
   const onSubmit = async (data: LoginForm) => {
+    if (isLoading) return;
     setIsLoading(true);
     setError('');
 
@@ -106,7 +107,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Login submit error:', err);
-      setError('Đã xảy ra lỗi, vui lòng thử lại');
+      setError('Email hoặc mật khẩu không đúng');
     } finally {
       setIsLoading(false);
     }
