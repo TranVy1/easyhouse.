@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net" modified="2026-08-19T07:25:00.000Z" agent="Antigravity" version="24.7.5">
+  <diagram id="usecase_quan_ly_khach_thue" name="Use Case Quản lý khách thuê">
+    <mxGraphModel dx="1150" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;«Web Application»&lt;/b&gt;&lt;br&gt;&lt;b style=&quot;font-size: 15px;&quot;&gt;Website Quản lý nhà trọ EasyHouse&lt;/b&gt;" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="560" height="540" as="geometry" />
+        </mxCell>
+
+        <!-- Actor: Chủ trọ -->
+        <mxCell id="actor" value="Chủ trọ" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2.2;fontSize=15;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="275" width="75" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Abstract Parent Use Case -->
+        <mxCell id="uc_parent" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý khách thuê&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 14px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="560" y="110" width="190" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Child Use Cases -->
+        <mxCell id="uc_read" value="&lt;b&gt;Xem danh sách&lt;br&gt;khách thuê&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_create" value="&lt;b&gt;Thêm mới khách thuê&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="285" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_update" value="&lt;b&gt;Cập nhật thông tin&lt;br&gt;khách thuê&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="385" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_delete" value="&lt;b&gt;Xóa thông tin&lt;br&gt;khách thuê&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="485" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Associations (Actor to Child Use Cases) -->
+        <mxCell id="assoc_read" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_read">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="assoc_create" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_create">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="assoc_update" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="assoc_delete" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_delete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Generalizations (Child Use Cases to Parent {abstract} Use Case) -->
+        <mxCell id="gen_read" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_read" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="608" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="gen_create" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.45;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_create" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="646" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="gen_update" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.65;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_update" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="684" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="gen_delete" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_delete" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="722" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

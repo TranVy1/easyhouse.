@@ -131,7 +131,7 @@ for fk in fk_list:
 
 print(f"Parsed {len(tables)} tables and {len(fk_list)} relationships.")
 
-# 2. Table Theme Colors (Domain-based header colors for visual clarity)
+# 2. Table Theme Colors (Domain-based header colors)
 table_domain_colors = {
     # Blue: User & Auth
     'nguoi_dung': '#0288D1', 'vai_tro': '#0288D1', 'nguoi_dung_vai_tro': '#0288D1', 'chu_tro': '#0288D1',
@@ -167,7 +167,7 @@ table_domain_colors = {
     'bao_cao_tin_nhan': '#6A1B9A', 'file_media': '#6A1B9A'
 }
 
-# 3. Compact 8-Column Layout (Organically arranged near related tables, NO outer boxes)
+# 3. Compact 8-Column Layout
 columns_layout = [
     # Col 0: Security & Auth Tokens (8)
     ['vai_tro', 'nguoi_dung_vai_tro', 'chan_nguoi_dung', 'dang_ky_push', 'refresh_token', 'email_verification_token', 'login_history', 'audit_log'],
@@ -194,50 +194,51 @@ columns_layout = [
     ['thong_bao_nguoi_nhan', 'notification_delivery', 'cuoc_tro_chuyen', 'thanh_vien_cuoc_tro_chuyen', 'tin_nhan', 'bao_cao_tin_nhan', 'file_media']
 ]
 
-# 4. Helper to select columns for table card
+# Map table -> col_idx, row_idx
+table_col_map = {}
+for col_i, col_t in enumerate(columns_layout):
+    for row_i, t in enumerate(col_t):
+        table_col_map[t] = (col_i, row_i)
+
 def get_selected_cols(tname):
     cols = tables.get(tname, [])
     selected = []
-    # 1. PK
     for c in cols:
         if c['is_pk']:
             selected.append(c)
-    # 2. FK
     for c in cols:
         if c['is_fk'] and c not in selected:
             selected.append(c)
-    # 3. UQ
     for c in cols:
         if c['is_unique'] and c not in selected:
             selected.append(c)
-    # 4. Key business cols
     priority_keywords = ['ma_', 'ten', 'ho_ten', 'email', 'so_dien_thoai', 'so_cccd', 'trang_thai', 'loai', 'so_tien', 'tong_tien', 'gia_', 'tien_', 'ngay_', 'don_gia', 'chi_so_', 'tieu_thu', 'bien_so', 'tieu_de', 'status']
     for kw in priority_keywords:
         for c in cols:
             if c not in selected and kw in c['name'] and c['name'] not in ['xoa_luc', 'cap_nhat_luc', 'metadata']:
                 selected.append(c)
-    # 5. Remaining cols up to max 10
     for c in cols:
         if c not in selected and c['name'] not in ['xoa_luc', 'cap_nhat_luc', 'metadata', 'user_agent', 'ip_address']:
             selected.append(c)
     return selected[:10]
 
-# Calculate layout coordinates
-TABLE_WIDTH = 260
+# Expanded spacing to allow clean non-colliding channel routing
+TABLE_WIDTH = 270
 ROW_HEIGHT = 18
 HEADER_HEIGHT = 30
 PADDING_Y = 14
-GAP_X = 54
-GAP_Y = 22
-MARGIN_X = 50
-MARGIN_Y = 50
+GAP_X = 90       # 90px clean vertical alley between columns
+GAP_Y = 32       # 32px gap between rows
+MARGIN_X = 80    # Outer left/right margin
+MARGIN_TOP = 140 # Top Highway margin for cross-column routing (y: 40 to 120)
+MARGIN_BOT = 140 # Bottom Highway margin for cross-column routing
 
 table_positions = {}
 table_dimensions = {}
 
 for col_idx, col_tables in enumerate(columns_layout):
     current_x = MARGIN_X + col_idx * (TABLE_WIDTH + GAP_X)
-    current_y = MARGIN_Y
+    current_y = MARGIN_TOP
     for tname in col_tables:
         cols = get_selected_cols(tname)
         t_height = HEADER_HEIGHT + len(cols) * ROW_HEIGHT + PADDING_Y
@@ -247,35 +248,57 @@ for col_idx, col_tables in enumerate(columns_layout):
 
 CANVAS_WIDTH = MARGIN_X * 2 + len(columns_layout) * TABLE_WIDTH + (len(columns_layout) - 1) * GAP_X
 MAX_Y = max(y + table_dimensions[t][1] for t, (x, y) in table_positions.items())
-CANVAS_HEIGHT = MAX_Y + MARGIN_Y
+CANVAS_HEIGHT = MAX_Y + MARGIN_BOT
 
 print(f"Canvas size: {CANVAS_WIDTH} x {CANVAS_HEIGHT}")
 
-# 5. Generate Clean Draw.io XML without outer group containers
+# Multi-lane Highway slot allocator to prevent line overlaps
+top_lane_allocator = {}
+bot_lane_allocator = {}
+channel_lane_allocator = {}
+
+def get_top_lane(src_col, tgt_col):
+    key = tuple(sorted([src_col, tgt_col]))
+    idx = top_lane_allocator.get(key, len(top_lane_allocator))
+    top_lane_allocator[key] = idx
+    # Distribute lanes between Y=45 and Y=115
+    return 45 + (idx % 8) * 9
+
+def get_bot_lane(src_col, tgt_col):
+    key = tuple(sorted([src_col, tgt_col]))
+    idx = bot_lane_allocator.get(key, len(bot_lane_allocator))
+    bot_lane_allocator[key] = idx
+    # Distribute lanes below MAX_Y
+    return MAX_Y + 35 + (idx % 8) * 10
+
+def get_channel_x(col_left, offset_idx=0):
+    # Center of vertical channel between col_left and col_left + 1
+    base_x = MARGIN_X + col_left * (TABLE_WIDTH + GAP_X) + TABLE_WIDTH + GAP_X / 2
+    shift = ((offset_idx % 5) - 2) * 12
+    return base_x + shift
+
+# 4. Generate Draw.io XML with non-colliding routing waypoints
 def generate_drawio_xml():
     xml_parts = []
     xml_parts.append('<?xml version="1.0" encoding="UTF-8"?>')
-    xml_parts.append('<mxfile host="app.diagrams.net" modified="2026-08-18T12:00:00.000Z" agent="EasyHouse ERD Generator" version="24.0.0" type="device">')
-    xml_parts.append('  <diagram id="easyhouse_erd_diagram" name="EasyHouse Database ERD">')
-    xml_parts.append(f'    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="{CANVAS_WIDTH+100}" pageHeight="{CANVAS_HEIGHT+100}" math="0" shadow="0">')
+    xml_parts.append('<mxfile host="app.diagrams.net" modified="2026-08-19T00:00:00.000Z" agent="EasyHouse Clean ERD" version="24.0.0" type="device">')
+    xml_parts.append('  <diagram id="easyhouse_clean_erd" name="EasyHouse Database ERD">')
+    xml_parts.append(f'    <mxGraphModel dx="2800" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="{CANVAS_WIDTH+100}" pageHeight="{CANVAS_HEIGHT+100}" math="0" shadow="0">')
     xml_parts.append('      <root>')
     xml_parts.append('        <mxCell id="0" />')
     xml_parts.append('        <mxCell id="1" parent="0" />')
 
-    # 5.1 Table Entities (Directly on canvas, no outer boxes)
+    # Tables
     for tname, (tx, ty) in table_positions.items():
         tw, th = table_dimensions[tname]
         cols = get_selected_cols(tname)
         hcolor = table_domain_colors.get(tname, '#455A64')
         
-        # HTML label for table
         rows_html = []
         rows_html.append(f'<div style="background-color:{hcolor};color:#FFFFFF;font-weight:bold;padding:5px 8px;border-radius:3px;font-size:12px;letter-spacing:0.3px;text-align:center;font-family:Segoe UI,sans-serif;">{html.escape(tname)}</div>')
         rows_html.append('<table style="width:100%;border-collapse:collapse;margin-top:4px;font-family:Consolas,Courier New,monospace;font-size:10px;line-height:1.35;">')
         
         for c in cols:
-            badge = ''
-            badge_style = ''
             if c['is_pk']:
                 badge = 'PK'
                 badge_style = 'color:#D32F2F;font-weight:bold;'
@@ -322,7 +345,7 @@ def generate_drawio_xml():
             f'</mxCell>'
         )
 
-    # 5.2 FK Edges (Connectors)
+    # Clean Non-Colliding Orthogonal Routing Edges
     edge_idx = 1
     for fk in fk_list:
         src_tbl = fk['source_table']
@@ -331,30 +354,125 @@ def generate_drawio_xml():
         if src_tbl not in table_positions or tgt_tbl not in table_positions:
             continue
             
-        hcolor = table_domain_colors.get(src_tbl, '#607D8B')
-        is_1to1 = fk.get('is_one_to_one', False)
+        sx, sy = table_positions[src_tbl]
+        sw, sh = table_dimensions[src_tbl]
+        tx, ty = table_positions[tgt_tbl]
+        tw, th = table_dimensions[tgt_tbl]
         
-        # Styles
+        scol, srow = table_col_map[src_tbl]
+        tcol, trow = table_col_map[tgt_tbl]
+        
+        is_1to1 = fk.get('is_one_to_one', False)
+        hcolor = table_domain_colors.get(src_tbl, '#546E7A')
+        
+        # Calculate waypoints to bypass intermediate tables completely
+        points = []
+        
+        # Case A: Same Column (e.g. tang -> nha_tro, phong -> tang)
+        if scol == tcol:
+            # Route through the right-side vertical alley
+            chan_x = sx + sw + 20 + (edge_idx % 4) * 8
+            start_y = sy + 25 + (edge_idx % 3) * 10
+            end_y = ty + 25 + (edge_idx % 3) * 10
+            exit_port = f"exitX=1;exitY=0.3;exitDx=0;exitDy=0;"
+            entry_port = f"entryX=1;entryY=0.3;entryDx=0;entryDy=0;"
+            points.append((chan_x, start_y))
+            points.append((chan_x, end_y))
+            
+        # Case B: Adjacent Columns (e.g. col 1 -> col 0, or col 1 -> col 2)
+        elif abs(scol - tcol) == 1:
+            if scol < tcol:
+                # Source on left, Target on right
+                chan_x = get_channel_x(scol, edge_idx)
+                exit_port = f"exitX=1;exitY=0.45;exitDx=0;exitDy=0;"
+                entry_port = f"entryX=0;entryY=0.45;entryDx=0;entryDy=0;"
+                start_y = sy + sh * 0.45
+                end_y = ty + th * 0.45
+                points.append((chan_x, start_y))
+                points.append((chan_x, end_y))
+            else:
+                # Source on right, Target on left
+                chan_x = get_channel_x(tcol, edge_idx)
+                exit_port = f"exitX=0;exitY=0.45;exitDx=0;exitDy=0;"
+                entry_port = f"entryX=1;entryY=0.45;entryDx=0;entryDy=0;"
+                start_y = sy + sh * 0.45
+                end_y = ty + th * 0.45
+                points.append((chan_x, start_y))
+                points.append((chan_x, end_y))
+                
+        # Case C: Far Columns (|scol - tcol| >= 2, e.g. Col 7/6/5 -> Col 1 nguoi_dung / nha_tro)
+        else:
+            # Route cleanly via Top North Highway or Bottom South Highway (0 table collision!)
+            use_top = (srow + trow) <= 6
+            if use_top:
+                highway_y = get_top_lane(scol, tcol)
+                # If target is on left (scol > tcol)
+                if scol > tcol:
+                    chan_src = sx - 15 - (edge_idx % 3) * 6
+                    chan_tgt = tx + tw + 15 + (edge_idx % 3) * 6
+                    exit_port = f"exitX=0;exitY=0.2;exitDx=0;exitDy=0;"
+                    entry_port = f"entryX=1;entryY=0.2;entryDx=0;entryDy=0;"
+                else:
+                    chan_src = sx + sw + 15 + (edge_idx % 3) * 6
+                    chan_tgt = tx - 15 - (edge_idx % 3) * 6
+                    exit_port = f"exitX=1;exitY=0.2;exitDx=0;exitDy=0;"
+                    entry_port = f"entryX=0;entryY=0.2;entryDx=0;entryDy=0;"
+                
+                points.append((chan_src, sy + 20))
+                points.append((chan_src, highway_y))
+                points.append((chan_tgt, highway_y))
+                points.append((chan_tgt, ty + 20))
+            else:
+                highway_y = get_bot_lane(scol, tcol)
+                if scol > tcol:
+                    chan_src = sx - 15 - (edge_idx % 3) * 6
+                    chan_tgt = tx + tw + 15 + (edge_idx % 3) * 6
+                    exit_port = f"exitX=0;exitY=0.8;exitDx=0;exitDy=0;"
+                    entry_port = f"entryX=1;entryY=0.8;entryDx=0;entryDy=0;"
+                else:
+                    chan_src = sx + sw + 15 + (edge_idx % 3) * 6
+                    chan_tgt = tx - 15 - (edge_idx % 3) * 6
+                    exit_port = f"exitX=1;exitY=0.8;exitDx=0;exitDy=0;"
+                    entry_port = f"entryX=0;entryY=0.8;entryDx=0;entryDy=0;"
+                
+                points.append((chan_src, sy + sh - 20))
+                points.append((chan_src, highway_y))
+                points.append((chan_tgt, highway_y))
+                points.append((chan_tgt, ty + th - 20))
+
+        # Edge Style with jumpStyle=arc to show clean line hops instead of intersections
         if is_1to1:
             edge_style = (
-                f"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;"
+                f"edgeStyle=orthogonalEdgeStyle;rounded=1;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;"
+                f"{exit_port}{entry_port}"
                 f"startArrow=ERmandOne;startFill=0;endArrow=ERone;endFill=0;"
                 f"strokeColor=#EA580C;strokeWidth=2;dashed=0;fontSize=9;fontStyle=1;fontColor=#BF360C;"
             )
             edge_label = f"1:1 ({fk['source_cols'][0]})"
         else:
             edge_style = (
-                f"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;"
+                f"edgeStyle=orthogonalEdgeStyle;rounded=1;jumpStyle=arc;jumpSize=5;orthogonalLoop=1;jettySize=auto;html=1;"
+                f"{exit_port}{entry_port}"
                 f"startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;"
                 f"strokeColor={hcolor};strokeWidth=1.2;fontSize=9;fontColor=#455A64;"
             )
             edge_label = fk['source_cols'][0]
             
         escaped_edge_label = html.escape(edge_label, quote=True)
+        
+        pts_xml = ""
+        if points:
+            pts_xml = '            <Array as="points">\n'
+            for px, py in points:
+                pts_xml += f'              <mxPoint x="{px}" y="{py}" />\n'
+            pts_xml += '            </Array>\n'
+            
         xml_parts.append(
-            f'        <mxCell id="edge_{edge_idx}" value="{escaped_edge_label}" style="{edge_style}" edge="1" parent="1" source="tbl_{src_tbl}" target="tbl_{tgt_tbl}">'
-            f'<mxGeometry relative="1" as="geometry" />'
-            f'</mxCell>'
+            f'        <mxCell id="edge_{edge_idx}" value="{escaped_edge_label}" style="{edge_style}" edge="1" parent="1" source="tbl_{src_tbl}" target="tbl_{tgt_tbl}">\n'
+            f'          <mxGeometry relative="1" as="geometry">\n'
+            f'{pts_xml}'
+            f'          </mxGeometry>\n'
+            f'        </mxCell>'
         )
         edge_idx += 1
 
@@ -371,4 +489,4 @@ OUTPUT_DRAWIO = os.path.join(os.path.dirname(__file__), 'easyhouse-erd.drawio')
 with open(OUTPUT_DRAWIO, 'w', encoding='utf-8') as f:
     f.write(drawio_content)
 
-print(f"Generated .drawio file: {OUTPUT_DRAWIO} ({len(drawio_content)} bytes)")
+print(f"Generated clean .drawio: {OUTPUT_DRAWIO} ({len(drawio_content)} bytes)")

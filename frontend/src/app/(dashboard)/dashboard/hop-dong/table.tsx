@@ -385,7 +385,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled={isBusy} onClick={() => props.onHuy(row.original)}>
                   {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                  Hủy hợp đồng
+                  Trả phòng & Quyết toán
                 </DropdownMenuItem>
               </>
             )}

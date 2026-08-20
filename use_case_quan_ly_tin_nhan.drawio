@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net" modified="2026-08-19T08:25:00.000Z" agent="Antigravity" version="24.7.5">
+  <diagram id="usecase_quan_ly_tin_nhan" name="Use Case Quản lý tin nhắn">
+    <mxGraphModel dx="1150" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;«Web Application»&lt;/b&gt;&lt;br&gt;&lt;b style=&quot;font-size: 15px;&quot;&gt;Website Quản lý nhà trọ EasyHouse&lt;/b&gt;" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="50" width="580" height="660" as="geometry" />
+        </mxCell>
+
+        <!-- Actor: Chủ trọ -->
+        <mxCell id="actor" value="Chủ trọ" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2.2;fontSize=15;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="320" width="75" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Abstract Parent Use Case -->
+        <mxCell id="uc_parent" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý tin nhắn&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 14px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="570" y="80" width="220" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Child Use Cases -->
+        <!-- 1. Xem danh sách & Tìm kiếm trò chuyện -->
+        <mxCell id="uc_1" value="&lt;b&gt;Xem danh sách &amp;amp;&lt;br&gt;Tìm kiếm trò chuyện&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="140" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Gửi & Nhận tin nhắn -->
+        <mxCell id="uc_2" value="&lt;b&gt;Gửi &amp;amp; Nhận tin nhắn&lt;br&gt;&lt;span style=&quot;font-size:11px;font-weight:normal;&quot;&gt;(Văn bản thời gian thực)&lt;/span&gt;&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="230" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Gửi tệp đính kèm & Hình ảnh -->
+        <mxCell id="uc_3" value="&lt;b&gt;Gửi tệp đính kèm &amp;amp;&lt;br&gt;Hình ảnh tài liệu&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="320" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Tạo nhóm & Quản lý thành viên chat -->
+        <mxCell id="uc_4" value="&lt;b&gt;Tạo nhóm &amp;amp; Quản lý&lt;br&gt;thành viên trò chuyện&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="410" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Ghim & Thu hồi tin nhắn -->
+        <mxCell id="uc_5" value="&lt;b&gt;Ghim &amp;amp; Thu hồi&lt;br&gt;tin nhắn&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="500" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- 6. Tùy chọn thông báo & Xóa cuộc trò chuyện -->
+        <mxCell id="uc_6" value="&lt;b&gt;Tùy chọn thông báo &amp;amp;&lt;br&gt;Xóa cuộc trò chuyện&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="275" y="590" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Associations (Actor Chủ trọ to Child Use Cases) -->
+        <mxCell id="assoc_1" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_2" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_3" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_4" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_5" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_6" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor" target="uc_6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Generalizations (Mỗi Use Case con có 1 đường riêng biệt nối thẳng lên cha, cách đều nhau 30px) -->
+        <mxCell id="gen_1" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.17;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_1" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="173" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_2" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.30;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_2" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="630" y="263" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_3" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.43;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_3" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="353" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_4" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.56;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_4" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="690" y="443" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_5" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.70;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_5" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="533" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_6" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryPerimeter=0;" edge="1" parent="1" source="uc_6" target="uc_parent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="623" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
