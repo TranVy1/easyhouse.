@@ -250,12 +250,83 @@ export default function TenantContractDetailPage() {
         </Card>
       </div>
 
+      {/* Banner thông báo khi có quyết toán trả phòng cần ký */}
+      {quyetToan && (
+        <Card className={cn(
+          "border-2 overflow-hidden shadow-md",
+          quyetToan.bienBanTrangThai === 'HOAN_TAT' 
+            ? "border-emerald-200 bg-emerald-50/50" 
+            : "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50"
+        )}>
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-3 rounded-xl",
+                  quyetToan.bienBanTrangThai === 'HOAN_TAT' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700 animate-pulse"
+                )}>
+                  <FileSignature className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#243B5A] bg-white/80 px-2 py-0.5 rounded border">
+                      Thủ tục trả phòng
+                    </span>
+                    <Badge variant="outline" className={cn(
+                      quyetToan.bienBanTrangThai === 'HOAN_TAT' 
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                        : 'bg-amber-100 text-amber-800 border-amber-300'
+                    )}>
+                      {quyetToan.bienBanTrangThai === 'HOAN_TAT' ? 'Đã ký đủ 2 bên' :
+                       quyetToan.bienBanTrangThai === 'BEN_A_DA_KY' ? 'Chủ trọ đã ký · Chờ bạn ký' :
+                       quyetToan.bienBanTrangThai === 'BEN_B_DA_KY' ? 'Bạn đã ký · Chờ chủ trọ' : 'Chờ ký xác nhận'}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#243B5A] mt-1">
+                    Biên bản bàn giao & Quyết toán tiền cọc
+                  </CardTitle>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white/80 p-3 rounded-xl border">
+                <p className="text-[11px] text-gray-500 uppercase font-semibold">Cọc ban đầu</p>
+                <p className="font-bold text-[#243B5A] text-base">{formatCurrency(quyetToan.tienCocBanDau || 0)}</p>
+              </div>
+              <div className="bg-white/80 p-3 rounded-xl border">
+                <p className="text-[11px] text-gray-500 uppercase font-semibold">Cấn trừ hóa đơn</p>
+                <p className="font-bold text-red-600 text-base">- {formatCurrency(quyetToan.tienCocDaCanTru || 0)}</p>
+              </div>
+              <div className="bg-white/80 p-3 rounded-xl border">
+                <p className="text-[11px] text-gray-500 uppercase font-semibold">
+                  {quyetToan.tienCocCanHoan > 0 ? 'Số tiền nhận lại' : 'Số tiền phải nộp'}
+                </p>
+                <p className={cn("font-black text-lg", quyetToan.tienCocCanHoan > 0 ? "text-emerald-700" : "text-red-600")}>
+                  {formatCurrency(quyetToan.tienCocCanHoan > 0 ? quyetToan.tienCocCanHoan : quyetToan.tienPhaiThuThem || 0)}
+                </p>
+              </div>
+            </div>
+
+            <BienBanBanGiaoViewer
+              hopDongId={hopDongId}
+              maHopDong={contract.maHopDong}
+              bienBanTrangThai={quyetToan.bienBanTrangThai}
+              vaiTro="BEN_B"
+              accessToken={accessToken}
+              onSigned={() => { void fetchContractData(); }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* PDF Document Viewer & Actions */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <CardTitle className="text-lg text-[#243B5A] font-bold">Văn bản hợp đồng & Ký điện tử</CardTitle>
-            <CardDescription>Xem trước tài liệu PDF và thực hiện ký điện tử xác nhận.</CardDescription>
+            <CardTitle className="text-lg text-[#243B5A] font-bold">Văn bản hợp đồng thuê gốc</CardTitle>
+            <CardDescription>Xem trước tài liệu PDF hợp đồng thuê phòng và lịch sử chữ ký.</CardDescription>
           </div>
           {contract.signatureStatus !== 'COMPLETED' && contract.signatureStatus !== 'TENANT_SIGNED' && contract.signatureStatus !== 'REJECTED' && (
             <div className="flex gap-2">
@@ -276,28 +347,6 @@ export default function TenantContractDetailPage() {
               void fetchContractData();
             }}
           />
-
-          {/* Bien ban ban giao khi tra phong: chi hien khi da co quyet toan */}
-          {quyetToan && (
-            <div className="space-y-3 pt-4 border-t">
-              <h3 className="font-semibold text-[#243B5A] flex items-center gap-2">
-                <FileSignature className="h-5 w-5 text-[#4FA7A0]" />
-                Biên bản bàn giao khi trả phòng
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Kiểm tra kỹ hiện trạng tài sản và số tiền khấu trừ trước khi ký. Đây là căn cứ
-                để chốt tiền đặt cọc.
-              </p>
-              <BienBanBanGiaoViewer
-                hopDongId={hopDongId}
-                maHopDong={contract.maHopDong}
-                bienBanTrangThai={quyetToan.bienBanTrangThai}
-                vaiTro="BEN_B"
-                accessToken={accessToken}
-                onSigned={() => { void fetchContractData(); }}
-              />
-            </div>
-          )}
 
           {/* Yeu cau huy / gia han hop dong */}
           <div className="space-y-3 pt-4 border-t">

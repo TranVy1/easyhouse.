@@ -116,7 +116,7 @@ public class QuyetToanTraPhongService {
 
     @Transactional(readOnly = true)
     public QuyetToanTraPhongResponse getByHopDong(UUID hopDongId) {
-        getWritableContract(hopDongId);
+        getReadableContract(hopDongId);
         QuyetToanTraPhong quyetToan = quyetToanRepository.findByHopDongId(hopDongId)
                 .orElseThrow(() -> new RuntimeException("Chưa có quyết toán trả phòng cho hợp đồng này"));
         return toResponse(quyetToan);
@@ -243,6 +243,15 @@ public class QuyetToanTraPhongService {
 
         logAudit(quyetToan, "CONFIRM_ASSET_HANDOVER");
         return toResponse(quyetToan);
+    }
+
+    private HopDong getReadableContract(UUID hopDongId) {
+        UUID userId = permissionService.requireCurrentUserId();
+        if (!permissionService.canReadHopDong(userId, hopDongId)) {
+            throw new RuntimeException("Bạn không có quyền xem hợp đồng này");
+        }
+        return hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
     }
 
     private HopDong getWritableContract(UUID hopDongId) {
