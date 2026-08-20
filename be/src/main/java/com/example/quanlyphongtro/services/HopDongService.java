@@ -854,6 +854,26 @@ public class HopDongService {
     public HopDongResponse toResponse(HopDong hopDong, List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members, List<com.example.quanlyphongtro.entity.DichVuHopDong> services) {
         HopDongResponse response = HopDongResponse.fromEntity(hopDong);
 
+        if (hopDong.getId() != null) {
+            List<HoaDon> invoices = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hopDong.getId());
+            int overdueCount = 0;
+            BigDecimal totalDebt = BigDecimal.ZERO;
+            LocalDate today = LocalDate.now();
+            for (HoaDon inv : invoices) {
+                if (inv.getTrangThai() == TrangThaiHoaDon.CANCELLED) continue;
+                BigDecimal unpaid = (inv.getTongTien() != null ? inv.getTongTien() : BigDecimal.ZERO)
+                        .subtract(inv.getDaTra() != null ? inv.getDaTra() : BigDecimal.ZERO);
+                if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
+                    totalDebt = totalDebt.add(unpaid);
+                    if (inv.getTrangThai() == TrangThaiHoaDon.OVERDUE || (inv.getHanTra() != null && inv.getHanTra().isBefore(today))) {
+                        overdueCount++;
+                    }
+                }
+            }
+            response.setSoHoaDonQuaHan(overdueCount);
+            response.setTongTienNo(totalDebt);
+        }
+
         List<HopDongResponse.PhiDichVuResponse> phiDichVu = services.stream()
                 .map(item -> HopDongResponse.PhiDichVuResponse.builder()
                         .id(item.getId())
