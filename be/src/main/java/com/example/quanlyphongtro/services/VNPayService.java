@@ -25,6 +25,11 @@ public class VNPayService {
 
     private final HoaDonRepository hoaDonRepository;
     private final ThanhToanRepository thanhToanRepository;
+    private final com.example.quanlyphongtro.repository.HopDongRepository hopDongRepository;
+    private final com.example.quanlyphongtro.repository.PhongRepository phongRepository;
+    private final GiaoDichTienCocService giaoDichTienCocService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+    private final EmailService emailService;
     // Inject BankTransactionLogService (REQUIRES_NEW) thay vì repository trực tiếp
     // → đảm bảo lỗi lưu log KHÔNG ảnh hưởng transaction thanh toán chính
     private final BankTransactionLogService bankTransactionLogService;
@@ -247,6 +252,46 @@ public class VNPayService {
                 hoaDonRepository.save(hoaDon);
                 log.info("VNPay: Đã cập nhật HoaDon={} daTra={} trangThai={}", hoaDonId, hoaDon.getDaTra(), hoaDon.getTrangThai());
 
+                // Ghi nhận sổ cọc nếu là hóa đơn cọc
+                if (giaoDichTienCocService != null) {
+                    try {
+                        giaoDichTienCocService.ghiNhanThuCoc(saved);
+                    } catch (Exception e) {
+                        log.warn("VNPay: Không thể ghi nhận sổ cọc - {}", e.getMessage());
+                    }
+                }
+
+                // Kích hoạt hợp đồng và đồng bộ trạng thái phòng nếu hóa đơn cọc / định kỳ đã trả đủ
+                com.example.quanlyphongtro.entity.HopDong hopDong = hoaDon.getHopDong();
+                if (hopDong != null) {
+                    if (hoaDon.getLoaiHoaDon() == LoaiHoaDon.DEPOSIT_REQUEST || hoaDon.getLoaiHoaDon() == LoaiHoaDon.REGULAR) {
+                        hopDong.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
+                        // Chỉ kích hoạt ACTIVE khi 2 bên đã ký số hoàn tất
+                        if (hopDong.getSignatureStatus() == com.example.quanlyphongtro.entity.SignatureStatus.COMPLETED) {
+                            hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
+                            syncRoomRented(hopDong);
+                            if (jdbcTemplate != null) {
+                                try {
+                                    jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hopDong.getId());
+                                } catch (Exception e) {
+                                    log.warn("VNPay: Lỗi khi tạo lịch thanh toán - {}", e.getMessage());
+                                }
+                            }
+                        }
+                        hopDongRepository.save(hopDong);
+                        log.info("VNPay: Đã cập nhật HopDong id={} trangThai={} trangThaiCoc={}", hopDong.getId(), hopDong.getTrangThai(), hopDong.getTrangThaiCoc());
+                    }
+                }
+
+                // Gửi email xác nhận thanh toán
+                if (emailService != null) {
+                    try {
+                        emailService.sendPaymentReceivedEmail(saved, hoaDon, hoaDon.getKhachThue());
+                    } catch (Exception e) {
+                        log.warn("VNPay: Không thể gửi email thanh toán - {}", e.getMessage());
+                    }
+                }
+
                 // ===== LƯU LOG VÀO bank_transaction (transaction độc lập REQUIRES_NEW) =====
                 // Gọi qua bean inject (không gọi this.method()) → Spring AOP mới interceptđược
                 bankTransactionLogService.saveVNPayLog(params, hoaDon, txnRef, amount);
@@ -264,6 +309,21 @@ public class VNPayService {
             response.put("Message", "Unknown error: " + e.getMessage());
         }
         return response;
+    }
+
+    private void syncRoomRented(com.example.quanlyphongtro.entity.HopDong hd) {
+        if (hd.getPhong() == null || hd.getPhong().getId() == null) {
+            return;
+        }
+        Phong phong = phongRepository.findById(hd.getPhong().getId()).orElse(null);
+        if (phong == null || phong.getXoaLuc() != null) {
+            return;
+        }
+        if (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE) {
+            return;
+        }
+        phong.setTrangThai(TrangThaiPhong.RENTED);
+        phongRepository.save(phong);
     }
 
     private BigDecimal outstandingAmount(HoaDon hoaDon) {

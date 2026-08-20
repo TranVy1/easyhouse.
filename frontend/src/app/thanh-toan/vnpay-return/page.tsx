@@ -60,10 +60,13 @@ function VNPayReturnContent() {
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
-        <Button asChild className="w-full">
-          <Link href="/khach-thue/dashboard/hoa-don">Xem hóa đơn của tôi</Link>
+        <Button asChild className="w-full bg-[#4FA7A0] hover:bg-[#3D8580]">
+          <Link href="/khach-thue/dashboard/hop-dong">Xem hợp đồng của tôi</Link>
         </Button>
         <Button variant="outline" asChild className="w-full">
+          <Link href="/khach-thue/dashboard/hoa-don">Xem danh sách hóa đơn</Link>
+        </Button>
+        <Button variant="ghost" asChild className="w-full">
           <Link href="/">Về trang chủ</Link>
         </Button>
       </CardFooter>
