@@ -35,6 +35,8 @@ public class ThanhToanService {
     private final MediaService mediaService;
     private final PermissionService permissionService;
     private final EmailService emailService;
+    private final PhongRepository phongRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Transactional(readOnly = true)
     public PaginatedResponse<ThanhToanResponse> getAll(
@@ -280,13 +282,22 @@ public class ThanhToanService {
         hd.setTrangThai(resolveInvoiceStatus(total, hd.getTongTien(), hd.getHanTra()));
         hoaDonRepository.save(hd);
 
-        // Kích hoạt hợp đồng nếu thanh toán đủ và hợp đồng đang chờ kích hoạt
+        // Kích hoạt hợp đồng nếu thanh toán cọc thành công và hợp đồng đang chờ kích hoạt
         if (hd.getTrangThai() == TrangThaiHoaDon.PAID) {
             com.example.quanlyphongtro.entity.HopDong hopDong = hd.getHopDong();
             if (hopDong != null && hopDong.getTrangThai() == com.example.quanlyphongtro.entity.TrangThaiHopDong.PENDING) {
-                hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
-                hopDong.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
-                hopDongRepository.save(hopDong);
+                if (hd.getLoaiHoaDon() == LoaiHoaDon.DEPOSIT_REQUEST || hd.getLoaiHoaDon() == LoaiHoaDon.REGULAR) {
+                    hopDong.setTrangThaiCoc(com.example.quanlyphongtro.entity.TrangThaiCocHopDong.KEPT);
+                    // Chỉ kích hoạt ACTIVE khi 2 bên đã ký số hoàn tất
+                    if (hopDong.getSignatureStatus() == com.example.quanlyphongtro.entity.SignatureStatus.COMPLETED) {
+                        hopDong.setTrangThai(com.example.quanlyphongtro.entity.TrangThaiHopDong.ACTIVE);
+                        syncRoomRented(hopDong);
+                        if (jdbcTemplate != null) {
+                            jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hopDong.getId());
+                        }
+                    }
+                    hopDongRepository.save(hopDong);
+                }
             }
         }
     }
@@ -483,6 +494,21 @@ public class ThanhToanService {
         } catch (Exception e) {
             throw new RuntimeException("Trạng thái thanh toán không hợp lệ: " + value);
         }
+    }
+
+    private void syncRoomRented(HopDong hd) {
+        if (hd.getPhong() == null || hd.getPhong().getId() == null) {
+            return;
+        }
+        Phong phong = phongRepository.findById(hd.getPhong().getId()).orElse(null);
+        if (phong == null || phong.getXoaLuc() != null) {
+            return;
+        }
+        if (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE) {
+            return;
+        }
+        phong.setTrangThai(TrangThaiPhong.RENTED);
+        phongRepository.save(phong);
     }
 
     private UUID parseOptionalUuid(String value) {

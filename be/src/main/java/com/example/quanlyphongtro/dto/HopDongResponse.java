@@ -53,6 +53,8 @@ public class HopDongResponse {
     private String signatureStatus;
     private String ghiChu;
     private ZonedDateTime ngayTao;
+    private Integer soHoaDonQuaHan;
+    private BigDecimal tongTienNo;
 
     @Data
     @Builder

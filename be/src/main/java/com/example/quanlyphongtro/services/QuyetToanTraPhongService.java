@@ -84,6 +84,12 @@ public class QuyetToanTraPhongService {
                 ? TrangThaiQuyetToanTraPhong.PENDING_REFUND
                 : TrangThaiQuyetToanTraPhong.READY_FOR_HANDOVER;
 
+        List<TaiSanPhong> taiSanPhongs = hopDong.getPhong() != null && hopDong.getPhong().getId() != null
+                ? taiSanPhongRepository.findByPhongId(hopDong.getPhong().getId()) : Collections.emptyList();
+        TrangThaiBienBanBanGiao bienBanTrangThai = taiSanPhongs.isEmpty()
+                ? TrangThaiBienBanBanGiao.CHO_KY
+                : TrangThaiBienBanBanGiao.CHUA_LAP;
+
         QuyetToanTraPhong quyetToan = QuyetToanTraPhong.builder()
                 .hopDong(hopDong)
                 .hoaDon(hoaDonRepository.findById(ketQuaHoaDon.getHoaDon().getId())
@@ -95,19 +101,22 @@ public class QuyetToanTraPhongService {
                 .tienPhaiThuThem(tienPhaiThuThem)
                 .khoanKhauTru(toJson(khoanKhauTru))
                 .trangThai(trangThai)
+                .bienBanTrangThai(bienBanTrangThai)
                 .banGiaoDaXacNhan(false)
                 .veSinhKiemTraXong(false)
                 .ghiChu(request.getGhiChu())
                 .build();
         QuyetToanTraPhong saved = quyetToanRepository.save(quyetToan);
-        snapshotTaiSanBanGiao(saved, hopDong.getPhong().getId());
+        if (!taiSanPhongs.isEmpty()) {
+            snapshotTaiSanBanGiao(saved, taiSanPhongs);
+        }
         logAudit(saved, "CREATE_SETTLEMENT");
         return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public QuyetToanTraPhongResponse getByHopDong(UUID hopDongId) {
-        getWritableContract(hopDongId);
+        getReadableContract(hopDongId);
         QuyetToanTraPhong quyetToan = quyetToanRepository.findByHopDongId(hopDongId)
                 .orElseThrow(() -> new RuntimeException("Chưa có quyết toán trả phòng cho hợp đồng này"));
         return toResponse(quyetToan);
@@ -143,11 +152,9 @@ public class QuyetToanTraPhongService {
             throw new RuntimeException("Phòng chỉ được chuyển Trống sau khi vệ sinh và kiểm tra hoàn tất");
         }
         // Bien ban ban giao co chu ky hai ben la CAN CU phap ly cho viec tru tien
-        // coc va boi thuong khau hao tai san. Khong co no thi moi khoan khau tru
-        // deu khong chung minh duoc khi tranh chap, nen chan tai day.
+        // coc va boi thuong khau hao tai san. Bat buoc phai co day du chu ky cua ca 2 ben (Ben A va Ben B).
         if (quyetToan.getBienBanTrangThai() != TrangThaiBienBanBanGiao.HOAN_TAT) {
-            throw new RuntimeException("Cần lập và ký biên bản bàn giao (đủ chữ ký hai bên) "
-                    + "trước khi hoàn tất trả phòng");
+            throw new RuntimeException("Cần lập và ký biên bản bàn giao (đủ chữ ký của cả Chủ trọ và Khách thuê) trước khi hoàn tất trả phòng");
         }
 
         ZonedDateTime now = ZonedDateTime.now();
@@ -238,6 +245,15 @@ public class QuyetToanTraPhongService {
         return toResponse(quyetToan);
     }
 
+    private HopDong getReadableContract(UUID hopDongId) {
+        UUID userId = permissionService.requireCurrentUserId();
+        if (!permissionService.canReadHopDong(userId, hopDongId)) {
+            throw new RuntimeException("Bạn không có quyền xem hợp đồng này");
+        }
+        return hopDongRepository.findById(hopDongId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+    }
+
     private HopDong getWritableContract(UUID hopDongId) {
         UUID userId = permissionService.requireCurrentUserId();
         if (!permissionService.canWriteHopDong(userId, hopDongId)) {
@@ -264,10 +280,11 @@ public class QuyetToanTraPhongService {
         return response;
     }
 
-    private void snapshotTaiSanBanGiao(QuyetToanTraPhong quyetToan, UUID phongId) {
-        List<ChiTietBanGiaoTaiSan> snapshots = taiSanPhongRepository.findByPhongId(phongId).stream().map(asset ->
+    private void snapshotTaiSanBanGiao(QuyetToanTraPhong quyetToan, List<TaiSanPhong> taiSans) {
+        List<ChiTietBanGiaoTaiSan> snapshots = taiSans.stream().map(asset ->
                 ChiTietBanGiaoTaiSan.builder().quyetToanTraPhong(quyetToan).taiSanPhong(asset).tenTaiSan(asset.getTenTaiSan())
                         .soLuongBanDau(asset.getSoLuong()).tinhTrangBanDau(asset.getTinhTrang()).anhTaiSanBanDau(asset.getAnhTaiSan())
+                        .mucKhauTru(BigDecimal.ZERO)
                         .daXacNhan(false).build()).toList();
         if (!snapshots.isEmpty()) chiTietBanGiaoRepository.saveAll(snapshots);
     }

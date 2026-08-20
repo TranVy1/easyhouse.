@@ -38,6 +38,8 @@ import {
   ChevronsRight,
   CircleCheck,
   Search,
+  AlertTriangle,
+  Clock,
 } from "lucide-react"
 import {
   ColumnDef,
@@ -294,10 +296,29 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
     cell: ({ row }) => {
       const isExpiring = isExpiringSoon(row.original.ngayKetThuc)
       const status = row.original.trangThai
+      const soHoaDonQuaHan = row.original.soHoaDonQuaHan || 0
 
       if (status === 'daHuy') return <Badge variant="secondary">Đã hủy</Badge>
       if (status === 'hetHan') return <Badge variant="destructive">Đã hết hạn</Badge>
-      
+
+      if (soHoaDonQuaHan > 0) {
+        return (
+          <Badge variant="destructive" className="bg-red-600 hover:bg-red-700 text-white gap-1 font-bold shadow-xs">
+            <AlertTriangle className="h-3 w-3" />
+            Nợ quá hạn ({soHoaDonQuaHan})
+          </Badge>
+        )
+      }
+
+      if ((status === 'choKichHoat' || status === 'nhap') && row.original.trangThaiCoc !== 'KEPT' && Number(row.original.tienCoc || 0) > 0) {
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 gap-1 font-medium">
+            <Clock className="h-3 w-3" />
+            Chờ nộp cọc
+          </Badge>
+        )
+      }
+
       if (isExpiring) {
         return (
           <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 gap-1">
@@ -376,6 +397,14 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
               <Download className="mr-2 h-4 w-4" />
               Tải xuống
             </DropdownMenuItem>
+            {row.original.soHoaDonQuaHan && row.original.soHoaDonQuaHan > 0 ? (
+              <DropdownMenuItem asChild>
+                <a href={`/dashboard/hoa-don?search=${encodeURIComponent(row.original.maHopDong)}&trangThai=OVERDUE`}>
+                  <AlertTriangle className="mr-2 h-4 w-4 text-red-600" />
+                  <span className="text-red-600 font-semibold">Xem {row.original.soHoaDonQuaHan} hóa đơn nợ</span>
+                </a>
+              </DropdownMenuItem>
+            ) : null}
             {active && (
               <>
                 <DropdownMenuSeparator />
@@ -385,7 +414,7 @@ const createColumns = (props: HopDongTableProps): ColumnDef<HopDong>[] => [
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled={isBusy} onClick={() => props.onHuy(row.original)}>
                   {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                  Hủy hợp đồng
+                  Trả phòng & Quyết toán
                 </DropdownMenuItem>
               </>
             )}

@@ -91,11 +91,17 @@ export function BienBanBanGiaoViewer({
               <FileDown className="h-3.5 w-3.5 mr-1 text-[#4FA7A0]" /> Tải PDF
             </a>
           </Button>
+          {daKyRoi && (
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs py-1 px-2.5 font-bold flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+              {vaiTro === 'BEN_A' ? 'Bạn (Chủ trọ) đã ký' : 'Bạn (Khách thuê) đã ký'}
+            </Badge>
+          )}
           {kyDuoc && (
             <Button size="sm" type="button" onClick={() => setOpenPad(true)}
-              className="bg-[#4FA7A0] hover:bg-[#3D8B85] text-white text-xs h-8 font-semibold shadow-sm">
-              <PenTool className="h-3.5 w-3.5 mr-1" />
-              {vaiTro === 'BEN_A' ? 'Ký biên bản (Bên A)' : 'Ký biên bản (Bên B)'}
+              className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-8 px-3.5 font-bold shadow-sm">
+              <PenTool className="h-3.5 w-3.5 mr-1.5" />
+              {vaiTro === 'BEN_A' ? 'Ký xác nhận (Bên A)' : 'Ký xác nhận (Bên B - Bạn)'}
             </Button>
           )}
         </div>

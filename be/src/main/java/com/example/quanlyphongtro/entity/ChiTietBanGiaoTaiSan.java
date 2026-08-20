@@ -33,6 +33,7 @@ public class ChiTietBanGiaoTaiSan {
     private String tinhTrangThucTe;
     private String chungTuUrl;
     private String ghiChu;
+    @Builder.Default
     private Boolean daXacNhan = false;
     private ZonedDateTime xacNhanLuc;
 
@@ -41,6 +42,7 @@ public class ChiTietBanGiaoTaiSan {
      * khau hao vuot muc). Tach thanh cot rieng thay vi nhet vao ghiChu de con
      * cong tong duoc bang SQL va doi chieu voi khoan_khau_tru cua quyet toan.
      */
+    @Builder.Default
     @Column(name = "muc_khau_tru", nullable = false)
     private java.math.BigDecimal mucKhauTru = java.math.BigDecimal.ZERO;
 

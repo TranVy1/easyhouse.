@@ -1,0 +1,1434 @@
+﻿Xây dựng Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse
+
+
+KẾ HOẠCH KIỂM THỬ
+Mã dự án
+	PRO2113
+	Mã tài liệu
+	SD-26
+	Ngày
+	19/08/2026
+	
+
+GVHD:                       Nguyễn Khánh Huyền                               
+Nhóm:                         SD-26                        
+Tên thành viên:        Đỗ Chí Công (Leader)                
+                                Trần Triệu Vỹ
+                                Phùng Văn Thọ
+                                Phan Trường Sơn
+
+
+
+
+
+
+
+
+
+
+
+
+<Hà Nội 2026>
+Hà Nội, 19/08/2026
+                         BẢN GHI NHẬN THAY ĐỔI TÀI LIỆU
+Ngày thay đổi
+	Vị trí thay đổi
+	Lý do 
+	Nguồn gốc
+	Phiên bản cũ
+	Mô tả thay đổi
+	Phiên bản mới
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	TRANG KÝ
+
+
+
+
+
+
+Người lập:                                                <Ngày>                        
+<Chức vụ>        
+Người xem xét:                                        <Ngày>                        
+        <Chức vụ>        
+Người phê duyệt:                                        <Ngày>                        
+<Chức vụ>        
+MỤC LỤC
+1. GIỚI THIỆU        5
+1.1. Mục đích        5
+1.2. Thông tin chung        6
+1.3. Tài liệu liên quan        7
+1.4. Phạm vi test        8
+1.5. Ràng buộc        13
+1.6. Liệt kê các mạo hiểm        14
+2. CÁC YÊU CẦU TEST        19
+3. CHIẾN LƯỢC TEST        23
+3.1. Các kiểu test        23
+3.1.1. Kiểm thử chức năng        24
+3.1.2. Kiểm thử hiệu suất        30
+3.1.3. Kiểm thử bảo mật và kiểm soát truy cập        34
+3.1.4. Test hồi quy        35
+3.2. Giai đoạn test        36
+3.3. Các công cụ test        37
+3.4. Môi trường test        40
+4 : TÀI NGUYÊN        43
+4.1. Nhân lực        43
+4.2 Hệ thống        44
+4.2.1. Hệ thống phần cứng cần thiết        44
+4.2.2. Hệ thống phần mềm cần thiết        45
+4.2.3. Dữ liệu tài nguyên cần thiết        46
+5. CÁC MỐC KIỂM SOÁT CỦA GIAI ĐOẠN TEST        47
+6. CÁC SẢN PHẨM        48
+________________
+1. GIỚI THIỆU
+1.1. Mục đích
+* Mục đích của Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse là hỗ trợ chủ trọ hoặc người quản lý theo dõi, quản lý và vận hành hiệu quả thông tin phòng ở, khách thuê, đặt cọc, hợp đồng, chỉ số điện nước, cấu hình giá, hóa đơn, thanh toán và các nghiệp vụ liên quan.
+* Hệ thống giúp giảm bớt thao tác quản lý thủ công, hỗ trợ lưu trữ dữ liệu tập trung, theo dõi tình trạng phòng, quản lý công nợ và nâng cao hiệu quả trao đổi thông tin giữa người quản lý với khách thuê.
+* Tài liệu Test Plan này được biên soạn nhằm mô tả phạm vi, chiến lược, môi trường, nguồn lực và các tiêu chí kiểm thử của hệ thống EasyHouse. Tài liệu xác định các chức năng cần kiểm thử, phương pháp kiểm thử, điều kiện hoàn thành kiểm thử và cách thức theo dõi kết quả kiểm thử.
+* Tài liệu cũng là cơ sở trao đổi giữa nhóm kiểm thử, nhóm phát triển và các bên liên quan; giúp bảo đảm hệ thống đáp ứng các yêu cầu về chức năng, tích hợp Frontend - Backend - PostgreSQL, giao diện responsive, bảo mật, hiệu năng và phân quyền truy cập.
+* 1.2. Thông tin chung
+* Mục đích kiểm thử hệ thống EasyHouse là bảo đảm hệ thống hoạt động chính xác, ổn định và đáp ứng các yêu cầu nghiệp vụ quản lý phòng trọ và căn hộ cho thuê.
+* Hoạt động kiểm thử tập trung vào các chức năng: quản lý phòng, khách thuê, đặt cọc, hợp đồng, chỉ số điện nước, cấu hình giá, hóa đơn, sự cố, thanh toán, VNPay, VietQR, tin nhắn, thông báo, báo cáo thống kê, tài khoản, phân quyền, hồ sơ cá nhân và dashboard khách thuê.
+Phạm vi kiểm thử bao gồm:
+- Kiểm thử chức năng và giao diện người dùng.
+- Kiểm thử dữ liệu và tính toàn vẹn cơ sở dữ liệu PostgreSQL.
+- Kiểm thử quy trình nghiệp vụ từ phòng, khách thuê, hợp đồng đến hóa đơn và thanh toán.
+- Kiểm thử tích hợp giữa Frontend, Backend API, PostgreSQL, VNPay và VietQR.
+- Kiểm thử hiệu năng, bảo mật, kiểm soát truy cập, responsive và hồi quy.
+1.3. Tài liệu liên quan
+STT
+	Tên tài liệu
+	Nguồn
+	Ghi chú
+	1
+	EasyHouse_Testplan.docx
+	
+
+	Mẫu kế hoạch kiểm thử chuẩn của môn học.
+	2
+	EasyHouse_Testdesign.docx
+	
+
+	Dùng để thiết kế các Test Case cho dự án.
+	3
+	EasyHouse_Testreport.docx
+	
+
+	Tổng hợp báo cáo sau khi test xong.
+	4
+	EasyHouse_LogBug.docx
+	
+
+	
+
+	5
+	Tài liệu đặc tả yêu cầu (SRS)
+	
+
+	Mô tả chức năng website.
+	6
+	Thiết kế cơ sở dữ liệu
+	
+
+	CSDL Microsoft SQL Server 2022.
+	1.4. Phạm vi test
+* Phần này mô tả các giai đoạn kiểm thử và các hạng mục thuộc phạm vi kiểm tra của Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse. Mục tiêu là bảo đảm hệ thống được kiểm tra đầy đủ từ các thành phần xử lý nghiệp vụ đến toàn bộ luồng vận hành trước khi nghiệm thu.Các giai đoạn kiểm thử được thực hiện gồm: Unit Test, Integration Test, System Test và Acceptance Test.
+Unit Test – Kiểm thử mức đơn vị
+- Mục đích của Unit Test là bảo đảm từng thành phần nhỏ của hệ thống EasyHouse hoạt động đúng theo thiết kế và yêu cầu nghiệp vụ.
+- Đối với EasyHouse, Unit Test tập trung kiểm tra riêng lẻ các thành phần như: hàm xử lý dữ liệu, service nghiệp vụ, controller, repository, API, module kiểm tra dữ liệu đầu vào và các chức năng xác thực, phân quyền tài khoản.
+- Các nghiệp vụ cần được kiểm tra ở mức đơn vị bao gồm: quản lý phòng, quản lý khách thuê, đặt cọc, hợp đồng, ghi chỉ số điện nước, cấu hình giá, lập hóa đơn, thanh toán, xử lý sự cố, tin nhắn, thông báo, báo cáo thống kê và hồ sơ cá nhân.
+- Unit Test cũng kiểm tra các quy tắc xử lý dữ liệu như: kiểm tra dữ liệu bắt buộc, dữ liệu không hợp lệ, tính liên kết giữa phòng và khách thuê, trạng thái hợp đồng, dữ liệu chỉ số điện nước, dữ liệu hóa đơn và trạng thái thanh toán.
+- Việc thực hiện Unit Test giúp phát hiện lỗi sớm tại từng thành phần trước khi tích hợp giữa Frontend, Backend API và cơ sở dữ liệu PostgreSQL; từ đó giảm thời gian và chi phí sửa lỗi ở các giai đoạn kiểm thử sau.
+- Unit Test thường do lập trình viên thực hiện trong quá trình phát triển phần mềm. Nhóm kiểm thử cần nắm được phạm vi và kết quả Unit Test để làm cơ sở thực hiện Integration Test, System Test và Regression Test.
+
+
+Integration Test – kiểm thử tích hợp
+- Integration Test được thực hiện nhằm kiểm tra sự tương tác, trao đổi dữ liệu và tính nhất quán giữa các module của hệ thống EasyHouse sau khi các thành phần đã hoàn thành Unit Test.
+- Đối với hệ thống EasyHouse, kiểm thử tích hợp tập trung vào các luồng sau:
+* Tích hợp giữa chức năng đăng nhập, tài khoản, phân quyền và hồ sơ cá nhân để bảo đảm người dùng chỉ truy cập được dữ liệu và chức năng phù hợp với vai trò.
+* Tích hợp giữa quản lý phòng, quản lý khách thuê, đặt cọc và hợp đồng để bảo đảm thông tin thuê phòng, trạng thái phòng, khách thuê và hợp đồng được liên kết chính xác.
+* Tích hợp giữa chỉ số điện nước, cấu hình giá và hóa đơn để bảo đảm dữ liệu tiêu thụ và đơn giá được sử dụng đúng khi lập hóa đơn.
+* Tích hợp giữa hóa đơn, thanh toán, VNPay và VietQR để kiểm tra việc khởi tạo giao dịch, cập nhật trạng thái thanh toán và đối soát giao dịch theo chức năng hệ thống.
+* Tích hợp giữa chức năng quản lý sự cố, tin nhắn, thông báo và dashboard khách thuê để bảo đảm thông tin được gửi, hiển thị và cập nhật đúng đối tượng.
+*  Tích hợp giữa chức năng quản trị với các module quản lý phòng, khách thuê, hợp đồng, hóa đơn, thanh toán, tài khoản, phân quyền, báo cáo và thống kê.
+* Tích hợp giữa giao diện Frontend, Backend API và cơ sở dữ liệu PostgreSQL để bảo đảm dữ liệu được lưu trữ, cập nhật, truy xuất và hiển thị chính xác.
+- Mục tiêu chính của Integration Test là phát hiện lỗi giao tiếp giữa các module, lỗi truyền dữ liệu giữa Frontend và Backend, lỗi xử lý nghiệp vụ liên kết, lỗi đồng bộ với cơ sở dữ liệu và các sai lệch có thể phát sinh trong quá trình vận hành hệ thống.
+System Test - kiểm thử mức hệ thống 
+-System Test được thực hiện trên toàn bộ Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse sau khi các module đã được tích hợp hoàn chỉnh. Mục đích là kiểm tra hệ thống có đáp ứng đúng các yêu cầu chức năng và phi chức năng đã đặt ra hay không.
+- Ở mức này, nhóm kiểm thử đánh giá tổng thể hệ thống trên môi trường kiểm thử gần với môi trường sử dụng thực tế, bao gồm:
+* Tính đúng đắn của các chức năng quản lý phòng, khách thuê, đặt cọc, hợp đồng, chỉ số điện nước, cấu hình giá, hóa đơn, sự cố, thanh toán, tin nhắn, thông báo, báo cáo và thống kê.
+* Tính ổn định của hệ thống trong quá trình người quản lý và khách thuê sử dụng các chức năng.
+* Tính nhất quán của giao diện, trải nghiệm người dùng và khả năng hiển thị responsive trên các kích thước màn hình khác nhau.
+* Tính chính xác và nhất quán của dữ liệu được lưu trữ, cập nhật và truy xuất thông qua Backend API và cơ sở dữ liệu PostgreSQL.
+*  Hiệu năng phản hồi của các chức năng chính như đăng nhập, quản lý phòng, quản lý khách thuê, lập hóa đơn, thanh toán và xem báo cáo.
+* Khả năng bảo mật, xác thực và kiểm soát truy cập theo tài khoản và vai trò người dùng.
+*  Khả năng vận hành của các luồng nghiệp vụ chính, đặc biệt là luồng phòng - khách thuê - đặt cọc - hợp đồng; chỉ số điện nước - cấu hình giá - hóa đơn; và hóa đơn - thanh toán - VNPay/VietQR.
+- System Test đóng vai trò quan trọng vì đây là mức kiểm thử phản ánh gần nhất cách người dùng thực tế vận hành và sử dụng hệ thống EasyHouse.
+Acceptance Test - kiểm thử chấp nhận sản phẩm
+- Acceptance Test là giai đoạn kiểm tra cuối cùng nhằm xác nhận Hệ tthống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse đáp ứng nhu cầu sử dụng và các yêu cầu nghiệp vụ đã được xác định trong báo cáo dự án.
+- Giai đoạn này thường được thực hiện bởi giảng viên hướng dẫn, đại diện nhóm dự án hoặc người có vai trò nghiệm thu sản phẩm.
+- Ở giai đoạn này, hệ thống được đánh giá tổng thể trên môi trường kiểm thử gần với môi trường sử dụng thực tế. Các luồng nghiệp vụ chính được kiểm tra gồm: quản lý phòng, khách thuê, đặt cọc, hợp đồng, chỉ số điện nước, cấu hình giá, hóa đơn, thanh toán, sự cố, tin nhắn, thông báo, báo cáo thống kê, tài khoản và phân quyền.
+ - Mục đích của Acceptance Test là:
+* Xác nhận các chức năng chính của hệ thống EasyHouse hoạt động đúng như mong đợi.
+* Xác nhận quy trình thao tác, giao diện, dữ liệu và phân quyền phù hợp với nhu cầu quản lý phòng trọ và căn hộ cho thuê.
+*  Xác nhận các luồng từ quản lý phòng, khách thuê, hợp đồng đến lập hóa đơn và thanh toán hoạt động nhất quán.
+* Xác nhận giao diện responsive, bảo mật, hiệu năng và khả năng vận hành của hệ thống đáp ứng yêu cầu nghiệm thu.
+*  Làm cơ sở để chấp nhận sản phẩm và chuyển sang giai đoạn bàn giao hoặc triển khai.
+
+
+Các chức năng hiện có của phần mềm này bao gồm : 
+Độ ưu tiên
+	Mã
+	Nội dung
+	Ghi chú
+	01
+	VS-01
+	Đăng nhập hệ thống (Admin, Chủ trọ, Nhân viên, Khách thuê)
+	Test GUI, Function, Auth
+	02
+	VS-02
+	Dashboard tổng quan quản lý (Thống kê phòng, hợp đồng, công nợ, doanh thu)
+	Test GUI, Function
+	03
+	VS-03
+	Quản lý tòa nhà / cơ sở cho thuê
+	Test GUI, Function
+	04
+	VS-04
+	Quản lý tầng & phòng ở (Danh sách, trạng thái trống/đã thuê, tạo phòng hàng loạt)
+	Test GUI, Function
+	05
+	VS-05
+	Quản lý khách thuê (Hồ sơ khách ở, ảnh CCCD, thông tin liên hệ, tài khoản)
+	Test GUI, Function
+	06
+	VS-06
+	Quản lý giữ chỗ & đặt cọc (Tạo phiếu cọc, chuyển cọc thành hợp đồng, hoàn/hủy cọc)
+	Test GUI, Function
+	07
+	VS-07
+	Quản lý hợp đồng thuê (Tạo mới, gia hạn, thanh lý, duyệt yêu cầu gia hạn/hủy)
+	Test GUI, Function
+	08
+	VS-08
+	Quản lý chỉ số điện nước (Nhập số điện/nước hàng tháng, nhập file, kiểm tra chuỗi chỉ số)
+	Test GUI, Function
+	09
+	VS-09
+	Quản lý dịch vụ & cấu hình phí xe (Điện, nước, internet, vệ sinh, phí gửi xe)
+	Test GUI, Function
+	10
+	VS-10
+	Quản lý hóa đơn & tính tiền (Tự động lập hóa đơn tiền phòng + điện nước + dịch vụ)
+	Test GUI, Function
+	11
+	VS-11
+	Quản lý công nợ & nhắc nợ (Theo dõi nợ tồn đọng, gửi thông báo/email nhắc nợ)
+	Test GUI, Function
+	12
+	VS-12
+	Quản lý thanh toán & cổng thanh toán (Tiền mặt, chuyển khoản VietQR, VNPay)
+	Test GUI, Function, Integration
+	13
+	VS-13
+	Quản lý sự cố & phản ánh (Tiếp nhận báo hỏng hóc, phân công sửa chữa, tiến độ)
+	Test GUI, Function
+	14
+	VS-14
+	Quản lý trang thiết bị & tài sản (Tài sản theo phòng, kho tài sản)
+	Test GUI, Function
+	15
+	VS-15
+	Quản lý phương tiện gửi xe (Danh sách xe, biển số, loại xe của khách thuê)
+	Test GUI, Function
+	16
+	VS-16
+	Quản lý lịch hẹn xem phòng (Khách đăng ký xem phòng, xác nhận/hủy lịch)
+	Test GUI, Function
+	17
+	VS-17
+	Quản lý tin nhắn & trao đổi (Chat trực tuyến thời gian thực qua WebSockets)
+	Test GUI, Function, Real-time
+	18
+	VS-18
+	Quản lý thông báo hệ thống (Thông báo ứng dụng & thông báo đẩy Push Notification)
+	Test GUI, Function
+	19
+	VS-19
+	Báo cáo & Thống kê tài chính (Doanh thu, dòng tiền, nợ xấu, tỷ lệ lấp đầy)
+	Test GUI, Function
+	20
+	VS-20
+	Quên mật khẩu & Khôi phục tài khoản
+	Test GUI, Function
+	21
+	VS-21
+	Xác thực OTP qua Email
+	Test GUI, Function
+	22
+	VS-22
+	Đặt lại mật khẩu mới
+	Test GUI, Function
+	23
+	VS-23
+	Dashboard & Cổng thông tin khách thuê (Tenant Portal)
+	Test GUI, Function
+	24
+	VS-24
+	Quản lý nhân viên & phân quyền tòa nhà
+	Test GUI, Function
+	25
+	VS-25
+	Quản lý hồ sơ cá nhân (Chủ trọ, nhân viên, khách thuê)
+	Test GUI, Function
+	26
+	VS-26
+	Trang không tìm thấy (404 Not Found Page)
+	Test GUI
+	1.5. Ràng buộc
+Ngôn ngữ lập trình
+	Java / Spring Boot / TypeScript
+	Cơ sở dữ liệu
+	PostgreSQL
+	Ràng buộc
+	* Nền tảng vận hành: Hệ thống hoạt động trên nền tảng Web, truy cập qua các trình duyệt hiện đại (Chrome, Edge, Firefox, Safari) hỗ trợ giao diện tương thích (Responsive) trên Desktop, Tablet và Mobile.
+* Tính toàn vẹn dữ liệu: Cơ sở dữ liệu quan hệ PostgreSQL phục vụ lưu trữ tập trung dữ liệu tòa nhà, phòng, khách thuê, hợp đồng, chỉ số điện nước, hóa đơn, công nợ, giao dịch thanh toán và sự cố. Đảm bảo tuân thủ chặt chẽ ràng buộc khóa ngoại (Foreign Keys), PostgreSQL Custom Enums và cơ chế xóa mềm (xoa_luc).
+* Tiến độ dự án: Hoạt động kiểm thử phải được thực hiện và hoàn thành theo đúng mốc thời gian trong kế hoạch nhằm bảo đảm tiến độ bàn giao sản phẩm.
+* Bao phủ dữ liệu kiểm thử (Test Data Coverage): Dữ liệu kiểm thử phải đầy đủ, hợp lệ, có khả năng bao phủ các trường hợp bình thường, trường hợp biên (Edge cases) và các lỗi ngoại lệ (Exceptions) đối với các luồng tính toán tài chính phức tạp (tính tiền phòng, tiền điện nước lũy tiến/đơn giá, phí dịch vụ).
+* Sẵn sàng môi trường: Môi trường kiểm thử (Docker Postgres Database, Backend Spring Boot Server, Frontend Dev Server) phải luôn duy trì trạng thái hoạt động ổn định trong suốt quá trình test để tránh làm gián đoạn tiến độ.
+
+
+	1.6. Liệt kê các mạo hiểm
+STT
+	Mạo hiểm
+	Phương án khắc phục & phòng ngừa
+	Mức độ ảnh hưởng  (MD)
+	1
+	Thiếu tính chi tiết trong thiết kế UI/UX & API Spec: Có thể dẫn đến sai lệch về cấu trúc DTO giữa Frontend (Next.js) và Backend (Spring Boot), hoặc không đồng bộ chuẩn hiển thị Vietnamese camelCase/snake_case.
+	- Sử dụng tài liệu thiết kế dự án và thống nhất quy chuẩn đặt tên.
+- Phối hợp chặt chẽ giữa nhóm Frontend và Backend để verify API contract.
+- Kiểm tra và xác nhận kiểu dữ liệu (đặc biệt là UUID, _id, Enum status) trước khi triển khai test.
+	Cao
+	2
+	Thiếu dữ liệu test hoặc dữ liệu test không phản ánh đúng nghiệp vụ thực tế: Dữ liệu chốt số điện nước, hợp đồng hoặc hóa đơn không chuẩn dẫn đến kết quả test sai lệch.
+	- Chuẩn bị bộ dữ liệu test đầy đủ cho từng module (Tòa nhà, Phòng, Khách thuê, Hợp đồng, Chỉ số điện nước, Hóa đơn).
+- Xây dựng dữ liệu bao phủ trường hợp hợp lệ, không hợp lệ, dữ liệu biên ($ChiSoMoi < ChiSoCu$) và dữ liệu xóa mềm.
+- Phôi phục dữ liệu sạch từ dump SQL (easyhouse-after-fix.sql / db-latest.sql) trước mỗi vòng test.
+	Cao
+	3
+	Thiếu tính nhất quán trong việc thiết kế test case giữa các thành viên: Tản mát các ca kiểm thử, gây chồng chéo hoặc bỏ sót các luồng nghiệp vụ quan trọng.
+	- Thống nhất mẫu viết test case và quy tắc đặt tên (ví dụ: TC-KH-001, TC-HD-001).
+- Thực hiện Review chéo test case giữa các thành viên trong nhóm.
+- Phân chia module rõ ràng theo phạm vi trách nhiệm của từng kiểm thử viên.
+	Cao
+	4
+	Lỗi phân quyền & rò rỉ dữ liệu giữa các chủ trọ (Multitenancy / Security Risk): Chủ trọ hoặc nhân viên của cơ sở này có thể xem/sửa dữ liệu tòa nhà hoặc khách thuê của cơ sở khác.
+	- Kiểm thử chặt chẽ cơ chế kiểm soát truy cập (Access Control) trong PermissionService.
+- Kiểm tra phân quyền chi tiết theo vai trò (ADMIN, CHU_TRO, KHACH_THUE, NHAN_VIEN).
+- Chạy kịch bản test thử nghiệm truy cập ngang (IDOR) bằng tài khoản của các chủ trọ khác nhau.
+	Cao
+	5
+	Lỗi tích hợp giữa các module cốt lõi (Phòng $\rightarrow$ Khách thuê $\rightarrow$ Hợp đồng $\rightarrow$ Điện nước $\rightarrow$ Hóa đơn $\rightarrow$ Thanh toán VietQR/VNPay): Lỗi truyền nhận dữ liệu làm hỏng luồng nghiệp vụ chính.
+	- Thực hiện kiểm thử tích hợp (Integration Testing) sớm đối với các luồng nghiệp vụ chính.
+- Thiết kế test case theo luồng End-to-End từ phía Khách thuê đến Chủ trọ.
+- Kiểm tra chặt chẽ tính chính xác khi tự động gạch nợ hóa đơn khi có giao dịch thanh toán thành công.
+	Cao
+	6
+	Lỗi tính toán sai lệch số liệu tài chính hóa đơn & công nợ: Công thức tính tiền điện nước, tiền cọc, giảm giá hoặc cộng dồn công nợ cũ bị lệch số tiền.
+	- Xây dựng bộ test case kiểm tra công thức tính toán chi tiết cho từng dòng chi phí hóa đơn.
+- Kiểm tra đối soát giữa tổng tiền hóa đơn với các chi tiết phí cấu thành.
+- Retest kỹ các trường hợp thanh toán từng phần, thanh toán dư hoặc hủy hóa đơn.
+	Cao
+	7
+	Hiệu năng hệ thống giảm khi chốt chỉ số điện nước hoặc xuất hóa đơn hàng loạt: Nhiều tòa nhà/phòng chốt số cùng lúc gây nghẽn truy vấn PostgreSQL hoặc gián đoạn API.
+	- Thực hiện kiểm thử tải (Load/Stress Testing) với kịch bản tạo hóa đơn và chốt điện nước hàng loạt.
+- Theo dõi thời gian phản hồi của các API phân trang (PaginatedResponse).
+- Phối hợp với nhóm Backend để tối ưu truy vấn JPA, đánh Index cơ sở dữ liệu PostgreSQL.
+	Trung bình - Cao
+	8
+	Lỗi hồi quy (Regression Bugs) sau khi fix bug hoặc cập nhật tính năng mới: Việc sửa lỗi ở module này làm phát sinh lỗi ngoài mong muốn ở module khác.
+	- Xây dựng bộ test case hồi quy (Regression Test Suite) cho các module cốt lõi (Hợp đồng, Hóa đơn, Điện nước).
+- Thực hiện Retest và Regression Test bắt buộc sau mỗi lượt cập nhật code (Build fix bug).
+- Cập nhật Defect Log đầy đủ để theo dõi lịch sử lỗi qua từng phiên bản.
+	Cao
+	9
+	Tiến độ sửa lỗi (Bug fixing) từ nhóm phát triển chậm hơn kế hoạch: Làm chậm tiến độ retest, ảnh hưởng đến mốc thời gian nghiệm thu dự án.
+	- Phân loại mức độ ưu tiên lỗi rõ ràng (Blocker, Critical, Major, Minor).
+- Theo dõi trạng thái Bug hàng ngày trên Defect Log.
+- Ưu tiên tập trung xử lý trước các lỗi phong tỏa (Blocker, Critical) ảnh hưởng đến luồng nghiệp vụ chính.
+	Trung bình - Cao
+	________________
+2. CÁC YÊU CẦU TEST
+Danh sách dưới đây xác định các thành phần được xác định dựa trên phạm vi và mục tiêu test. 
+Độ ưu tiên 
+	Mã
+	Nội dung 
+	Mức độ công việc 
+	Ghi chú 
+	1
+	VS-01
+	Đăng nhập hệ thống (Admin, Chủ trọ, Nhân viên, Khách thuê)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function, Auth
+	2
+	VS-02
+	Dashboard tổng quan quản lý (Thống kê phòng, hợp đồng, công nợ, doanh thu)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	3
+	VS-03
+	Quản lý tòa nhà / cơ sở cho thuê
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	4
+	VS-04
+	Quản lý tầng & phòng ở (Danh sách, trạng thái trống/đã thuê, tạo phòng hàng loạt)
+	Design 1.0 man-day, test 1.0 man-day
+	Test GUI, Function
+	5
+	VS-05
+	Quản lý khách thuê (Hồ sơ khách ở, ảnh CCCD, thông tin liên hệ, tài khoản)
+	Design 0.5 man-day, test 1.0 man-day
+	Test GUI, Function
+	6
+	VS-06
+	Quản lý giữ chỗ & đặt cọc (Tạo phiếu cọc, chuyển cọc thành hợp đồng, hoàn/hủy cọc)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	7
+	VS-07
+	Quản lý hợp đồng thuê (Tạo mới, gia hạn, thanh lý, duyệt yêu cầu gia hạn/hủy)
+	Design 1.0 man-day, test 1.0 man-day
+	Test GUI, Function, Workflow
+	8
+	VS-08
+	Quản lý chỉ số điện nước (Nhập số điện/nước hàng tháng, nhập file, kiểm tra chuỗi chỉ số)
+	Design 0.5 man-day, test 1.0 man-day
+	Test GUI, Function, Data Logic
+	9
+	VS-09
+	Quản lý dịch vụ & cấu hình phí xe (Điện, nước, internet, vệ sinh, phí gửi xe)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	10
+	VS-10
+	Quản lý hóa đơn & tính tiền (Tự động lập hóa đơn tiền phòng + điện nước + dịch vụ)
+	Design 1.0 man-day, test 1.5 man-days
+	Test GUI, Function, Calculation
+	11
+	VS-11
+	Quản lý công nợ & nhắc nợ (Theo dõi nợ tồn đọng, gửi thông báo/email nhắc nợ)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	12
+	VS-12
+	Quản lý thanh toán & cổng thanh toán (Tiền mặt, chuyển khoản VietQR, VNPay)
+	Design 1.0 man-day, test 1.5 man-days
+	Test GUI, Function, Integration (VietQR/VNPay)
+	13
+	VS-13
+	Quản lý sự cố & phản ánh (Tiếp nhận báo hỏng hóc, phân công sửa chữa, tiến độ)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	14
+	VS-14
+	Quản lý trang thiết bị & tài sản (Tài sản theo phòng, kho tài sản)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	15
+	VS-15
+	Quản lý phương tiện gửi xe (Danh sách xe, biển số, loại xe của khách thuê)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	16
+	VS-16
+	Quản lý lịch hẹn xem phòng (Khách đăng ký xem phòng, xác nhận/hủy lịch)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	17
+	VS-17
+	Quản lý tin nhắn & trao đổi (Chat trực tuyến thời gian thực qua WebSockets)
+	Design 1.0 man-day, test 1.0 man-day
+	Test GUI, Function, Real-time WebSockets
+	18
+	VS-18
+	Quản lý thông báo hệ thống (Thông báo ứng dụng & thông báo đẩy Push Notification)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	19
+	VS-19
+	Báo cáo & Thống kê tài chính (Doanh thu, dòng tiền, nợ xấu, tỷ lệ lấp đầy)
+	Design 1.0 man-day, test 1.0 man-day
+	Test GUI, Function, Report
+	20
+	VS-20
+	Quên mật khẩu & Khôi phục tài khoản
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	21
+	VS-21
+	Xác thực OTP qua Email
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	22
+	VS-22
+	Đặt lại mật khẩu mới
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	23
+	VS-23
+	Dashboard & Cổng thông tin khách thuê (Tenant Portal)
+	Design 1.0 man-day, test 1.0 man-day
+	Test GUI, Function, Portal
+	24
+	VS-24
+	Quản lý nhân viên & phân quyền tòa nhà
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function, Security
+	25
+	VS-25
+	Quản lý hồ sơ cá nhân (Chủ trọ, nhân viên, khách thuê)
+	Design 0.5 man-day, test 0.5 man-day
+	Test GUI, Function
+	26
+	VS-26
+	Trang không tìm thấy (404 Not Found Page)
+	Design 0.2 man-day, test 0.2 man-day
+	Test GUI
+	________________
+
+
+3. CHIẾN LƯỢC TEST
+Việc kiểm thử được thực hiện theo định hướng bảo đảm rằng các chức năng cốt lõi của hệ thống EasyHouse như: Đăng nhập & phân quyền, Dashboard tổng quan, Quản lý tòa nhà/phòng ở, Hồ sơ khách thuê, Đặt cọc giữ chỗ, Quản lý hợp đồng, Chốt chỉ số điện nước, Cấu hình dịch vụ & phí xe, Lập hóa đơn tự động & theo dõi công nợ, Thanh toán trực tuyến (VietQR/VNPay), Quản lý sự cố, Nhắn tin thời gian thực (WebSockets), Báo cáo thống kê tài chính và Cổng thông tin khách thuê (Tenant Portal) đều được kiểm tra đầy đủ ở cả khía cạnh chức năng và phi chức năng.
+
+
+Bên cạnh đó, các yêu cầu về giao diện đáp ứng (Responsive), hiệu năng xử lý API, tính toàn vẹn cơ sở dữ liệu PostgreSQL, bảo mật phân quyền (RBAC/Multitenancy) và kiểm thử hồi quy (Regression Testing) cũng là những nội dung bắt buộc trong quá trình test.
+
+
+* Việc test có thể dừng khi xảy ra một trong các trường hợp sau:
+* Toàn bộ các test case theo kế hoạch đã được thực hiện đầy đủ.
+* Các lỗi được phát hiện đã được ghi nhận vào Defect Log, phân loại mức độ nghiêm trọng và xử lý triệt me (đặc biệt các lỗi Blocker và Critical đạt tỷ lệ fix 100%).
+* Các chức năng có mức độ ưu tiên cao (Đăng nhập, Hợp đồng, Điện nước, Hóa đơn, Thanh toán, Phân quyền) đã đạt kết quả nghiệm thu chấp nhận được.
+* Không phát sinh thêm lỗi nghiêm trọng ảnh hưởng trực tiếp đến luồng vận hành chính của hệ thống.
+* Hết thời gian thực hiện theo kế hoạch test đã phê duyệt
+3.1. Các kiểu test
+Đối với mỗi kiểu test, cần xác định rõ kỹ thuật test, điều kiện hoàn thành và các vấn đề đặc biệt liên quan:
+* Kỹ thuật: Mô tả chi tiết cách thức thực hiện test, bao gồm các thành phần được kiểm tra, hoạt động chính diễn ra trong quá trình test và phương pháp (Black-box, Gray-box, Integration) được dùng để đánh giá kết quả.
+* Điều kiện hoàn thành: Xác định rõ tiêu chí chất lượng sản phẩm được chấp nhận và thời điểm mà nỗ lực test cho kiểu test đó được coi là hoàn tất.
+* Các vấn đề đặc biệt: Chỉ ra các yếu tố phụ thuộc hoặc tác động đến nguồn lực kiểm thử như môi trường test (Docker PostgreSQL Container, Backend Spring Boot Server, Frontend Next.js Server), dữ liệu test, kết nối mạng, các API cổng thanh toán ngoài (VietQR, VNPay) hoặc tiến độ dự án.
+* 3.1.1. Kiểm thử chức năng
+Kiểm thử chức năng (Functional Testing) được sử dụng để kiểm tra tính đúng đắn của các chức năng nghiệp vụ, quy tắc tính toán tài chính và luồng xử lý của hệ thống. Đây là nhóm test chính, tập trung vào việc xác minh hệ thống hoạt động chính xác theo đúng các yêu cầu kỹ thuật và nghiệp vụ quản lý phòng trọ đã đề ra.
+* Các nội dung thuộc phạm vi test chức năng gồm:
+* Đăng nhập hệ thống (Admin, Chủ trọ, Nhân viên, Khách thuê)
+* Dashboard tổng quan quản lý
+* Quản lý tòa nhà / cơ sở cho thuê
+* Quản lý tầng & phòng ở (Tạo phòng hàng loạt, trạng thái phòng)
+* Quản lý khách thuê (Hồ sơ khách, lưu trữ ảnh CCCD)
+* Quản lý giữ chỗ & đặt cọc
+* Quản lý hợp đồng thuê (Tạo mới, gia hạn, thanh lý, duyệt yêu cầu)
+* Quản lý chỉ số điện nước (Chốt số, nhập file, kiểm tra chuỗi chỉ số)
+* Quản lý dịch vụ & cấu hình phí xe
+* Quản lý hóa đơn & tính tiền (Tự động lập hóa đơn tiền phòng + điện nước + dịch vụ)
+* Quản lý công nợ & gửi thông báo nhắc nợ
+* Quản lý thanh toán & cổng thanh toán (Tiền mặt, VietQR, VNPay)
+* Quản lý sự cố & phản ánh hỏng hóc
+* Quản lý trang thiết bị & tài sản
+* Quản lý phương tiện gửi xe
+* Quản lý lịch hẹn xem phòng
+* Quản lý tin nhắn & trao đổi (Chat WebSockets)
+* Quản lý thông báo hệ thống & thông báo đẩy (Push Notification)
+* Báo cáo & Thống kê tài chính (Doanh thu, dòng tiền, tỷ lệ lấp đầy)
+* Quên mật khẩu & Khôi phục tài khoản
+* Xác thực OTP qua Email
+* Đặt lại mật khẩu mới
+* Dashboard & Cổng thông tin khách thuê (Tenant Portal)
+* Quản lý nhân viên & phân quyền tòa nhà
+* Quản lý hồ sơ cá nhân
+* Trang không tìm thấy (404 Not Found Page)
+
+
+
+
+* Nhóm test chức năng được chia thành các kiểu nhỏ sau:
+* Test chức năng (Function Testing)
+* Test giao diện người sử dụng (User Interface Testing)
+* Test dữ liệu và tích hợp dữ liệu (Data and Database Integrity Testing)
+* Test chu trình nghiệp vụ (Business Cycle Testing)
+Kiểm thử xử lý chức năng
+* Mục đích: Tập trung vào các yêu cầu kiểm thử có thể lưu vết trực tiếp từ các Use Case (UC) hoặc các quy tắc nghiệp vụ quản lý phòng trọ đã quy định.
+* Mục tiêu: Kiểm tra tính đúng đắn của dữ liệu đầu vào, quy trình xử lý tự động (tính tiền hóa đơn, tính tiền điện nước lũy tiến), kết quả đầu ra và việc thực hiện đúng các quy tắc phân quyền người dùng của hệ thống EasyHouse.
+* Kỹ thuật: Áp dụng phương pháp kiểm thử hộp đen (Black-box Testing), tức là kiểm tra ứng dụng và các xử lý nội tại bằng cách tương tác trực tiếp với giao diện người dùng Next.js, gọi API endpoints và phân tích kết quả dữ liệu trả về từ backend Spring Boot.
+ 
+Mục đích test
+	Đảm bảo mục tiêu test đúng đắn của từng chức năng nghiệp vụ quản lý phòng trọ, bao gồm định hướng chức năng, dữ liệu đầu vào, xử lý quy tắc nghiệp vụ tự động và cấu trúc dữ liệu phản hồi
+	Cách thực hiện
+	- Kiểm tra kết quả trả về và luồng chuyển trang/cập nhật dữ liệu mong đợi đối với trường hợp dữ liệu đầu vào hợp lệ.
+Kiểm tra hiển thị thông báo lỗi thích hợp khi dữ liệu đầu vào không hợp lệ, bị bỏ trống, chứa ký tự khoảng trắng hoặc vi phạm quy tắc logic nghiệp vụ.
+Đảm bảo mỗi quy tắc nghiệp vụ đều được áp dụng chính xác tuyệt đối cả ở Frontend và Backend.
+Các chức năng chính cần ưu tiên test gồm: Đăng nhập & Phân quyền, Quản lý tòa nhà & Phòng ở, Quản lý khách thuê & CCCD, Quản lý đặt cọc & Hợp đồng thuê, Chốt chỉ số điện nước, Lập hóa đơn tự động & Quản lý công nợ, Thanh toán qua VietQR/VNPay, Quản lý sự cố, Báo cáo - Thống kê tài chính và Cổng thông tin khách thuê .
+	Điều kiện hoàn thành
+	- Toàn bộ các kịch bản test  theo kế hoạch đã được thực hiện đầy đủ.
+Toàn bộ các lỗi phát hiện ra đã được ghi nhận chi tiết vào bảng Defect Log 9 cột, phân loại mức độ ưu tiên/nghiêm trọng và được nhóm phát triển xử lý nghiệm thu đạt yêu cầu.
+.
+	Các vấn đề đặc biệt
+	Quy tắc chỉ số điện nước: Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ liên tục theo chuỗi thời gian của từng phòng.
+Quy tắc trạng thái phòng & hợp đồng: Phòng ở trạng thái Đang thuê khi có hợp đồng hiệu lực , tự động chuyển về Trống khi hợp đồng kết thúc hoặc thanh lý.
+Quy tắc tính hóa đơn: Tổng tiền hóa đơn phải khớp chính xác với tổng của (Tiền phòng + Tiền điện + Tiền nước + Phí dịch vụ + Phí gửi xe + Công nợ cũ - Giảm giá/Cọc).
+Quy tắc gạch nợ thanh toán: Cập nhật chính xác số tiền đã trả (daTra), dư nợ còn lại và chuyển trạng thái hóa đơn khi có giao dịch thanh toán thành công qua VietQR/VNPay hoặc tiền mặt.
+Quy tắc bảo mật & phân quyền : Đảm bảo tính độc lập dữ liệu giữa các chủ trọ khác nhau, tài khoản nhân viên chỉ được thao tác trên các tòa nhà được phân quyền.
+
+
+
+
+	
+
+Test giao diện người sử dụng (User Interface Testing)
+* Test giao diện người dùng kiểm tra các tương tác của người dùng với phần mềm.
+* Mục tiêu của test UI là bảo đảm giao diện cung cấp cho người dùng cách truy cập và sử dụng phù hợp thông qua các chức năng trong phạm vi kiểm tra.
+* Ngoài ra, test UI còn nhằm bảo đảm các đối tượng giao diện như menu, nút bấm, form nhập liệu, bảng dữ liệu, màu sắc, bố cục, trạng thái và điều hướng hoạt động giống như mong đợi. Cấu trúc “Mục đích test / Cách thực hiện / Điều kiện hoàn thành / Các vấn đề đặc biệt” cũng là đúng form mẫu.
+
+
+Mục đích test
+	-Kiểm tra các thao tác chuyển màn hình, thao tác từ trường dữ liệu này sang trường dữ liệu khác và các phương pháp truy cập phản ánh đúng chức năng và yêu cầu nghiệp vụ quản lý phòng trọ.
+Kiểm tra thuộc tính và trạng thái hiển thị của các đối tượng màn hình: Sidebar menu, kích thước , vị trí , trạng thái , nhãn , văn bản gợi ý , nút bấm , bảng dữ liệu , biểu tượng , hộp thoại thông báo lỗi, thông báo thành công và các thẻ trạng thái .
+
+
+
+
+	Cách thực hiện
+	Tạo và thực hiện test cho từng màn hình của hệ thống để kiểm tra việc sử dụng đúng cách và tình trạng của các đối tượng trên giao diện. Các màn hình chính cần test gồm: Màn hình Đăng nhập | Dashboard tổng quan quản lý | Quản lý Tòa nhà | Quản lý Tầng & Phòng | Quản lý Khách thuê | Quản lý Giữ chỗ & Đặt cọc | Quản lý Hợp đồng thuê | Quản lý Chỉ số điện nước | Quản lý Dịch vụ & Cấu hình phí gửi xe | Quản lý Hóa đơn & Tính tiền | Quản lý Công nợ & Nhắc nợ | Quản lý Thanh toán & Cổng thanh toán | Quản lý Sự cố & Phản ánh | Quản lý Trang thiết bị & Tài sản phòng | Quản lý Phương tiện gửi xe | Quản lý Lịch hẹn xem phòng | Giao diện Chat & Nhắn tin trực tuyến | Quản lý Thông báo hệ thống & Thông báo đẩy | Báo cáo & Thống kê tài chính | Các màn hình Khôi phục mật khẩu & OTP | Dashboard & Cổng thông tin khách thuê | Quản lý Nhân viên & Phân quyền tòa nhà | Trang Hồ sơ cá nhân | Trang không tìm thấy (404 Not Found Page)
+.
+	Điều kiện hoàn thành
+	Mỗi màn hình chính và thành phần UI của hệ thống EasyHouse được kiểm tra thành công, hiển thị chính xác theo phiên bản thiết kế , không bị vỡ khung giao diện , tràn chữ , mất icon hoặc lỗi font tiếng Việt trên các độ phân giải màn hình khác nhau.
+	Các vấn đề đặc biệt
+	Không phải toàn bộ thuộc tính giao diện đều có thể kiểm tra tự động hoàn toàn; một số nội dung bắt buộc phải kiểm tra thủ công như: tính thẩm mỹ của giao diện, độ mượt của các hiệu ứng micro-animation/transition, trải nghiệm người dùng, khả năng hiển thị đáp ứng mượt mà trên thiết bị di động và tính đồng nhất về phong cách thiết kế trên toàn bộ các phân hệ của ứng dụng
+	Test dữ liệu và tích hợp dữ liệu (Data and Database Integrity Testing)
+* Cơ sở dữ liệu PostgreSQL và các quy trình xử lý dữ liệu của hệ thống backend Spring Boot phải được kiểm thử như một hệ thống con cốt lõi của dự án EasyHouse. Việc kiểm thử không chỉ dừng lại ở kiểm tra dữ liệu hiển thị trên giao diện người dùng Next.js mà còn bắt buộc phải trực tiếp truy vấn, xác nhận dữ liệu được lưu trữ, cập nhật, xóa mềm và liên kết chính xác trong cơ sở dữ liệu PostgreSQL.
+* * Đối với hệ thống EasyHouse, phần kiểm thử này có vai trò đặc biệt quan trọng vì ứng dụng sở hữu cấu trúc dữ liệu quan hệ phức tạp và liên kết chặt chẽ giữa các đối tượng: Tòa nhà, Tầng/Phòng, Khách thuê & Tài khoản, Phiếu cọc, Hợp đồng thuê ,Chỉ số điện nước ,Cấu hình dịch vụ & Phí xe ,Hóa đơn & Chi tiết hóa đơn , Giao dịch thanh toán , Công nợ tồn đọng
+* 
+
+Mục đích test
+	Đảm bảo rằng các phương pháp truy cập dữ liệu , quy trình Mapping DTO/Entity và các hàm xử lý logic tài chính là chính xác tuyệt đối, không xảy ra hiện tượng sai lệch dữ liệu, mất đồng bộ hoặc rò rỉ dữ liệu giữa các cơ sở cho thuê.
+
+
+
+
+	Cách thực hiện
+	- Thực hiện từng phương pháp truy cập và xử lý dữ liệu với cả dữ liệu hợp lệ, không hợp lệ, dữ liệu trống và dữ liệu trùng lặp.
+Truy vấn trực tiếp cơ sở dữ liệu PostgreSQL để bảo đảm dữ liệu được lưu trữ, mã hóa mật khẩu , gán giá trị khóa ngoại và mốc thời gian như mong đợi.
+Kiểm tra tính đúng đắn của các thao tác Thêm, Sửa, Xóa mềm , Tìm kiếm, Lọc phân trang  và Cập nhật trạng thái tự động.
+
+
+
+
+	Điều kiện hoàn thành
+	- Toàn bộ kế hoạch test đã được thực hiện.
+- Toàn bộ các lỗi phát hiện ra đều được ghi nhận.
+	Các vấn đề đặc biệt
+	- Mô hình nghiệp vụ cần được xác định rõ trước khi test.
+- Các trạng thái liên quan đến đơn hàng, thanh toán, tồn kho và khuyến mãi cần được theo dõi chặt chẽ vì có quan hệ phụ thuộc lẫn nhau.
+	
+
+Test chu trình nghiệp vụ (Business Cycle Testing)
+* Kiểm thử chu trình nghiệp vụ phải thực hiện các hoạt động nghiệp vụ của hệ thống EasyHouse theo đúng từng chu trình vận hành thực tế trong quản lý cho thuê.
+* Đối với hệ thống EasyHouse, chu trình nghiệp vụ không chỉ dừng lại ở các thao tác đơn lẻ (như tạo một phòng hay thêm một khách thuê) mà bao gồm toàn bộ luồng công việc xuyên suốt: từ lúc thiết lập phòng ở, tiếp nhận cọc giữ chỗ, lập hợp đồng thuê, bàn giao phòng và tự động tạo tài khoản khách thuê, đến việc chốt chỉ số điện nước định kỳ hàng tháng, tự động phát hành hóa đơn, thanh toán gạch nợ trực tuyến (VietQR/VNPay), xử lý sự cố phát sinh, cho đến khi gia hạn hoặc thanh lý hợp đồng và quyết toán tiền cọc.
+* Kiểu test này giúp bảo đảm các tiến trình chạy đúng theo mô hình nghiệp vụ cho thuê và lịch trình xử lý tự động của hệ thống.
+Mục đích test
+	Đảm bảo các tiến trình nghiệp vụ khép kínđược thực hiện chính xác, đúng luồng, đúng thời điểm và đáp ứng hoàn hảo yêu cầu của mô hình quản lý phòng trọ EasyHouse.
+	Cách thực hiện
+	Việc test sẽ giả lập một số chu trình nghiệp vụ bằng cách thực hiện các công việc sau:
+- Thực hiện luồng nghiệp vụ phía Khách thuê 
+- Thực hiện luồng nghiệp vụ phía Chủ trọ & Nhân viên 
+- Thực hiện kiểm thử với cả dữ liệu hợp lệ và không hợp lệ 
+- Kiểm tra các sự kiện ảnh hưởng theo thay đổi trạng thái
+- Kiểm tra các sự kiện ảnh hưởng theo trạng thái như hết hàng, đơn hàng bị hủy, áp dụng khuyến mãi, cậ
+	Điều kiện hoàn thành
+	- Toàn bộ kế hoạch test đã được thực hiện.
+- Toàn bộ các lỗi phát hiện ra đều được ghi nhận.
+	Các vấn đề đặc biệt
+	- Mô hình nghiệp vụ cần được xác định rõ trước khi test.
+- Các trạng thái liên quan đến đơn hàng, thanh toán, tồn kho và khuyến mãi cần được theo dõi chặt chẽ vì có quan hệ phụ thuộc lẫn nhau.
+	3.1.2. Kiểm thử hiệu suất
+Kiểm thử hiệu suất (Performance testing) được dùng để đánh giá khả năng phản hồi, khả năng chịu tải và tính ổn định của hệ thống trong các điều kiện sử dụng khác nhau. Đối với hệ thống EasyHouse, test hiệu suất tập trung vào các chức năng có tần suất truy cập cao hoặc xử lý nhiều dữ liệu như tải trang chủ portal, tìm kiếm phòng trọ, lọc phòng, lập hợp đồng, lập hóa đơn hàng loạt, ghi nhận chỉ số điện nước, thanh toán trực tuyến VietQR và báo cáo thống kê doanh thu.
+Performance Profiling Testing
+Performance profiling là một dạng test hiệu suất trong đó thời gian phản hồi, tỷ lệ giao dịch và các yêu cầu phụ thuộc thời gian khác được đo đạc và đánh giá. Mục đích của Performance Profiling là kiểm tra các yêu cầu về hiệu suất có đạt được hay không. Performance profiling là tiến hành và thực hiện để mô tả sơ lược và điều chỉnh các hành vi hiệu suất của mục tiêu test như một hàm của các điều kiện ví dụ workload hoặc cấu hình phần cứng.
+
+
+Mục đích test
+	Kiểm tra các biểu hiện về hiệu suất cho các giao dịch hoặc chức năng nghiệp vụ đã thiết kế theo workload bình thường và workload xấu đã biết trước.
+	Cách thực hiện
+	- Sử dụng các thủ tục test của test chức năng và chu trình nghiệp vụ.
+- Chỉnh sửa dữ liệu để tăng số lượng giao dịch hoặc số lượng tương tác.
+- Đo thời gian phản hồi của các chức năng như tải trang chủ, tải danh sách sản phẩm, tìm kiếm, lọc, thêm vào giỏ, đặt hàng, truy xuất báo cáo.
+	Điều kiện hoàn thành
+	Các giao dịch đơn lẻ hoặc nhiều giao dịch được thực hiện thành công, không có lỗi và có thời gian phản hồi trong mức chấp nhận được.
+	Các vấn đề đặc biệt
+	Cần môi trường test ổn định và cơ sở dữ liệu có kích thước gần với thực tế để kết quả đo có ý nghĩa.
+	 
+Load Testing
+Load testing là một kiểu test hiệu suất mà mục tiêu là kiểm tra workload để tính toán và đánh giá hiệu suất và khả năng của mục đích test để tiếp tục thực hiện các chức năng thích hợp với các workload khác. Mục đích của load testing là xác định và đảm bảo các chức năng hệ thống thích hợp với nhiều nhất các workload. Ngoài ra load testing còn đánh giá các tính năng hiệu suất như thời gian phản hồi, tỉ lệ giao dịch và các vấn đề liên quan đến thời gian khác.
+
+
+Mục đích test
+	Kiểm tra hiệu suất về thời gian cho các giao dịch hoặc tình huống nghiệp vụ đã thiết kế với nhiều điều kiện workload.
+	Cách thực hiện
+	- Sử dụng các test đã xây dựng cho test chức năng và chu trình nghiệp vụ.
+- Tăng số lượng người dùng đồng thời đối với các chức năng như xem sản phẩm, tìm kiếm, thêm giỏ hàng, đặt hàng và quản trị đơn hàng.
+	Điều kiện hoàn thành
+	Nhiều giao dịch hoặc nhiều người dùng đồng thời vẫn thực hiện thành công việc test, không có lỗi và trong thời gian chấp nhận được.
+	Các vấn đề đặc biệt
+	Load testing nên được thực hiện trên máy chuyên dụng hoặc trong thời gian chuyên biệt để bảo đảm kết quả đo chính xác.
+	 
+Stress Testing
+Stress testing là một kiểu test hiệu suất được thực hiện để tìm ra các lỗi trong trường hợp thiếu tài nguyên hoặc cạnh tranh về tài nguyên. Bộ nhớ hoặc dung lượng đĩa ít có thể làm xuất hiện lỗi trong mục đích test mà nó không xuất hiện dưới điều kiện bình thường. Các lỗi khác có thể là kết quả của việc cạnh tranh hoặc chia sẻ tài nguyên như khóa cơ sở dữ liệu hoặc băng thông mạng. Stress testing cũng được dùng để xác định workload tối đa mà mục đích test có thể điều khiển được.
+
+
+Mục đích test
+	Kiểm tra các chức năng của hệ thống trong điều kiện thiếu tài nguyên hoặc chịu áp lực tải lớn để xác định giới hạn vận hành.
+	Cách thực hiện
+	- Sử dụng lại các test đã xây dựng từ Performance Profiling hoặc Load Testing.
+- Tăng đột biến số lượng request, số lượng người dùng hoặc số lượng giao dịch đồng thời.
+- Kiểm tra phản ứng của hệ thống khi giới hạn tài nguyên máy chủ, truy vấn lớn hoặc nhiều người dùng thao tác cùng lúc.
+	Điều kiện hoàn thành
+	Toàn bộ kế hoạch stress test được thực hiện và các giới hạn của hệ thống được xác định rõ.
+	Các vấn đề đặc biệt
+	Có thể cần công cụ hỗ trợ tạo tải; cần theo dõi lỗi nghẽn, timeout, treo phiên, lỗi truy cập dữ liệu và lỗi xung đột tài nguyên.
+	 
+Volume Testing
+Mục tiêu của Volume Testing là để kiểm tra giới hạn của độ lớn của dữ liệu có thể làm phần mềm bị sai. Volume Testing cũng xác định load lớn nhất liên tục hoặc độ lớn mà mục đích test có thể điều khiển được trong chu kỳ đã cho. Ví dụ, nếu mục đích test là xử lý một tập các bản ghi để tạo báo cáo, Volume Test có thể dùng một cơ sở dữ liệu test lớn và kiểm tra xem phần mềm có chạy bình thường và cho ra báo cáo đúng không.
+
+
+Mục đích test
+	Kiểm tra giới hạn dữ liệu mà hệ thống có thể xử lý mà không phát sinh lỗi hoặc suy giảm nghiêm trọng hiệu năng.
+	Cách thực hiện
+	- Tạo dữ liệu với khối lượng lớn cho sản phẩm, đơn hàng, khách hàng, chi tiết đơn hàng, tồn kho và báo cáo.
+- Thực hiện đồng thời các truy vấn, lọc, thống kê và báo cáo trên tập dữ liệu lớn.
+	Điều kiện hoàn thành
+	Toàn bộ kế hoạch test được thực hiện và các giới hạn dữ liệu của hệ thống được xác định là vẫn xử lý được mà không có lỗi nghiêm trọng.
+	Các vấn đề đặc biệt
+	Cần xác định trước mức dữ liệu lớn nào được xem là chấp nhận được đối với hệ thống EasyHouse.
+	                 
+3.1.3. Kiểm thử bảo mật và kiểm soát truy cập
+Kiểm thử bảo mật (Security Testing) và kiểm soát truy cập (Access Control Testing) là quy trình giả lập tấn công để phát hiện lỗ hổng, đảm bảo tính bảo mật, toàn vẹn và sẵn sàng của hệ thống. Các nội dung chính bao gồm kiểm tra xác thực (authentication), phân quyền (authorization), validate dữ liệu đầu vào và quản lý phiên, giúp ngăn chặn truy cập trái phép và bảo vệ dữ liệu khỏi rủi ro. Test bảo mật và kiểm soát truy cập tập trung vào hai lĩnh vực chính:
+* Bảo mật ở mức ứng dụng, bao gồm truy cập dữ liệu và chức năng nghiệp vụ
+* Bảo mật ở mức hệ thống, bao gồm truy cập vào hệ thống hoặc truy cập trái phép vào các khu vực quản trị
+
+
+Mục đích test
+	- Bảo đảm người dùng chỉ có thể truy cập những chức năng hoặc dữ liệu mà vai trò của họ được phép.
+- Bảo đảm chỉ những người được phép mới có thể truy cập hệ thống và các trang quản trị.
+	Cách thực hiện
+	- Xác định từng nhóm người dùng: Admin, Nhân viên, Khách hàng.
+- Tạo test case cho từng nhóm người dùng và kiểm tra quyền truy cập vào chức năng và dữ liệu tương ứng.
+- Thử truy cập trực tiếp URL, thay đổi vai trò người dùng, đăng nhập/đăng xuất, thao tác trái quyền, truy cập dữ liệu không thuộc quyền sở hữu.
+	Điều kiện hoàn thành
+	Với mỗi nhóm người dùng đều có các chức năng hoặc dữ liệu thích hợp và toàn bộ các giao dịch được thực hiện đúng như dự kiến.
+	Các vấn đề đặc biệt
+	Cần thống nhất rõ ma trận phân quyền trước khi test; một số nội dung về bảo mật mức hệ thống có thể cần sự hỗ trợ của người quản trị hệ thống hoặc quản trị mạng.
+	3.1.4. Test hồi quy
+Test hồi quy là một hoạt động cần thiết để chỉ ra rằng việc thay đổi code không gây ra những ảnh hưởng bất lợi. Mục đích là đảm bảo các thay đổi mới không làm ảnh hưởng xấu đến các tính năng cũ, đảm bảo hệ thống vẫn hoạt động ổn định và không phát sinh lỗi mới. Các loại kỹ thuật kiểm thử hồi quy: 
+* Kiểm thử lại tất cả (Retest All): Chạy lại toàn bộ test case hiện có. Tốn thời gian nhưng an toàn.
+* Kiểm thử hồi quy lựa chọn (Selective): Chọn lọc một tập con các test case bị ảnh hưởng bởi thay đổi để kiểm thử, giúp tiết kiệm thời gian.
+* Ưu tiên trường hợp kiểm thử (Priority): Ưu tiên chạy các test case cho các chức năng quan trọng hoặc dễ bị ảnh hưởng. 
+
+
+Mục đích test
+	Kiểm tra các phần được sửa chữa hoặc cập nhật trong phần mềm để bảo đảm rằng những thay đổi đó không gây ra lỗi tại các phần chức năng khác.
+	Cách thực hiện
+	- Tái sử dụng các test case từ các phần test trước để test lại các module đã được sửa chữa.
+- Ưu tiên test hồi quy cho các module liên kết chặt như đăng nhập, tài khoản, sản phẩm, giỏ hàng, đặt hàng, đơn hàng, khuyến mãi, phân quyền và báo cáo.
+- Chọn lại các test case trọng yếu để thực hiện sau mỗi lần sửa lỗi hoặc cập nhật phiên bản.
+	Điều kiện hoàn thành
+	Toàn bộ kế hoạch test được thực hiện và các giới hạn dữ liệu của hệ thống được xác định là vẫn xử lý được mà không có lỗi nghiêm trọng.
+	Các vấn đề đặc biệt
+	Cần xác định trước mức dữ liệu lớn nào được xem là chấp nhận được đối với hệ thống EasyHouse.
+	3.2. Giai đoạn test
+Bảng sau liệt kê các giai đoạn mà việc test thường được thực hiện, tương ứng với từng kiểu test đã xác định trong kế hoạch kiểm thử. Việc phân chia theo giai đoạn giúp nhóm kiểm thử xác định đúng phạm vi, mục tiêu và mức độ áp dụng của từng loại kiểm thử trong suốt vòng đời phát triển phần mềm. Các giai đoạn kiểm thử được sử dụng trong dự án gồm: Unit Test, Integration Test, System Test và Acceptance Test. Cách chia các giai đoạn này cũng phù hợp với phần phạm vi test mà bạn đã xây dựng trước đó.
+Kiểu test
+	Giai đoạn test
+	Unit
+	Integration
+	System
+	Acceptance
+	Functional Tests
+	X
+	X
+	X
+	X
+	User Interface Tests
+	
+
+	X
+	X
+	X
+	Data and Database Integrity Tests
+	X
+	X
+	X
+	
+
+	Business Cycle Tests
+	
+
+	X
+	X
+	
+
+	Performance Tests
+	X
+	X
+	
+
+	
+
+	Performance Tests (Load, Stress, Volume)
+	
+
+	
+
+	X
+	X
+	Security and Access Control Tests
+	
+
+	X
+	X
+	X
+	Regression Tests
+	X
+	X
+	X
+	X
+	3.3. Các công cụ test
+Việc lựa chọn công cụ test nhằm hỗ trợ nhóm kiểm thử thực hiện hiệu quả các hoạt động thiết kế test case, quản lý dữ liệu test, kiểm thử giao diện, kiểm thử chức năng, kiểm thử API, kiểm thử cơ sở dữ liệu, kiểm thử hiệu năng, kiểm thử bảo mật và quản lý lỗi. Các công cụ được lựa chọn ưu tiên theo các tiêu chí sau:
+* Phù hợp với đặc thù của hệ thống website bán hàng trực tuyến.
+* Dễ triển khai, dễ sử dụng và phù hợp với năng lực của nhóm dự án.
+* Hỗ trợ tốt cho cả kiểm thử thủ công và kiểm thử bán tự động.
+* Có khả năng áp dụng trực tiếp cho các module của EasyHouse.
+Mục đích
+	Công cụ
+	Phiên bản
+	Quản lý test case, test checklist, test data, theo dõi kết quả test
+	Google Sheets
+	Bản hiện hành
+	Soạn thảo tài liệu test plan, test case, test design, defect report
+	Google Docs
+	Bản hiện hành
+	Kiểm thử giao diện người dùng, điều hướng màn hình, layout,..
+	Google Chrome DevTools
+	Bản hiện hành
+	Kiểm thử giao diện trên nhiều trình duyệt
+	Google Chrome, Edge, Firefox
+	Bản hiện hành
+	Kiểm thử API, request/response
+	Postman
+	Bản hiện hành
+	Kiểm tra và đối chiếu dữ liệu trong cơ sở dữ liệu
+	SQL Server Management Studio
+	SSMS Studio 20
+	Kiểm thử hiệu năng, tải, stress, thời gian phản hồi
+	Apache JMeter
+	Bản hiện hành
+	Kiểm thử chức năng phía người dùng và admin bằng thao tác thủ công
+	Trình duyệt Web + bộ test case thủ công
+	Bản Testcase hiện tại
+	Quản lý lỗi, theo dõi trạng thái bug, phân loại mức độ lỗi
+	Google Sheets / Trello
+	Bản hiện hành
+	Quản lý source code
+	GitHub
+	Bản hiện hành
+	Mô tả áp dụng công cụ trong dự án EasyHouse
+* Công cụ quản lý test case và tài liệu: Đối với dự án EasyHouse, nhóm kiểm thử sử dụng Microsoft Excel (EasyHouse_Test Report.xlsx) và Google Sheets để xây dựng và quản lý:
+* Danh sách test case
+* Test checklist
+* Test data
+* Kết quả thực hiện test
+* Danh sách lỗi phát hiện
+* Công cụ kiểm thử giao diện người dùng: Để kiểm tra giao diện của website, nhóm sử dụng các trình duyệt phổ biến như:
+* Google Chrome
+* Microsoft Edge
+* Mozilla Firefox
+* Kết hợp với đó, Chrome DevTools được dùng để:
+* Kiểm tra cấu trúc giao diện
+* Kiểm tra CSS, font, kích thước, khoảng cách
+* Kiểm tra responsive trên các kích thước màn hình khác nhau
+* Kiểm tra trạng thái ẩn/hiện của phần tử
+* Kiểm tra lỗi console JavaScript
+* Kiểm tra request bị lỗi trong tab Network
+* Công cụ kiểm thử chức năng và API: Với các chức năng nghiệp vụ của hệ thống, việc kiểm thử chính được thực hiện bằng manual testing trên trình duyệt theo bộ test case đã thiết kế. Tuy nhiên, đối với các chức năng có gọi API hoặc xử lý dữ liệu phía backend, nhóm sử dụng thêm Postman để:
+* Gửi request trực tiếp tới API
+* Kiểm tra response status
+* Kiểm tra dữ liệu trả về
+* Kiểm tra validate đầu vào
+* Kiểm tra phân quyền API
+* Kiểm tra token, session hoặc cơ chế xác thực
+* Công cụ kiểm tra dữ liệu và cơ sở dữ liệu: Nhóm sử dụng SQL Server Management Studio (SSMS):
+* Kiểm tra dữ liệu sau khi thực hiện thao tác trên giao diện
+* Đối chiếu dữ liệu trước và sau test
+* Kiểm tra các quan hệ dữ liệu
+* Kiểm tra insert / update / delete
+* Kiểm tra dữ liệu phát sinh lỗi
+* Hỗ trợ chuẩn bị dữ liệu test
+* Hỗ trợ làm tươi dữ liệu trước các vòng test
+* Công cụ kiểm thử hiệu năng: Đối với kiểm thử hiệu năng, nhóm sử dụng Apache JMeter để đánh giá:
+* Thời gian phản hồi của hệ thống
+* Khả năng chịu tải, xử lý nhiều request đồng thời
+* Độ ổn định của các chức năng quan trọng
+3.4. Môi trường test
+Môi trường test của Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse được xây dựng nhằm bảo đảm quá trình kiểm thử được thực hiện trong điều kiện phù hợp với từng giai đoạn và phản ánh gần nhất môi trường vận hành thực tế.
+Môi trường kiểm thử cần hỗ trợ kiểm tra các chức năng quản lý phòng, khách thuê, đặt cọc, hợp đồng, chỉ số điện nước, cấu hình giá, hóa đơn, thanh toán, sự cố, tin nhắn, thông báo, báo cáo thống kê, tài khoản và phân quyền. Đồng thời, môi trường phải hỗ trợ kiểm tra sự tích hợp giữa Frontend, Backend API, cơ sở dữ liệu PostgreSQL và các luồng thanh toán VNPay/VietQR khi được cấu hình.
+Môi trường test của EasyHouse được tổ chức theo các nguyên tắc sau:
+- Ở giai đoạn đầu có thể sử dụng môi trường gần với môi trường phát triển để phát hiện lỗi sớm trong từng chức năng.
+- Từ giai đoạn Integration Test trở đi, môi trường kiểm thử nên được tách riêng với môi trường phát triển để tránh ảnh hưởng dữ liệu và bảo đảm kết quả kiểm thử có độ tin cậy.
+- Ở các giai đoạn System Test và Acceptance Test, môi trường kiểm thử cần được cấu hình gần giống nhất với môi trường vận hành thực tế của hệ thống.
+Môi trường Unit Test
+- Ở giai đoạn Unit Test, việc kiểm thử chủ yếu được thực hiện trên môi trường phát triển của lập trình viên. Hệ thống có thể được chạy trực tiếp từ source code hoặc môi trường phát triển tích hợp.
+- Cơ sở dữ liệu ở giai đoạn này có thể là PostgreSQL cục bộ hoặc dữ liệu mẫu đơn giản, phục vụ kiểm tra từng hàm, service, controller, repository, API, validate dữ liệu đầu vào và các nghiệp vụ riêng lẻ.
+- Môi trường này tập trung kiểm tra các chức năng như đăng nhập, phân quyền, quản lý phòng, khách thuê, hợp đồng, hóa đơn, thanh toán và xử lý dữ liệu nghiệp vụ ở mức đơn vị.
+Môi trường Integration Test
+- Ở giai đoạn Integration Test, hệ thống được kiểm tra trên môi trường đã tích hợp các module chính của EasyHouse. Việc kiểm thử được thực hiện trên bản build thử nghiệm hoặc phiên bản đã tích hợp tương đối đầy đủ.
+- Cơ sở dữ liệu PostgreSQL dùng cho kiểm thử cần được tách riêng với môi trường phát triển để tránh làm ảnh hưởng dữ liệu trong quá trình test.
+- Môi trường này được sử dụng để kiểm tra sự liên kết giữa tài khoản và phân quyền; phòng, khách thuê, đặt cọc và hợp đồng; chỉ số điện nước, cấu hình giá và hóa đơn; hóa đơn, thanh toán, VNPay và VietQR; cũng như sự trao đổi dữ liệu giữa Frontend, Backend API và PostgreSQL.
+Môi trường System Test
+- Ở giai đoạn System Test, hệ thống EasyHouse cần được triển khai trên môi trường gần giống nhất với môi trường sử dụng thực tế. Việc kiểm thử được thực hiện trên bản build hoàn chỉnh và cơ sở dữ liệu test riêng.
+- Môi trường này phục vụ kiểm tra toàn bộ hệ thống, bao gồm chức năng, giao diện, dữ liệu, responsive, hiệu năng, bảo mật, phân quyền và hồi quy.
+- Người dùng truy cập hệ thống thông qua trình duyệt web trên máy trạm hoặc thiết bị có kích thước màn hình khác nhau để kiểm tra khả năng hiển thị responsive.
+Môi trường Acceptance Test
+- Ở giai đoạn Acceptance Test, môi trường kiểm thử cần gần tương đương với môi trường mà người quản lý và khách thuê sẽ sử dụng. Hệ thống được chạy trên bản build ổn định, là phiên bản gần nhất với bản bàn giao.
+- Dữ liệu kiểm thử phải được chuẩn bị đầy đủ để phản ánh các tình huống nghiệp vụ thực tế, bao gồm dữ liệu phòng, khách thuê, hợp đồng, chỉ số điện nước, hóa đơn và thanh toán.
+- Đối với VNPay và VietQR, việc kiểm thử được thực hiện trên môi trường sandbox, môi trường mô phỏng hoặc phương thức được nhóm dự án cho phép; không sử dụng thông tin thanh toán thực.
+- Môi trường này giúp xác nhận hệ thống đáp ứng yêu cầu sử dụng trước khi nghiệm thu và bàn giao.
+Điều kiện môi trường cần bảo đảm trong quá trình test
+- Hệ thống phải sẵn sàng để kiểm thử viên truy cập và thực hiện kiểm thử.
+- Bản build kiểm thử phải được xác định rõ phiên bản.
+- Cơ sở dữ liệu PostgreSQL dùng cho test phải ổn định, nhất quán và được sao lưu khi cần thiết.
+- Dữ liệu test phải được chuẩn bị trước, bao gồm tài khoản theo vai trò, phòng, khách thuê, hợp đồng, hóa đơn và dữ liệu thanh toán mẫu.
+- Các tài khoản kiểm thử phải được phân quyền đúng theo vai trò trong hệ thống.
+- Môi trường test không nên dùng chung với môi trường phát triển hoặc dữ liệu vận hành thực tế.
+- Kết nối mạng phải ổn định, đặc biệt khi kiểm thử các API và luồng thanh toán VNPay/VietQR.
+4 : TÀI NGUYÊN        
+Mô tả các nguồn lực cần thiết để thực hiện hoạt động kiểm thử cho dự án EasyHouse – website quản lý nhà trọ. Tài nguyên phục vụ quá trình kiểm thử bao gồm nguồn nhân lực, tài nguyên hệ thống, công cụ hỗ trợ và dữ liệu kiểm thử. Việc xác định đầy đủ các nguồn lực giúp nhóm kiểm thử chủ động trong việc lập kế hoạch, phân công nhiệm vụ, thực hiện các trường hợp kiểm thử và theo dõi, đánh giá kết quả; từ đó bảo đảm các chức năng quản lý phòng, khách thuê, hợp đồng, hóa đơn, thanh toán, sự cố và thông báo hoạt động chính xác, ổn định và đáp ứng yêu cầu của dự án. 
+4.1. Nhân lực
+Nguồn nhân lực phục vụ hoạt động kiểm thử của dự án EasyHouse – website quản lý nhà trọ bao gồm trưởng nhóm và các thành viên tham gia thiết kế test case, chuẩn bị dữ liệu kiểm thử, thực hiện kiểm thử, ghi nhận và báo cáo lỗi, retest sau khi lỗi được khắc phục, đồng thời tổng hợp kết quả kiểm thử.
+Việc phân công nhân sự được thực hiện phù hợp với từng nhóm chức năng của hệ thống như quản lý phòng, khách thuê, hợp đồng, hóa đơn, thanh toán, sự cố và thông báo. Cách phân công này giúp bảo đảm các chức năng được kiểm tra đầy đủ, hạn chế bỏ sót lỗi và nâng cao hiệu quả của quá trình kiểm thử.
+
+
+Nguồn nhân lực
+	Vài trò
+	Họ và tên
+	Trách nhiệm
+	Test Manager
+	Phan Trường Sơn
+	* Xây dựng kế hoạch kiểm thử
+* Quản lý nhóm kiểm thử
+* Đảm bảo chất lượng kiểm thử 
+* Tư vấn về việc kiểm thử 
+	Test Analyst
+	Trần Triệu Vỹ, 
+Đỗ Chí Công
+	* Thực hiện kiểm thử
+* Phân tích yêu cầu 
+* Tạo báo cáo lỗi
+* Hỗ trợ trong việc sửa lỗi
+* Tư vấn về việc kiểm thử
+	Test Designer
+	Phùng Văn Thọ
+	* Phân tích yêu cầu
+* Tạo kế hoạch kiểm thử
+* Xác định các trường hợp kiểm thử
+* Tạo các tài liệu kiểm thử
+	Tester
+	Phan Trường Sơn, Trần Triệu Vỹ, 
+Đỗ Chí Công, 
+Phùng Văn Thọ
+	* Thực hiện kiểm thử
+* Báo cáo lỗi
+* Kiểm tra lỗi
+* Tài liệu kiểm thử
+* Hỗ trợ cho nhóm phát triển
+	
+
+4.2 Hệ thống
+Tài nguyên hệ thống là các thành phần phần cứng, phần mềm và môi trường cần thiết để phục vụ cho quá trình kiểm thử của dự án. Việc chuẩn bị đầy đủ tài nguyên hệ thống giúp quá trình test được thực hiện liên tục, ổn định và giảm thiểu rủi ro do thiếu công cụ hoặc môi trường.
+4.2.1. Hệ thống phần cứng cần thiết 
+Tài nguyên hệ thống
+	Resource
+	Quantity
+	Name and Type
+	Database Server
+	CPU
+	1
+	SQL Server
+	RAM
+	1
+	Intel core i5-13400 10 Raptor Lake
+	HardWare
+	1
+	8GB
+	Network or Subnet
+	1
+	250GB
+	Server Name
+	1 
+	Ip Public
+	Database Name
+	
+
+	EasyHouse 
+	Client Test PCs
+	CPU
+	2
+	Intel core i5-9400 6 Coffee Lake
+	RAM
+	4
+	8GB
+	HardWare
+	4
+	512GB
+	Include special configuration requirements
+	
+
+	Trình duyệt Chrome / Edge / Firefox, kết nối Internet ổn định
+	
+
+4.2.2. Hệ thống phần mềm cần thiết
+Tên phần mềm
+	Version
+	Type and Other Notes
+	Window 10 Pro
+	22H2
+	Hệ điều hành
+	Windows 11
+	25H2
+	Hệ điều hành
+	Internet Explorer
+	140.0+
+	Trình duyệt Web
+	Google Chrome
+	145.0+
+	Trình duyệt Web
+	Window Security
+	Default window version
+	Bảo vệ hệ thống và chống Virus
+	4.2.3. Dữ liệu tài nguyên cần thiết
+STT
+	Loại dữ liệu
+	Mô tả
+	1
+	Tài khoản kiểm thử
+	Tài khoản có các vai trò khác nhau như quản trị viên, chủ trọ và khách thuê
+	2
+	Dữ liệu khu trọ và phòng
+	Thông tin khu trọ, loại phòng, số phòng, giá thuê, diện tích, trạng thái phòng và các tiện ích
+	3
+	Dữ liệu khách thuê
+	Thông tin cá nhân, số điện thoại, email, địa chỉ, giấy tờ tùy thân và thông tin liên hệ
+	4
+	Dữ liệu hợp đồng
+	Hợp đồng ở nhiều trạng thái khác nhau, thông tin phòng thuê, khách thuê, thời hạn thuê, tiền thuê và tiền đặt cọc
+	5
+	Dữ liệu hóa đơn
+	Chỉ số điện, nước, tiền phòng, phí dịch vụ, kỳ thanh toán, tổng tiền và các trạng thái hóa đơn
+	6
+	Dữ liệu thanh toán
+	Thông tin thanh toán, số tiền đã trả, phương thức, thời gian và trạng thái thanh toán
+	7
+	Dữ liệu sự cố
+	Các yêu cầu báo cáo sự cố về điện, nước, thiết bị và cơ sở vật chất với nhiều mức độ, trạng thái xử lý
+	8
+	Dữ liệu thông báo
+	Thông báo thanh toán, hợp đồng, bảo trì, sự cố và các thông báo chung gửi đến người dùng
+	9
+	Dữ liệu thống kê
+	Dữ liệu doanh thu, công nợ, tỷ lệ lấp đầy phòng, hợp đồng và hóa đơn phục vụ báo cáo, thống kê
+	Nguồn lực phục vụ kiểm thử cho dự án Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse bao gồm đội ngũ kiểm thử của nhóm, hệ thống phần cứng, phần mềm hỗ trợ và dữ liệu kiểm thử phù hợp. Việc chuẩn bị đầy đủ các tài nguyên này sẽ giúp quá trình kiểm thử được thực hiện đúng kế hoạch, tăng khả năng phát hiện lỗi và góp phần bảo đảm chất lượng của hệ thống trước khi nghiệm thu.
+________________
+5. CÁC MỐC KIỂM SOÁT CỦA GIAI ĐOẠN TEST
+Thực hiện test của dự án Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse phải phối hợp các hoạt động test cho nguồn lực test đã được xác định trong phần trước. Độc lập với milestone của dự án, các mốc kiểm soát test cần được xác định nhằm cung cấp thông tin chính xác về tình trạng hoàn thành của quá trình kiểm thử.
+Milestone Task
+	Thành viên
+	Ngày bắt đầu
+	Ngày kết thúc
+	Lập kế hoạch test
+	Phan Trường Sơn
+	20/07/2026
+	24/07/2026
+	Test giao diện
+	Toàn bộ nhóm
+	25/07/2026
+	16/08/2026
+	Test chức năng
+	Toàn bộ nhóm
+	25/07/2026
+	16/08/2026
+	Test tích hợp và test dữ liệu
+	Đỗ Chí Công, Phan Trường Sơn
+	15/08/2026
+	18/08/2026
+	Kiểm thử bảo mật và hiệu năng
+	Phùng Văn Thọ, Phan Trường Sơn
+	17/08/2026
+	19/08/2026
+	Tổng hợp báo cáo test
+	Phan Trường Sơn
+	16/08/2026
+	19/08/2026
+	Hoàn thiện và bàn giao
+	Toàn bộ nhóm
+	18/08/2026
+	19/08/2026
+	6. CÁC SẢN PHẨM
+STT
+	Sản phẩm
+	Ngày bàn giao
+	Người bàn giao
+	Người nhận bàn giao
+	1
+	Test cases (EasyHouse_Test Report.xlsx)
+	19/08/2026
+	Toàn bộ nhóm
+	Đỗ Chí Công (Leader)
+	2
+	Test procedures (Quy trình kiểm thử)
+	19/08/2026
+	Toàn bộ nhóm
+	Đỗ Chí Công (Leader)
+	3
+	Defect log (Nhật ký theo dõi lỗi)
+	19/08/2026
+	Toàn bộ nhóm
+	Đỗ Chí Công (Leader)
+	4
+	Defect reports (Báo cáo tổng kết lỗi)
+	19/08/2026
+	Toàn bộ nhóm
+	Đỗ Chí Công (Leader)
+	5
+	Test Plan (Kế hoạch kiểm thử EasyHouse)
+	24/07/2026
+	Phan Trường Sơn
+	Đỗ Chí Công (Leader)
+	
+
+Xây dựng Hệ thống Quản lý Phòng trọ và Căn hộ cho thuê EasyHouse
