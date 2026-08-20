@@ -293,7 +293,13 @@ export default function TenantContractsPage() {
     return new Date(dateStr).toLocaleDateString('vi-VN');
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, contract?: TenantContract) => {
+    if (contract?.soHoaDonQuaHan && contract.soHoaDonQuaHan > 0) {
+      return <Badge variant="destructive" className="bg-red-600 hover:bg-red-700 text-white font-bold">Nợ quá hạn ({contract.soHoaDonQuaHan})</Badge>;
+    }
+    if ((status === 'choKichHoat' || status === 'PENDING') && contract?.trangThaiCoc !== 'KEPT' && Number(contract?.tienCoc || 0) > 0) {
+      return <Badge variant="outline" className="border-amber-400 text-amber-800 bg-amber-50 font-bold">Chờ nộp cọc</Badge>;
+    }
     switch (status) {
       case 'hoatDong':
       case 'ACTIVE':
@@ -411,7 +417,7 @@ export default function TenantContractsPage() {
                       <div className="bg-[#243B5A]/5 text-[#243B5A] px-2.5 py-1 rounded-md text-[11px] font-mono font-bold tracking-widest uppercase">
                         {contract.maHopDong}
                       </div>
-                      {getStatusBadge(trangThai)}
+                      {getStatusBadge(trangThai, contract)}
                     </div>
                     <CardTitle className="text-xl font-['Be_Vietnam_Pro'] font-bold text-[#243B5A] flex items-center gap-2">
                       <Home className="h-5 w-5 text-[#4FA7A0]" />

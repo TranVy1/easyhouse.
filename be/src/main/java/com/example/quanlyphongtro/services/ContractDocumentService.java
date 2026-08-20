@@ -377,8 +377,6 @@ public class ContractDocumentService {
             hd.setTenantSignedAt(ZonedDateTime.now());
             if (hd.getSignatureStatus() == SignatureStatus.LANDLORD_SIGNED) {
                 hd.setSignatureStatus(SignatureStatus.COMPLETED);
-                hd.setTrangThai(TrangThaiHopDong.ACTIVE);
-                hd.setLockedAt(ZonedDateTime.now());
             } else {
                 hd.setSignatureStatus(SignatureStatus.TENANT_SIGNED);
             }
@@ -386,8 +384,6 @@ public class ContractDocumentService {
             hd.setLandlordSignedAt(ZonedDateTime.now());
             if (hd.getSignatureStatus() == SignatureStatus.TENANT_SIGNED) {
                 hd.setSignatureStatus(SignatureStatus.COMPLETED);
-                hd.setTrangThai(TrangThaiHopDong.ACTIVE);
-                hd.setLockedAt(ZonedDateTime.now());
             } else {
                 hd.setSignatureStatus(SignatureStatus.LANDLORD_SIGNED);
             }
@@ -396,15 +392,30 @@ public class ContractDocumentService {
         boolean completed = hd.getSignatureStatus() == SignatureStatus.COMPLETED;
         if (completed) {
             ZonedDateTime now = ZonedDateTime.now();
-            hd.setTrangThai(TrangThaiHopDong.ACTIVE);
-            hd.setConfirmedAt(hd.getConfirmedAt() != null ? hd.getConfirmedAt() : now);
-            hd.setLockedAt(hd.getLockedAt() != null ? hd.getLockedAt() : now);
+            boolean hasDeposit = hd.getTienCoc() != null && hd.getTienCoc().compareTo(BigDecimal.ZERO) > 0;
+            boolean depositPaid = hd.getTrangThaiCoc() == TrangThaiCocHopDong.KEPT;
+
+            if (!hasDeposit || depositPaid) {
+                hd.setTrangThai(TrangThaiHopDong.ACTIVE);
+                hd.setConfirmedAt(hd.getConfirmedAt() != null ? hd.getConfirmedAt() : now);
+                hd.setLockedAt(hd.getLockedAt() != null ? hd.getLockedAt() : now);
+            } else {
+                // Đã ký đủ 2 bên nhưng chưa đóng cọc: giữ PENDING (Chờ kích hoạt) và khóa dữ liệu (lockedAt)
+                hd.setTrangThai(TrangThaiHopDong.PENDING);
+                hd.setLockedAt(hd.getLockedAt() != null ? hd.getLockedAt() : now);
+            }
         }
 
         hopDongRepository.save(hd);
         if (completed) {
-            syncRoomRented(hd);
-            jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hd.getId());
+            boolean hasDeposit = hd.getTienCoc() != null && hd.getTienCoc().compareTo(BigDecimal.ZERO) > 0;
+            boolean depositPaid = hd.getTrangThaiCoc() == TrangThaiCocHopDong.KEPT;
+            if (!hasDeposit || depositPaid) {
+                syncRoomRented(hd);
+                jdbcTemplate.queryForObject("SELECT public.tao_lich_thanh_toan_hang_thang(?::uuid)", Integer.class, hd.getId());
+            } else {
+                syncRoomReserved(hd);
+            }
         }
 
         // Re-generate PDF to include signatures on Cloudinary
@@ -444,6 +455,21 @@ public class ContractDocumentService {
             return;
         }
         phong.setTrangThai(TrangThaiPhong.RENTED);
+        phongRepository.save(phong);
+    }
+
+    private void syncRoomReserved(HopDong hd) {
+        if (hd.getPhong() == null || hd.getPhong().getId() == null) {
+            return;
+        }
+        Phong phong = phongRepository.findById(hd.getPhong().getId()).orElse(null);
+        if (phong == null || phong.getXoaLuc() != null) {
+            return;
+        }
+        if (phong.getTrangThai() == TrangThaiPhong.MAINTENANCE || phong.getTrangThai() == TrangThaiPhong.INACTIVE) {
+            return;
+        }
+        phong.setTrangThai(TrangThaiPhong.RESERVED);
         phongRepository.save(phong);
     }
 

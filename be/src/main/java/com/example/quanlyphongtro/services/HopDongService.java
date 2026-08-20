@@ -837,6 +837,26 @@ public class HopDongService {
         List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members = thanhVienHopDongRepository
                 .findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
 
+        if (hopDong.getId() != null) {
+            List<HoaDon> invoices = hoaDonRepository.findByHopDongIdAndXoaLucIsNull(hopDong.getId());
+            int overdueCount = 0;
+            BigDecimal totalDebt = BigDecimal.ZERO;
+            LocalDate today = LocalDate.now();
+            for (HoaDon inv : invoices) {
+                if (inv.getTrangThai() == TrangThaiHoaDon.CANCELLED) continue;
+                BigDecimal unpaid = (inv.getTongTien() != null ? inv.getTongTien() : BigDecimal.ZERO)
+                        .subtract(inv.getDaTra() != null ? inv.getDaTra() : BigDecimal.ZERO);
+                if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
+                    totalDebt = totalDebt.add(unpaid);
+                    if (inv.getTrangThai() == TrangThaiHoaDon.OVERDUE || (inv.getHanTra() != null && inv.getHanTra().isBefore(today))) {
+                        overdueCount++;
+                    }
+                }
+            }
+            response.setSoHoaDonQuaHan(overdueCount);
+            response.setTongTienNo(totalDebt);
+        }
+
         if (members.isEmpty() && hopDong.getKhachThue() != null) {
             List<HopDongResponse.PhiDichVuResponse> phiDichVu = mapPhiDichVu(hopDong.getId());
             response.setKhachThueId(List.of(KhachThueResponse.fromEntity(hopDong.getKhachThue())));

@@ -360,11 +360,12 @@ export interface HopDong {
   ghiChu?: string;
   chuKyChuTro?: string;
   chuKyKhachThue?: string;
+  soHoaDonQuaHan?: number;
+  tongTienNo?: number;
   ngayTao: DateLike;
   ngayCapNhat: DateLike;
   taoLuc?: DateLike;
   capNhatLuc?: DateLike;
-
 }
 
 export interface ChiSoDienNuoc {
