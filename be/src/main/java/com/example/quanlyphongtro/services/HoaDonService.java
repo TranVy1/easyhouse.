@@ -850,7 +850,11 @@ public class HoaDonService {
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         hoaDon.setTongTienPhatSinh(tongPhatSinh);
-        hoaDon.setTongTien(defaultMoney(hoaDon.getSoDuDauKy()).add(tongPhatSinh));
+        
+        BigDecimal rawTotal = defaultMoney(hoaDon.getSoDuDauKy()).add(tongPhatSinh);
+        BigDecimal roundedTotal = rawTotal.divide(BigDecimal.valueOf(1000), 0, java.math.RoundingMode.CEILING).multiply(BigDecimal.valueOf(1000));
+        
+        hoaDon.setTongTien(roundedTotal);
         hoaDon.setTrangThai(resolveInvoiceStatus(hoaDon.getTrangThai(), defaultMoney(hoaDon.getDaTra()), hoaDon.getTongTien(), hoaDon.getHanTra()));
     }
 

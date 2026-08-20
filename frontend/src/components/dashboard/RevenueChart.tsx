@@ -25,11 +25,11 @@ interface RevenueData {
 export function RevenueChart({ data }: { data: RevenueData[] }) {
   if (!data || data.length === 0) {
     return (
-      <Card className="col-span-4 h-[400px] flex items-center justify-center border-dashed">
+      <div className="h-[400px] flex items-center justify-center border-dashed rounded-2xl border-2 border-gray-200">
         <div className="text-center text-[#6B7A8C]">
           <p>Chưa có dữ liệu doanh thu</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
@@ -52,34 +52,28 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   };
 
   return (
-    <Card className="col-span-4 border-border/60 shadow-sm overflow-hidden rounded-2xl bg-white">
-      <CardContent className="h-[350px] p-6 pt-8">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DED2" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }} dy={10} />
-            <YAxis 
-              tickFormatter={(value) => `${(value / 1000000).toFixed(0)}Tr`}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }}
-              dx={-10}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F8F3EC', opacity: 0.5 }} />
-            <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 500 }} iconType="circle" iconSize={8} />
-            <Bar dataKey="expectedRevenue" name="Phải thu" fill="#243B5A" radius={[4, 4, 0, 0]} barSize={16} />
-            <Bar dataKey="collectedRevenue" name="Đã thu" fill="#4FA7A0" radius={[4, 4, 0, 0]} barSize={16} />
-            <Bar dataKey="outstanding" name="Còn nợ" fill="#F2A45B" radius={[4, 4, 0, 0]} barSize={16} />
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="mt-4 rounded-xl bg-[#F8F3EC]/50 border border-[#E8DED2] p-3 text-center">
-          <p className="text-[11px] uppercase font-bold tracking-wider text-[#6B7A8C]">Insight Doanh Thu</p>
-          <p className="text-sm font-medium text-[#243B5A] mt-0.5">Biến động phải thu, đã thu và công nợ theo từng tháng.</p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="h-[350px] w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DED2" />
+          <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }} dy={10} />
+          <YAxis
+            tickFormatter={(value) => `${(value / 1000000).toFixed(0)}Tr`}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 12, fill: '#6B7A8C', fontWeight: 500 }}
+            dx={-10}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F8F3EC', opacity: 0.5 }} />
+          <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 500 }} iconType="circle" iconSize={8} />
+          <Bar dataKey="expectedRevenue" name="Phải thu" fill="#243B5A" radius={[4, 4, 0, 0]} barSize={16} />
+          <Bar dataKey="collectedRevenue" name="Đã thu" fill="#4FA7A0" radius={[4, 4, 0, 0]} barSize={16} />
+          <Bar dataKey="outstanding" name="Còn nợ" fill="#F2A45B" radius={[4, 4, 0, 0]} barSize={16} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

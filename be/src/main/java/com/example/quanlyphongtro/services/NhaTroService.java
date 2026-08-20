@@ -68,7 +68,25 @@ public class NhaTroService {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(Sort.Direction.DESC, "taoLuc"));
         Page<NhaTro> pageResult = nhaTroRepository.findAllAccessible(isAdmin, nhaTroIds, normalizedSearch, pageable);
         
-        List<NhaTroResponse> mappedList = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        List<UUID> resultIds = pageResult.getContent().stream().map(NhaTro::getId).toList();
+        java.util.Map<UUID, java.util.Map<com.example.quanlyphongtro.entity.TrangThaiPhong, Long>> countMap = new java.util.HashMap<>();
+        if (!resultIds.isEmpty()) {
+            List<Object[]> batchCounts = phongRepository.countByNhaTroIdInGroupByTrangThai(resultIds);
+            for (Object[] row : batchCounts) {
+                UUID nId = (UUID) row[0];
+                com.example.quanlyphongtro.entity.TrangThaiPhong tt = (com.example.quanlyphongtro.entity.TrangThaiPhong) row[1];
+                Long c = (Long) row[2];
+                countMap.computeIfAbsent(nId, k -> new java.util.EnumMap<>(com.example.quanlyphongtro.entity.TrangThaiPhong.class)).put(tt, c);
+            }
+        }
+
+        List<NhaTroResponse> mappedList = pageResult.getContent().stream().map(nt -> {
+            java.util.Map<com.example.quanlyphongtro.entity.TrangThaiPhong, Long> counts = countMap.getOrDefault(nt.getId(), java.util.Collections.emptyMap());
+            int tong = counts.values().stream().mapToInt(Long::intValue).sum();
+            int trong = counts.getOrDefault(com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE, 0L).intValue();
+            int thue = counts.getOrDefault(com.example.quanlyphongtro.entity.TrangThaiPhong.RENTED, 0L).intValue();
+            return mapToResponse(nt, tong, trong, thue);
+        }).toList();
         return PaginatedResponse.of(pageResult, mappedList);
     }
 
@@ -468,8 +486,12 @@ public class NhaTroService {
 
     private NhaTroResponse mapToResponse(NhaTro nt) {
         int tong = (int) phongRepository.countByNhaTroIdAndXoaLucIsNull(nt.getId());
-        int trong = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.AVAILABLE);
-        int thue = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), TrangThaiPhong.RENTED);
+        int trong = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), com.example.quanlyphongtro.entity.TrangThaiPhong.AVAILABLE);
+        int thue = (int) phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nt.getId(), com.example.quanlyphongtro.entity.TrangThaiPhong.RENTED);
+        return mapToResponse(nt, tong, trong, thue);
+    }
+
+    private NhaTroResponse mapToResponse(NhaTro nt, int tong, int trong, int thue) {
         NhaTroResponse resp = NhaTroResponse.fromEntity(nt, tong, trong, thue);
         
         List<com.example.quanlyphongtro.entity.CauHinhGia> chgs = cauHinhGiaRepository.findByNhaTroIdAndLoaiAndDangApDungTrueOrderByHieuLucTuDesc(nt.getId(), com.example.quanlyphongtro.entity.LoaiMucHoaDon.SERVICE);
@@ -544,3 +566,4 @@ public class NhaTroService {
         return com.example.quanlyphongtro.entity.LoaiTinhPhi.FIXED;
     }
 }
+

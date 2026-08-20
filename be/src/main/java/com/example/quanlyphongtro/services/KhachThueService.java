@@ -59,7 +59,7 @@ public class KhachThueService {
         
         // We still need active contracts to map correctly
         List<UUID> ktIds = pageResult.getContent().stream().map(KhachThue::getId).toList();
-        List<HopDong> activeContracts = ktIds.isEmpty() ? List.of() : hopDongRepository.findAllActive().stream().filter(hd -> hd.getKhachThue() != null && ktIds.contains(hd.getKhachThue().getId())).toList();
+        List<HopDong> activeContracts = ktIds.isEmpty() ? List.of() : hopDongRepository.findActiveByKhachThueIdIn(ktIds);
         Map<UUID, HopDong> tenantContractMap = activeContracts.stream()
                 .collect(Collectors.toMap(
                         hd -> hd.getKhachThue().getId(),
@@ -291,8 +291,7 @@ public class KhachThueService {
     }
 
     private HopDong findActiveContract(UUID khachThueId) {
-        return hopDongRepository.findAllActive().stream()
-                .filter(hd -> hd.getKhachThue() != null && hd.getKhachThue().getId().equals(khachThueId))
+        return hopDongRepository.findActiveByKhachThueId(khachThueId).stream()
                 .findFirst()
                 .orElse(null);
     }
@@ -401,4 +400,5 @@ public class KhachThueService {
         return null;
     }
 }
+
 

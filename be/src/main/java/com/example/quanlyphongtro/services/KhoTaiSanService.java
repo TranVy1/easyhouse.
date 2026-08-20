@@ -223,4 +223,104 @@ public class KhoTaiSanService {
                 .ghiChu(entity.getGhiChu())
                 .build();
     }
+
+    @Transactional
+    public CapPhatTatCaResponse capPhatTatCaTaiSan(UUID khoTaiSanId, CapPhatTatCaRequest request) {
+        KhoTaiSan khoTaiSan = khoTaiSanRepository.findById(khoTaiSanId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài sản trong kho"));
+
+        List<Phong> phongs = phongRepository.findByNhaTroIdAndXoaLucIsNull(khoTaiSan.getNhaTro().getId());
+        
+        // Sắp xếp tăng dần theo số phòng (lọc số từ tên)
+        phongs.sort((p1, p2) -> {
+            String name1 = p1.getTen();
+            String name2 = p2.getTen();
+            int num1 = Integer.MAX_VALUE;
+            int num2 = Integer.MAX_VALUE;
+            if (name1 != null) {
+                String numStr = name1.replaceAll("[^0-9]", "");
+                if (!numStr.isEmpty()) {
+                    try {
+                        num1 = Integer.parseInt(numStr);
+                    } catch (Exception ignored) {}
+                }
+            }
+            if (name2 != null) {
+                String numStr = name2.replaceAll("[^0-9]", "");
+                if (!numStr.isEmpty()) {
+                    try {
+                        num2 = Integer.parseInt(numStr);
+                    } catch (Exception ignored) {}
+                }
+            }
+            if (num1 != num2) return Integer.compare(num1, num2);
+            return (name1 != null && name2 != null) ? name1.compareTo(name2) : 0;
+        });
+
+        List<TaiSanPhong> allocations = taiSanPhongRepository.findByKhoTaiSanId(khoTaiSanId);
+        java.util.Map<UUID, Integer> currentAllocationMap = new java.util.HashMap<>();
+        for (TaiSanPhong t : allocations) {
+            if (t.getXoaLuc() == null) {
+                currentAllocationMap.put(t.getPhong().getId(), 
+                    currentAllocationMap.getOrDefault(t.getPhong().getId(), 0) + t.getSoLuong());
+            }
+        }
+
+        int remainingKho = khoTaiSan.getSoLuongKhaDung();
+        int totalAllocated = 0;
+        int roomsAllocatedCount = 0;
+        List<CapPhatTatCaResponse.Detail> details = new java.util.ArrayList<>();
+
+        for (Phong phong : phongs) {
+            if (remainingKho <= 0) break;
+
+            int currentAmount = currentAllocationMap.getOrDefault(phong.getId(), 0);
+            int targetAmount = request.getSoLuongMoiPhong();
+            int deficit = targetAmount - currentAmount;
+
+            if (deficit > 0) {
+                int toAllocate = Math.min(deficit, remainingKho);
+                
+                TaiSanPhong ts = TaiSanPhong.builder()
+                    .phong(phong)
+                    .khoTaiSan(khoTaiSan)
+                    .tenTaiSan(khoTaiSan.getTenTaiSan())
+                    .soLuong(toAllocate)
+                    .giaTri(request.getGiaTri())
+                    .tinhTrang(khoTaiSan.getTinhTrang())
+                    .anhTaiSan(khoTaiSan.getHinhAnh())
+                    .ghiChu(request.getGhiChu())
+                    .build();
+                taiSanPhongRepository.save(ts);
+                
+                recordHistory(khoTaiSan, phong, "CAP_PHAT", toAllocate, request.getGhiChu() != null ? request.getGhiChu() : "Cấp phát bổ sung tự động");
+                
+                remainingKho -= toAllocate;
+                totalAllocated += toAllocate;
+                roomsAllocatedCount++;
+                
+                details.add(CapPhatTatCaResponse.Detail.builder()
+                    .room(phong.getTen())
+                    .quantity(toAllocate)
+                    .build());
+            }
+        }
+
+        if (totalAllocated > 0) {
+            khoTaiSan.setSoLuongKhaDung(khoTaiSan.getSoLuongKhaDung() - totalAllocated);
+            khoTaiSan.setSoLuongDaCapPhat(khoTaiSan.getSoLuongDaCapPhat() + totalAllocated);
+            khoTaiSanRepository.save(khoTaiSan);
+        }
+
+        return CapPhatTatCaResponse.builder()
+            .success(true)
+            .assetId(khoTaiSan.getId())
+            .assetName(khoTaiSan.getTenTaiSan())
+            .allocatedQuantity(totalAllocated)
+            .remainingStock(khoTaiSan.getSoLuongKhaDung())
+            .roomsAllocated(roomsAllocatedCount)
+            .roomsRemaining(phongs.size() - roomsAllocatedCount)
+            .details(details)
+            .build();
+    }
 }

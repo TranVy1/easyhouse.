@@ -64,7 +64,34 @@ public class PhongService {
         Page<Phong> pageResult = phongRepository.findAllAccessible(
                 nid, tt != null ? tt.name() : null, normalizedSearch, isAdmin, nhaTroIds, pageable);
         
-        List<PhongResponse> mappedList = pageResult.getContent().stream().map(p -> this.toResponse(p, simple)).toList();
+        List<PhongResponse> mappedList;
+        if (simple) {
+            mappedList = pageResult.getContent().stream().map(p -> this.toResponse(p, true)).toList();
+        } else {
+            List<UUID> phongIds = pageResult.getContent().stream().map(Phong::getId).toList();
+            java.util.Map<UUID, HopDong> activeContractMap = new java.util.HashMap<>();
+            if (!phongIds.isEmpty()) {
+                hopDongRepository.findByPhongIdInAndTrangThaiIn(phongIds, List.of(TrangThaiHopDong.ACTIVE))
+                    .forEach(hd -> activeContractMap.putIfAbsent(hd.getPhong().getId(), hd));
+            }
+            java.util.Map<UUID, List<String>> mediaMap = mediaService.batchListUrls(LoaiDoiTuongMedia.ROOM, phongIds, MediaService.ROOM_IMAGE);
+            java.util.Map<UUID, List<String>> tienIchMap = tienIchService.batchListByPhong(phongIds);
+            
+            java.util.Map<UUID, List<TaiSanPhongDto>> taiSanMap = new java.util.HashMap<>();
+            if (!phongIds.isEmpty()) {
+                taiSanPhongRepository.findByPhongIdIn(phongIds)
+                    .forEach(ts -> taiSanMap.computeIfAbsent(ts.getPhong().getId(), k -> new java.util.ArrayList<>()).add(mapTaiSanToDto(ts)));
+            }
+            
+            mappedList = pageResult.getContent().stream().map(p -> {
+                PhongResponse response = PhongResponse.fromEntity(p, activeContractMap.get(p.getId()));
+                response.setAnhPhong(mediaMap.getOrDefault(p.getId(), List.of()));
+                response.setTienNghi(tienIchMap.getOrDefault(p.getId(), List.of()));
+                response.setTaiSanPhong(taiSanMap.getOrDefault(p.getId(), List.of()));
+                return response;
+            }).toList();
+        }
+        
         return PaginatedResponse.of(pageResult, mappedList);
     }
 
@@ -464,3 +491,4 @@ public class PhongService {
                 .build();
     }
 }
+

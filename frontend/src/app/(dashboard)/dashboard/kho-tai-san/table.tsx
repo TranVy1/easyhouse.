@@ -24,6 +24,7 @@ interface KhoTaiSanDataTableProps {
   onEdit: (item: KhoTaiSan) => void
   onDelete: (item: KhoTaiSan) => void
   onCapPhat: (item: KhoTaiSan) => void
+  onCapPhatTatCa: (item: KhoTaiSan) => void
   onThuHoi: (item: KhoTaiSan) => void
   onLichSu: (item: KhoTaiSan) => void
 }
@@ -33,6 +34,7 @@ export function KhoTaiSanDataTable({
   onEdit,
   onDelete,
   onCapPhat,
+  onCapPhatTatCa,
   onThuHoi,
   onLichSu
 }: KhoTaiSanDataTableProps) {
@@ -78,7 +80,11 @@ export function KhoTaiSanDataTable({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onCapPhat(item)}>
                       <ArrowRightLeft className="mr-2 h-4 w-4 text-green-600" />
-                      Cấp phát
+                      Cấp phát 1 phòng
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onCapPhatTatCa(item)}>
+                      <ArrowRightLeft className="mr-2 h-4 w-4 text-purple-600" />
+                      Cấp phát bổ sung
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onThuHoi(item)}>
                       <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
@@ -110,3 +116,4 @@ export function KhoTaiSanDataTable({
     </div>
   )
 }
+

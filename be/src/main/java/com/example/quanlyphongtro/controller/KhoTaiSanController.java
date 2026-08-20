@@ -43,6 +43,11 @@ public class KhoTaiSanController {
         return ApiResponse.success(null, "Cấp phát tài sản thành công");
     }
 
+    @PostMapping("/{id}/cap-phat-tat-ca")
+    public ApiResponse<CapPhatTatCaResponse> capPhatTatCaTaiSan(@PathVariable UUID id, @Valid @RequestBody CapPhatTatCaRequest request) {
+        return ApiResponse.success(khoTaiSanService.capPhatTatCaTaiSan(id, request), "C?p ph�t t�i s?n b? sung th�nh c�ng");
+    }
+
     @PostMapping("/{id}/thu-hoi")
     public ApiResponse<Void> thuHoiTaiSan(@PathVariable UUID id, @Valid @RequestBody ThuHoiTaiSanRequest request) {
         khoTaiSanService.thuHoiTaiSan(id, request);
@@ -54,3 +59,4 @@ public class KhoTaiSanController {
         return ApiResponse.success(khoTaiSanService.getLichSuGiaoDich(id), "Lấy lịch sử giao dịch thành công");
     }
 }
+

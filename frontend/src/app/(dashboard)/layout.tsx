@@ -101,8 +101,8 @@ function DashboardLayoutContent({ children }: DashboardLayoutProps) {
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-background">
-          <div className="w-full p-4 md:p-5 lg:p-6">
+        <main className="flex-1 overflow-y-auto bg-background min-w-0">
+          <div className="w-full min-w-0 p-4 md:p-5 lg:p-6">
             {children}
           </div>
         </main>

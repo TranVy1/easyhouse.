@@ -34,6 +34,17 @@ public class MediaService {
                 .toList();
     }
 
+    public java.util.Map<UUID, List<String>> batchListUrls(LoaiDoiTuongMedia doiTuong, List<UUID> doiTuongIds, String loaiFile) {
+        if (doiTuongIds == null || doiTuongIds.isEmpty()) return java.util.Collections.emptyMap();
+        List<FileMedia> media = fileMediaRepository.findByDoiTuongAndDoiTuongIdInAndLoaiFileOrderByTaoLucAsc(doiTuong, doiTuongIds, loaiFile);
+        
+        java.util.Map<UUID, List<String>> map = new java.util.HashMap<>();
+        for (FileMedia m : media) {
+            map.computeIfAbsent(m.getDoiTuongId(), k -> new java.util.ArrayList<>()).add(m.getUrl());
+        }
+        return map;
+    }
+
     public String firstUrl(LoaiDoiTuongMedia doiTuong, UUID doiTuongId, String loaiFile) {
         return listUrls(doiTuong, doiTuongId, loaiFile).stream().findFirst().orElse("");
     }

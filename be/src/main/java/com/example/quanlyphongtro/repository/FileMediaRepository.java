@@ -15,5 +15,10 @@ public interface FileMediaRepository extends JpaRepository<FileMedia, UUID> {
             UUID doiTuongId,
             String loaiFile);
 
+    List<FileMedia> findByDoiTuongAndDoiTuongIdInAndLoaiFileOrderByTaoLucAsc(
+            LoaiDoiTuongMedia doiTuong,
+            List<UUID> doiTuongIds,
+            String loaiFile);
+
     void deleteByDoiTuongAndDoiTuongIdAndLoaiFile(LoaiDoiTuongMedia doiTuong, UUID doiTuongId, String loaiFile);
 }
