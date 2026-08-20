@@ -203,8 +203,8 @@ export function PhuongTienForm({ open, onOpenChange, initialData, onSuccess }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] bg-white border-slate-200 text-slate-900 p-0 gap-0 overflow-hidden hide-close-button">
-        <DialogHeader className="p-4 border-b border-slate-200 flex flex-row items-center justify-between">
+      <DialogContent className="sm:max-w-[700px] bg-white border-slate-200 text-slate-900 p-0 gap-0 hide-close-button">
+        <DialogHeader className="p-4 border-b border-slate-200">
           <DialogTitle className="text-[#4FA7A0] font-bold text-lg uppercase tracking-wider">PHƯƠNG TIỆN</DialogTitle>
           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full h-8 w-8">
             <X className="h-5 w-5" />

@@ -691,6 +691,23 @@ export default function ChinhSuaHoaDonPage() {
               );
             })}
 
+            {/* Phí gửi xe */}
+            {hoaDon?.chiTietHoaDon?.filter((c: any) => c.loai === 'PARKING').map((phiXe: any, i: number) => (
+              <div key={`parking-${i}`} className="flex justify-between items-start py-4 border-t border-gray-100">
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">Phí gửi xe</p>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0FDF4] text-gray-800 text-[13px] font-medium mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+                    {phiXe.moTa}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                  <p className="text-[16px] font-bold text-gray-900">{fmt(phiXe.thanhTien || 0)}</p>
+                </div>
+              </div>
+            ))}
+
             <div className="flex flex-col items-end pb-5 pt-3">
               <p className="text-[14px] text-gray-600 mb-1.5">Tổng cộng kỳ này</p>
               <p className="text-[22px] font-extrabold text-gray-900">{fmt(formData.tongTien)}</p>
