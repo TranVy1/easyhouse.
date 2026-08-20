@@ -28,6 +28,10 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
     long countByTrangThai(TrangThaiPhong trangThai);
     long countByNhaTroIdAndXoaLucIsNull(UUID nhaTroId);
     long countByNhaTroIdAndTrangThaiAndXoaLucIsNull(UUID nhaTroId, TrangThaiPhong trangThai);
+
+    @Query("SELECT p.nhaTro.id, p.trangThai, COUNT(p) FROM Phong p WHERE p.nhaTro.id IN :nhaTroIds AND p.xoaLuc IS NULL GROUP BY p.nhaTro.id, p.trangThai")
+    List<Object[]> countByNhaTroIdInGroupByTrangThai(@Param("nhaTroIds") List<UUID> nhaTroIds);
+
     boolean existsByNhaTroIdAndTen(UUID nhaTroId, String ten);
     boolean existsByNhaTroIdAndTenAndIdNot(UUID nhaTroId, String ten, UUID id);
     Optional<Phong> findByNhaTroIdAndTenIgnoreCaseAndXoaLucIsNull(UUID nhaTroId, String ten);

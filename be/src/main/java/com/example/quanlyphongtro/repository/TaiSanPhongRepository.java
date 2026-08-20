@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface TaiSanPhongRepository extends JpaRepository<TaiSanPhong, UUID> {
     List<TaiSanPhong> findByPhongId(UUID phongId);
+    List<TaiSanPhong> findByPhongIdIn(List<UUID> phongIds);
+    List<TaiSanPhong> findByKhoTaiSanId(UUID khoTaiSanId);
 }

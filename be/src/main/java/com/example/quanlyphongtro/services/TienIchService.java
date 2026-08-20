@@ -67,6 +67,26 @@ public class TienIchService {
                 """, String.class, phongId);
     }
 
+    public java.util.Map<UUID, List<String>> batchListByPhong(List<UUID> phongIds) {
+        if (phongIds == null || phongIds.isEmpty()) return java.util.Collections.emptyMap();
+        
+        String inSql = String.join(",", java.util.Collections.nCopies(phongIds.size(), "?"));
+        List<java.util.Map<String, Object>> results = jdbcTemplate.queryForList(
+                "SELECT pti.phong_id, ti.ten FROM phong_tien_ich pti " +
+                "JOIN tien_ich ti ON ti.id = pti.tien_ich_id " +
+                "WHERE pti.phong_id IN (" + inSql + ") ORDER BY ti.ten",
+                phongIds.toArray()
+        );
+        
+        java.util.Map<UUID, List<String>> map = new java.util.HashMap<>();
+        for (java.util.Map<String, Object> row : results) {
+            UUID pId = (UUID) row.get("phong_id");
+            String ten = (String) row.get("ten");
+            map.computeIfAbsent(pId, k -> new java.util.ArrayList<>()).add(ten);
+        }
+        return map;
+    }
+
     @Transactional
     public void replacePhongTienIch(UUID phongId, Collection<String> tienNghi) {
         if (phongId == null || tienNghi == null) return;

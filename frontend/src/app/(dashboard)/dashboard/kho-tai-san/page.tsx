@@ -19,6 +19,7 @@ import { EmptyState, ErrorState } from "@/components/dashboard/dashboard-ui"
 import { KhoTaiSanDataTable } from "./table"
 import { KhoTaiSanForm } from "./form"
 import { CapPhatThuHoiDialog } from "./CapPhatThuHoiDialog"
+import { CapPhatTatCaDialog } from "./CapPhatTatCaDialog"
 import { LichSuKhoDialog } from "./LichSuKhoDialog"
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 
@@ -44,6 +45,7 @@ export default function KhoTaiSanPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   
   const [isCapPhatOpen, setIsCapPhatOpen] = useState(false)
+  const [isCapPhatTatCaOpen, setIsCapPhatTatCaOpen] = useState(false)
   const [isThuHoiOpen, setIsThuHoiOpen] = useState(false)
   const [isLichSuOpen, setIsLichSuOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<KhoTaiSan | null>(null)
@@ -135,6 +137,15 @@ export default function KhoTaiSanPage() {
     }
     setSelectedItem(item)
     setIsCapPhatOpen(true)
+  }
+
+  const handleCapPhatTatCa = (item: KhoTaiSan) => {
+    if (item.soLuongKhaDung === 0) {
+      toast.error("Không còn tài sản khả dụng để cấp phát")
+      return
+    }
+    setSelectedItem(item)
+    setIsCapPhatTatCaOpen(true)
   }
 
   const handleThuHoi = (item: KhoTaiSan) => {
@@ -269,6 +280,7 @@ export default function KhoTaiSanPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCapPhat={handleCapPhat}
+            onCapPhatTatCa={handleCapPhatTatCa}
             onThuHoi={handleThuHoi}
             onLichSu={handleLichSu}
           />
@@ -299,6 +311,22 @@ export default function KhoTaiSanPage() {
           onSuccess={() => {
             setIsCapPhatOpen(false)
             fetchData()
+          }}
+        />
+      )}
+
+      {isCapPhatTatCaOpen && selectedItem && (
+        <CapPhatTatCaDialog
+          open={isCapPhatTatCaOpen}
+          onOpenChange={setIsCapPhatTatCaOpen}
+          khoTaiSan={selectedItem}
+          accessToken={(accessToken as string) || ""}
+          onSuccess={(result) => {
+            setIsCapPhatTatCaOpen(false)
+            fetchData()
+            if(result) {
+              toast.success(`Đã cấp: ${result.allocatedQuantity} tài sản cho ${result.roomsAllocated} phòng.`)
+            }
           }}
         />
       )}

@@ -63,12 +63,11 @@ public class HopDongService {
     private com.example.quanlyphongtro.repository.ThanhToanRepository thanhToanRepository;
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<HopDongResponse> getAll(
-            String phongId, String toaNhaId, String trangThaiStr, String search, int page, int limit) {
-        UUID userId = permissionService.requireCurrentUserId();
-        boolean isAdmin = permissionService.isAdmin(userId);
-        List<UUID> nhaTroIds = List.of();
-        if (!isAdmin) {
+    public PaginatedResponse<HopDongResponse> getAll(String toaNhaId, String phongId, String trangThaiStr, String search, int page, int limit) {
+        UUID userId = permissionService.currentUserId().orElse(null);
+        boolean isAdmin = userId != null && permissionService.isAdmin(userId);
+        List<UUID> nhaTroIds = List.of(UUID.randomUUID());
+        if (!isAdmin && userId != null) {
             List<UUID> accessibleIds = permissionService.getAllAccessibleNhaTroIds(userId);
             if (!accessibleIds.isEmpty()) {
                 nhaTroIds = accessibleIds;
@@ -88,7 +87,19 @@ public class HopDongService {
         Page<HopDong> pageResult = hopDongRepository.findAllAccessible(
                 isAdmin, userId, nhaTroIds, pid, nid, tt != null ? tt.name() : null, normalizedSearch, pageable);
         
-        List<HopDongResponse> mappedList = pageResult.getContent().stream().map(this::toResponse).toList();
+        List<UUID> hopDongIds = pageResult.getContent().stream().map(HopDong::getId).toList();
+        java.util.Map<UUID, List<com.example.quanlyphongtro.entity.ThanhVienHopDong>> memberMap = new java.util.HashMap<>();
+        java.util.Map<UUID, List<com.example.quanlyphongtro.entity.DichVuHopDong>> dichVuMap = new java.util.HashMap<>();
+        if (!hopDongIds.isEmpty()) {
+            thanhVienHopDongRepository.findByHopDongIdInOrderByLaNguoiDaiDienDescTaoLucAsc(hopDongIds)
+                .forEach(m -> memberMap.computeIfAbsent(m.getHopDong().getId(), k -> new java.util.ArrayList<>()).add(m));
+            dichVuHopDongRepository.findByHopDongIdInOrderByTaoLucAsc(hopDongIds)
+                .forEach(s -> dichVuMap.computeIfAbsent(s.getHopDong().getId(), k -> new java.util.ArrayList<>()).add(s));
+        }
+
+        List<HopDongResponse> mappedList = pageResult.getContent().stream()
+                .map(hd -> toResponse(hd, memberMap.getOrDefault(hd.getId(), java.util.Collections.emptyList()), dichVuMap.getOrDefault(hd.getId(), java.util.Collections.emptyList())))
+                .toList();
         return PaginatedResponse.of(pageResult, mappedList);
     }
 
@@ -833,12 +844,31 @@ public class HopDongService {
     }
 
     public HopDongResponse toResponse(HopDong hopDong) {
-        HopDongResponse response = HopDongResponse.fromEntity(hopDong);
         List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members = thanhVienHopDongRepository
                 .findByHopDongIdOrderByLaNguoiDaiDienDescTaoLucAsc(hopDong.getId());
+        List<com.example.quanlyphongtro.entity.DichVuHopDong> services = dichVuHopDongRepository
+                .findByHopDongIdOrderByTaoLucAsc(hopDong.getId());
+        return toResponse(hopDong, members, services);
+    }
+
+    public HopDongResponse toResponse(HopDong hopDong, List<com.example.quanlyphongtro.entity.ThanhVienHopDong> members, List<com.example.quanlyphongtro.entity.DichVuHopDong> services) {
+        HopDongResponse response = HopDongResponse.fromEntity(hopDong);
+
+        List<HopDongResponse.PhiDichVuResponse> phiDichVu = services.stream()
+                .map(item -> HopDongResponse.PhiDichVuResponse.builder()
+                        .id(item.getId())
+                        .dichVuId(item.getDichVu() != null ? item.getDichVu().getId() : null)
+                        .ten(item.getDichVu() != null ? item.getDichVu().getTenDichVu() : "")
+                        .gia(item.getDonGiaApDung())
+                        .soLuong(item.getSoLuong())
+                        .loaiTinhPhi(item.getLoaiTinhPhi() != null ? item.getLoaiTinhPhi().name() : null)
+                        .donVi(item.getDichVu() != null ? item.getDichVu().getDonVi() : null)
+                        .batDauTu(item.getBatDauTu())
+                        .ketThucLuc(item.getKetThucLuc())
+                        .build())
+                .toList();
 
         if (members.isEmpty() && hopDong.getKhachThue() != null) {
-            List<HopDongResponse.PhiDichVuResponse> phiDichVu = mapPhiDichVu(hopDong.getId());
             response.setKhachThueId(List.of(KhachThueResponse.fromEntity(hopDong.getKhachThue())));
             response.setNguoiDaiDien(KhachThueResponse.fromEntity(hopDong.getKhachThue()));
             response.setKhachThueDaiDienId(hopDong.getKhachThue().getId());
@@ -848,8 +878,8 @@ public class HopDongService {
             return response;
         }
 
-        List<KhachThueResponse> tenants = new ArrayList<>();
-        List<HopDongResponse.ThanhVienHopDongResponse> memberResponses = new ArrayList<>();
+        List<KhachThueResponse> tenants = new java.util.ArrayList<>();
+        List<HopDongResponse.ThanhVienHopDongResponse> memberResponses = new java.util.ArrayList<>();
         KhachThueResponse representative = null;
         UUID representativeId = null;
 
@@ -886,27 +916,12 @@ public class HopDongService {
         response.setNguoiDaiDien(representative);
         response.setKhachThueDaiDienId(representativeId);
         response.setThanhVien(memberResponses);
-        List<HopDongResponse.PhiDichVuResponse> phiDichVu = mapPhiDichVu(hopDong.getId());
         response.setPhiDichVu(phiDichVu);
         applyMeterPrices(response, hopDong, phiDichVu);
         return response;
     }
 
-    private List<HopDongResponse.PhiDichVuResponse> mapPhiDichVu(UUID hopDongId) {
-        return dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hopDongId).stream()
-                .map(item -> HopDongResponse.PhiDichVuResponse.builder()
-                        .id(item.getId())
-                        .dichVuId(item.getDichVu() != null ? item.getDichVu().getId() : null)
-                        .ten(item.getDichVu() != null ? item.getDichVu().getTenDichVu() : "")
-                        .gia(item.getDonGiaApDung())
-                        .soLuong(item.getSoLuong())
-                        .loaiTinhPhi(item.getLoaiTinhPhi() != null ? item.getLoaiTinhPhi().name() : null)
-                        .donVi(item.getDichVu() != null ? item.getDichVu().getDonVi() : null)
-                        .batDauTu(item.getBatDauTu())
-                        .ketThucLuc(item.getKetThucLuc())
-                        .build())
-                .toList();
-    }
+
 
     private List<HopDongRequest.PhiDichVuItem> mergeMandatoryServices(HopDong hopDong, List<HopDongRequest.PhiDichVuItem> requestItems) {
         List<HopDongRequest.PhiDichVuItem> merged = new ArrayList<>();
@@ -1374,3 +1389,4 @@ public class HopDongService {
         return newContract;
     }
 }
+

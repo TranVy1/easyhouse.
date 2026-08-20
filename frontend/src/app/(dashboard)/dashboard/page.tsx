@@ -132,7 +132,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 min-h-screen pb-10">
+    <div className="space-y-6 min-h-screen pb-10 overflow-x-hidden">
       {/* ── HEADER ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end mb-4 gap-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -478,7 +478,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Biểu đồ */}
-        <Card className="shadow-sm lg:col-span-2">
+        <Card className="shadow-sm lg:col-span-2 min-w-0">
           <CardHeader className="p-4 pb-2 border-b border-gray-50 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold text-gray-800">Biểu đồ thu chi</CardTitle>
             <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" onClick={fetchData} />
@@ -550,7 +550,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* 4 Thống kê nhỏ */}
-        <Card className="shadow-sm lg:col-span-2">
+        <Card className="shadow-sm lg:col-span-2 min-w-0">
           <CardContent className="p-0 h-full">
             <div className="grid grid-cols-2 h-full divide-x divide-y divide-gray-100">
               <div className="p-4 flex flex-col justify-center border-b">
@@ -577,3 +577,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
