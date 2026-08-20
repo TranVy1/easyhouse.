@@ -1,0 +1,282 @@
+<mxfile host="app.diagrams.net" modified="2026-08-19T07:22:00.000Z" agent="Antigravity" version="24.7.5">
+  
+  <!-- TAB 1: Quản lý Tòa nhà & Phòng trọ (Gộp phân hệ đầy đủ) -->
+  <diagram id="tab_all" name="1. Quản lý Tòa nhà và Phòng (Tổng hợp)">
+    <mxGraphModel dx="1400" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- System Boundary -->
+        <mxCell id="boundary_all" value="&lt;b style=&quot;font-size: 16px;&quot;&gt;«Web Application»&lt;/b&gt;&lt;br&gt;&lt;b style=&quot;font-size: 16px;&quot;&gt;Website Quản lý nhà trọ EasyHouse&lt;/b&gt;" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="220" y="50" width="880" height="720" as="geometry" />
+        </mxCell>
+
+        <!-- Actor: Chủ trọ -->
+        <mxCell id="actor_all" value="Chủ trọ" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2.2;fontSize=16;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="80" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- ================= NHÓM 1: QUẢN LÝ TÒA NHÀ ================= -->
+        <!-- Abstract Parent: Quản lý tòa nhà -->
+        <mxCell id="uc_parent_tn" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý tòa nhà&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 13px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="880" y="80" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Use cases con Tòa nhà -->
+        <mxCell id="uc_tn_read" value="&lt;b&gt;Xem danh sách&lt;br&gt;tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="100" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_create" value="&lt;b&gt;Thêm mới tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="175" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_update" value="&lt;b&gt;Cập nhật tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="250" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_delete" value="&lt;b&gt;Xóa tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="325" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Associations: Actor -> Tòa nhà -->
+        <mxCell id="assoc_tn_1" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_tn_read">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_tn_2" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_tn_create">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_tn_3" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_tn_update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_tn_4" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_tn_delete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Generalizations: Tòa nhà -> uc_parent_tn -->
+        <mxCell id="gen_tn_1" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_read" target="uc_parent_tn">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="918" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_tn_2" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.4;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_create" target="uc_parent_tn">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="956" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_tn_3" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.6;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_update" target="uc_parent_tn">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="994" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_tn_4" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_delete" target="uc_parent_tn">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1032" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ================= NHÓM 2: QUẢN LÝ PHÒNG TRỌ ================= -->
+        <!-- Abstract Parent: Quản lý phòng trọ -->
+        <mxCell id="uc_parent_p" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý phòng trọ&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 13px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="880" y="440" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Use cases con Phòng trọ -->
+        <mxCell id="uc_p_read" value="&lt;b&gt;Xem danh sách&lt;br&gt;phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="440" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_create" value="&lt;b&gt;Thêm mới phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="515" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_update" value="&lt;b&gt;Cập nhật phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="590" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_delete" value="&lt;b&gt;Xóa phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="665" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Associations: Actor -> Phòng trọ -->
+        <mxCell id="assoc_p_1" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_p_read">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_p_2" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_p_create">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_p_3" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_p_update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_p_4" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_all" target="uc_p_delete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Generalizations: Phòng trọ -> uc_parent_p -->
+        <mxCell id="gen_p_1" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_read" target="uc_parent_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="918" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_p_2" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.4;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_create" target="uc_parent_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="956" y="545" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_p_3" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.6;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_update" target="uc_parent_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="994" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gen_p_4" style="endArrow=block;endFill=0;endSize=11;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_delete" target="uc_parent_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1032" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- TAB 2: Chi tiết Use Case Quản lý Tòa nhà -->
+  <diagram id="tab_toanha" name="2. Chi tiết - Quản lý Tòa nhà">
+    <mxGraphModel dx="1150" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary_tn" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;«Web Application»&lt;/b&gt;&lt;br&gt;&lt;b style=&quot;font-size: 15px;&quot;&gt;Website Quản lý nhà trọ EasyHouse&lt;/b&gt;" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="560" height="540" as="geometry" />
+        </mxCell>
+
+        <!-- Actor: Chủ trọ -->
+        <mxCell id="actor_tn" value="Chủ trọ" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2.2;fontSize=15;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="275" width="75" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Abstract Parent Use Case -->
+        <mxCell id="uc_p_tn" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý tòa nhà&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 14px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="560" y="110" width="190" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Child Use Cases -->
+        <mxCell id="uc_tn_c1" value="&lt;b&gt;Xem danh sách&lt;br&gt;tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_c2" value="&lt;b&gt;Thêm mới tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="285" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_c3" value="&lt;b&gt;Cập nhật tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="385" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_tn_c4" value="&lt;b&gt;Xóa tòa nhà&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="485" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Associations -->
+        <mxCell id="asc_tn1" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_tn" target="uc_tn_c1"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_tn2" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_tn" target="uc_tn_c2"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_tn3" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_tn" target="uc_tn_c3"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_tn4" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_tn" target="uc_tn_c4"><mxGeometry relative="1" as="geometry /></mxCell>
+
+        <!-- Generalizations -->
+        <mxCell id="gn_tn1" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_c1" target="uc_p_tn">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="608" y="220" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_tn2" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.45;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_c2" target="uc_p_tn">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="646" y="320" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_tn3" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.65;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_c3" target="uc_p_tn">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="684" y="420" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_tn4" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_tn_c4" target="uc_p_tn">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="722" y="520" /></Array></mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- TAB 3: Chi tiết Use Case Quản lý Phòng trọ -->
+  <diagram id="tab_phong" name="3. Chi tiết - Quản lý Phòng trọ">
+    <mxGraphModel dx="1150" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary_p" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;«Web Application»&lt;/b&gt;&lt;br&gt;&lt;b style=&quot;font-size: 15px;&quot;&gt;Website Quản lý nhà trọ EasyHouse&lt;/b&gt;" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="560" height="540" as="geometry" />
+        </mxCell>
+
+        <!-- Actor: Chủ trọ -->
+        <mxCell id="actor_p" value="Chủ trọ" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2.2;fontSize=15;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="275" width="75" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Abstract Parent Use Case -->
+        <mxCell id="uc_p_p" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Quản lý phòng trọ&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 14px;&quot;&gt;{abstract}&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="560" y="110" width="190" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Child Use Cases -->
+        <mxCell id="uc_p_c1" value="&lt;b&gt;Xem danh sách&lt;br&gt;phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_c2" value="&lt;b&gt;Thêm mới phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="285" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_c3" value="&lt;b&gt;Cập nhật phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="385" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_c4" value="&lt;b&gt;Xóa phòng trọ&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="290" y="485" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Associations -->
+        <mxCell id="asc_p1" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_p" target="uc_p_c1"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_p2" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_p" target="uc_p_c2"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_p3" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_p" target="uc_p_c3"><mxGeometry relative="1" as="geometry /></mxCell>
+        <mxCell id="asc_p4" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_p" target="uc_p_c4"><mxGeometry relative="1" as="geometry /></mxCell>
+
+        <!-- Generalizations -->
+        <mxCell id="gn_p1" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_c1" target="uc_p_p">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="608" y="220" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_p2" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.45;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_c2" target="uc_p_p">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="646" y="320" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_p3" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.65;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_c3" target="uc_p_p">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="684" y="420" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="gn_p4" style="endArrow=block;endFill=0;endSize=12;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="uc_p_c4" target="uc_p_p">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="722" y="520" /></Array></mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+</mxfile>

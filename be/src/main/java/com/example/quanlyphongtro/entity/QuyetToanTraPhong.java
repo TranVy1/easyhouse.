@@ -70,9 +70,13 @@ public class QuyetToanTraPhong {
     @Column(name = "bien_ban_trang_thai", nullable = false, length = 20)
     private TrangThaiBienBanBanGiao bienBanTrangThai = TrangThaiBienBanBanGiao.CHUA_LAP;
 
+    @Column(name = "ben_a_ky_luc")
     private ZonedDateTime benAKyLuc;
+    @Column(name = "ben_b_ky_luc")
     private ZonedDateTime benBKyLuc;
+    @Column(name = "ben_a_chu_ky_url")
     private String benAChuKyUrl;
+    @Column(name = "ben_b_chu_ky_url")
     private String benBChuKyUrl;
 
     /** "Viec ban giao ket thuc vao luc .... h cung ngay" trong mau bien ban. */
