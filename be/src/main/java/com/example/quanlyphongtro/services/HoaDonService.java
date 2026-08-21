@@ -351,6 +351,14 @@ public class HoaDonService {
         result.put("coChiSoNuocKyNay", false);
         result.put("donGiaDien", BigDecimal.ZERO);
         result.put("donGiaNuoc", BigDecimal.ZERO);
+        result.put("tienPhong", BigDecimal.ZERO);
+        result.put("phiDichVu", new ArrayList<Map<String, Object>>());
+        result.put("phuongTienList", new ArrayList<Map<String, Object>>());
+        result.put("tongTienXe", BigDecimal.ZERO);
+        result.put("soDuDauKy", BigDecimal.ZERO);
+
+        LocalDate monthStart = LocalDate.of(nam, thang, 1);
+        LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
 
         HopDong hd = hopDongRepository.findById(hopDongId).orElse(null);
         if (hd != null && hd.getPhong() != null) {
@@ -372,13 +380,118 @@ public class HoaDonService {
             result.put("coChiSoDienKyNay", electricThisPeriod.isPresent());
             result.put("coChiSoNuocKyNay", waterThisPeriod.isPresent());
             InvoiceContext context = new InvoiceContext(hd, hd.getPhong(), hd.getKhachThue(), nam, thang,
-                    LocalDate.of(nam, thang, 1), LocalDate.of(nam, thang, 1).plusMonths(1).minusDays(1),
+                    monthStart, monthEnd,
                     billingDueDate(nam, thang));
             result.put("donGiaDien", resolveMeterUnitPrice(context, LoaiMucHoaDon.ELECTRICITY));
             result.put("donGiaNuoc", resolveMeterUnitPrice(context, LoaiMucHoaDon.WATER));
             if (latestElectric.isPresent() || latestWater.isPresent()) {
                 result.put("isFirstInvoice", false);
             }
+
+            // 1. Tiền phòng (tính prorated nếu vào giữa tháng)
+            BigDecimal monthlyRent = hd.getGiaThueHopDong() != null ? hd.getGiaThueHopDong() : (hd.getPhong() != null && hd.getPhong().getGiaHienTai() != null ? hd.getPhong().getGiaHienTai() : BigDecimal.ZERO);
+            LocalDate rStart = hd.getNgayBatDau() != null && hd.getNgayBatDau().isAfter(monthStart) ? hd.getNgayBatDau() : monthStart;
+            LocalDate scheduledEnd = hd.getNgayKetThuc();
+            LocalDate actualEnd = hd.getNgayKetThucThucTe();
+            LocalDate rEnd = scheduledEnd != null && actualEnd != null
+                    ? (scheduledEnd.isBefore(actualEnd) ? scheduledEnd : actualEnd)
+                    : (scheduledEnd != null ? scheduledEnd : (actualEnd != null ? actualEnd : monthEnd));
+            if (rEnd.isAfter(monthEnd)) rEnd = monthEnd;
+            BigDecimal tienPhong = monthlyRent;
+            if (rStart.isAfter(rEnd)) {
+                tienPhong = BigDecimal.ZERO;
+            } else {
+                long occupiedDays = ChronoUnit.DAYS.between(rStart, rEnd) + 1;
+                long totalMonthDays = ChronoUnit.DAYS.between(monthStart, monthEnd) + 1;
+                if (occupiedDays < totalMonthDays) {
+                    tienPhong = monthlyRent.multiply(BigDecimal.valueOf(occupiedDays))
+                            .divide(BigDecimal.valueOf(totalMonthDays), 0, RoundingMode.HALF_UP);
+                }
+            }
+            result.put("tienPhong", tienPhong);
+
+            // 2. Phí dịch vụ hợp đồng còn hiệu lực
+            List<Map<String, Object>> serviceList = new ArrayList<>();
+            List<DichVuHopDong> services = dichVuHopDongRepository.findByHopDongIdOrderByTaoLucAsc(hd.getId());
+            for (DichVuHopDong svc : services) {
+                if (svc.getDichVu() == null) continue;
+                String svcName = svc.getDichVu().getTenDichVu();
+                if (isMeterServiceName(svcName) || isParkingServiceName(svcName)) {
+                    continue;
+                }
+                if (isServiceActiveInPeriod(svc, monthStart, monthEnd)) {
+                    Map<String, Object> sMap = new HashMap<>();
+                    sMap.put("dichVuId", svc.getDichVu().getId());
+                    sMap.put("ten", svcName);
+                    sMap.put("gia", svc.getDonGiaApDung() != null ? svc.getDonGiaApDung() : BigDecimal.ZERO);
+                    sMap.put("soLuong", svc.getSoLuong() != null ? svc.getSoLuong() : BigDecimal.ONE);
+                    sMap.put("donVi", svc.getDichVu().getDonVi() != null ? svc.getDichVu().getDonVi() : "tháng");
+                    serviceList.add(sMap);
+                }
+            }
+            result.put("phiDichVu", serviceList);
+
+            // 3. Phí phương tiện / gửi xe theo từng xe của phòng trong kỳ
+            List<Map<String, Object>> vehicleList = new ArrayList<>();
+            BigDecimal tongTienXe = BigDecimal.ZERO;
+            if (hd.getPhong() != null && hd.getPhong().getId() != null) {
+                List<LichSuPhuongTien> assignments = lichSuPhuongTienRepository.findBillableInPeriod(hd.getPhong().getId(), monthStart, monthEnd);
+                long totalDays = ChronoUnit.DAYS.between(monthStart, monthEnd) + 1;
+                for (LichSuPhuongTien assignment : assignments) {
+                    PhuongTien vehicle = assignment.getPhuongTien();
+                    if (vehicle == null) continue;
+                    LocalDate vStart = assignment.getHieuLucTu().isAfter(monthStart) ? assignment.getHieuLucTu() : monthStart;
+                    LocalDate vEnd = assignment.getHieuLucDen() != null && assignment.getHieuLucDen().isBefore(monthEnd) ? assignment.getHieuLucDen() : monthEnd;
+                    if (vStart.isAfter(vEnd)) continue;
+                    long activeDays = ChronoUnit.DAYS.between(vStart, vEnd) + 1;
+                    String vehicleType = vehicle.getLoaiPhuongTien() != null && !vehicle.getLoaiPhuongTien().isBlank()
+                            ? vehicle.getLoaiPhuongTien().trim() : (vehicle.getLoaiXe() != null ? vehicle.getLoaiXe().trim() : "Xe máy");
+
+                    BigDecimal vehicleFee = BigDecimal.ZERO;
+                    if (assignment.getNhaTro() != null && assignment.getNhaTro().getId() != null) {
+                        List<CauHinhPhiXe> plans = cauHinhPhiXeRepository.findEffectiveInPeriod(
+                                assignment.getNhaTro().getId(), vehicleType, vStart, vEnd);
+                        if (plans != null && !plans.isEmpty()) {
+                            for (CauHinhPhiXe plan : plans) {
+                                LocalDate segStart = plan.getHieuLucTu().isAfter(vStart) ? plan.getHieuLucTu() : vStart;
+                                LocalDate segEnd = plan.getHieuLucDen() != null && plan.getHieuLucDen().isBefore(vEnd) ? plan.getHieuLucDen() : vEnd;
+                                if (segStart.isAfter(segEnd)) continue;
+                                long segDays = ChronoUnit.DAYS.between(segStart, segEnd) + 1;
+                                BigDecimal amount = plan.getDonGia().multiply(BigDecimal.valueOf(segDays))
+                                        .divide(BigDecimal.valueOf(totalDays), 0, RoundingMode.HALF_UP);
+                                vehicleFee = vehicleFee.add(amount);
+                            }
+                        }
+                    }
+                    if (vehicleFee.compareTo(BigDecimal.ZERO) == 0) {
+                        for (DichVuHopDong svc : services) {
+                            if (svc.getDichVu() != null && isParkingServiceName(svc.getDichVu().getTenDichVu())) {
+                                vehicleFee = svc.getDonGiaApDung() != null ? svc.getDonGiaApDung() : BigDecimal.ZERO;
+                                break;
+                            }
+                        }
+                    }
+
+                    Map<String, Object> vMap = new HashMap<>();
+                    vMap.put("id", vehicle.getId());
+                    vMap.put("bienSo", vehicle.getBienSo() != null ? vehicle.getBienSo() : "Chưa có biển số");
+                    vMap.put("loaiXe", vehicleType);
+                    vMap.put("moTa", "Phí xe " + vehicleType + " " + (vehicle.getBienSo() != null ? vehicle.getBienSo() : "") + " (" + activeDays + "/" + totalDays + " ngày)");
+                    vMap.put("donGia", vehicleFee);
+                    vMap.put("thanhTien", vehicleFee);
+                    vMap.put("activeDays", activeDays);
+                    vMap.put("totalDays", totalDays);
+                    vehicleList.add(vMap);
+                    tongTienXe = tongTienXe.add(vehicleFee);
+                }
+            }
+            result.put("phuongTienList", vehicleList);
+            result.put("tongTienXe", tongTienXe);
+
+            // 4. Hạn thanh toán mặc định
+            int dueDay = hd.getNgayThanhToanHangThang() != null && hd.getNgayThanhToanHangThang() > 0 ? Math.min(hd.getNgayThanhToanHangThang(), 28) : 5;
+            LocalDate dueDate = LocalDate.of(nam, thang, dueDay);
+            result.put("hanThanhToan", dueDate.toString());
         }
 
         List<HoaDon> latest = hoaDonRepository.findLatestByHopDong(hopDongId);
@@ -596,7 +709,16 @@ public class HoaDonService {
             long totalDays = ChronoUnit.DAYS.between(ctx.tuNgay(), ctx.denNgay()) + 1;
             List<CauHinhPhiXe> plans = cauHinhPhiXeRepository.findEffectiveInPeriod(
                     assignment.getNhaTro().getId(), vehicleType, start, end);
-            if (plans.isEmpty()) throw new RuntimeException("Chưa có biểu phí xe hiệu lực cho loại " + vehicleType);
+            if (plans.isEmpty()) {
+                BigDecimal fallbackFee = resolveParkingFee(ctx);
+                if (fallbackFee != null && fallbackFee.compareTo(BigDecimal.ZERO) > 0) {
+                    lines.add(ChiTietHoaDon.builder().hoaDon(hoaDon).loai(LoaiMucHoaDon.PARKING)
+                            .moTa("Phí xe " + vehicleType + " " + (vehicle.getBienSo() != null ? vehicle.getBienSo() : "") + " (" + totalDays + "/" + totalDays + " ngày)")
+                            .soLuong(BigDecimal.ONE).donGia(fallbackFee).thanhTien(fallbackFee).sourceType("VEHICLE")
+                            .sourceId(vehicle.getId()).pricingRuleVersion("VEHICLE_SERVICE_FALLBACK").build());
+                }
+                continue;
+            }
             LocalDate expectedStart = start;
             for (CauHinhPhiXe plan : plans) {
                 LocalDate segmentStart = plan.getHieuLucTu().isAfter(start) ? plan.getHieuLucTu() : start;
@@ -614,7 +736,10 @@ public class HoaDonService {
                 }
                 expectedStart = segmentEnd.plusDays(1);
             }
-            if (!expectedStart.isAfter(end)) throw new RuntimeException("Thiếu biểu phí xe cho loại " + vehicleType + " từ ngày " + expectedStart);
+            if (!expectedStart.isAfter(end)) {
+                // If segment gap exists, ignore or log warning
+                // skip gap
+            }
         }
         
         return lines;

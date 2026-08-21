@@ -23,7 +23,12 @@ import {
   Droplets,
   Wrench,
   Calculator,
-  RefreshCw
+  RefreshCw,
+  Car,
+  CheckCircle2,
+  Clock,
+  ShieldAlert,
+  Info
 } from 'lucide-react';
 import { HopDong, Phong, KhachThue } from '@/types';
 import { toast } from 'sonner';
@@ -106,11 +111,15 @@ export default function ThemMoiHoaDonPage() {
     soDien: 0,
     chiSoDienBanDau: 0,
     chiSoDienCuoiKy: 0,
+    giaDien: 0,
     tienNuoc: 0,
     soNuoc: 0,
     chiSoNuocBanDau: 0,
     chiSoNuocCuoiKy: 0,
-    phiDichVu: [] as Array<{ten: string, gia: number}>,
+    giaNuoc: 0,
+    phiDichVu: [] as Array<{ten: string, gia: number, soLuong?: number, donVi?: string}>,
+    phuongTienList: [] as Array<{id?: string, bienSo: string, loaiXe: string, moTa?: string, donGia: number, thanhTien: number, activeDays?: number, totalDays?: number}>,
+    tongTienXe: 0,
     tongTien: 0,
     daThanhToan: 0,
     conLai: 0,
@@ -184,28 +193,43 @@ export default function ThemMoiHoaDonPage() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
-          console.log('Latest electricity reading:', data.data);
+        if (data.success && data.data) {
+          console.log('Latest invoice prefill bundle:', data.data);
+          const bundle = data.data;
           setFormData(prev => {
-            // Nếu là hóa đơn đầu tiên, giữ lại chỉ số ban đầu đã set từ hợp đồng
-            const chiSoDien = Number(data.data.chiSoDienBanDau) || 0;
-            const chiSoNuoc = Number(data.data.chiSoNuocBanDau) || 0;
-            const chiSoDienCuoiKy = Number.isFinite(Number(data.data.chiSoDienCuoiKy))
-              ? Number(data.data.chiSoDienCuoiKy)
+            const chiSoDien = Number(bundle.chiSoDienBanDau) || 0;
+            const chiSoNuoc = Number(bundle.chiSoNuocBanDau) || 0;
+            const chiSoDienCuoiKy = Number.isFinite(Number(bundle.chiSoDienCuoiKy))
+              ? Number(bundle.chiSoDienCuoiKy)
               : chiSoDien;
-            const chiSoNuocCuoiKy = Number.isFinite(Number(data.data.chiSoNuocCuoiKy))
-              ? Number(data.data.chiSoNuocCuoiKy)
+            const chiSoNuocCuoiKy = Number.isFinite(Number(bundle.chiSoNuocCuoiKy))
+              ? Number(bundle.chiSoNuocCuoiKy)
               : chiSoNuoc;
+
             return {
               ...prev,
+              tienPhong: bundle.tienPhong !== undefined ? Number(bundle.tienPhong) : prev.tienPhong,
               chiSoDienBanDau: chiSoDien,
               chiSoDienCuoiKy,
+              giaDien: Number(bundle.donGiaDien) || prev.giaDien,
               chiSoNuocBanDau: chiSoNuoc,
               chiSoNuocCuoiKy,
-              soDuDauKy: data.data.soDuDauKy || 0,
+              giaNuoc: Number(bundle.donGiaNuoc) || prev.giaNuoc,
+              phiDichVu: Array.isArray(bundle.phiDichVu) && bundle.phiDichVu.length > 0
+                ? bundle.phiDichVu.map((s: any) => ({
+                    ten: s.ten,
+                    gia: Number(s.gia) || 0,
+                    soLuong: Number(s.soLuong) || 1,
+                    donVi: s.donVi || 'tháng'
+                  }))
+                : prev.phiDichVu,
+              phuongTienList: Array.isArray(bundle.phuongTienList) ? bundle.phuongTienList : [],
+              tongTienXe: Number(bundle.tongTienXe) || 0,
+              soDuDauKy: Number(bundle.soDuDauKy) || 0,
+              hanThanhToan: prev.hanThanhToan || bundle.hanThanhToan || '',
             };
           });
-          setReadingSource(data.data);
+          setReadingSource(bundle);
         }
       }
     } catch (error) {
@@ -265,9 +289,9 @@ export default function ThemMoiHoaDonPage() {
     const dienService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('điện') || p.ten.toLowerCase().includes('electricity'));
     const nuocService = selectedHopDong?.phiDichVu?.find(p => p.ten.toLowerCase().includes('nước') || p.ten.toLowerCase().includes('water'));
     
-    // Ưu tiên đơn giá gốc từ hợp đồng, nếu không có mới tìm trong mảng phiDichVu
-    const giaDien = selectedHopDong?.giaDien || (dienService ? dienService.gia : 0);
-    const giaNuoc = selectedHopDong?.giaNuoc || (nuocService ? nuocService.gia : 0);
+    // Ưu tiên đơn giá gốc từ hợp đồng hoặc từ readingSource
+    const giaDien = formData.giaDien || selectedHopDong?.giaDien || (dienService ? dienService.gia : 0);
+    const giaNuoc = formData.giaNuoc || selectedHopDong?.giaNuoc || (nuocService ? nuocService.gia : 0);
     
     // Lọc bỏ Điện và Nước khỏi tổng phí dịch vụ để không bị tính đúp
     const filteredPhiDichVu = formData.phiDichVu.filter(phi => 
@@ -276,7 +300,7 @@ export default function ThemMoiHoaDonPage() {
       !phi.ten.toLowerCase().includes('nước') && 
       !phi.ten.toLowerCase().includes('water')
     );
-    const totalPhiDichVu = filteredPhiDichVu.reduce((sum: number, phi) => sum + phi.gia, 0);
+    const totalPhiDichVu = filteredPhiDichVu.reduce((sum: number, phi) => sum + (phi.gia * (phi.soLuong || 1)), 0);
 
     const soDien = Math.max(0, formData.resetCongTo
       ? formData.soKwhThucTe
@@ -287,14 +311,18 @@ export default function ThemMoiHoaDonPage() {
     
     const tienDienTinh = soDien * giaDien;
     const tienNuocTinh = soNuoc * giaNuoc;
+    const tongTienXe = formData.tongTienXe || 0;
+    const soDuDauKy = formData.soDuDauKy || 0;
     
-    const total = formData.tienPhong + tienDienTinh + tienNuocTinh + totalPhiDichVu + formData.soDuDauKy;
+    const total = formData.tienPhong + tienDienTinh + tienNuocTinh + totalPhiDichVu + tongTienXe + soDuDauKy;
     const conLai = total - formData.daThanhToan;
     
     setFormData(prev => ({
       ...prev,
       soDien,
       soNuoc,
+      giaDien,
+      giaNuoc,
       tienDien: tienDienTinh,
       tienNuoc: tienNuocTinh,
       tongTien: total,
@@ -306,8 +334,12 @@ export default function ThemMoiHoaDonPage() {
     formData.chiSoDienBanDau,
     formData.chiSoNuocCuoiKy,
     formData.chiSoNuocBanDau,
+    formData.giaDien,
+    formData.giaNuoc,
     formData.daThanhToan,
     formData.phiDichVu,
+    formData.phuongTienList,
+    formData.tongTienXe,
     formData.hopDong,
     formData.soDuDauKy,
     formData.resetCongTo,
@@ -461,23 +493,28 @@ export default function ThemMoiHoaDonPage() {
         <CardContent className="p-4 md:p-6">
           <form onSubmit={handleSubmit}>
             <Tabs defaultValue="thong-tin" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="thong-tin" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="thong-tin" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-1 md:px-3">
                   <FileText className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden sm:inline">Thông tin</span>
                   <span className="sm:hidden">Info</span>
                 </TabsTrigger>
-                <TabsTrigger value="dien-nuoc" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+                <TabsTrigger value="dien-nuoc" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-1 md:px-3">
                   <Zap className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden sm:inline">Điện & Nước</span>
                   <span className="sm:hidden">Đ&N</span>
                 </TabsTrigger>
-                <TabsTrigger value="dich-vu" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+                <TabsTrigger value="dich-vu" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-1 md:px-3">
                   <Wrench className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden sm:inline">Dịch vụ</span>
                   <span className="sm:hidden">DV</span>
                 </TabsTrigger>
-                <TabsTrigger value="tong-ket" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+                <TabsTrigger value="phuong-tien" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-1 md:px-3">
+                  <Car className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="hidden sm:inline">Phí xe</span>
+                  <span className="sm:hidden">Xe</span>
+                </TabsTrigger>
+                <TabsTrigger value="tong-ket" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-1 md:px-3">
                   <Calculator className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden sm:inline">Tổng kết</span>
                   <span className="sm:hidden">TK</span>
@@ -940,21 +977,30 @@ export default function ThemMoiHoaDonPage() {
               </TabsContent>
 
               <TabsContent value="dich-vu" className="space-y-4 mt-6">
-                <h3 className="text-base font-semibold">🔧 Phí dịch vụ</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-[#243B5A]">🔧 Phí dịch vụ cố định & phát sinh</h3>
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-medium">
+                    {formData.phiDichVu.length} dịch vụ
+                  </span>
+                </div>
                 
-                {formData.phiDichVu.length > 0 && (
+                {formData.phiDichVu.length > 0 ? (
                   <div className="space-y-2">
                     {formData.phiDichVu.map((phi, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
-                        <span className="text-sm font-medium">{phi.ten}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#243B5A] font-medium">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
+                      <div key={index} className="flex items-center justify-between p-3 bg-[#F8F3EC]/50 rounded-xl border border-[#E8DED2]">
+                        <div>
+                          <p className="text-sm font-semibold text-[#243B5A]">{phi.ten}</p>
+                          {phi.donVi && <p className="text-xs text-gray-500">Đơn vị: {phi.donVi}</p>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-[#4FA7A0]">{phi.gia.toLocaleString('vi-VN')} VNĐ</span>
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() => removePhiDichVu(index)}
-                            className="h-7 px-2 text-xs"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                            title="Xóa dịch vụ này"
                           >
                             ✕
                           </Button>
@@ -962,58 +1008,186 @@ export default function ThemMoiHoaDonPage() {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="text-center py-6 border border-dashed rounded-xl text-gray-500 text-sm">
+                    Chưa có phí dịch vụ nào cho kỳ này.
+                  </div>
                 )}
                 
-                <div className="space-y-2">
-                  <Label className="text-sm">Thêm phí dịch vụ</Label>
-                  <div className="flex gap-2">
+                <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <Label className="text-sm font-semibold text-[#243B5A]">Thêm phí dịch vụ phát sinh</Label>
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Input
-                      placeholder="Tên dịch vụ"
+                      placeholder="Tên dịch vụ (Vệ sinh, rác, wifi...)"
                       value={newPhiDichVu.ten}
                       onChange={(e) => setNewPhiDichVu(prev => ({ ...prev, ten: e.target.value }))}
-                      className="flex-1 h-9"
+                      className="flex-1 h-10 bg-white"
                     />
                     <Input
-                      placeholder="Giá"
+                      placeholder="Đơn giá (VNĐ)"
                       type="number"
                       min="0"
-                      value={newPhiDichVu.gia}
+                      value={newPhiDichVu.gia || ''}
                       onChange={(e) => setNewPhiDichVu(prev => ({ ...prev, gia: parseInt(e.target.value) || 0 }))}
-                      className="w-24 h-9"
+                      className="w-full sm:w-36 h-10 bg-white"
                     />
                     <Button 
                       type="button" 
                       onClick={addPhiDichVu}
                       disabled={!newPhiDichVu.ten || newPhiDichVu.gia <= 0}
-                      className="h-9 px-3 text-sm"
+                      className="h-10 px-4 text-sm bg-[#4FA7A0] hover:bg-[#3D8580]"
                     >
-                      +
+                      + Thêm
                     </Button>
                   </div>
                 </div>
+              </TabsContent>
 
-                <div className="bg-amber-50 text-amber-600 border border-amber-200 rounded-lg p-3 text-sm flex items-start gap-2 mt-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <TabsContent value="phuong-tien" className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-[#243B5A]">🛵 Phương tiện & Phí gửi xe phòng</h3>
+                  <span className="text-xs bg-teal-50 text-[#4FA7A0] px-2.5 py-1 rounded-full font-bold">
+                    Tổng phí xe: {formData.tongTienXe.toLocaleString('vi-VN')} VNĐ
+                  </span>
+                </div>
+
+                {formData.phuongTienList && formData.phuongTienList.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-200 rounded-xl overflow-hidden">
+                      <thead className="bg-gray-50 text-[#243B5A] text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="border border-gray-200 px-4 py-3 text-left">Loại xe</th>
+                          <th className="border border-gray-200 px-4 py-3 text-left">Biển số</th>
+                          <th className="border border-gray-200 px-4 py-3 text-center">Thời gian tính phí</th>
+                          <th className="border border-gray-200 px-4 py-3 text-right">Đơn giá / Thành tiền</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-sm">
+                        {formData.phuongTienList.map((pt, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="border border-gray-200 px-4 py-3 font-semibold text-gray-900">
+                              {pt.loaiXe || 'Xe máy'}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 font-mono text-[#243B5A]">
+                              {pt.bienSo || '—'}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-center text-xs text-gray-600">
+                              {pt.activeDays ? `${pt.activeDays}/${pt.totalDays || 30} ngày` : 'Nguyên tháng'}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-right font-bold text-[#4FA7A0]">
+                              {pt.thanhTien.toLocaleString('vi-VN')} VNĐ
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-dashed rounded-xl p-8 text-center text-gray-500">
+                    <Car className="h-10 w-10 mx-auto text-gray-400 mb-2" />
+                    <p className="font-medium">Phòng này chưa có phương tiện nào đăng ký gửi xe trong kỳ.</p>
+                    <p className="text-xs text-gray-400 mt-1">Phí gửi xe = 0 VNĐ</p>
+                  </div>
+                )}
+
+                <div className="bg-blue-50 text-blue-800 border border-blue-200 rounded-xl p-3.5 text-xs flex items-start gap-2">
+                  <Info className="h-4 w-4 shrink-0 text-blue-600 mt-0.5" />
                   <p>
-                    <strong>Lưu ý:</strong> Hệ thống sẽ tự động tính toán và thêm phí gửi xe (nếu có từ xe thứ 2 trở đi của mỗi khách thuê) khi lưu hóa đơn.
+                    Phí gửi xe được hệ thống tự động tính toán dựa trên danh sách phương tiện đang gán với phòng và biểu phí cấu hình cho từng loại xe trong kỳ.
                   </p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="tong-ket" className="space-y-4 mt-6">
-                <h3 className="text-base font-semibold">💰 Tổng kết</h3>
-                <div className="grid grid-cols-3 gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
+              <TabsContent value="tong-ket" className="space-y-5 mt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-[#243B5A]">💰 Bảng kê chi tiết các nguồn tiền thu</h3>
+                  <span className="text-xs text-gray-500">Kỳ T.{formData.thang}/{formData.nam}</span>
+                </div>
+
+                {/* Breakdown Card */}
+                <div className="border border-[#E8DED2] bg-[#FFFDF8] rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-[#243B5A]" />
+                      <span className="text-sm font-medium text-gray-800">Tiền thuê phòng</span>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900">{formData.tienPhong.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm font-medium text-gray-800">
+                        Tiền điện ({formData.soDien} kWh x {formData.giaDien.toLocaleString('vi-VN')}đ)
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900">{formData.tienDien.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <Droplets className="h-4 w-4 text-[#4FA7A0]" />
+                      <span className="text-sm font-medium text-gray-800">
+                        Tiền nước ({formData.soNuoc} m³ x {formData.giaNuoc.toLocaleString('vi-VN')}đ)
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900">{formData.tienNuoc.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+
+                  {formData.phiDichVu.length > 0 && (
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <Wrench className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium text-gray-800">
+                          Phí dịch vụ ({formData.phiDichVu.length} khoản)
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-gray-900">
+                        {formData.phiDichVu.reduce((s, p) => s + p.gia * (p.soLuong || 1), 0).toLocaleString('vi-VN')} VNĐ
+                      </span>
+                    </div>
+                  )}
+
+                  {formData.tongTienXe > 0 && (
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <Car className="h-4 w-4 text-purple-500" />
+                        <span className="text-sm font-medium text-gray-800">
+                          Phí gửi xe ({formData.phuongTienList.length} xe)
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-gray-900">{formData.tongTienXe.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                  )}
+
+                  {formData.soDuDauKy > 0 && (
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">Dư nợ kỳ trước chuyển sang</span>
+                      </div>
+                      <span className="text-sm font-bold text-amber-700">{formData.soDuDauKy.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-3 text-base">
+                    <span className="font-extrabold text-[#243B5A]">Tổng cộng hóa đơn kỳ này</span>
+                    <span className="text-xl font-extrabold text-[#4FA7A0]">{formData.tongTien.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border">
                   <div className="text-center">
                     <div className="text-xs text-gray-600 mb-1">Tổng tiền</div>
-                    <div className="text-lg font-bold text-gray-900">{formData.tongTien.toLocaleString('vi-VN')} VNĐ</div>
+                    <div className="text-base sm:text-lg font-bold text-gray-900">{formData.tongTien.toLocaleString('vi-VN')} VNĐ</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-600 mb-1">Đã thanh toán</div>
-                    <div className="text-lg font-bold text-green-600">{formData.daThanhToan.toLocaleString('vi-VN')} VNĐ</div>
+                    <div className="text-base sm:text-lg font-bold text-green-600">{formData.daThanhToan.toLocaleString('vi-VN')} VNĐ</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-600 mb-1">Còn lại</div>
-                    <div className={`text-lg font-bold ${formData.conLai > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <div className={`text-base sm:text-lg font-bold ${formData.conLai > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {formData.conLai.toLocaleString('vi-VN')} VNĐ
                     </div>
                   </div>

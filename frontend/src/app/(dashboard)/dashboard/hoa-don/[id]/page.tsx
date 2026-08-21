@@ -708,6 +708,36 @@ export default function ChinhSuaHoaDonPage() {
               </div>
             ))}
 
+            {/* Các khoản khác (Giảm trừ / Bảo trì / Khác) */}
+            {hoaDon?.chiTietHoaDon?.filter((c: any) => c.loai === 'DISCOUNT' || c.loai === 'MAINTENANCE' || c.loai === 'OTHER').map((item: any, i: number) => (
+              <div key={`other-${i}`} className="flex justify-between items-start py-4 border-t border-gray-100">
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">{item.loai === 'DISCOUNT' ? 'Giảm trừ / Chiết khấu' : (item.loai === 'MAINTENANCE' ? 'Phí bảo trì / Khấu trừ' : 'Khoản thu khác')}</p>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 text-gray-800 text-[13px] font-medium mt-1">
+                    {item.moTa}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] text-gray-500 mb-0.5">Thành tiền</p>
+                  <p className={`text-[16px] font-bold ${item.loai === 'DISCOUNT' ? 'text-green-600' : 'text-gray-900'}`}>{fmt(item.thanhTien || 0)}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Dư nợ kỳ trước chuyển sang */}
+            {hoaDon?.soDuDauKy && Number(hoaDon.soDuDauKy) > 0 && (
+              <div className="flex justify-between items-start py-4 border-t border-gray-100 bg-amber-50/50 px-3 rounded-lg my-1">
+                <div>
+                  <p className="text-[15px] font-bold text-amber-900">Nợ cũ kỳ trước</p>
+                  <p className="text-[13px] text-amber-700 mt-0.5">Dư nợ chưa thanh toán chuyển sang</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] text-amber-700 mb-0.5">Số tiền</p>
+                  <p className="text-[16px] font-bold text-amber-900">{fmt(hoaDon.soDuDauKy)}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col items-end pb-5 pt-3">
               <p className="text-[14px] text-gray-600 mb-1.5">Tổng cộng kỳ này</p>
               <p className="text-[22px] font-extrabold text-gray-900">{fmt(formData.tongTien)}</p>
