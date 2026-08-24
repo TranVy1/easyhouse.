@@ -41,8 +41,8 @@ export default function DatCocPage() {
 
   const handleAction = async (id: string, action: 'confirm' | 'cancel' | 'convert', payload?: any) => {
     try {
-      let url = `/api/dat-coc/${id}/${action}`;
-      let method = action === 'cancel' ? 'PATCH' : (action === 'confirm' ? 'PATCH' : 'POST');
+      const url = `/api/dat-coc/${id}/${action}`;
+      const method = action === 'cancel' ? 'PATCH' : (action === 'confirm' ? 'PATCH' : 'POST');
       const res = await fetch(url, {
         method,
         headers: {

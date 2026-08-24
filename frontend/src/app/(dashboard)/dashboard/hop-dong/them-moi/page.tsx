@@ -457,7 +457,7 @@ export default function ThemMoiHopDongPage() {
       };
 
       let apiUrl = previewHopDongId ? `/api/hop-dong/${previewHopDongId}` : '/api/hop-dong';
-      let method = previewHopDongId ? 'PUT' : 'POST';
+      const method = previewHopDongId ? 'PUT' : 'POST';
       if (!previewHopDongId && datCocId) {
         apiUrl = `/api/dat-coc/${datCocId}/convert-to-contract`;
       }

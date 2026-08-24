@@ -14,7 +14,15 @@ import java.util.UUID;
 public interface SuCoRepository extends JpaRepository<SuCo, UUID> {
     List<SuCo> findAllByOrderByTaoLucDesc();
 
-    @org.springframework.data.jpa.repository.Query("SELECT s FROM SuCo s LEFT JOIN s.phong p " +
+    @org.springframework.data.jpa.repository.Query(value = "SELECT s FROM SuCo s LEFT JOIN FETCH s.phong p LEFT JOIN FETCH p.nhaTro nt " +
+           "WHERE (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds OR s.nguoiBao.id = :userId) " +
+           "AND (cast(:nhaTroId as string) IS NULL OR p.nhaTro.id = :nhaTroId) " +
+           "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(s.trangThai as string) = :trangThai) " +
+           "AND (cast(:loaiSuCo as string) IS NULL OR cast(s.loaiSuCo as string) = :loaiSuCo) " +
+           "AND (cast(:loaiSuCo as string) IS NULL OR cast(s.loaiSuCo as string) = :loaiSuCo) " +
+           "AND (cast(:uuTien as string) IS NULL OR cast(s.uuTien as string) = :uuTien)",
+           countQuery = "SELECT count(s) FROM SuCo s LEFT JOIN s.phong p " +
            "WHERE (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds OR s.nguoiBao.id = :userId) " +
            "AND (cast(:nhaTroId as string) IS NULL OR p.nhaTro.id = :nhaTroId) " +
            "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +

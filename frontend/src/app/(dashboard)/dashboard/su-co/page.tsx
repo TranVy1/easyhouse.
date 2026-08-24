@@ -49,7 +49,7 @@ import { SuCo, Phong,  KhachThue,
   UuTien, 
   TrangThaiSuCo 
 } from '@/types';
-import { SuCoImageUpload } from '@/components/ui/su-co-image-upload';
+import { MultiImageUpload } from '@/components/ui/multi-image-upload';
 import { SuCoDataTable } from './table';
 import { unwrapPageData } from '@/lib/api-response';
 
@@ -930,10 +930,15 @@ function SuCoForm({
         </div>
       )}
 
-      <SuCoImageUpload
+      <MultiImageUpload
         images={images}
         onImagesChange={setImages}
         maxImages={5}
+        title="Ảnh sự cố"
+        emptyText="Chưa có ảnh sự cố nào"
+        emptySubText='Bấm "Thêm ảnh" để tải ảnh minh họa sự cố lên'
+        icon={<AlertTriangle className="h-5 w-5 text-warning" />}
+        className="w-full"
       />
 
       <DialogFooter className="flex-col sm:flex-row gap-2">

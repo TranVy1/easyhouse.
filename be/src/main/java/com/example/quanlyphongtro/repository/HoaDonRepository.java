@@ -26,7 +26,17 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, UUID> {
 
     List<HoaDon> findByXoaLucIsNullOrderByTaoLucDesc();
 
-    @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
+    @Query(value = "SELECT h FROM HoaDon h LEFT JOIN FETCH h.khachThue k LEFT JOIN FETCH h.phong p LEFT JOIN FETCH p.nhaTro nt " +
+           "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
+           "AND (cast(:hopDongId as string) IS NULL OR h.hopDong.id = :hopDongId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(h.trangThai as string) = :trangThai) " +
+           "AND (:kyThang IS NULL OR h.kyThang = :kyThang) " +
+           "AND (:kyNam IS NULL OR h.kyNam = :kyNam) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(h.maHoaDon, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(h.ghiChu, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))",
+           countQuery = "SELECT count(h) FROM HoaDon h LEFT JOIN h.khachThue k LEFT JOIN h.phong p " +
            "WHERE h.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:hopDongId as string) IS NULL OR h.hopDong.id = :hopDongId) " +
            "AND (cast(:trangThai as string) IS NULL OR cast(h.trangThai as string) = :trangThai) " +

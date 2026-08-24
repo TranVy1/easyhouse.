@@ -47,7 +47,15 @@ public interface PhongRepository extends JpaRepository<Phong, UUID> {
             @Param("nhaTroId") UUID nhaTroId,
             @Param("tenPhong") String tenPhong);
 
-    @Query("SELECT p FROM Phong p LEFT JOIN p.nhaTro nt WHERE p.xoaLuc IS NULL " +
+    @Query(value = "SELECT p FROM Phong p LEFT JOIN FETCH p.nhaTro nt WHERE p.xoaLuc IS NULL " +
+           "AND (cast(:nhaTroId as uuid) IS NULL OR p.nhaTro.id = :nhaTroId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(p.trangThai as string) = :trangThai) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.khuVuc, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.moTa, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(nt.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))) " +
+           "AND (:isAdmin = true OR p.nhaTro.id IN :nhaTroIds)",
+           countQuery = "SELECT count(p) FROM Phong p LEFT JOIN p.nhaTro nt WHERE p.xoaLuc IS NULL " +
            "AND (cast(:nhaTroId as uuid) IS NULL OR p.nhaTro.id = :nhaTroId) " +
            "AND (cast(:trangThai as string) IS NULL OR cast(p.trangThai as string) = :trangThai) " +
            "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +

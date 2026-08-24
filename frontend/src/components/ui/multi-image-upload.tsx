@@ -5,23 +5,31 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, Image as ImageIcon, Loader2, Home } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 
-interface PhongImageUploadProps {
+interface MultiImageUploadProps {
   images: string[];
   onImagesChange: (images: string[]) => void;
   className?: string;
   maxImages?: number;
+  title?: string;
+  emptyText?: string;
+  emptySubText?: string;
+  icon?: React.ReactNode;
 }
 
-export function PhongImageUpload({ 
+export function MultiImageUpload({ 
   images, 
   onImagesChange, 
   className = '',
-  maxImages = 10
-}: PhongImageUploadProps) {
+  maxImages = 10,
+  title = "Ảnh",
+  emptyText = "Chưa có ảnh nào",
+  emptySubText = 'Bấm "Thêm ảnh" để tải ảnh lên',
+  icon = <ImageIcon className="h-5 w-5 text-gray-500" />
+}: MultiImageUploadProps) {
   const { data: session } = useSession();
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -95,8 +103,8 @@ export function PhongImageUpload({
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2">
-        <Home className="h-5 w-5 text-[#243B5A]" />
-        <h3 className="text-lg font-medium">Ảnh phòng</h3>
+        {icon}
+        <h3 className="text-lg font-medium">{title}</h3>
         <Badge variant="secondary" className="text-xs">
           {images.length}/{maxImages} ảnh
         </Badge>
@@ -119,21 +127,13 @@ export function PhongImageUpload({
           size="sm"
           onClick={() => inputRef.current?.click()}
           disabled={uploading || images.length >= maxImages}
+          isLoading={uploading}
         >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Đang tải lên...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Thêm ảnh
-            </>
-          )}
+          {!uploading && <Upload className="h-4 w-4 mr-2" />}
+          {uploading ? 'Đang tải lên...' : 'Thêm ảnh'}
         </Button>
         {images.length >= maxImages && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             Đã đạt giới hạn {maxImages} ảnh
           </span>
         )}
@@ -145,10 +145,10 @@ export function PhongImageUpload({
           {images.map((imageUrl, index) => (
             <Card key={index} className="relative group">
               <CardContent className="p-2">
-                <div className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
+                <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
                   <Image
                     src={imageUrl}
-                    alt={`Ảnh phòng ${index + 1}`}
+                    alt={`${title} ${index + 1}`}
                     fill
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     className="object-cover"
@@ -168,14 +168,14 @@ export function PhongImageUpload({
           ))}
         </div>
       ) : (
-        <Card className="border-dashed border-2 border-gray-300">
+        <Card className="border-dashed border-2 border-border shadow-none">
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <ImageIcon className="h-12 w-12 text-gray-400 mb-3" />
-            <p className="text-gray-500 text-sm text-center">
-              Chưa có ảnh phòng nào
+            <ImageIcon className="h-12 w-12 text-muted-foreground/50 mb-3" />
+            <p className="text-muted-foreground text-sm text-center">
+              {emptyText}
             </p>
-            <p className="text-xs text-gray-400 text-center mt-1">
-              Bấm &quot;Thêm ảnh&quot; để tải ảnh minh họa phòng lên
+            <p className="text-xs text-muted-foreground/70 text-center mt-1">
+              {emptySubText}
             </p>
           </CardContent>
         </Card>
@@ -188,8 +188,8 @@ export function PhongImageUpload({
           className="text-xs"
         >
           {images.length > 0 
-            ? `Đã tải lên ${images.length} ảnh phòng`
-            : 'Chưa có ảnh phòng'
+            ? `Đã tải lên ${images.length} ${title.toLowerCase()}`
+            : emptyText
           }
         </Badge>
       </div>

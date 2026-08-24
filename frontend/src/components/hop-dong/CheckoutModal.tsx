@@ -34,7 +34,7 @@ interface CheckoutModalProps {
   hopDong: HopDong | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (updatedHopDong: any) => void;
+  onSuccess: (updatedHopDong: HopDong) => void;
   accessToken?: string;
 }
 
@@ -344,7 +344,7 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
                     Thủ tục trả phòng
                   </span>
                   <span className="text-xs text-slate-300">
-                    Phòng {typeof hopDong?.phong === 'object' ? (hopDong?.phong as any)?.maPhong : '---'}
+                    Phòng {typeof hopDong?.phong === 'object' ? (hopDong?.phong as { maPhong?: string })?.maPhong : '---'}
                   </span>
                 </div>
                 <DialogTitle className="text-xl font-black text-white">

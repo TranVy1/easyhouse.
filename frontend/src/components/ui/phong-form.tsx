@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Info, Image as ImageIcon } from 'lucide-react';
+import { Info, Image as ImageIcon, Home } from 'lucide-react';
 import { toast } from 'sonner';
-import { PhongImageUpload } from '@/components/ui/phong-image-upload';
+import { MultiImageUpload } from '@/components/ui/multi-image-upload';
 import type { Phong, ToaNha } from '@/types';
 
 const mapTrangThai = (tt: string): 'trong' | 'daDat' | 'dangThue' | 'baoTri' => {
@@ -455,10 +455,14 @@ export function PhongForm({
               </div>
 
               <div className="rounded-xl border border-dashed border-[#243B5A]/12 bg-[#F8F3EC]/55 p-2">
-                <PhongImageUpload
+                <MultiImageUpload
                   images={formData.anhPhong}
                   onImagesChange={(images: string[]) => setFormData(prev => ({ ...prev, anhPhong: images }))}
                   maxImages={10}
+                  title="Ảnh phòng"
+                  emptyText="Chưa có ảnh phòng nào"
+                  emptySubText='Bấm "Thêm ảnh" để tải ảnh minh họa phòng lên'
+                  icon={<Home className="h-5 w-5 text-primary" />}
                   className="w-full"
                 />
               </div>

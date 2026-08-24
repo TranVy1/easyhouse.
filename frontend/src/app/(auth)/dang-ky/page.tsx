@@ -6,53 +6,55 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff, MailCheck, ArrowLeft } from 'lucide-react';
+import { Loader2, Mail, CheckCircle2, Phone, User } from 'lucide-react';
 
-const registerSchema = z.object({
-  ten: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
-  email: z.string().email('Email không hợp lệ'),
-  matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-  xacNhanMatKhau: z.string(),
-  soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
-}).refine((data) => data.matKhau === data.xacNhanMatKhau, {
-  message: 'Mật khẩu xác nhận không khớp',
-  path: ['xacNhanMatKhau'],
-});
+import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthInput } from '@/components/auth/AuthInput';
+import { PasswordInput } from '@/components/auth/PasswordInput';
+import { FormError } from '@/components/auth/FormError';
+
+// ── Validation ──────────────────────────────────────────────────────────────
+const registerSchema = z
+  .object({
+    ten: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
+    email: z.string().email('Email không hợp lệ'),
+    matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+    xacNhanMatKhau: z.string(),
+    soDienThoai: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ (10–11 số)'),
+  })
+  .refine((d) => d.matKhau === d.xacNhanMatKhau, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['xacNhanMatKhau'],
+  });
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
+// ── Page ────────────────────────────────────────────────────────────────────
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  });
+  } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
+  const pwdValue = watch('matKhau') ?? '';
+
+  // ── Submit ────────────────────────────────────────────────────────────────
   const onSubmit = async (data: RegisterForm) => {
+    if (isLoading) return;
     setIsLoading(true);
     setError('');
-    setSuccess('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ten: data.ten,
           email: data.email,
@@ -62,13 +64,11 @@ export default function RegisterPage() {
         }),
       });
 
-      const result = await response.json();
+      const result = await res.json();
 
       if (result.success) {
-        setSuccess('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.');
-        setTimeout(() => {
-          router.push('/dang-nhap');
-        }, 2500);
+        setIsSuccess(true);
+        setTimeout(() => router.push('/dang-nhap'), 3000);
       } else {
         setError(result.message || 'Đã xảy ra lỗi, vui lòng thử lại');
       }
@@ -79,195 +79,136 @@ export default function RegisterPage() {
     }
   };
 
+  // ── Success screen ────────────────────────────────────────────────────────
+  if (isSuccess) {
+    return (
+      <AuthLayout title="" hideIllustration>
+        <div className="flex flex-col items-center text-center py-8 animate-in fade-in zoom-in-95 duration-500">
+          <div className="h-16 w-16 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center mb-5 shadow-sm">
+            <CheckCircle2 className="h-8 w-8 text-[#0D9488]" />
+          </div>
+          <h2 className="text-[22px] font-black text-slate-900 mb-2">Đăng ký thành công!</h2>
+          <p className="text-[14px] text-slate-500 leading-relaxed max-w-[300px]">
+            Tài khoản đã được tạo. Đang chuyển hướng về trang Đăng nhập…
+          </p>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // ── Render form ───────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F3EC] dark:bg-[#172A42] px-4 py-12 relative overflow-hidden">
-      {/* Back to Home Button */}
-      <div className="absolute top-6 left-6 z-20">
-        <Link 
-          href="/" 
-          className="flex items-center gap-1.5 text-xs font-bold text-[#6B7A8C] hover:text-[#243B5A] transition-colors bg-[#FFFDF8] dark:bg-[#243B5A] border border-[#E8DED2] dark:border-[#243B5A]/25 px-4 py-2.5 rounded-xl shadow-sm hover:bg-[#F8F3EC]"
-        >
-          <ArrowLeft size={14} /> Trở về trang chủ
-        </Link>
-      </div>
+    <AuthLayout
+      title="Tạo tài khoản"
+      description="Đăng ký để bắt đầu quản lý phòng trọ cùng EasyHouse"
+      hideIllustration
+    >
+      <FormError message={error} />
 
-      {/* Background Elements */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#4FA7A0]/5 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-[#FF5A3D]/5 blur-[120px]" />
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-0">
 
-      <div className="w-full max-w-[650px] z-10">
-        {/* Brand Logo Banner */}
-        <div className="flex flex-col items-center justify-center mb-8">
-          <Link href="/" className="flex flex-col items-center select-none cursor-pointer group">
-            <h1 className="text-3xl font-black text-[#243B5A] tracking-tight leading-none uppercase flex items-center gap-1 group-hover:opacity-90 transition-opacity">
-              EASY<span className="text-[#243B5A] dark:text-white">HOUSE</span>
-            </h1>
-            <p className="text-[10px] text-[#6B7A8C] font-medium mt-1 uppercase tracking-wider">Kênh thông tin phòng trọ số 1 Việt Nam</p>
-          </Link>
+        {/* ── Section: Thông tin cá nhân ── */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+            Thông tin cá nhân
+          </span>
+          <div className="h-px bg-slate-100 flex-1" />
         </div>
 
-        <Card className="border-none shadow-2xl shadow-[#243B5A]/10 dark:shadow-none dark:bg-[#243B5A]/50 dark:backdrop-blur-xl overflow-hidden rounded-2xl">
-          {/* Brand Gradient Bar */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 to-[#FF5A3D]" />
-          <CardHeader className="space-y-3 p-8 pb-2 text-center">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl font-black text-[#243B5A] dark:text-white">
-                ĐĂNG KÝ
-              </CardTitle>
-              <CardDescription className="text-sm font-medium text-[#6B7A8C] dark:text-[#6B7A8C]">
-                Tạo tài khoản mới trên EasyHouse
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="p-8 pt-4">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-xl">
-                  <AlertDescription className="text-red-800 dark:text-red-400 font-bold text-xs">{error}</AlertDescription>
-                </Alert>
-              )}
+        <div className="space-y-4 mb-5">
+          <AuthInput
+            label="Họ và tên"
+            placeholder="Nguyễn Văn A"
+            autoComplete="name"
+            icon={<User size={16} />}
+            error={errors.ten?.message}
+            {...register('ten')}
+          />
+          <AuthInput
+            label="Số điện thoại"
+            type="tel"
+            placeholder="0912345678"
+            autoComplete="tel"
+            icon={<Phone size={16} />}
+            error={errors.soDienThoai?.message}
+            {...register('soDienThoai')}
+          />
+        </div>
 
-              {success && (
-                <Alert className="border-[#4FA7A0]/30 bg-[#4FA7A0]/10 dark:bg-[#4FA7A0]/20 text-[#267D76] dark:text-[#8CCBC5] rounded-xl">
-                  <MailCheck className="h-5 w-5 mr-3" />
-                  <AlertDescription className="font-bold text-xs">{success}</AlertDescription>
-                </Alert>
-              )}
+        {/* ── Section: Tài khoản ── */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+            Tài khoản
+          </span>
+          <div className="h-px bg-slate-100 flex-1" />
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Họ tên */}
-                <div className="space-y-2">
-                  <Label htmlFor="ten" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Họ và tên</Label>
-                  <Input
-                    id="ten"
-                    placeholder="Nguyễn Văn A"
-                    {...register('ten')}
-                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.ten ? 'border-red-500' : ''}`}
-                  />
-                  {errors.ten && (
-                    <p className="text-xs text-red-500 font-bold ml-1">{errors.ten.message}</p>
-                  )}
-                </div>
+        <div className="space-y-4 mb-6">
+          <AuthInput
+            label="Email"
+            type="email"
+            placeholder="name@example.com"
+            autoComplete="email"
+            icon={<Mail size={16} />}
+            error={errors.email?.message}
+            {...register('email')}
+          />
+          <PasswordInput
+            label="Mật khẩu"
+            placeholder="Ít nhất 6 ký tự"
+            autoComplete="new-password"
+            showStrength
+            value={pwdValue}
+            error={errors.matKhau?.message}
+            {...register('matKhau')}
+          />
+          <PasswordInput
+            label="Xác nhận mật khẩu"
+            placeholder="Nhập lại mật khẩu"
+            autoComplete="new-password"
+            error={errors.xacNhanMatKhau?.message}
+            {...register('xacNhanMatKhau')}
+          />
+        </div>
 
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    {...register('email')}
-                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.email ? 'border-red-500' : ''}`}
-                  />
-                  {errors.email && (
-                    <p className="text-xs text-red-500 font-bold ml-1">{errors.email.message}</p>
-                  )}
-                </div>
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="
+            w-full h-12 rounded-[12px]
+            bg-[#0D9488] hover:bg-[#0F766E]
+            text-white text-[15px] font-bold
+            shadow-sm hover:shadow-[0_6px_20px_rgba(13,148,136,0.35)]
+            hover:-translate-y-[1px]
+            transition-all duration-200 active:scale-[0.98] active:translate-y-0
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0
+            flex items-center justify-center gap-2
+          "
+        >
+          {isLoading ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> Đang xử lý...</>
+          ) : (
+            'Tạo tài khoản'
+          )}
+        </button>
+      </form>
 
-                {/* Số điện thoại */}
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="soDienThoai" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Số điện thoại</Label>
-                  <Input
-                    id="soDienThoai"
-                    placeholder="0912345678"
-                    {...register('soDienThoai')}
-                    className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.soDienThoai ? 'border-red-500' : ''}`}
-                  />
-                  {errors.soDienThoai && (
-                    <p className="text-xs text-red-500 font-bold ml-1">{errors.soDienThoai.message}</p>
-                  )}
-                </div>
-
-                {/* Mật khẩu */}
-                <div className="space-y-2">
-                  <Label htmlFor="matKhau" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Mật khẩu</Label>
-                  <div className="relative">
-                    <Input
-                      id="matKhau"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      {...register('matKhau')}
-                      className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.matKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-0 top-0 h-full px-4 text-[#6B7A8C] hover:text-[#6B7A8C] dark:hover:text-slate-300 transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.matKhau && (
-                    <p className="text-xs text-red-500 font-bold ml-1">{errors.matKhau.message}</p>
-                  )}
-                </div>
-
-                {/* Xác nhận mật khẩu */}
-                <div className="space-y-2">
-                  <Label htmlFor="xacNhanMatKhau" className="text-xs font-bold text-[#243B5A] dark:text-slate-300 ml-1 uppercase tracking-wider">Xác nhận mật khẩu</Label>
-                  <div className="relative">
-                    <Input
-                      id="xacNhanMatKhau"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      {...register('xacNhanMatKhau')}
-                      className={`h-12 rounded-xl bg-[#F8F3EC]/50 dark:bg-[#1E344E] border-[#E8DED2] dark:border-white/15 focus:ring-2 focus:ring-[#4FA7A0]/25 transition-all ${errors.xacNhanMatKhau ? 'border-red-500 pr-12' : 'pr-12'}`}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-0 top-0 h-full px-4 text-[#6B7A8C] hover:text-[#6B7A8C] dark:hover:text-slate-300 transition-colors"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.xacNhanMatKhau && (
-                    <p className="text-xs text-red-500 font-bold ml-1">{errors.xacNhanMatKhau.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  className="w-full h-12 rounded-xl text-base font-bold bg-[#FF5A3D] hover:bg-[#E54F35] text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/25 transition-all active:scale-[0.98]"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Đang xử lý đăng ký...
-                    </>
-                  ) : (
-                    'Tạo tài khoản ngay'
-                  )}
-                </Button>
-              </div>
-            </form>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#E8DED2] dark:border-[#243B5A]/25"></span>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#FFFDF8] dark:bg-[#1E344E] px-4 text-[#6B7A8C] dark:text-[#6B7A8C] font-bold">Bạn đã có tài khoản?</span>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Link href="/dang-nhap" className="inline-flex items-center text-sm font-extrabold text-[#243B5A] hover:text-[#243B5A] transition-colors hover:underline">
-                Quay lại đăng nhập
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        <p className="mt-8 text-center text-xs text-[#6B7A8C]">
-          Bằng cách đăng ký, bạn đồng ý với Điều khoản & Chính sách bảo mật của chúng tôi.
+      {/* Sign-in link */}
+      <div className="mt-6 pt-5 border-t border-slate-100 text-center space-y-3">
+        <p className="text-[14px] text-slate-600 font-medium">
+          Đã có tài khoản?{' '}
+          <Link href="/dang-nhap" className="font-bold text-[#0D9488] hover:text-[#0F766E] transition-colors">
+            Đăng nhập
+          </Link>
+        </p>
+        <p className="text-[11px] text-slate-400">
+          Bằng cách đăng ký, bạn đồng ý với{' '}
+          <Link href="#" className="underline hover:text-slate-600 transition-colors">Điều khoản dịch vụ</Link>
+          {' '}và{' '}
+          <Link href="#" className="underline hover:text-slate-600 transition-colors">Chính sách bảo mật</Link>.
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,8 @@ import { useSearchParams } from 'next/navigation';
 export default function PhongPage() {
   const searchParams = useSearchParams();
   const accessToken = useSession()?.data?.accessToken;
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
   const { clearCache, isRefreshing, setIsRefreshing } = useCache<{
     phongList: Phong[];
     toaNhaList: ToaNha[];
@@ -141,7 +143,7 @@ export default function PhongPage() {
 
       // Fetch phong
       const response = await fetch(`/api/phong?${params.toString()}`, {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       let phongData: Phong[] = [];
       if (response.ok) {
@@ -162,7 +164,7 @@ export default function PhongPage() {
 
       // Fetch toa nha
       const toaNhaResponse = await fetch('/api/toa-nha?page=1&limit=100', {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       let toaNhaData: ToaNha[] = [];
       if (toaNhaResponse.ok) {
@@ -183,12 +185,12 @@ export default function PhongPage() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
 
   const fetchToaNha = useCallback(async () => {
     try {
       const response = await fetch('/api/toa-nha?page=1&limit=100', {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       if (response.ok) {
         const result = await response.json();
@@ -199,7 +201,7 @@ export default function PhongPage() {
     } catch (error) {
       console.error('Error fetching toa nha:', error);
     }
-  }, [accessToken]);
+  }, []);
 
   useEffect(() => {
     fetchPhong(selectedToaNha, selectedTrangThai, appliedSearch, pagination.pageIndex + 1, pagination.pageSize);
@@ -243,7 +245,7 @@ export default function PhongPage() {
     try {
       const response = await fetch(`/api/phong/${id}`, {
         method: 'DELETE',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
 
       if (response.ok) {
@@ -1043,4 +1045,5 @@ export default function PhongPage() {
     </div>
   );
 }
+
 

@@ -1,30 +1,36 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn, SessionProvider } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Phone, Lock, LogIn, Home } from 'lucide-react';
+import { Loader2, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-function KhachThueDangNhapContent() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    soDienThoai: '',
-    matKhau: '',
-  });
-  const [isLoading, setIsLoading] = useState(false);
+import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthInput } from '@/components/auth/AuthInput';
+import { PasswordInput } from '@/components/auth/PasswordInput';
+import { FormError } from '@/components/auth/FormError';
 
+// ── Inner component (uses useSearchParams — must be inside Suspense) ────────
+function KhachThueDangNhapContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/khach-thue/dashboard';
 
+  const [formData, setFormData] = useState({ soDienThoai: '', matKhau: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.soDienThoai.trim() || !formData.matKhau) {
+      setError('Vui lòng nhập đầy đủ Số điện thoại và Mật khẩu');
+      return;
+    }
+    if (isLoading) return;
     setIsLoading(true);
+    setError('');
 
     try {
       const result = await signIn('tenant-credentials', {
@@ -34,109 +40,106 @@ function KhachThueDangNhapContent() {
       });
 
       if (result?.error) {
-        toast.error(result.error);
+        setError(result.error);
       } else {
         toast.success('Đăng nhập thành công!');
         window.location.href = callbackUrl;
       }
-    } catch (error) {
-      console.error('Error logging in:', error);
-      toast.error('Có lỗi xảy ra khi đăng nhập');
+    } catch (err) {
+      console.error('Tenant login error:', err);
+      setError('Có lỗi xảy ra, vui lòng thử lại sau');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-[#243B5A] rounded-full flex items-center justify-center">
-            <Home className="h-8 w-8 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Đăng nhập Khách thuê</CardTitle>
-          <CardDescription>
-            Nhập số điện thoại và mật khẩu để xem thông tin phòng trọ của bạn
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="soDienThoai">Số điện thoại</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="soDienThoai"
-                  type="tel"
-                  placeholder="0123456789"
-                  autoComplete="tel"
-                  value={formData.soDienThoai}
-                  onChange={(e) => setFormData(prev => ({ ...prev, soDienThoai: e.target.value }))}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+    <AuthLayout
+      title="Đăng nhập Khách thuê"
+      description="Theo dõi hợp đồng, hóa đơn và sự cố phòng trọ của bạn"
+      hideIllustration
+    >
+      {/* Default password notice */}
+      <div className="mb-5 bg-amber-50 border border-amber-200 rounded-[12px] px-4 py-3">
+        <p className="text-[13px] font-semibold text-amber-800">Mật khẩu mặc định: 123456</p>
+        <p className="text-[12px] text-amber-700/80 mt-0.5">
+          Vui lòng đổi mật khẩu sau khi đăng nhập thành công.
+        </p>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="matKhau">Mật khẩu</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="matKhau"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Nhập mật khẩu"
-                  value={formData.matKhau}
-                  onChange={(e) => setFormData(prev => ({ ...prev, matKhau: e.target.value }))}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+      <FormError message={error} />
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Đang đăng nhập...
-                </>
-              ) : (
-                <>
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Đăng nhập
-                </>
-              )}
-            </Button>
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <AuthInput
+          label="Số điện thoại"
+          type="tel"
+          placeholder="0123456789"
+          autoComplete="tel"
+          icon={<Phone size={16} />}
+          value={formData.soDienThoai}
+          onChange={(e) => setFormData((p) => ({ ...p, soDienThoai: e.target.value }))}
+        />
 
-            <div className="text-center text-sm text-gray-600 mt-4 space-y-4">
-              <div>
-                <p>Mật khẩu mặc định là 123456</p>
-                <p className="text-xs mt-1">Vui lòng đổi mật khẩu sau khi đăng nhập thành công</p>
-              </div>
-              <div className="border-t pt-4">
-                <p className="text-sm font-medium mb-1">
-                  Bạn là Chủ trọ / Quản lý?
-                </p>
-                <Link href="/dang-nhap" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors hover:underline">
-                  Đăng nhập tại cổng Quản lý &rarr;
-                </Link>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <PasswordInput
+          label="Mật khẩu"
+          placeholder="Nhập mật khẩu"
+          autoComplete="current-password"
+          value={formData.matKhau}
+          onChange={(e) => setFormData((p) => ({ ...p, matKhau: e.target.value }))}
+        />
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="
+            w-full h-12 rounded-[12px] mt-2
+            bg-[#0D9488] hover:bg-[#0F766E]
+            text-white text-[15px] font-bold
+            shadow-sm hover:shadow-[0_6px_20px_rgba(13,148,136,0.35)]
+            hover:-translate-y-[1px]
+            transition-all duration-200 active:scale-[0.98] active:translate-y-0
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0
+            flex items-center justify-center gap-2
+          "
+        >
+          {isLoading ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> Đang đăng nhập...</>
+          ) : (
+            'Đăng nhập hệ thống'
+          )}
+        </button>
+      </form>
+
+      {/* Link to landlord portal */}
+      <div className="mt-6 pt-5 border-t border-slate-100">
+        <div className="bg-blue-50/60 border border-blue-100 rounded-[14px] px-4 py-3 flex flex-col items-center gap-1 hover:bg-blue-50 transition-colors">
+          <p className="text-[13px] text-blue-800 font-medium">Bạn là Chủ trọ / Quản lý?</p>
+          <Link
+            href="/dang-nhap"
+            className="text-[13px] font-bold text-blue-700 hover:text-blue-900 transition-colors"
+          >
+            Đăng nhập tại Cổng quản lý &rarr;
+          </Link>
+        </div>
+      </div>
+    </AuthLayout>
   );
 }
 
-export default function KhachThueDangNhapPage() {
+// ── Root export ─────────────────────────────────────────────────────────────
+export default function KhachThueDangNhap() {
   return (
-    <SessionProvider basePath="/api/auth-tenant">
-      <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" />}>
+    <SessionProvider>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-[#F7F7F5]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#0D9488]" />
+          </div>
+        }
+      >
         <KhachThueDangNhapContent />
       </Suspense>
     </SessionProvider>
   );
 }
-

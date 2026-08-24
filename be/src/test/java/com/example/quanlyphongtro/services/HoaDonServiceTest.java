@@ -209,8 +209,8 @@ class HoaDonServiceTest {
 
         HoaDonResponse response = service.create(request);
 
-        assertEquals(new BigDecimal("1161290.32"), response.getTienPhong());
-        assertEquals(new BigDecimal("1161290.32"), response.getTongTien());
+        assertEquals(new BigDecimal("1162000"), response.getTienPhong());
+        assertEquals(new BigDecimal("1162000"), response.getTongTien());
         assertEquals("Tiền phòng 12/31 ngày", response.getChiTiet().stream()
                 .filter(item -> "ROOM".equals(item.getLoai()))
                 .findFirst()

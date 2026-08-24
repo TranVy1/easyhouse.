@@ -17,6 +17,6 @@ const getRedisClient = () => {
 export const redis = getRedisClient();
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var redisClient: Redis | undefined;
 }

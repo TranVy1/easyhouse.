@@ -12,6 +12,8 @@ import {
   BarChart,
   Bar
 } from "recharts";
+import { TooltipProps } from "recharts";
+import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
@@ -33,12 +35,12 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
     );
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/95 backdrop-blur-sm p-4 border border-[#E8DED2] rounded-xl shadow-lg text-sm">
           <p className="font-bold mb-2 text-[#243B5A]">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={`item-${index}`} className="flex items-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-[#6B7A8C]">{entry.name}:</span>

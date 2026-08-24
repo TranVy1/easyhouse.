@@ -2,6 +2,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
@@ -12,6 +13,12 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:-translate-y-[1px]",
         destructive:
           "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:shadow-md hover:-translate-y-[1px] focus-visible:ring-destructive/30 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        success:
+          "bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md hover:-translate-y-[1px] focus-visible:ring-success/30",
+        warning:
+          "bg-warning text-warning-foreground shadow-sm hover:bg-warning/90 hover:shadow-md hover:-translate-y-[1px] focus-visible:ring-warning/30",
+        info:
+          "bg-info text-info-foreground shadow-sm hover:bg-info/90 hover:shadow-md hover:-translate-y-[1px] focus-visible:ring-info/30",
         outline:
           "border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:-translate-y-[1px] dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
@@ -41,10 +48,14 @@ function Button({
   variant,
   size,
   asChild = false,
+  isLoading = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
+    isLoading?: boolean;
   }) {
   const Comp = asChild ? Slot : "button"
 
@@ -52,8 +63,16 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || isLoading}
       {...props}
-    />
+    >
+      {asChild ? children : (
+        <>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {children}
+        </>
+      )}
+    </Comp>
   )
 }
 

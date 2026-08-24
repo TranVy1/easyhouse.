@@ -603,7 +603,7 @@ function ToaNhaForm({
       .then((data: any) => {
         if (data.success) {
           const services = Array.isArray(data.data) ? data.data : (data.data?.data || data.data?.content || []);
-          let initialList = services.map((dv: any) => ({
+          const initialList = services.map((dv: any) => ({
             id: dv._id || dv.id,
             ten: dv.tenDichVu,
             suDung: dv.batBuoc || false,

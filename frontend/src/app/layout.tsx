@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
   title: {
@@ -46,6 +47,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
+        <NextTopLoader color="#0D9488" showSpinner={false} speed={200} height={3} shadow="0 0 10px #0D9488,0 0 5px #0D9488" />
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

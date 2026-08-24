@@ -1,58 +1,53 @@
+import { Badge } from "@/components/ui/badge";
+
 /**
  * Shared StatusBadge component - dung chung cho Dashboard va Mobile App.
  * Map tu backend enum strings -> label tieng Viet + mau sac EasyHouse.
  */
 
+type BadgeVariant = "soft-success" | "soft-neutral" | "soft-warning" | "soft-danger" | "soft-info";
+
 interface BadgeConfig {
   label: string;
-  cls: string;
+  variant: BadgeVariant;
 }
-
-const badgeTone = {
-  success: 'bg-[#4FA7A0]/10 text-[#267D76] border-[#4FA7A0]/25',
-  neutral: 'bg-[#F8F3EC] text-[#6B7A8C] border-[#E8DED2]',
-  warning: 'bg-[#F2A45B]/15 text-[#9A5A1B] border-[#F2A45B]/30',
-  danger: 'bg-[#C75345]/10 text-[#A13C33] border-[#C75345]/25',
-  dangerStrong: 'bg-[#C75345]/15 text-[#8F3028] border-[#C75345]/30',
-  info: 'bg-[#243B5A]/10 text-[#243B5A] border-[#243B5A]/20',
-};
 
 const STATUS_MAP: Record<string, BadgeConfig> = {
   // Hop dong
-  ACTIVE:      { label: 'Đang hiệu lực',    cls: badgeTone.success },
-  hoatDong:    { label: 'Đang hiệu lực',    cls: badgeTone.success },
-  DRAFT:       { label: 'Nháp',             cls: badgeTone.neutral },
-  nhap:        { label: 'Nháp',             cls: badgeTone.neutral },
-  PENDING:     { label: 'Chờ kích hoạt',    cls: badgeTone.warning },
-  choKichHoat: { label: 'Chờ kích hoạt',    cls: badgeTone.warning },
-  EXPIRED:     { label: 'Hết hạn',          cls: badgeTone.danger },
-  hetHan:      { label: 'Hết hạn',          cls: badgeTone.danger },
-  TERMINATED:  { label: 'Đã kết thúc',      cls: badgeTone.neutral },
-  daKetThuc:   { label: 'Đã kết thúc',      cls: badgeTone.neutral },
-  CANCELLED:   { label: 'Đã hủy',           cls: badgeTone.danger },
-  daHuy:       { label: 'Đã hủy',           cls: badgeTone.danger },
+  ACTIVE:      { label: 'Đang hiệu lực',    variant: 'soft-success' },
+  hoatDong:    { label: 'Đang hiệu lực',    variant: 'soft-success' },
+  DRAFT:       { label: 'Nháp',             variant: 'soft-neutral' },
+  nhap:        { label: 'Nháp',             variant: 'soft-neutral' },
+  PENDING:     { label: 'Chờ kích hoạt',    variant: 'soft-warning' },
+  choKichHoat: { label: 'Chờ kích hoạt',    variant: 'soft-warning' },
+  EXPIRED:     { label: 'Hết hạn',          variant: 'soft-danger' },
+  hetHan:      { label: 'Hết hạn',          variant: 'soft-danger' },
+  TERMINATED:  { label: 'Đã kết thúc',      variant: 'soft-neutral' },
+  daKetThuc:   { label: 'Đã kết thúc',      variant: 'soft-neutral' },
+  CANCELLED:   { label: 'Đã hủy',           variant: 'soft-danger' },
+  daHuy:       { label: 'Đã hủy',           variant: 'soft-danger' },
 
   // Hoa don
-  UNPAID:      { label: 'Chưa thanh toán',        cls: badgeTone.danger },
-  PARTIAL:     { label: 'Thanh toán một phần',    cls: badgeTone.warning },
-  PAID:        { label: 'Đã thanh toán',          cls: badgeTone.success },
-  OVERDUE:     { label: 'Quá hạn',                cls: badgeTone.dangerStrong },
-  OVERPAID:    { label: 'Thanh toán dư',          cls: badgeTone.info },
+  UNPAID:      { label: 'Chưa thanh toán',        variant: 'soft-danger' },
+  PARTIAL:     { label: 'Thanh toán một phần',    variant: 'soft-warning' },
+  PAID:        { label: 'Đã thanh toán',          variant: 'soft-success' },
+  OVERDUE:     { label: 'Quá hạn',                variant: 'soft-danger' },
+  OVERPAID:    { label: 'Thanh toán dư',          variant: 'soft-info' },
 
   // Su co
-  IN_PROGRESS: { label: 'Đang xử lý',      cls: badgeTone.info },
-  RESOLVED:    { label: 'Đã xử lý',        cls: badgeTone.success },
-  CLOSED:      { label: 'Đã đóng',         cls: badgeTone.neutral },
+  IN_PROGRESS: { label: 'Đang xử lý',      variant: 'soft-info' },
+  RESOLVED:    { label: 'Đã xử lý',        variant: 'soft-success' },
+  CLOSED:      { label: 'Đã đóng',         variant: 'soft-neutral' },
 
   // Phong
-  AVAILABLE:   { label: 'Còn trống',       cls: badgeTone.success },
-  RENTED:      { label: 'Đang thuê',       cls: badgeTone.info },
-  MAINTENANCE: { label: 'Bảo trì',         cls: badgeTone.warning },
-  RESERVED:    { label: 'Đã đặt',          cls: badgeTone.warning },
+  AVAILABLE:   { label: 'Còn trống',       variant: 'soft-success' },
+  RENTED:      { label: 'Đang thuê',       variant: 'soft-info' },
+  MAINTENANCE: { label: 'Bảo trì',         variant: 'soft-warning' },
+  RESERVED:    { label: 'Đã đặt',          variant: 'soft-warning' },
 
   // Nguoi dung
-  INACTIVE:    { label: 'Chưa kích hoạt',  cls: badgeTone.neutral },
-  BANNED:      { label: 'Bị khóa',         cls: badgeTone.danger },
+  INACTIVE:    { label: 'Chưa kích hoạt',  variant: 'soft-neutral' },
+  BANNED:      { label: 'Bị khóa',         variant: 'soft-danger' },
 };
 
 interface StatusBadgeProps {
@@ -65,16 +60,14 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, label, size = 'xs' }: StatusBadgeProps) {
   const config = STATUS_MAP[status] ?? {
     label: label || status,
-    cls: badgeTone.neutral,
+    variant: 'soft-neutral',
   };
 
-  const textSize = size === 'xs' ? 'text-[10px]' : 'text-xs';
+  const px = size === 'xs' ? 'px-2 py-[2px] text-[10px]' : 'px-2.5 py-0.5 text-xs';
 
   return (
-    <span
-      className={`inline-flex items-center ${textSize} font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap transition-all duration-200 shadow-sm hover:shadow-md ${config.cls}`}
-    >
+    <Badge variant={config.variant} className={px}>
       {label || config.label}
-    </span>
+    </Badge>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -50,6 +50,8 @@ export default function HopDongPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const accessToken = useSession()?.data?.accessToken as string | undefined;
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
   const { getCache, setCache, clearCache, isRefreshing, setIsRefreshing } = useCache<{
     hopDongList: HopDong[];
     phongList: Phong[];
@@ -85,7 +87,7 @@ export default function HopDongPage() {
 
   const readList = useCallback(async <T,>(url: string, label: string, mapper: (item: unknown) => T): Promise<T[]> => {
     const response = await fetch(url, {
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
     });
     let result: { success?: boolean; message?: string; data?: unknown } = {};
     try {
@@ -126,7 +128,7 @@ export default function HopDongPage() {
       if (appliedSearch) params.append('search', appliedSearch);
 
       const response = await fetch(`/api/hop-dong?${params.toString()}`, {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       let hopDongs: HopDong[] = [];
       if (response.ok) {
@@ -144,9 +146,9 @@ export default function HopDongPage() {
       }
 
       const [phongs, khachThues, toaNhas] = await Promise.all([
-        readList('/api/phong', 'danh sách phòng', normalizePhong),
-        readList('/api/khach-thue', 'danh sách khách thuê', normalizeKhachThue),
-        readList('/api/toa-nha', 'danh sách tòa nhà', normalizeToaNha),
+        readList('/api/phong?page=1&limit=500', 'danh sách phòng', normalizePhong),
+        readList('/api/khach-thue?page=1&limit=500', 'danh sách khách thuê', normalizeKhachThue),
+        readList('/api/toa-nha?page=1&limit=500', 'danh sách tòa nhà', normalizeToaNha),
       ]);
 
       setHopDongList(hopDongs);
@@ -293,7 +295,7 @@ export default function HopDongPage() {
     try {
       const response = await fetch(`/api/hop-dong/${id}`, {
         method: 'DELETE',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       const result = await response.json().catch(() => ({}));
       
@@ -1089,3 +1091,5 @@ export default function HopDongPage() {
     </div>
   );
 }
+
+

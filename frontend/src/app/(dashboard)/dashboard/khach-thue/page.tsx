@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useCache } from '@/hooks/use-cache';
@@ -50,6 +50,8 @@ import styles from './page.module.css';
 
 export default function KhachThuePage() {
   const accessToken = useSession()?.data?.accessToken;
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
   const { clearCache, isRefreshing, setIsRefreshing } = useCache<{ khachThueList: KhachThue[] }>({ key: 'khach-thue-data', duration: 300000 });
   const [khachThueList, setKhachThueList] = useState<KhachThue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,7 @@ export default function KhachThuePage() {
       if (search) params.append('search', search);
       
       const response = await fetch(`/api/khach-thue?${params.toString()}`, {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       let khachThueData: KhachThue[] = [];
       if (response.ok) {
@@ -184,7 +186,7 @@ export default function KhachThuePage() {
     try {
       const response = await fetch(`/api/khach-thue/${itemToDelete}`, {
         method: 'DELETE',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : undefined,
       });
       
       if (response.ok) {
@@ -536,6 +538,8 @@ function KhachThueForm({
   setIsSubmitting: (value: boolean) => void;
 }) {
   const accessToken = useSession()?.data?.accessToken;
+  const tokenRef = useRef(accessToken);
+  tokenRef.current = accessToken;
   const [formData, setFormData] = useState({
     hoTen: khachThue?.hoTen || '',
     soDienThoai: khachThue?.soDienThoai || '',
@@ -763,3 +767,4 @@ function KhachThueForm({
     </form>
   );
 }
+

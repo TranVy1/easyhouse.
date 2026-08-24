@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     // Format messages for Gemini history
-    let historyData = messages.slice(0, -1);
+    const historyData = messages.slice(0, -1);
 
     // Gemini API strict rule: history must start with a 'user' message
     while (historyData.length > 0 && historyData[0].role === 'bot') {

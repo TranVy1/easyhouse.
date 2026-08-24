@@ -24,7 +24,19 @@ public interface HopDongRepository extends JpaRepository<HopDong, UUID> {
     @Query("SELECT hd FROM HopDong hd WHERE hd.trangThai = :trangThai AND hd.trangThaiCoc = :trangThaiCoc AND hd.taoLuc < :date AND hd.xoaLuc IS NULL")
     List<HopDong> findPendingContractsBefore(@Param("trangThai") TrangThaiHopDong trangThai, @Param("trangThaiCoc") com.example.quanlyphongtro.entity.TrangThaiCocHopDong trangThaiCoc, @Param("date") java.time.ZonedDateTime date);
 
-    @Query("SELECT hd FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p LEFT JOIN p.nhaTro nt " +
+    @Query(value = "SELECT hd FROM HopDong hd LEFT JOIN FETCH hd.khachThue k LEFT JOIN FETCH hd.phong p LEFT JOIN FETCH p.nhaTro nt " +
+           "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
+           "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
+           "AND (cast(:nhaTroId as string) IS NULL OR nt.id = :nhaTroId) " +
+           "AND (cast(:trangThai as string) IS NULL OR cast(hd.trangThai as string) = :trangThai) " +
+           "AND (cast(:search as string) IS NULL OR LOWER(COALESCE(hd.maHopDong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(hd.ghiChu, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(hd.noiDungHopDong, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(k.hoTen, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(p.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) " +
+           "OR LOWER(COALESCE(nt.ten, '')) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))",
+           countQuery = "SELECT count(hd) FROM HopDong hd LEFT JOIN hd.khachThue k LEFT JOIN hd.phong p LEFT JOIN p.nhaTro nt " +
            "WHERE hd.xoaLuc IS NULL AND (:isAdmin = true OR k.nguoiDung.id = :userId OR p.nhaTro.id IN :nhaTroIds) " +
            "AND (cast(:phongId as string) IS NULL OR p.id = :phongId) " +
            "AND (cast(:nhaTroId as string) IS NULL OR nt.id = :nhaTroId) " +

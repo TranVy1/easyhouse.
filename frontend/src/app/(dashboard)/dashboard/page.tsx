@@ -95,7 +95,7 @@ export default function DashboardPage() {
       const [overviewRes, revRes, toaNhasRes] = await Promise.all([
         fetch(selectedToaNhaId !== "all" ? `/api/dashboard/analytics/overview?nhaTroId=${selectedToaNhaId}` : "/api/dashboard/analytics/overview", { headers }),
         fetch(selectedToaNhaId !== "all" ? `/api/dashboard/analytics/revenue-chart?months=12&nhaTroId=${selectedToaNhaId}` : "/api/dashboard/analytics/revenue-chart?months=12", { headers }),
-        fetch("/api/toa-nha?size=100", { headers }),
+        fetch("/api/toa-nha?page=1&limit=100", { headers }),
       ]);
 
       const oData = await parseRes(overviewRes, "overview");
@@ -577,5 +577,6 @@ export default function DashboardPage() {
     </div>
   )
 }
+
 
 

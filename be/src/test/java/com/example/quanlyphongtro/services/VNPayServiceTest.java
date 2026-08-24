@@ -3,6 +3,9 @@ package com.example.quanlyphongtro.services;
 import com.example.quanlyphongtro.entity.HoaDon;
 import com.example.quanlyphongtro.repository.HoaDonRepository;
 import com.example.quanlyphongtro.repository.ThanhToanRepository;
+import com.example.quanlyphongtro.repository.HopDongRepository;
+import com.example.quanlyphongtro.repository.PhongRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -22,6 +25,11 @@ class VNPayServiceTest {
     @Mock private HoaDonRepository hoaDonRepository;
     @Mock private ThanhToanRepository thanhToanRepository;
     @Mock private BankTransactionLogService bankTransactionLogService;
+    @Mock private HopDongRepository hopDongRepository;
+    @Mock private PhongRepository phongRepository;
+    @Mock private GiaoDichTienCocService giaoDichTienCocService;
+    @Mock private JdbcTemplate jdbcTemplate;
+    @Mock private EmailService emailService;
 
     @Test
     void createPaymentUrlUsesInvoiceBalanceAndRoundsToWholeVnd() {
@@ -33,7 +41,16 @@ class VNPayServiceTest {
                 .build();
         when(hoaDonRepository.findById(hoaDonId)).thenReturn(Optional.of(hoaDon));
 
-        VNPayService service = new VNPayService(hoaDonRepository, thanhToanRepository, bankTransactionLogService);
+        VNPayService service = new VNPayService(
+            hoaDonRepository, 
+            thanhToanRepository, 
+            hopDongRepository,
+            phongRepository,
+            giaoDichTienCocService,
+            jdbcTemplate,
+            emailService,
+            bankTransactionLogService
+        );
         ReflectionTestUtils.setField(service, "vnp_TmnCode", "TEST");
         ReflectionTestUtils.setField(service, "vnp_HashSecret", "secret");
         ReflectionTestUtils.setField(service, "vnp_PayUrl", "https://sandbox.example/pay");

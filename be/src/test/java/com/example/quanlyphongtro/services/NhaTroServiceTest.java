@@ -81,7 +81,7 @@ class NhaTroServiceTest {
         when(phongRepository.countByNhaTroIdAndTrangThaiAndXoaLucIsNull(nhaTroId, com.example.quanlyphongtro.entity.TrangThaiPhong.RENTED)).thenReturn(1L);
 
         RuntimeException error = assertThrows(RuntimeException.class, () -> service.deleteNhaTro(nhaTroId));
-        assertEquals("Khong the xoa nha tro vi dang co phong co nguoi thue", error.getMessage());
+        assertEquals("Không thể xóa tòa nhà vì đang có phòng ở trạng thái đang thuê (có hợp đồng hoạt động)", error.getMessage());
     }
 
     @Test

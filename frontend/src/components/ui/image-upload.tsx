@@ -11,6 +11,7 @@ interface ImageUploadProps {
   imageUrl: string;
   onImageChange: (imageUrl: string) => void;
   className?: string;
+  previewClassName?: string;
   label?: string;
   placeholder?: string;
 }
@@ -19,6 +20,7 @@ export function ImageUpload({
   imageUrl, 
   onImageChange, 
   className = '',
+  previewClassName = 'h-48 w-full',
   label = 'Ảnh',
   placeholder = 'Chọn ảnh'
 }: ImageUploadProps) {
@@ -80,13 +82,15 @@ export function ImageUpload({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        {label}
-      </label>
+      {label && (
+        <label className="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          {label}
+        </label>
+      )}
       
       <div className="space-y-2">
         {imageUrl ? (
-          <div className="relative h-48 w-full overflow-hidden rounded-lg border">
+          <div className={`relative overflow-hidden rounded-lg border border-border bg-muted ${previewClassName}`}>
             <Image
               src={imageUrl}
               alt="Ảnh đã tải lên"
@@ -98,7 +102,7 @@ export function ImageUpload({
               type="button"
               variant="destructive"
               size="sm"
-              className="absolute top-2 right-2"
+              className="absolute top-2 right-2 h-7 w-7 p-0"
               onClick={handleRemove}
             >
               <X className="h-4 w-4" />
@@ -106,19 +110,19 @@ export function ImageUpload({
           </div>
         ) : (
           <div 
-            className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+            className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border/60 bg-muted/30 cursor-pointer transition-colors hover:border-primary/50 hover:bg-muted/50 ${previewClassName}`}
             onClick={() => inputRef.current?.click()}
           >
             {uploading ? (
               <>
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Đang tải lên...</p>
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="mt-2 text-sm text-muted-foreground">Đang tải lên...</p>
               </>
             ) : (
               <>
-                <ImageIcon className="h-8 w-8 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">{placeholder}</p>
-                <p className="text-xs text-gray-400">Click để chọn ảnh</p>
+                <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground font-medium">{placeholder}</p>
+                <p className="text-xs text-muted-foreground/70">Click để chọn ảnh</p>
               </>
             )}
           </div>
@@ -130,17 +134,20 @@ export function ImageUpload({
           accept="image/*"
           onChange={handleFileSelect}
           className="hidden"
+          disabled={uploading}
         />
         
-        {!imageUrl && !uploading && (
+        {!imageUrl && (
           <Button
             type="button"
             variant="outline"
             onClick={() => inputRef.current?.click()}
             className="w-full"
+            disabled={uploading}
+            isLoading={uploading}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            Chọn ảnh
+            {!uploading && <Upload className="h-4 w-4 mr-2" />}
+            {uploading ? 'Đang tải lên...' : 'Chọn ảnh'}
           </Button>
         )}
       </div>

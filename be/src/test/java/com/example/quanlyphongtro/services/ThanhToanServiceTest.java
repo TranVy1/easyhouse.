@@ -44,6 +44,8 @@ class ThanhToanServiceTest {
     @Mock private MediaService mediaService;
     @Mock private PermissionService permissionService;
     @Mock private EmailService emailService;
+    @Mock private com.example.quanlyphongtro.repository.PhongRepository phongRepository;
+    @Mock private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     private ThanhToanService service;
 
@@ -56,7 +58,9 @@ class ThanhToanServiceTest {
                 hopDongRepository,
                 mediaService,
                 permissionService,
-                emailService
+                emailService,
+                phongRepository,
+                jdbcTemplate
         );
     }
 

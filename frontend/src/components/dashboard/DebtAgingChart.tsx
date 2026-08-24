@@ -9,6 +9,8 @@ import {
   Label,
   ResponsiveContainer
 } from "recharts";
+import { TooltipProps } from "recharts";
+import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
@@ -42,7 +44,7 @@ export function DebtAgingChart({ data }: { data: DebtAgingData | null }) {
     { name: 'Quá hạn >30 ngày', value: data.overdueOver30 },
   ].filter(item => item.value > 0);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/95 backdrop-blur-sm p-4 border border-[#E8DED2] rounded-xl shadow-lg text-sm">
