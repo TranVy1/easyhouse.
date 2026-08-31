@@ -1078,7 +1078,7 @@ export default function ThemMoiHopDongPage() {
           <div className="flex-1 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-inner my-2">
             {previewHopDongId ? (
               <iframe
-                src={`/api/hop-dong/${previewHopDongId}/document?format=html`}
+                src={`/api/hop-dong/${previewHopDongId}/document?format=html&token=${accessToken || ''}`}
                 className="w-full h-full border-0"
                 title="Xem trước Hợp đồng"
               />

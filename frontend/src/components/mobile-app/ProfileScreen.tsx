@@ -695,7 +695,7 @@ function ContractSection({ accessToken }: { accessToken?: string }) {
                       </div>
                     )}
                     {hd._id && (
-                      <a href={`/api/hop-dong/${hd._id}/document?format=pdf`} target="_blank" rel="noopener noreferrer"
+                      <a href={`/api/hop-dong/${hd._id}/document?format=pdf&token=${accessToken || ''}`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full border border-indigo-200 text-indigo-700 bg-white py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-50 transition-colors">
                         <ExternalLink size={13} /> Xem hợp đồng PDF
                       </a>

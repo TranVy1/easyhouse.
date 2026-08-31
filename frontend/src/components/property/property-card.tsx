@@ -105,11 +105,10 @@ export function PropertyCard({
   return (
     <motion.article
       onClick={onSelect}
-      className={`group relative cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left ring-1 ring-[#243B5A]/[0.08] ${className}`}
+      className={`group relative cursor-pointer overflow-hidden rounded-[22px] bg-[#FFFCF8] text-left shadow-[0_12px_30px_rgba(36,59,90,0.08)] ring-1 ring-[#243B5A]/[0.08] transition-all duration-300 hover:shadow-[0_20px_48px_rgba(36,59,90,0.12)] hover:ring-[#4FA7A0]/40 ${className}`}
       initial={false}
-      whileHover={reduced ? undefined : { y: -4 }}
+      whileHover={reduced ? undefined : { y: -5 }}
       transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
-      style={{ boxShadow: "0 12px 30px rgba(36,59,90,0.08)" }}
     >
       {/* ---- Khung anh + carousel ---- */}
       <div
@@ -134,12 +133,34 @@ export function PropertyCard({
             />
           </AnimatePresence>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#F8F3EC] via-white to-[#DCEFEB]">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
-                <Building2 size={30} />
-              </div>
-              <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#6B7A8C] ring-1 ring-[#E8DED1]">
+          <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#EEF7F6] via-[#F8F3EC] to-[#EDE5D9]">
+            {/* Ambient blobs */}
+            <motion.div
+              className="absolute -left-6 -top-6 h-28 w-28 rounded-full bg-[#4FA7A0]/18 blur-[40px]"
+              animate={{ x: [0, 8, 0], y: [0, 10, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-[#F2A45B]/14 blur-[36px]"
+              animate={{ x: [0, -8, 0], y: [0, -10, 0] }}
+              transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+            />
+            {/* Dot pattern */}
+            <div className="absolute inset-0 bg-[radial-gradient(#243B5A_1px,transparent_1px)] [background-size:18px_18px] opacity-[0.025]" />
+            {/* Dotted ring */}
+            <svg className="absolute opacity-[0.12]" width="80" height="80" viewBox="0 0 80 80" fill="none">
+              <circle cx="40" cy="40" r="34" stroke="#4FA7A0" strokeWidth="1.5" strokeDasharray="5 7" />
+            </svg>
+            {/* Center icon */}
+            <div className="relative flex flex-col items-center gap-2.5 text-center">
+              <motion.div
+                animate={{ y: [-3, 3, -3] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-[#243B5A]/75 shadow-sm ring-1 ring-[#E8DED1]/60 backdrop-blur-sm"
+              >
+                <Building2 size={26} strokeWidth={1.5} />
+              </motion.div>
+              <span className="rounded-full bg-white/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#6B7A8C]/80 ring-1 ring-[#E8DED1]/50 backdrop-blur-sm">
                 Chưa có ảnh
               </span>
             </div>

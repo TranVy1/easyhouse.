@@ -33,21 +33,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
+        String token = null;
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            Claims claims = jwtService.parseToken(token);
+            token = authHeader.substring(7);
+        } else if (request.getParameter("token") != null) {
+            token = request.getParameter("token");
+        }
 
-            if (claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UUID userId = jwtService.getUserId(claims);
-                String role = jwtService.getRole(claims);
+        if (token != null) {
+            try {
+                Claims claims = jwtService.parseToken(token);
 
-                List<SimpleGrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER"))
-                );
+                if (claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UUID userId = jwtService.getUserId(claims);
+                    String role = jwtService.getRole(claims);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    List<SimpleGrantedAuthority> authorities = List.of(
+                            new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER"))
+                    );
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                // Ignore invalid tokens, let security filter chain handle unauthorized access
             }
         }
 

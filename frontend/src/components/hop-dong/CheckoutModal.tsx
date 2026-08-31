@@ -770,7 +770,7 @@ export function CheckoutModal({ hopDong, isOpen, onClose, onSuccess, accessToken
                         asChild
                         className="text-xs h-8 text-[#243B5A]"
                       >
-                        <a href={`/api/hop-dong/${hopDong._id}/bien-ban-ban-giao?format=pdf`} target="_blank" rel="noreferrer">
+                        <a href={`/api/hop-dong/${hopDong._id}/bien-ban-ban-giao?format=pdf&token=${accessToken || ''}`} target="_blank" rel="noreferrer">
                           <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Xem trước file PDF Biên bản bàn giao
                         </a>
                       </Button>

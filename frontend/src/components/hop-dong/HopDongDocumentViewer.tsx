@@ -129,8 +129,8 @@ export function HopDongDocumentViewer({
     return bang[ma] || ma;
   };
 
-  const documentPdfUrl = `/api/hop-dong/${hopDongId}/document?format=pdf&t=${timestamp}`;
-  const downloadPdfUrl = `/api/hop-dong/${hopDongId}/document?format=pdf&download=1`;
+  const documentPdfUrl = `/api/hop-dong/${hopDongId}/document?format=pdf&t=${timestamp}&token=${accessToken || ''}`;
+  const downloadPdfUrl = `/api/hop-dong/${hopDongId}/document?format=pdf&download=1&token=${accessToken || ''}`;
 
   const handleRefresh = () => {
     setIsRefreshing(true);

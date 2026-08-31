@@ -32,8 +32,8 @@ export function BienBanBanGiaoViewer({
   const [openPad, setOpenPad] = useState(false);
   const [dangLamMoi, setDangLamMoi] = useState(false);
 
-  const pdfUrl = `/api/hop-dong/${hopDongId}/bien-ban-ban-giao?format=pdf&t=${timestamp}`;
-  const taiUrl = `/api/hop-dong/${hopDongId}/bien-ban-ban-giao?format=pdf&download=1`;
+  const pdfUrl = `/api/hop-dong/${hopDongId}/bien-ban-ban-giao?format=pdf&t=${timestamp}&token=${accessToken || ''}`;
+  const taiUrl = `/api/hop-dong/${hopDongId}/bien-ban-ban-giao?format=pdf&download=1&token=${accessToken || ''}`;
 
   const lamMoi = () => {
     setDangLamMoi(true);

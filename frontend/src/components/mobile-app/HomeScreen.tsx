@@ -13,11 +13,14 @@ import {
   ChevronDown,
   Heart,
   Home,
+  Key,
   LogIn,
+  MapPin,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   UserPlus,
+  Wallet,
   X,
   BadgeCheck,
   Headphones,
@@ -44,6 +47,7 @@ import {
   StaggerItem,
   motion,
 } from "@/components/motion";
+import { LeftSideDecoration, RightSideDecoration } from "@/components/home/SideDecorations";
 
 type RoomId = string | number;
 
@@ -261,12 +265,22 @@ function RoomImage({
       {src ? (
         <img src={src} alt={alt} className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#F8F3EC] via-white to-[#DCEFEB]">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/85 text-[#243B5A] shadow-sm ring-1 ring-[#E3D8CA]">
-              <Building2 size={30} />
-            </div>
-            <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#6B7A8C] ring-1 ring-[#E8DED1]">
+        <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#F8F3EC] via-[#F2EDE4] to-[#E3D8CA]">
+          <motion.div 
+            className="absolute h-32 w-32 rounded-full bg-[#4FA7A0]/5 blur-2xl"
+            animate={{ x: [0, 10, -5, 0], y: [0, -10, 5, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(#243B5A_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.03]" />
+          <div className="relative flex flex-col items-center gap-3 text-center">
+            <motion.div 
+              animate={{ y: [-3, 3, -3] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/60 text-[#243B5A]/80 shadow-sm ring-1 ring-[#E8DED1]/50 backdrop-blur-sm"
+            >
+              <Building2 size={26} strokeWidth={1.5} />
+            </motion.div>
+            <span className="rounded-full bg-white/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#6B7A8C] ring-1 ring-[#E8DED1]/50 backdrop-blur-sm">
               Chưa có ảnh
             </span>
           </div>
@@ -277,6 +291,141 @@ function RoomImage({
   );
 }
 
+// Stable particle positions (no Math.random = no SSR/hydration mismatch)
+const HERO_PARTICLES = [
+  { w: 5, h: 5, left: "12%", top: "18%", delay: 0 },
+  { w: 4, h: 4, left: "78%", top: "12%", delay: 1.2 },
+  { w: 6, h: 6, left: "85%", top: "65%", delay: 2.4 },
+  { w: 3, h: 3, left: "22%", top: "80%", delay: 0.8 },
+  { w: 5, h: 5, left: "55%", top: "88%", delay: 3.1 },
+  { w: 4, h: 4, left: "68%", top: "28%", delay: 1.7 },
+  { w: 3, h: 3, left: "8%",  top: "52%", delay: 2.9 },
+  { w: 6, h: 6, left: "42%", top: "6%",  delay: 0.4 },
+] as const;
+
+function HeroIllustration() {
+  return (
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#EEF7F6] via-[#F8F3EC] to-[#EDE5D9]" />
+
+      {/* Slow-moving blobs */}
+      <motion.div
+        className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#4FA7A0]/12 blur-3xl"
+        animate={{ x: [0, -24, 8, 0], y: [0, 32, 10, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-[#F2A45B]/12 blur-3xl"
+        animate={{ x: [0, 24, -8, 0], y: [0, -32, -10, 0] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+      <motion.div
+        className="absolute left-[45%] top-[30%] h-28 w-28 -translate-x-1/2 rounded-full bg-[#243B5A]/5 blur-2xl"
+        animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 6 }}
+      />
+
+      {/* Dot grid pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#243B5A_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.025]" />
+
+      {/* Floating particles */}
+      {HERO_PARTICLES.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-[#4FA7A0]"
+          style={{ width: p.w, height: p.h, left: p.left, top: p.top }}
+          animate={{ y: [0, -16, 0], opacity: [0.1, 0.3, 0.1] }}
+          transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: p.delay }}
+        />
+      ))}
+
+      {/* Icon constellation */}
+      <div className="relative z-10 flex items-center justify-center">
+        {/* Center — Home with dual pulse rings */}
+        <motion.div
+          animate={{ y: [-4, 4, -4] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="relative z-20"
+        >
+          <motion.div
+            className="absolute inset-0 rounded-3xl bg-[#4FA7A0]/25"
+            animate={{ scale: [1, 1.38, 1], opacity: [0.7, 0, 0.7] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
+          />
+          <motion.div
+            className="absolute inset-0 rounded-3xl bg-[#4FA7A0]/12"
+            animate={{ scale: [1, 1.7, 1], opacity: [0.4, 0, 0.4] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
+          />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#243B5A] to-[#2d5068] text-white shadow-[0_20px_48px_rgba(36,59,90,0.30)] ring-1 ring-white/15">
+            <Home size={38} strokeWidth={1.5} />
+          </div>
+        </motion.div>
+
+        {/* Satellite: MapPin — top */}
+        <motion.div
+          className="absolute flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 text-[#4FA7A0] shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ top: "-44px", left: "50%", marginLeft: "-22px" }}
+          animate={{ y: [-6, 6, -6], x: [0, 2, 0] }}
+          transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+        >
+          <MapPin size={19} strokeWidth={1.5} />
+        </motion.div>
+
+        {/* Satellite: Key — left */}
+        <motion.div
+          className="absolute flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#267D76] shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ top: "4px", left: "-48px" }}
+          animate={{ y: [-8, 8, -8], x: [-2, 2, -2] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        >
+          <Key size={17} strokeWidth={1.5} />
+        </motion.div>
+
+        {/* Satellite: Building2 — right */}
+        <motion.div
+          className="absolute flex items-center justify-center rounded-2xl bg-white/80 text-[#F2A45B] shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ top: "2px", right: "-54px", width: "52px", height: "52px" }}
+          animate={{ y: [6, -6, 6], x: [3, -3, 3] }}
+          transition={{ duration: 6.0, repeat: Infinity, ease: "easeInOut", delay: 1.0 }}
+        >
+          <Building2 size={22} strokeWidth={1.5} />
+        </motion.div>
+
+        {/* Satellite: ShieldCheck — bottom-left */}
+        <motion.div
+          className="absolute flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#267D76] shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ bottom: "-44px", left: "0px" }}
+          animate={{ y: [-9, 9, -9], x: [2, -2, 2] }}
+          transition={{ duration: 5.8, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
+        >
+          <ShieldCheck size={18} strokeWidth={1.5} />
+        </motion.div>
+
+        {/* Satellite: Search — bottom-right */}
+        <motion.div
+          className="absolute flex h-9 w-9 items-center justify-center rounded-2xl bg-white/80 text-[#243B5A]/70 shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ bottom: "-38px", right: "-10px" }}
+          animate={{ y: [7, -7, 7], x: [-2, 2, -2] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
+        >
+          <Search size={17} strokeWidth={1.5} />
+        </motion.div>
+
+        {/* Satellite: Wallet — upper-left */}
+        <motion.div
+          className="absolute flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#F2A45B] shadow-[0_8px_24px_rgba(36,59,90,0.12)] ring-1 ring-white/60 backdrop-blur-md"
+          style={{ top: "62px", left: "-40px" }}
+          animate={{ y: [-5, 5, -5], x: [-3, 3, -3] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          <Wallet size={17} strokeWidth={1.5} />
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 /**
  * Adapter mong noi du lieu RoomCard cua HomeScreen voi <PropertyCard>
  * (the kieu Airbnb: carousel anh trong the, hover nang, tim spring).
@@ -326,6 +475,14 @@ function RoomCardView({
 }
 
 export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const didMountViewState = useRef(false);
@@ -337,13 +494,6 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const [filterArea, setFilterArea] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [toaNhaList, setToaNhaList] = useState<any[]>([]);
-  const [minGia, setMinGia] = useState('');
-  const [maxGia, setMaxGia] = useState('');
-  const [minDienTich, setMinDienTich] = useState('');
-  const [selectedToaNha, setSelectedToaNha] = useState('all');
-  const [radiusKm, setRadiusKm] = useState('5');
-
   // Hydration fix: load state from sessionStorage after initial render
   useEffect(() => {
     const state = getInitialHomeViewState();
@@ -401,12 +551,7 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
       .finally(() => setLoadingRooms(false));
   }, []);
 
-  useEffect(() => {
-    fetch('/api/public/toa-nha')
-      .then(res => res.json())
-      .then(res => { if (res.success) setToaNhaList(res.data) })
-      .catch(() => {});
-  }, []);
+
 
   useEffect(() => {
     if (session?.user) {
@@ -421,30 +566,15 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
     const area = AREA_RANGES.find((item) => item.id === filterArea) || AREA_RANGES[0];
     const query = searchQuery.trim().toLowerCase();
 
-    const minG = minGia ? Number(minGia) : 0;
-    const maxG = maxGia ? Number(maxGia) : Infinity;
-    const minD = minDienTich ? Number(minDienTich) : 0;
-
     return allRooms.filter((room) => {
       const text = `${room.name} ${room.location} ${room.description}`.toLowerCase();
       const matchQuery = !query || text.includes(query);
       const matchPrice = filterPrice === "all" || (room.priceValue >= price.min && room.priceValue <= price.max);
       const matchArea = filterArea === "all" || (room.areaValue >= area.min && room.areaValue <= area.max);
       
-      const matchCustomPrice = room.priceValue >= minG && room.priceValue <= maxG;
-      const matchCustomArea = room.areaValue >= minD;
-      
-      let matchToaNha = true;
-      if (selectedToaNha && selectedToaNha !== 'all') {
-         const toaNhaName = toaNhaList.find(t => t._id === selectedToaNha)?.tenToaNha;
-         if (toaNhaName) {
-            matchToaNha = room.location.toLowerCase().includes(toaNhaName.toLowerCase());
-         }
-      }
-
-      return matchQuery && matchPrice && matchArea && matchCustomPrice && matchCustomArea && matchToaNha;
+      return matchQuery && matchPrice && matchArea;
     });
-  }, [allRooms, filterArea, filterPrice, searchQuery, minGia, maxGia, minDienTich, selectedToaNha, toaNhaList]);
+  }, [allRooms, filterArea, filterPrice, searchQuery]);
 
   const featuredRooms = useMemo(() => filteredRooms.slice(0, 4), [filteredRooms]);
 
@@ -511,73 +641,81 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
     setSavedRooms(new Set(currentSaved.map((item) => item.id)));
   };
 
-  const findNearbyRooms = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition((pos) => {
-      window.location.href = `/xem-phong?viDo=${pos.coords.latitude}&kinhDo=${pos.coords.longitude}&radiusKm=${radiusKm}`;
-    });
-  };
 
   const heroRoom = featuredRooms[0];
 
   return (
-    <div className="flex flex-col bg-[#F8F3EC] text-[#243B5A]">
-      <header className="sticky top-0 z-30 border-b border-[#E8DED1] bg-[#F8F3EC]/90 px-4 pb-3 pt-4 shadow-sm backdrop-blur md:px-8">
+    <div className="relative flex flex-col overflow-x-hidden bg-[#F8F3EC] text-[#243B5A]">
+      <LeftSideDecoration />
+      <RightSideDecoration />
+      <header className={`sticky top-0 z-30 px-4 pb-3 pt-4 backdrop-blur-md transition-all duration-300 md:px-8 ${
+        scrolled
+          ? "border-b border-[#E8DED1]/70 bg-white/92 shadow-[0_4px_20px_rgba(36,59,90,0.08)]"
+          : "border-b border-[#E8DED1]/30 bg-[#F8F3EC]/70 shadow-none"
+      }`}>
         <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-3">
-          <button onClick={resetFilters} className="flex min-w-0 items-center gap-2 text-left" title="Về trang chủ">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#243B5A] text-white shadow-sm">
-              <Home size={21} />
+          <button onClick={resetFilters} className="flex min-w-0 items-center gap-2 text-left group" title="Về trang chủ">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#0D9488] text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
+              <svg viewBox="0 0 24 24" fill="none" className="h-[22px] w-[22px]" aria-hidden="true">
+                <path d="M3 12l9-9 9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </span>
             <span className="min-w-0">
-              <span className="block text-lg font-black leading-tight tracking-tight text-[#243B5A]">EasyHouse</span>
-              <span className="block truncate text-[11px] font-semibold text-[#4FA7A0]">Tìm phòng minh bạch, nhanh gọn</span>
+              <span className="block text-[19px] font-black uppercase leading-tight tracking-tight text-slate-900 transition-colors duration-150 group-hover:text-slate-700">
+                Easy<span className="text-[#0D9488]">House</span>
+              </span>
+              <span className="block truncate text-[11px] font-semibold text-[#6B7A8C]">Tìm phòng minh bạch, nhanh gọn</span>
             </span>
           </button>
 
           <nav className="hidden items-center gap-7 text-sm font-bold text-[#243B5A]/70 md:flex">
             <button
               onClick={() => document.getElementById("featured-rooms")?.scrollIntoView({ behavior: "smooth" })}
-              className="transition hover:text-[#4FA7A0]"
+              className="group relative transition-colors hover:text-[#4FA7A0]"
             >
               Phòng nổi bật
+              <span className="absolute -bottom-1 left-0 h-[2px] w-0 bg-[#4FA7A0] transition-all duration-300 ease-out group-hover:w-full"></span>
             </button>
             <button
               onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
-              className="transition hover:text-[#4FA7A0]"
+              className="group relative transition-colors hover:text-[#4FA7A0]"
             >
               Danh sách phòng
+              <span className="absolute -bottom-1 left-0 h-[2px] w-0 bg-[#4FA7A0] transition-all duration-300 ease-out group-hover:w-full"></span>
             </button>
-            <Link href="/dieu-khoan-dich-vu" className="transition hover:text-[#4FA7A0]">
+            <Link href="/dieu-khoan-dich-vu" className="group relative transition-colors hover:text-[#4FA7A0]">
               Chính sách
+              <span className="absolute -bottom-1 left-0 h-[2px] w-0 bg-[#4FA7A0] transition-all duration-300 ease-out group-hover:w-full"></span>
             </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => onTabChange?.("saved")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E8DED1] bg-white text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0] hover:text-[#4FA7A0]"
+              className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E8DED1] bg-white text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0] hover:text-[#4FA7A0]"
               title="Tin đã lưu"
             >
-              <Heart size={18} />
+              <Heart size={18} className="transition-transform duration-300 group-hover:scale-110" />
               {savedCount > 0 && (
                 <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-[#F2A45B] px-1.5 text-center text-[10px] font-bold text-white">
                   {savedCount}
                 </span>
               )}
             </button>
-            <button className="hidden h-10 w-10 items-center justify-center rounded-full border border-[#E8DED1] bg-white text-[#243B5A] shadow-sm md:flex" title="Thông báo">
-              <Bell size={18} />
+            <button className="group hidden h-10 w-10 items-center justify-center rounded-full border border-[#E8DED1] bg-white text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0] hover:text-[#4FA7A0] md:flex" title="Thông báo">
+              <Bell size={18} className="transition-transform duration-300 group-hover:rotate-[8deg]" />
             </button>
             {userProfile ? (
-              <button onClick={() => onTabChange?.("profile")} className="flex items-center gap-2 rounded-full border border-[#E8DED1] bg-white p-1.5 pr-3 shadow-sm">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4FA7A0] text-xs font-black text-white">
+              <button onClick={() => onTabChange?.("profile")} className="group flex items-center gap-2 rounded-full border border-[#E8DED1] bg-white p-1.5 pr-3 shadow-sm transition hover:border-[#4FA7A0]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4FA7A0] text-xs font-black text-white transition-transform duration-300 group-hover:scale-105">
                   {String(currentUserName).slice(0, 1).toUpperCase()}
                 </span>
-                <span className="hidden max-w-28 truncate text-sm font-semibold text-[#243B5A] sm:block">{currentUserName}</span>
+                <span className="hidden max-w-28 truncate text-sm font-semibold text-[#243B5A] transition-colors group-hover:text-[#4FA7A0] sm:block">{currentUserName}</span>
               </button>
             ) : (
-              <Link href="/dang-nhap" className="flex h-10 items-center gap-2 rounded-full bg-[#243B5A] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1b2e47]">
-                <LogIn size={16} />
+              <Link href="/dang-nhap" className="group flex h-10 items-center gap-2 rounded-full bg-[#243B5A] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1b2e47]">
+                <LogIn size={16} className="transition-transform duration-300 group-hover:-translate-x-0.5" />
                 <span className="hidden sm:inline">Đăng nhập</span>
               </Link>
             )}
@@ -585,8 +723,8 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         </div>
 
         <div className="mx-auto mt-4 flex w-full max-w-screen-2xl gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-4 py-3 transition focus-within:border-[#4FA7A0] focus-within:ring-4 focus-within:ring-[#4FA7A0]/15">
-            <Search size={18} className="shrink-0 text-[#4FA7A0]" />
+          <div className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-4 py-3 transition focus-within:border-[#4FA7A0] focus-within:ring-4 focus-within:ring-[#4FA7A0]/15 hover:shadow-sm">
+            <Search size={18} className="shrink-0 text-[#4FA7A0] transition-transform duration-300 group-focus-within:scale-110" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -596,17 +734,29 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
           </div>
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="flex h-[50px] items-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-4 text-sm font-black text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0] hover:text-[#4FA7A0]"
+            className="group flex h-[50px] items-center gap-2 rounded-2xl border border-[#E8DED1] bg-white px-4 text-sm font-black text-[#243B5A] shadow-sm transition hover:border-[#4FA7A0] hover:text-[#4FA7A0] hover:-translate-y-[1px]"
           >
-            <SlidersHorizontal size={18} />
+            <SlidersHorizontal size={18} className="transition-transform duration-300 group-hover:translate-x-[2px]" />
             <span className="hidden sm:inline">Bộ lọc</span>
           </button>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-screen-2xl flex-1 px-4 py-6 md:px-8 md:py-9">
-        {/* Hero: nen aurora troi cham + noi dung bay vao tung lop */}
         <section className="relative grid items-center gap-8 overflow-hidden rounded-[32px] px-1 py-4 lg:grid-cols-[0.9fr_1.1fr] lg:px-6 lg:py-8">
+          <div className="absolute inset-0 pointer-events-none opacity-50">
+            <motion.div 
+              animate={{ x: [0, 20, -10, 0], y: [0, -20, 10, 0] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -left-[10%] -top-[10%] h-[50%] w-[40%] rounded-full bg-[#4FA7A0]/10 blur-[100px]"
+            />
+            <motion.div 
+              animate={{ x: [0, -20, 10, 0], y: [0, 20, -10, 0] }}
+              transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -bottom-[10%] right-[10%] h-[40%] w-[30%] rounded-full bg-[#F2A45B]/10 blur-[80px]"
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(#243B5A_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.02]" />
+          </div>
           <div className="eh-aurora" aria-hidden="true" />
 
           <div className="relative z-10">
@@ -688,175 +838,158 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             </StaggerGroup>
           </div>
 
-          {/* Anh hero co parallax nhe khi cuon */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="relative z-10"
           >
-            <ParallaxLayer strength={26} className="overflow-hidden rounded-3xl">
-              <RoomImage
-                src={heroRoom?.image}
-                alt={heroRoom?.name || "Phòng EasyHouse"}
-                className="group aspect-[4/3] rounded-3xl shadow-[0_22px_48px_rgba(36,59,90,0.18)]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/70 via-transparent to-transparent" />
-                {heroRoom ? (
+            <ParallaxLayer strength={26} className="overflow-hidden rounded-3xl h-full">
+              {heroRoom?.image ? (
+                <RoomImage
+                  src={heroRoom.image}
+                  alt={heroRoom.name}
+                  className="group aspect-[4/3] rounded-3xl shadow-[0_22px_48px_rgba(36,59,90,0.18)]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/70 via-transparent to-transparent" />
                   <motion.button
                     onClick={() => onRoomSelect(heroRoom.id)}
                     whileHover={{ scale: 1.02, y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 p-4 text-left shadow-xl backdrop-blur md:left-auto md:w-80"
+                    className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 p-4 text-left shadow-xl backdrop-blur md:left-auto md:w-80 group-hover:bg-white transition-colors"
                   >
                     <p className="text-xs font-black uppercase tracking-wide text-[#F2A45B]">Gợi ý hôm nay</p>
                     <p className="mt-1 line-clamp-1 text-lg font-black text-[#243B5A]">{heroRoom.name}</p>
                     <p className="mt-1 text-sm font-black text-[#F2A45B]">{heroRoom.priceLabel}</p>
                   </motion.button>
-                ) : null}
-              </RoomImage>
+                </RoomImage>
+              ) : (
+                <div className="group relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-[0_22px_48px_rgba(36,59,90,0.18)] ring-1 ring-[#E8DED1]">
+                  <HeroIllustration />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#243B5A]/70 via-transparent to-transparent" />
+                  {heroRoom && (
+                    <motion.button
+                      onClick={() => onRoomSelect(heroRoom.id)}
+                      whileHover={{ scale: 1.02, y: -3 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 p-4 text-left shadow-xl backdrop-blur md:left-auto md:w-80 group-hover:bg-white transition-colors"
+                    >
+                      <p className="text-xs font-black uppercase tracking-wide text-[#F2A45B]">Gợi ý hôm nay</p>
+                      <p className="mt-1 line-clamp-1 text-lg font-black text-[#243B5A]">{heroRoom.name}</p>
+                      <p className="mt-1 text-sm font-black text-[#F2A45B]">{heroRoom.priceLabel}</p>
+                    </motion.button>
+                  )}
+                </div>
+              )}
             </ParallaxLayer>
           </motion.div>
         </section>
 
-        <div className="relative mt-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/10 via-white/30 to-[#F2A45B]/10 rounded-3xl blur-xl"></div>
-          <Card className="relative overflow-hidden rounded-[24px] border border-[#243B5A]/[0.08] bg-[#FFFCF8]/95 shadow-[0_18px_40px_rgba(36,59,90,0.10)] backdrop-blur-md">
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#4FA7A0]/20 via-white/20 to-[#F2A45B]/20 p-[1px]">
-              <div className="w-full h-full bg-white/95 backdrop-blur-md rounded-3xl"></div>
-            </div>
-            
-            <div className="relative p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-[#243B5A] rounded-xl flex items-center justify-center shadow-lg">
-                  <Search className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg md:text-xl font-black text-[#243B5A]">Tìm kiếm phòng</h2>
-                  <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
-                </div>
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-8 rounded-[24px] border border-[#243B5A]/[0.08] bg-white/85 p-3 shadow-[0_12px_30px_rgba(36,59,90,0.08)] backdrop-blur"
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3 px-2 group cursor-pointer">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#4FA7A0]/20">
+                <SlidersHorizontal size={19} className="transition-transform duration-300 group-hover:rotate-[8deg]" />
+              </span>
+              <div>
+                <p className="text-sm font-black text-[#243B5A]">Lọc nhanh phòng phù hợp</p>
+                <p className="text-xs font-semibold text-[#6B7A8C]">{filteredRooms.length} phòng phù hợp với tìm kiếm của bạn</p>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Tìm kiếm</label>
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#F2A45B]/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6B7A8C] group-focus-within:text-[#4FA7A0] transition-colors duration-300" />
-                      <Input
-                        placeholder="Nhập mã phòng, mô tả..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/20 focus:border-[#4FA7A0]/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
+            <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 lg:pb-0">
+              {PRICE_RANGES.map((price) => {
+                const isActive = filterPrice === price.id;
+                return (
+                  <button
+                    key={price.id}
+                    onClick={() => setFilterPrice(price.id)}
+                    className={`relative shrink-0 rounded-full px-4 py-2 text-xs font-black transition-colors duration-200 hover:-translate-y-[1px] ${
+                      isActive ? "text-white" : "text-[#243B5A] hover:text-[#267D76]"
+                    }`}
+                  >
+                    {isActive ? (
+                      <motion.div
+                        layoutId="activeFilterPriceBg"
+                        className="absolute inset-0 rounded-full bg-[#4FA7A0] shadow-sm"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Tòa nhà</label>
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#243B5A]/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative">
-                      <Select value={selectedToaNha} onValueChange={setSelectedToaNha}>
-                        <SelectTrigger className="h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/25 focus:border-[#4FA7A0]/30 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
-                          <SelectValue placeholder="Chọn tòa nhà" />
-                        </SelectTrigger>
-                        <SelectContent className="border-0 shadow-xl rounded-xl bg-white/95 backdrop-blur-md">
-                          <SelectItem value="all" className="text-sm hover:bg-[#F8F3EC]">Tất cả tòa nhà</SelectItem>
-                          {toaNhaList.map((toaNha) => (
-                            <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm hover:bg-[#F8F3EC]">
-                              {toaNha.tenToaNha}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá từ</label>
-                  <Input type="number" min="0" placeholder="2.000.000" value={minGia} onChange={(e) => setMinGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
-                </div>
-
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá đến</label>
-                  <Input type="number" min="0" placeholder="5.000.000" value={maxGia} onChange={(e) => setMaxGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
-                </div>
-
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Diện tích từ (m2)</label>
-                  <Input type="number" min="0" placeholder="20" value={minDienTich} onChange={(e) => setMinDienTich(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#4FA7A0]/20 bg-[#E6F3F1]/60 p-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-[#243B5A]">Gợi ý phòng gần nhất</p>
-                  <p className="text-xs text-[#6B7A8C]">Cho phép vị trí để sắp xếp phòng trống theo khoảng cách thực tế.</p>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <Select value={radiusKm} onValueChange={setRadiusKm}>
-                    <SelectTrigger className="h-10 w-full bg-white sm:w-[130px]">
-                      <SelectValue placeholder="Bán kính" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2">Trong 2 km</SelectItem>
-                      <SelectItem value="5">Trong 5 km</SelectItem>
-                      <SelectItem value="10">Trong 10 km</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button type="button" onClick={findNearbyRooms} className="bg-[#267D76] hover:bg-[#1f665f]">
-                    <LocateFixed className="mr-2 h-4 w-4" />
-                    Tìm gần tôi
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-[#E8DED2]/50">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#6B7A8C]">
-                    Hiển thị <span className="font-semibold text-[#243B5A]">{filteredRooms.length}</span> trong <span className="font-semibold text-[#243B5A]">{allRooms.length}</span> phòng trống phù hợp
-                  </p>
-                  {(searchQuery || selectedToaNha !== 'all' || minGia || maxGia || minDienTich || filterPrice !== 'all' || filterArea !== 'all') && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        resetFilters();
-                        setSelectedToaNha('all');
-                        setMinGia('');
-                        setMaxGia('');
-                        setMinDienTich('');
-                      }}
-                      className="text-xs text-[#6B7A8C] hover:text-[#243B5A] hover:bg-slate-100"
-                    >
-                      Xóa bộ lọc
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    ) : (
+                      <div className="absolute inset-0 rounded-full border border-[#E8DED1] bg-[#FFFCF8]" />
+                    )}
+                    <span className="relative z-10">{price.shortLabel}</span>
+                  </button>
+                );
+              })}
+              
+              <div className="mx-2 w-[1px] shrink-0 bg-[#E8DED1]" />
+              
+              {AREA_RANGES.slice(1).map((area) => {
+                const isActive = filterArea === area.id;
+                return (
+                  <button
+                    key={area.id}
+                    onClick={() => setFilterArea(area.id)}
+                    className={`relative shrink-0 rounded-full px-4 py-2 text-xs font-black transition-colors duration-200 hover:-translate-y-[1px] ${
+                      isActive ? "text-white" : "text-[#243B5A] hover:text-[#243B5A]/70"
+                    }`}
+                  >
+                    {isActive ? (
+                      <motion.div
+                        layoutId="activeFilterAreaBg"
+                        className="absolute inset-0 rounded-full bg-[#243B5A] shadow-sm"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 rounded-full border border-[#E8DED1] bg-[#FFFCF8]" />
+                    )}
+                    <span className="relative z-10">{area.shortLabel}</span>
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
+                className="shrink-0 rounded-full bg-[#F2A45B] px-5 py-2 text-xs font-black text-white shadow-[0_10px_22px_rgba(242,164,91,0.22)] transition-transform duration-200 hover:-translate-y-[1px] active:scale-95"
+              >
+                Áp dụng
+              </button>
             </div>
-          </Card>
-        </div>
+          </div>
+        </motion.section>
 
         {featuredRooms.length > 0 && (
           <section id="featured-rooms" className="mt-12">
-            <div className="mb-5 flex items-end justify-between gap-3">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-5 flex items-end justify-between gap-3"
+            >
               <div>
+                <p className="mb-1 text-xs font-black uppercase tracking-wider text-[#4FA7A0]">Được chọn lọc</p>
                 <h2 className="text-2xl font-black tracking-tight text-[#243B5A]">Phòng nổi bật</h2>
                 <p className="mt-1 text-sm font-semibold text-[#243B5A]/60">Lấy trực tiếp từ danh sách phòng hiện có</p>
               </div>
-              <button
+              <motion.button
                 onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
+                whileHover={{ x: 3 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 className="hidden items-center gap-1 text-sm font-black text-[#F2A45B] sm:flex"
               >
                 Xem tất cả <ChevronRight size={17} />
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
             <StaggerGroup
               className="grid grid-cols-1 gap-5 pb-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               stagger={0.08}
@@ -945,7 +1078,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
         </section>
 
         <section className="mt-12 rounded-[24px] border border-[#243B5A]/[0.08] bg-[#FFFCF8] p-5 shadow-[0_12px_30px_rgba(36,59,90,0.08)] md:p-7">
-          <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"
+          >
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-[#4FA7A0]">Cam kết EasyHouse</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight text-[#243B5A]">Vì sao nên chọn EasyHouse?</h2>
@@ -953,32 +1092,46 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
             <p className="max-w-xl text-sm font-semibold leading-6 text-[#6B7A8C]">
               Trải nghiệm tìm phòng được thiết kế để dễ quét thông tin, dễ so sánh và luôn dựa trên dữ liệu thật của hệ thống.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StaggerGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" stagger={0.08} delay={0.1}>
             {TRUST_ITEMS.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-[20px] border border-[#E8DED1] bg-white p-5 shadow-sm transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(36,59,90,0.10)]"
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76]">
-                  {item.icon}
-                </div>
-                <h3 className="mt-4 text-base font-black text-[#243B5A]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#6B7A8C]">{item.description}</p>
-              </div>
+              <StaggerItem key={item.title}>
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-[20px] border border-[#E8DED1] bg-white p-5 shadow-sm hover:shadow-[0_18px_40px_rgba(36,59,90,0.10)]"
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.08, rotate: 3 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76]"
+                  >
+                    {item.icon}
+                  </motion.div>
+                  <h3 className="mt-4 text-base font-black text-[#243B5A]">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#6B7A8C]">{item.description}</p>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </section>
       </main>
 
       <footer className="mt-8 bg-[#243B5A] px-4 py-10 text-white md:px-8">
         <div className="mx-auto grid w-full max-w-screen-2xl gap-7 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F2A45B] font-black text-white">EH</span>
+            <div className="flex items-center gap-3 group cursor-default">
+              <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#0D9488] text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <svg viewBox="0 0 24 24" fill="none" className="h-[22px] w-[22px]" aria-hidden="true">
+                  <path d="M3 12l9-9 9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
               <div>
-                <p className="text-xl font-black">EasyHouse</p>
+                <p className="text-xl font-black uppercase tracking-tight text-white">
+                  Easy<span className="text-[#0D9488]">House</span>
+                </p>
                 <p className="text-sm text-white/65">Nền tảng tìm và quản lý phòng trọ</p>
               </div>
             </div>

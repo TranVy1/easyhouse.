@@ -5380,3 +5380,78 @@
     transform: none !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   EasyHouse — Homepage Motion Layer
+   GPU-friendly (transform + opacity only). Respects reduced-motion.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Hero satellite icon — subtle float */
+@keyframes hero-float-a {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50%       { transform: translateY(-7px) translateX(2px); }
+}
+@keyframes hero-float-b {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50%       { transform: translateY(7px) translateX(-2px); }
+}
+@keyframes hero-float-c {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50%       { transform: translateY(-5px) translateX(-3px); }
+}
+
+/* Hero center pulse glow */
+@keyframes hero-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 0; transform: scale(1.4); }
+}
+@keyframes hero-pulse-outer {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0; transform: scale(1.75); }
+}
+
+/* Placeholder card shimmer — replaces blank grey */
+@keyframes ph-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.eh-placeholder-bg {
+  background: linear-gradient(
+    135deg,
+    #eef7f6 0%,
+    #f8f3ec 40%,
+    #ede5d9 100%
+  );
+}
+
+/* Section reveal utility (for when Framer Motion is unavailable) */
+@keyframes eh-reveal-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.eh-reveal-up {
+  animation: eh-reveal-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Badge eyebrow label pulse dot */
+@keyframes eh-dot-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 1; transform: scale(1.3); }
+}
+
+.eh-dot-pulse {
+  animation: eh-dot-pulse 2s ease-in-out infinite;
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  .eh-placeholder-bg,
+  .eh-reveal-up,
+  .eh-dot-pulse {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

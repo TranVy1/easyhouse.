@@ -318,7 +318,7 @@ export default function HopDongPage() {
 
   const handleDownload = async (hopDong: HopDong) => {
     if (!hopDong._id) return;
-    const downloadUrl = `/api/hop-dong/${hopDong._id}/document?format=pdf&download=1`;
+    const downloadUrl = `/api/hop-dong/${hopDong._id}/document?format=pdf&download=1&token=${accessToken || ''}`;
     window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 

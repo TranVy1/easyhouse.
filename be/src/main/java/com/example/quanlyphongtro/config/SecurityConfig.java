@@ -43,6 +43,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+            }))
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // Mac dinh cua Spring Security la X-Frame-Options: DENY, khien trinh
             // duyet chan viec nhung PDF hop dong (/api/hop-dong/{id}/document) vao
