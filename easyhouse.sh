@@ -34,7 +34,14 @@ fi
 
 start() {
   printf 'Dang khoi dong he thong EasyHouse...\n'
-  docker compose -f "$COMPOSE_FILE" up -d
+  if [[ -f "$CLOUDFLARE_COMPOSE_FILE" ]]; then
+    docker compose \
+      -f "$COMPOSE_FILE" \
+      -f "$CLOUDFLARE_COMPOSE_FILE" \
+      up -d
+  else
+    docker compose -f "$COMPOSE_FILE" up -d
+  fi
   printf 'He thong da khoi dong thanh cong!\n'
 }
 
@@ -91,10 +98,18 @@ case "${1:-}" in
     deploy
     ;;
   status)
-    docker compose -f "$COMPOSE_FILE" ps
+    if [[ -f "$CLOUDFLARE_COMPOSE_FILE" ]]; then
+      docker compose -f "$COMPOSE_FILE" -f "$CLOUDFLARE_COMPOSE_FILE" ps
+    else
+      docker compose -f "$COMPOSE_FILE" ps
+    fi
     ;;
   logs)
-    docker compose -f "$COMPOSE_FILE" logs -f "${@:2}"
+    if [[ -f "$CLOUDFLARE_COMPOSE_FILE" ]]; then
+      docker compose -f "$COMPOSE_FILE" -f "$CLOUDFLARE_COMPOSE_FILE" logs -f "${@:2}"
+    else
+      docker compose -f "$COMPOSE_FILE" logs -f "${@:2}"
+    fi
     ;;
   -h|--help|help)
     usage

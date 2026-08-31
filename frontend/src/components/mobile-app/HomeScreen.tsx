@@ -25,6 +25,17 @@ import {
   MapPinned,
 } from "lucide-react";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LocateFixed } from "lucide-react";
 import { PropertyCard, PropertyCardSkeleton } from "@/components/property/property-card";
 import {
   CountUp,
@@ -326,6 +337,12 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   const [filterArea, setFilterArea] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [toaNhaList, setToaNhaList] = useState<any[]>([]);
+  const [minGia, setMinGia] = useState('');
+  const [maxGia, setMaxGia] = useState('');
+  const [minDienTich, setMinDienTich] = useState('');
+  const [selectedToaNha, setSelectedToaNha] = useState('all');
+  const [radiusKm, setRadiusKm] = useState('5');
 
   // Hydration fix: load state from sessionStorage after initial render
   useEffect(() => {
@@ -385,6 +402,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
   }, []);
 
   useEffect(() => {
+    fetch('/api/public/toa-nha')
+      .then(res => res.json())
+      .then(res => { if (res.success) setToaNhaList(res.data) })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (session?.user) {
       setUserProfile(session.user);
     } else {
@@ -397,14 +421,30 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
     const area = AREA_RANGES.find((item) => item.id === filterArea) || AREA_RANGES[0];
     const query = searchQuery.trim().toLowerCase();
 
+    const minG = minGia ? Number(minGia) : 0;
+    const maxG = maxGia ? Number(maxGia) : Infinity;
+    const minD = minDienTich ? Number(minDienTich) : 0;
+
     return allRooms.filter((room) => {
       const text = `${room.name} ${room.location} ${room.description}`.toLowerCase();
       const matchQuery = !query || text.includes(query);
       const matchPrice = filterPrice === "all" || (room.priceValue >= price.min && room.priceValue <= price.max);
       const matchArea = filterArea === "all" || (room.areaValue >= area.min && room.areaValue <= area.max);
-      return matchQuery && matchPrice && matchArea;
+      
+      const matchCustomPrice = room.priceValue >= minG && room.priceValue <= maxG;
+      const matchCustomArea = room.areaValue >= minD;
+      
+      let matchToaNha = true;
+      if (selectedToaNha && selectedToaNha !== 'all') {
+         const toaNhaName = toaNhaList.find(t => t._id === selectedToaNha)?.tenToaNha;
+         if (toaNhaName) {
+            matchToaNha = room.location.toLowerCase().includes(toaNhaName.toLowerCase());
+         }
+      }
+
+      return matchQuery && matchPrice && matchArea && matchCustomPrice && matchCustomArea && matchToaNha;
     });
-  }, [allRooms, filterArea, filterPrice, searchQuery]);
+  }, [allRooms, filterArea, filterPrice, searchQuery, minGia, maxGia, minDienTich, selectedToaNha, toaNhaList]);
 
   const featuredRooms = useMemo(() => filteredRooms.slice(0, 4), [filteredRooms]);
 
@@ -469,6 +509,13 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
 
     localStorage.setItem(key, JSON.stringify(currentSaved));
     setSavedRooms(new Set(currentSaved.map((item) => item.id)));
+  };
+
+  const findNearbyRooms = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      window.location.href = `/xem-phong?viDo=${pos.coords.latitude}&kinhDo=${pos.coords.longitude}&radiusKm=${radiusKm}`;
+    });
   };
 
   const heroRoom = featuredRooms[0];
@@ -673,54 +720,128 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
           </motion.div>
         </section>
 
-        <section className="mt-8 rounded-[24px] border border-[#243B5A]/[0.08] bg-white/85 p-3 shadow-[0_12px_30px_rgba(36,59,90,0.08)] backdrop-blur">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-3 px-2">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4FA7A0]/10 text-[#267D76]">
-                <SlidersHorizontal size={19} />
-              </span>
-              <div>
-                <p className="text-sm font-black text-[#243B5A]">Lọc nhanh phòng phù hợp</p>
-                <p className="text-xs font-semibold text-[#6B7A8C]">{filteredRooms.length} phòng phù hợp với tìm kiếm của bạn</p>
+        <div className="relative mt-8">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/10 via-white/30 to-[#F2A45B]/10 rounded-3xl blur-xl"></div>
+          <Card className="relative overflow-hidden rounded-[24px] border border-[#243B5A]/[0.08] bg-[#FFFCF8]/95 shadow-[0_18px_40px_rgba(36,59,90,0.10)] backdrop-blur-md">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#4FA7A0]/20 via-white/20 to-[#F2A45B]/20 p-[1px]">
+              <div className="w-full h-full bg-white/95 backdrop-blur-md rounded-3xl"></div>
+            </div>
+            
+            <div className="relative p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-[#243B5A] rounded-xl flex items-center justify-center shadow-lg">
+                  <Search className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg md:text-xl font-black text-[#243B5A]">Tìm kiếm phòng</h2>
+                  <p className="text-xs md:text-sm text-[#6B7A8C]">Tìm phòng phù hợp với nhu cầu của bạn</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Tìm kiếm</label>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#F2A45B]/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6B7A8C] group-focus-within:text-[#4FA7A0] transition-colors duration-300" />
+                      <Input
+                        placeholder="Nhập mã phòng, mô tả..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-12 pr-4 py-3 h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/20 focus:border-[#4FA7A0]/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Tòa nhà</label>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#4FA7A0]/20 to-[#243B5A]/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative">
+                      <Select value={selectedToaNha} onValueChange={setSelectedToaNha}>
+                        <SelectTrigger className="h-12 text-sm border-0 bg-[#F8F3EC]/70 focus:bg-white focus:ring-2 focus:ring-[#4FA7A0]/25 focus:border-[#4FA7A0]/30 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg">
+                          <SelectValue placeholder="Chọn tòa nhà" />
+                        </SelectTrigger>
+                        <SelectContent className="border-0 shadow-xl rounded-xl bg-white/95 backdrop-blur-md">
+                          <SelectItem value="all" className="text-sm hover:bg-[#F8F3EC]">Tất cả tòa nhà</SelectItem>
+                          {toaNhaList.map((toaNha) => (
+                            <SelectItem key={toaNha._id} value={toaNha._id!} className="text-sm hover:bg-[#F8F3EC]">
+                              {toaNha.tenToaNha}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá từ</label>
+                  <Input type="number" min="0" placeholder="2.000.000" value={minGia} onChange={(e) => setMinGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
+                </div>
+
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Giá đến</label>
+                  <Input type="number" min="0" placeholder="5.000.000" value={maxGia} onChange={(e) => setMaxGia(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
+                </div>
+
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-[#243B5A] mb-2">Diện tích từ (m2)</label>
+                  <Input type="number" min="0" placeholder="20" value={minDienTich} onChange={(e) => setMinDienTich(e.target.value)} className="h-12 rounded-xl bg-[#F8F3EC]/70" />
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#4FA7A0]/20 bg-[#E6F3F1]/60 p-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-[#243B5A]">Gợi ý phòng gần nhất</p>
+                  <p className="text-xs text-[#6B7A8C]">Cho phép vị trí để sắp xếp phòng trống theo khoảng cách thực tế.</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Select value={radiusKm} onValueChange={setRadiusKm}>
+                    <SelectTrigger className="h-10 w-full bg-white sm:w-[130px]">
+                      <SelectValue placeholder="Bán kính" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">Trong 2 km</SelectItem>
+                      <SelectItem value="5">Trong 5 km</SelectItem>
+                      <SelectItem value="10">Trong 10 km</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" onClick={findNearbyRooms} className="bg-[#267D76] hover:bg-[#1f665f]">
+                    <LocateFixed className="mr-2 h-4 w-4" />
+                    Tìm gần tôi
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-[#E8DED2]/50">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-[#6B7A8C]">
+                    Hiển thị <span className="font-semibold text-[#243B5A]">{filteredRooms.length}</span> trong <span className="font-semibold text-[#243B5A]">{allRooms.length}</span> phòng trống phù hợp
+                  </p>
+                  {(searchQuery || selectedToaNha !== 'all' || minGia || maxGia || minDienTich || filterPrice !== 'all' || filterArea !== 'all') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        resetFilters();
+                        setSelectedToaNha('all');
+                        setMinGia('');
+                        setMaxGia('');
+                        setMinDienTich('');
+                      }}
+                      className="text-xs text-[#6B7A8C] hover:text-[#243B5A] hover:bg-slate-100"
+                    >
+                      Xóa bộ lọc
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-
-            <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 lg:pb-0">
-              {PRICE_RANGES.map((price) => (
-                <button
-                  key={price.id}
-                  onClick={() => setFilterPrice(price.id)}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-black transition duration-200 ease-out hover:-translate-y-0.5 ${
-                    filterPrice === price.id
-                      ? "border-[#4FA7A0] bg-[#4FA7A0] text-white shadow-sm"
-                      : "border-[#E8DED1] bg-[#FFFCF8] text-[#243B5A] hover:border-[#4FA7A0] hover:text-[#267D76]"
-                  }`}
-                >
-                  {price.shortLabel}
-                </button>
-              ))}
-              {AREA_RANGES.slice(1).map((area) => (
-                <button
-                  key={area.id}
-                  onClick={() => setFilterArea(area.id)}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-black transition duration-200 ease-out hover:-translate-y-0.5 ${
-                    filterArea === area.id
-                      ? "border-[#243B5A] bg-[#243B5A] text-white shadow-sm"
-                      : "border-[#E8DED1] bg-[#FFFCF8] text-[#243B5A] hover:border-[#243B5A]/30"
-                  }`}
-                >
-                  {area.shortLabel}
-                </button>
-              ))}
-              <button
-                onClick={() => document.getElementById("room-list")?.scrollIntoView({ behavior: "smooth" })}
-                className="shrink-0 rounded-full bg-[#F2A45B] px-5 py-2 text-xs font-black text-white shadow-[0_10px_22px_rgba(242,164,91,0.22)] transition duration-200 ease-out hover:-translate-y-0.5"
-              >
-                Áp dụng lọc
-              </button>
-            </div>
-          </div>
-        </section>
+          </Card>
+        </div>
 
         {featuredRooms.length > 0 && (
           <section id="featured-rooms" className="mt-12">
