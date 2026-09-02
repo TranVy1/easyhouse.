@@ -675,10 +675,14 @@ public class HoaDonService {
         if (khoanKhauTru != null) {
             for (KhoanKhauTruCocRequest item : khoanKhauTru) {
                 if (item == null || item.getSoTien() == null || item.getSoTien().compareTo(BigDecimal.ZERO) <= 0) continue;
+                String moTa = "Khấu trừ: " + (item.getMoTa() != null ? item.getMoTa().trim() : "Hư hại tài sản");
+                if (item.getChungTuUrl() != null && !item.getChungTuUrl().isBlank()) {
+                    moTa += " | Chứng từ: " + item.getChungTuUrl().trim();
+                }
                 items.add(ChiTietHoaDon.builder()
                         .hoaDon(hoaDon)
                         .loai(LoaiMucHoaDon.MAINTENANCE)
-                        .moTa("Khoản khấu trừ cọc: " + item.getMoTa().trim() + " | Chứng từ: " + item.getChungTuUrl().trim())
+                        .moTa(moTa)
                         .soLuong(BigDecimal.ONE)
                         .donGia(item.getSoTien())
                         .thanhTien(item.getSoTien())

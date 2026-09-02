@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class TaoQuyetToanTraPhongRequest {
     private LocalDate ngayTraPhong;
+    private Boolean huyTruocHan;
     private Integer chiSoDienBanDau;
     private Integer chiSoDienCuoiKy;
     private Integer chiSoNuocBanDau;

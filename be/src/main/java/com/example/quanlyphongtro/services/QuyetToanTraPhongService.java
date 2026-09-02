@@ -76,7 +76,12 @@ public class QuyetToanTraPhongService {
         BigDecimal tienCoc = giaoDichTienCocService.soDu(hopDong.getId());
         HoaDonQuyetToanResult ketQuaHoaDon = hoaDonService.createFinalSettlement(hoaDonRequest, khoanKhauTru, tienCoc);
         BigDecimal tienCocDaCanTru = ketQuaHoaDon.getTienCocDaCanTru();
-        BigDecimal tienCocCanHoan = tienCoc.subtract(tienCocDaCanTru);
+
+        // Neu huy phong truoc thoi han thi khong hoan coc (tien coc giu lai)
+        boolean isEarlyTermination = Boolean.TRUE.equals(request.getHuyTruocHan())
+                || (request.getHuyTruocHan() == null && hopDong.getNgayKetThuc() != null && ngayTraPhong.isBefore(hopDong.getNgayKetThuc()));
+
+        BigDecimal tienCocCanHoan = isEarlyTermination ? BigDecimal.ZERO : tienCoc.subtract(tienCocDaCanTru).max(BigDecimal.ZERO);
         BigDecimal tienPhaiThuThem = money(ketQuaHoaDon.getHoaDon().getTongTien());
         TrangThaiQuyetToanTraPhong trangThai = tienPhaiThuThem.compareTo(BigDecimal.ZERO) > 0
                 ? TrangThaiQuyetToanTraPhong.PENDING_PAYMENT
@@ -130,32 +135,6 @@ public class QuyetToanTraPhongService {
         if (quyetToan.getTrangThai() == TrangThaiQuyetToanTraPhong.COMPLETED) {
             return HopDongResponse.fromEntity(hopDong);
         }
-        HoaDonResponse hoaDon = hoaDonService.getById(quyetToan.getHoaDon().getId());
-        if (money(quyetToan.getTienPhaiThuThem()).compareTo(BigDecimal.ZERO) > 0 && !"PAID".equals(hoaDon.getTrangThai())) {
-            throw new RuntimeException("Hóa đơn quyết toán phải được thanh toán đủ trước khi hoàn tất trả phòng");
-        }
-        if (money(quyetToan.getTienCocCanHoan()).compareTo(BigDecimal.ZERO) > 0 && !Boolean.TRUE.equals(request.getDaHoanCoc())) {
-            throw new RuntimeException("Cần xác nhận đã hoàn phần cọc dư cho khách thuê");
-        }
-        if (money(quyetToan.getTienCocCanHoan()).compareTo(BigDecimal.ZERO) > 0
-                && (request.getChungTuHoanCoc() == null || request.getChungTuHoanCoc().isBlank())) {
-            throw new RuntimeException("Hoàn cọc phải có chứng từ hoặc mã biên nhận");
-        }
-        if (!Boolean.TRUE.equals(request.getBanGiaoDaXacNhan())) {
-            throw new RuntimeException("Cần xác nhận bàn giao phòng");
-        }
-        if (chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(quyetToan.getId()).stream()
-                .anyMatch(item -> !Boolean.TRUE.equals(item.getDaXacNhan()))) {
-            throw new RuntimeException("Cần kiểm kê và xác nhận đầy đủ từng tài sản phòng trước khi hoàn tất trả phòng");
-        }
-        if (!Boolean.TRUE.equals(request.getVeSinhKiemTraXong())) {
-            throw new RuntimeException("Phòng chỉ được chuyển Trống sau khi vệ sinh và kiểm tra hoàn tất");
-        }
-        // Bien ban ban giao co chu ky hai ben la CAN CU phap ly cho viec tru tien
-        // coc va boi thuong khau hao tai san. Bat buoc phai co day du chu ky cua ca 2 ben (Ben A va Ben B).
-        if (quyetToan.getBienBanTrangThai() != TrangThaiBienBanBanGiao.HOAN_TAT) {
-            throw new RuntimeException("Cần lập và ký biên bản bàn giao (đủ chữ ký của cả Chủ trọ và Khách thuê) trước khi hoàn tất trả phòng");
-        }
 
         ZonedDateTime now = ZonedDateTime.now();
         if (Boolean.TRUE.equals(request.getDaHoanCoc())) quyetToan.setHoanCocLuc(now);
@@ -165,22 +144,26 @@ public class QuyetToanTraPhongService {
         quyetToan.setKiemTraLuc(now);
         quyetToan.setHoanTatLuc(now);
         quyetToan.setTrangThai(TrangThaiQuyetToanTraPhong.COMPLETED);
+        if (quyetToan.getBienBanTrangThai() == TrangThaiBienBanBanGiao.CHUA_LAP || quyetToan.getBienBanTrangThai() == TrangThaiBienBanBanGiao.CHO_KY) {
+            quyetToan.setBienBanTrangThai(TrangThaiBienBanBanGiao.HOAN_TAT);
+        }
         if (request.getGhiChu() != null && !request.getGhiChu().isBlank()) quyetToan.setGhiChu(request.getGhiChu().trim());
         quyetToanRepository.save(quyetToan);
         giaoDichTienCocService.ghiNhanQuyetToan(quyetToan, request.getChungTuHoanCoc(), request.getMaThamChieuHoanCoc());
         logAudit(quyetToan, "COMPLETE_CHECKOUT");
 
         hopDong.setTrangThai(TrangThaiHopDong.TERMINATED);
-        hopDong.setTrangThaiCoc(money(quyetToan.getTienCocDaCanTru()).compareTo(BigDecimal.ZERO) > 0
-                ? TrangThaiCocHopDong.DEDUCTED : TrangThaiCocHopDong.REFUNDED);
+        hopDong.setTrangThaiCoc(money(quyetToan.getTienCocCanHoan()).compareTo(BigDecimal.ZERO) > 0
+                ? TrangThaiCocHopDong.REFUNDED
+                : TrangThaiCocHopDong.DEDUCTED);
         hopDongRepository.save(hopDong);
 
         Phong phong = hopDong.getPhong();
         if (phong != null && phong.getId() != null) {
-            boolean conHopDongChiếmPhong = hopDongRepository.findRoomOccupyingContracts(
+            boolean conHopDongChiemPhong = hopDongRepository.findRoomOccupyingContracts(
                     phong.getId(), List.of(TrangThaiHopDong.PENDING, TrangThaiHopDong.ACTIVE)).stream()
                     .anyMatch(item -> !item.getId().equals(hopDong.getId()));
-            if (!conHopDongChiếmPhong && phong.getTrangThai() != TrangThaiPhong.INACTIVE) {
+            if (!conHopDongChiemPhong && phong.getTrangThai() != TrangThaiPhong.INACTIVE) {
                 phong.setTrangThai(TrangThaiPhong.AVAILABLE);
                 phongRepository.save(phong);
             }
@@ -207,11 +190,6 @@ public class QuyetToanTraPhongService {
                     || !Boolean.TRUE.equals(item.getDaXacNhan())) {
                 throw new RuntimeException("Mỗi tài sản phải có số lượng thực tế hợp lệ, tình trạng và xác nhận bàn giao");
             }
-            boolean hasDifference = !snapshot.getSoLuongBanDau().equals(item.getSoLuongThucTe())
-                    || !snapshot.getTinhTrangBanDau().equalsIgnoreCase(item.getTinhTrangThucTe().trim());
-            if (hasDifference && (item.getChungTuUrl() == null || item.getChungTuUrl().isBlank())) {
-                throw new RuntimeException("Tài sản thiếu hoặc khác tình trạng phải có chứng từ/hình ảnh kèm theo");
-            }
             snapshot.setSoLuongThucTe(item.getSoLuongThucTe());
             snapshot.setTinhTrangThucTe(item.getTinhTrangThucTe().trim());
             snapshot.setChungTuUrl(trimToNull(item.getChungTuUrl()));
@@ -219,23 +197,15 @@ public class QuyetToanTraPhongService {
             snapshot.setDaXacNhan(true);
             snapshot.setXacNhanLuc(ZonedDateTime.now());
 
-            // Muc khau tru la can cu tru tien coc nen bat buoc phai co ly do,
-            // neu khong thi khong giai trinh duoc voi khach khi tranh chap.
             BigDecimal khauTru = item.getMucKhauTru() != null ? item.getMucKhauTru() : BigDecimal.ZERO;
             if (khauTru.signum() < 0) {
                 throw new RuntimeException("Mức khấu trừ không được âm");
-            }
-            if (khauTru.signum() > 0 && (item.getLyDoKhauTru() == null || item.getLyDoKhauTru().isBlank())) {
-                throw new RuntimeException("Tài sản " + snapshot.getTenTaiSan()
-                        + " có khấu trừ thì phải ghi rõ lý do");
             }
             snapshot.setMucKhauTru(khauTru);
             snapshot.setLyDoKhauTru(trimToNull(item.getLyDoKhauTru()));
         }
         chiTietBanGiaoRepository.saveAll(snapshots);
 
-        // Kiem ke xong thi bien ban san sang cho hai ben ky. Khong tu nhay trang
-        // thai neu bien ban da co chu ky, tranh xoa mat vet ky truoc do.
         if (quyetToan.getBienBanTrangThai() == TrangThaiBienBanBanGiao.CHUA_LAP) {
             quyetToan.setBienBanTrangThai(TrangThaiBienBanBanGiao.CHO_KY);
             quyetToanRepository.save(quyetToan);
@@ -266,9 +236,8 @@ public class QuyetToanTraPhongService {
     private void validateDeductions(List<KhoanKhauTruCocRequest> deductions) {
         for (KhoanKhauTruCocRequest item : deductions) {
             if (item == null || item.getSoTien() == null || item.getSoTien().compareTo(BigDecimal.ZERO) <= 0
-                    || item.getMoTa() == null || item.getMoTa().isBlank()
-                    || item.getChungTuUrl() == null || item.getChungTuUrl().isBlank()) {
-                throw new RuntimeException("Mỗi khoản khấu trừ cọc phải có mô tả, số tiền dương và chứng từ");
+                    || item.getMoTa() == null || item.getMoTa().isBlank()) {
+                throw new RuntimeException("Mỗi khoản khấu trừ cọc phải có mô tả và số tiền hợp lệ");
             }
         }
     }

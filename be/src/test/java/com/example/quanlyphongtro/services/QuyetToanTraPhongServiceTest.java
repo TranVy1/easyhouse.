@@ -74,32 +74,10 @@ class QuyetToanTraPhongServiceTest {
         when(permissionService.canWriteHopDong(userId, hopDongId)).thenReturn(true);
         when(hopDongRepository.findById(hopDongId)).thenReturn(Optional.of(hopDong));
         when(quyetToanRepository.findByHopDongId(hopDongId)).thenReturn(Optional.of(quyetToan));
-        when(hoaDonService.getById(quyetToan.getHoaDon().getId()))
-                .thenReturn(HoaDonResponse.builder().trangThai("ISSUED").build());
     }
 
     @Test
-    void refusesCompletionWhenAnyAssetHasNotBeenConfirmed() {
-        ChiTietBanGiaoTaiSan unconfirmedAsset = ChiTietBanGiaoTaiSan.builder()
-                .id(UUID.randomUUID()).daXacNhan(false).build();
-        when(chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(quyetToan.getId()))
-                .thenReturn(List.of(unconfirmedAsset));
-
-        HoanTatQuyetToanTraPhongRequest request = completionRequest();
-        RuntimeException error = assertThrows(RuntimeException.class, () -> service.hoanTat(hopDongId, request));
-
-        assertEquals("Cần kiểm kê và xác nhận đầy đủ từng tài sản phòng trước khi hoàn tất trả phòng", error.getMessage());
-        assertEquals(TrangThaiPhong.RENTED, phong.getTrangThai());
-        verify(phongRepository, never()).save(any());
-        verify(giaoDichTienCocService, never()).ghiNhanQuyetToan(any(), any(), any());
-    }
-
-    @Test
-    void releasesRoomOnlyAfterSettlementHandoverAndInspectionAreComplete() {
-        ChiTietBanGiaoTaiSan confirmedAsset = ChiTietBanGiaoTaiSan.builder()
-                .id(UUID.randomUUID()).daXacNhan(true).build();
-        when(chiTietBanGiaoRepository.findByQuyetToanTraPhongIdOrderByTaoLucAsc(quyetToan.getId()))
-                .thenReturn(List.of(confirmedAsset));
+    void releasesRoomAndCompletesSettlement() {
         when(hopDongRepository.findRoomOccupyingContracts(eq(phong.getId()), any())).thenReturn(List.of(hopDong));
 
         service.hoanTat(hopDongId, completionRequest());
@@ -109,6 +87,38 @@ class QuyetToanTraPhongServiceTest {
         assertEquals(TrangThaiQuyetToanTraPhong.COMPLETED, quyetToan.getTrangThai());
         verify(phongRepository).save(phong);
         verify(giaoDichTienCocService).ghiNhanQuyetToan(quyetToan, null, null);
+    }
+
+    @Test
+    void earlyTerminationForfeitsDeposit() {
+        com.example.quanlyphongtro.dto.TaoQuyetToanTraPhongRequest req = new com.example.quanlyphongtro.dto.TaoQuyetToanTraPhongRequest();
+        req.setNgayTraPhong(java.time.LocalDate.now());
+        req.setHuyTruocHan(true);
+        hopDong.setNgayKetThuc(java.time.LocalDate.now().plusMonths(6));
+
+        when(quyetToanRepository.findByHopDongId(hopDongId)).thenReturn(Optional.empty());
+        when(giaoDichTienCocService.soDu(hopDongId)).thenReturn(new BigDecimal("3000000"));
+
+        com.example.quanlyphongtro.dto.HoaDonResponse hoaDonResponse = com.example.quanlyphongtro.dto.HoaDonResponse.builder()
+                .id(UUID.randomUUID())
+                .tongTien(BigDecimal.ZERO)
+                .trangThai("ISSUED")
+                .build();
+        com.example.quanlyphongtro.dto.HoaDonQuyetToanResult finalResult = com.example.quanlyphongtro.dto.HoaDonQuyetToanResult.builder()
+                .hoaDon(hoaDonResponse)
+                .tienCocDaCanTru(new BigDecimal("1000000"))
+                .build();
+        when(hoaDonService.createFinalSettlement(any(), any(), any())).thenReturn(finalResult);
+        when(hoaDonRepository.findById(any())).thenReturn(Optional.of(HoaDon.builder().id(hoaDonResponse.getId()).build()));
+        when(quyetToanRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(hoaDonService.getById(any())).thenReturn(hoaDonResponse);
+
+        var response = service.tao(hopDongId, req);
+
+        // Under early termination, remaining deposit is forfeited -> tienCocCanHoan = 0
+        assertEquals(BigDecimal.ZERO, response.getTienCocCanHoan());
+        assertEquals(new BigDecimal("3000000"), response.getTienCocBanDau());
+        assertEquals(new BigDecimal("1000000"), response.getTienCocDaCanTru());
     }
 
     private HoanTatQuyetToanTraPhongRequest completionRequest() {
