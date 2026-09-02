@@ -479,6 +479,7 @@ public class AuthService {
                 .ngayKetThuc(hopDong.getNgayKetThuc())
                 .tienCoc(hopDong.getTienCoc())
                 .phong(phong == null ? null : KhachThueDashboardResponse.TenantRoom.builder()
+                        .id(phong.getId())
                         .maPhong(phong.getTen())
                         .giaThue(hopDong.getGiaThueHopDong() != null ? hopDong.getGiaThueHopDong() : BigDecimal.ZERO)
                         .toaNha(nhaTro == null ? null : KhachThueDashboardResponse.TenantBuilding.builder()

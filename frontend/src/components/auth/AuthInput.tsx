@@ -26,8 +26,8 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
           {icon && (
             <span
               className={cn(
-                'pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-150',
-                focused && !error ? 'text-[#0D9488]' : 'text-slate-400'
+                'pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-300 ease-out',
+                focused && !error ? 'text-[#0D9488] scale-110' : 'text-slate-400 scale-100'
               )}
               aria-hidden="true"
             >

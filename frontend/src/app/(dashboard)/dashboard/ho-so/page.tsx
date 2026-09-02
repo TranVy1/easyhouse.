@@ -37,7 +37,8 @@ export default function HoSoPage() {
 
   const changePassword = async () => {
     if (!token || !password.matKhauCu || !password.matKhauMoi) return
-    const res = await fetch('/api/user/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(password) })
+    const payload = { oldPassword: password.matKhauCu, newPassword: password.matKhauMoi }
+    const res = await fetch('/api/user/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) })
     const json = await res.json()
     if (res.ok && json.success) { setPassword({ matKhauCu: '', matKhauMoi: '' }); toast.success('Đã đổi mật khẩu') } else toast.error(json.message || 'Đổi mật khẩu thất bại')
   }

@@ -130,7 +130,7 @@ function KhachThueDangNhapContent() {
 // ── Root export ─────────────────────────────────────────────────────────────
 export default function KhachThueDangNhap() {
   return (
-    <SessionProvider>
+    <SessionProvider basePath="/api/auth-tenant">
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center bg-[#F7F7F5]">

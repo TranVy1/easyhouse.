@@ -13,7 +13,7 @@ import { SessionProvider } from 'next-auth/react';
 
 function DoiMatKhauContent() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [formData, setFormData] = useState({
     matKhauCu: '123456',
     matKhauMoi: '',
@@ -52,8 +52,9 @@ function DoiMatKhauContent() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
-        await signOut({ callbackUrl: '/khach-thue/dang-nhap' });
+        toast.success('Đổi mật khẩu thành công!');
+        await update({ requirePasswordChange: false });
+        router.push('/khach-thue/dashboard');
       } else {
         toast.error(result.message || 'Đổi mật khẩu thất bại');
       }

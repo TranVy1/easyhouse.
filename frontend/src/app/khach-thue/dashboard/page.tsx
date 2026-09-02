@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { StaggerGroup, StaggerItem, Reveal } from '@/components/motion';
 
 export default function KhachThueDashboardPage() {
   const { data: dashboardData, loading, error, refreshData } = useTenantDashboard();
@@ -266,14 +267,14 @@ export default function KhachThueDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="mt-1">
-               <Badge className={
-                 mainStatus.type === 'warning' ? 'bg-red-500 hover:bg-red-600 text-white' :
-                 mainStatus.type === 'pending' ? 'bg-orange-500 hover:bg-orange-600 text-white' :
-                 mainStatus.type === 'good' ? 'bg-green-600 hover:bg-green-700 text-white' :
-                 'bg-gray-500 hover:bg-gray-600 text-white'
-               }>
-                 {mainStatus.label}
-               </Badge>
+              <Badge className={
+                mainStatus.type === 'warning' ? 'bg-red-500 hover:bg-red-600 text-white' :
+                  mainStatus.type === 'pending' ? 'bg-orange-500 hover:bg-orange-600 text-white' :
+                    mainStatus.type === 'good' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                      'bg-gray-500 hover:bg-gray-600 text-white'
+              }>
+                {mainStatus.label}
+              </Badge>
             </div>
             <p className="text-xs text-gray-500 mt-2">Trạng thái tổng quan</p>
           </CardContent>
@@ -302,57 +303,57 @@ export default function KhachThueDashboardPage() {
         {/* Contract Section */}
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-bold font-['Be_Vietnam_Pro'] text-[#243B5A] flex items-center gap-2">
-            <FileText className="h-5 w-5 text-[#4FA7A0]"/> Hợp đồng hiện tại
+            <FileText className="h-5 w-5 text-[#4FA7A0]" /> Hợp đồng hiện tại
           </h2>
           {currentContractToDisplay ? (
             <Card className="hover:shadow-md transition-shadow border border-gray-100 h-full flex flex-col shadow-sm">
-               <CardHeader className="pb-4">
-                 <div className="flex justify-between items-start">
-                   <Badge variant="outline" className="bg-[#4FA7A0]/5 text-[#243B5A] border-[#4FA7A0]/20 font-semibold px-3 py-1">
-                     {currentContractToDisplay.maHopDong}
-                   </Badge>
-                   <Badge className="bg-green-600">Đang hiệu lực</Badge>
-                 </div>
-               </CardHeader>
-               <CardContent className="flex-1 space-y-5">
-                  <div className="flex items-center gap-4">
-                     <div className="bg-gray-50 p-3.5 rounded-full border border-gray-100">
-                       <Home className="h-6 w-6 text-gray-500" />
-                     </div>
-                     <div>
-                       <p className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">Phòng</p>
-                       <p className="font-bold text-xl text-[#243B5A] leading-none">{currentContractToDisplay.phong?.maPhong || '---'}</p>
-                     </div>
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <Badge variant="outline" className="bg-[#4FA7A0]/5 text-[#243B5A] border-[#4FA7A0]/20 font-semibold px-3 py-1">
+                    {currentContractToDisplay.maHopDong}
+                  </Badge>
+                  <Badge className="bg-green-600">Đang hiệu lực</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="bg-gray-50 p-3.5 rounded-full border border-gray-100">
+                    <Home className="h-6 w-6 text-gray-500" />
                   </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">Phòng</p>
+                    <p className="font-bold text-xl text-[#243B5A] leading-none">{currentContractToDisplay.phong?.maPhong || '---'}</p>
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4 bg-gray-50/80 p-4 rounded-xl border border-gray-100">
-                     <div>
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold flex items-center gap-1.5 mb-1.5"><Calendar className="h-3.5 w-3.5 text-gray-400"/> Bắt đầu</p>
-                        <p className="font-medium text-sm text-gray-800">{formatDate(currentContractToDisplay.ngayBatDau as string)}</p>
-                     </div>
-                     <div>
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold flex items-center gap-1.5 mb-1.5"><Calendar className="h-3.5 w-3.5 text-gray-400"/> Kết thúc</p>
-                        <p className="font-medium text-sm text-gray-800">{formatDate(currentContractToDisplay.ngayKetThuc as string)}</p>
-                     </div>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                  <div>
+                    <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold flex items-center gap-1.5 mb-1.5"><Calendar className="h-3.5 w-3.5 text-gray-400" /> Bắt đầu</p>
+                    <p className="font-medium text-sm text-gray-800">{formatDate(currentContractToDisplay.ngayBatDau as string)}</p>
                   </div>
-               </CardContent>
-               <CardFooter className="pt-2 pb-5">
-                  <Button variant="outline" className="w-full text-[#4FA7A0] border-[#4FA7A0]/20 hover:bg-[#4FA7A0]/5 hover:text-[#3d8580] font-medium transition-colors" asChild>
-                     <Link href="/khach-thue/dashboard/hop-dong">Xem chi tiết hợp đồng</Link>
-                  </Button>
-               </CardFooter>
+                  <div>
+                    <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold flex items-center gap-1.5 mb-1.5"><Calendar className="h-3.5 w-3.5 text-gray-400" /> Kết thúc</p>
+                    <p className="font-medium text-sm text-gray-800">{formatDate(currentContractToDisplay.ngayKetThuc as string)}</p>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="pt-2 pb-5">
+                <Button variant="outline" className="w-full text-[#4FA7A0] border-[#4FA7A0]/20 hover:bg-[#4FA7A0]/5 hover:text-[#3d8580] font-medium transition-colors" asChild>
+                  <Link href="/khach-thue/dashboard/hop-dong">Xem chi tiết hợp đồng</Link>
+                </Button>
+              </CardFooter>
             </Card>
           ) : (
             <Card className="border-dashed border-2 bg-gray-50/50 h-full flex items-center justify-center min-h-[280px]">
-               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                 <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
-                   <SearchX className="h-8 w-8 text-gray-400" />
-                 </div>
-                 <h3 className="font-bold text-gray-800 text-lg">Chưa có hợp đồng thuê</h3>
-                 <p className="text-sm text-gray-500 mt-2 mb-5 max-w-[260px] leading-relaxed">
-                   Khi bạn có hợp đồng đang hiệu lực, thông tin sẽ hiển thị tại đây.
-                 </p>
-               </CardContent>
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
+                  <SearchX className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="font-bold text-gray-800 text-lg">Chưa có hợp đồng thuê</h3>
+                <p className="text-sm text-gray-500 mt-2 mb-5 max-w-[260px] leading-relaxed">
+                  Khi bạn có hợp đồng đang hiệu lực, thông tin sẽ hiển thị tại đây.
+                </p>
+              </CardContent>
             </Card>
           )}
         </div>
@@ -361,7 +362,7 @@ export default function KhachThueDashboardPage() {
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold font-['Be_Vietnam_Pro'] text-[#243B5A] flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-orange-500"/> Hóa đơn gần nhất
+              <DollarSign className="h-5 w-5 text-orange-500" /> Hóa đơn gần nhất
             </h2>
             {hoaDonGanNhat && (
               <Link href="/khach-thue/dashboard/hoa-don" className="text-sm text-[#4FA7A0] hover:text-[#3d8580] transition-colors font-medium">
@@ -372,74 +373,74 @@ export default function KhachThueDashboardPage() {
 
           {hoaDonGanNhat ? (
             <Card className={`hover:shadow-md transition-shadow border border-gray-100 h-full flex flex-col shadow-sm ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'border-red-200 shadow-red-50' : ''}`}>
-               <CardHeader className="pb-4">
-                 <div className="flex justify-between items-start">
-                   <div>
-                     <p className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Kỳ thanh toán</p>
-                     <p className="font-bold text-[#243B5A] text-base">Tháng {hoaDonGanNhat.thang}/{hoaDonGanNhat.nam}</p>
-                   </div>
-                   {hoaDonGanNhat.trangThai === 'daThanhToan' ? (
-                     <Badge className="bg-green-600">Đã thanh toán</Badge>
-                   ) : hoaDonGanNhat.trangThai === 'chuaThanhToan' ? (
-                     <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50 font-medium">Chưa thanh toán</Badge>
-                   ) : hoaDonGanNhat.trangThai === 'quaHan' ? (
-                     <Badge variant="destructive">Quá hạn</Badge>
-                   ) : (
-                     <Badge variant="secondary" className="bg-orange-100 text-orange-800">TT một phần</Badge>
-                   )}
-                 </div>
-               </CardHeader>
-               <CardContent className="flex-1 space-y-5">
-                  <div className={`p-4 rounded-xl flex items-center justify-between border ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-red-50/50 border-red-100' : 'bg-gray-50/80 border-gray-100'}`}>
-                     <div>
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold mb-1">Tổng tiền</p>
-                        <p className={`font-bold text-2xl leading-none ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'text-red-600' : 'text-[#243B5A]'}`}>
-                          {formatCurrency(hoaDonGanNhat.tongTien)}
-                        </p>
-                     </div>
-                     <div className={`p-2.5 rounded-full ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-red-100 text-red-400' : 'bg-white shadow-sm text-gray-300'}`}>
-                       <DollarSign className="h-6 w-6" />
-                     </div>
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Kỳ thanh toán</p>
+                    <p className="font-bold text-[#243B5A] text-base">Tháng {hoaDonGanNhat.thang}/{hoaDonGanNhat.nam}</p>
                   </div>
+                  {hoaDonGanNhat.trangThai === 'daThanhToan' ? (
+                    <Badge className="bg-green-600">Đã thanh toán</Badge>
+                  ) : hoaDonGanNhat.trangThai === 'chuaThanhToan' ? (
+                    <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50 font-medium">Chưa thanh toán</Badge>
+                  ) : hoaDonGanNhat.trangThai === 'quaHan' ? (
+                    <Badge variant="destructive">Quá hạn</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">TT một phần</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-5">
+                <div className={`p-4 rounded-xl flex items-center justify-between border ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-red-50/50 border-red-100' : 'bg-gray-50/80 border-gray-100'}`}>
+                  <div>
+                    <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold mb-1">Tổng tiền</p>
+                    <p className={`font-bold text-2xl leading-none ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'text-red-600' : 'text-[#243B5A]'}`}>
+                      {formatCurrency(hoaDonGanNhat.tongTien)}
+                    </p>
+                  </div>
+                  <div className={`p-2.5 rounded-full ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-red-100 text-red-400' : 'bg-white shadow-sm text-gray-300'}`}>
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm px-1">
-                     <div className="flex flex-col gap-1.5">
-                        <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">Mã hóa đơn</span>
-                        <span className="font-medium text-gray-800">{hoaDonGanNhat.maHoaDon}</span>
-                     </div>
-                     {hoaDonGanNhat.hanThanhToan && (
-                       <div className="flex flex-col gap-1.5">
-                          <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">Hạn thanh toán</span>
-                          <span className={`font-medium ${hoaDonGanNhat.trangThai === 'quaHan' ? 'text-red-600 font-bold' : 'text-gray-800'}`}>
-                            {formatDate(hoaDonGanNhat.hanThanhToan)}
-                          </span>
-                       </div>
-                     )}
+                <div className="grid grid-cols-2 gap-4 text-sm px-1">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">Mã hóa đơn</span>
+                    <span className="font-medium text-gray-800">{hoaDonGanNhat.maHoaDon}</span>
                   </div>
-               </CardContent>
-               <CardFooter className="pt-2 pb-5">
-                  <Button
-                    variant={hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'default' : 'outline'}
-                    className={`w-full font-medium transition-colors ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-[#4FA7A0] hover:bg-[#3d8580] text-white shadow-sm shadow-[#4FA7A0]/20' : 'text-[#4FA7A0] border-[#4FA7A0]/20 hover:bg-[#4FA7A0]/5'}`}
-                    asChild
-                  >
-                     <Link href={`/khach-thue/dashboard/hoa-don/${hoaDonGanNhat.id || hoaDonGanNhat._id}`}>
-                       {hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'Thanh toán ngay' : 'Xem chi tiết hóa đơn'}
-                     </Link>
-                  </Button>
-               </CardFooter>
+                  {hoaDonGanNhat.hanThanhToan && (
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold">Hạn thanh toán</span>
+                      <span className={`font-medium ${hoaDonGanNhat.trangThai === 'quaHan' ? 'text-red-600 font-bold' : 'text-gray-800'}`}>
+                        {formatDate(hoaDonGanNhat.hanThanhToan)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="pt-2 pb-5">
+                <Button
+                  variant={hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'default' : 'outline'}
+                  className={`w-full font-medium transition-colors ${hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'bg-[#4FA7A0] hover:bg-[#3d8580] text-white shadow-sm shadow-[#4FA7A0]/20' : 'text-[#4FA7A0] border-[#4FA7A0]/20 hover:bg-[#4FA7A0]/5'}`}
+                  asChild
+                >
+                  <Link href={`/khach-thue/dashboard/hoa-don/${hoaDonGanNhat.id || hoaDonGanNhat._id}`}>
+                    {hoaDonGanNhat.trangThai === 'chuaThanhToan' || hoaDonGanNhat.trangThai === 'quaHan' ? 'Thanh toán ngay' : 'Xem chi tiết hóa đơn'}
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
           ) : (
             <Card className="border-dashed border-2 bg-gray-50/50 h-full flex items-center justify-center min-h-[280px]">
-               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                 <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
-                   <FileText className="h-8 w-8 text-gray-400" />
-                 </div>
-                 <h3 className="font-bold text-gray-800 text-lg">Chưa có hóa đơn</h3>
-                 <p className="text-sm text-gray-500 mt-2 max-w-[260px] leading-relaxed">
-                   Các hóa đơn tiền phòng, điện nước sẽ xuất hiện tại đây khi được tạo.
-                 </p>
-               </CardContent>
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
+                  <FileText className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="font-bold text-gray-800 text-lg">Chưa có hóa đơn</h3>
+                <p className="text-sm text-gray-500 mt-2 max-w-[260px] leading-relaxed">
+                  Các hóa đơn tiền phòng, điện nước sẽ xuất hiện tại đây khi được tạo.
+                </p>
+              </CardContent>
             </Card>
           )}
         </div>

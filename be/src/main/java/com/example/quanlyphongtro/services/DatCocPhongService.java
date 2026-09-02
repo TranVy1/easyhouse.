@@ -191,10 +191,29 @@ public class DatCocPhongService {
     }
 
     private DatCocPhongResponse mapToResponse(DatCocPhong e) {
+        NhaTroResponse nhaTroResp = null;
+        if (e.getPhong().getNhaTro() != null) {
+            nhaTroResp = NhaTroResponse.builder()
+                    .id(e.getPhong().getNhaTro().getId())
+                    .tenToaNha(e.getPhong().getNhaTro().getTen())
+                    .build();
+        }
+        PhongResponse phongResp = PhongResponse.builder()
+                .id(e.getPhong().getId())
+                .ten(e.getPhong().getTen())
+                .toaNha(nhaTroResp)
+                .giaHienTai(e.getPhong().getGiaHienTai())
+                .tienCocMacDinh(e.getPhong().getTienCocMacDinh())
+                .build();
+        KhachThueResponse khachThueResp = KhachThueResponse.builder()
+                .id(e.getKhachThue().getId())
+                .hoTen(e.getKhachThue().getHoTen())
+                .soDienThoai(e.getKhachThue().getSoDienThoai())
+                .build();
         return DatCocPhongResponse.builder()
                 .id(e.getId())
-                .phong(PhongResponse.builder().id(e.getPhong().getId()).ten(e.getPhong().getTen()).build())
-                .khachThue(KhachThueResponse.builder().id(e.getKhachThue().getId()).hoTen(e.getKhachThue().getHoTen()).build())
+                .phong(phongResp)
+                .khachThue(khachThueResp)
                 .hopDongId(e.getHopDong() != null ? e.getHopDong().getId() : null)
                 .soTienCoc(e.getSoTienCoc())
                 .ngayDatCoc(e.getNgayDatCoc())
@@ -208,3 +227,4 @@ public class DatCocPhongService {
                 .build();
     }
 }
+

@@ -110,10 +110,13 @@ public class HoaDonController {
 
     @GetMapping("/latest-reading")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLatestReading(
-            @RequestParam String hopDong,
+            @RequestParam(required = false) String hopDong,
+            @RequestParam(required = false, name = "hopDongId") String hopDongIdParam,
             @RequestParam int thang,
             @RequestParam int nam) {
-        UUID hopDongId = UUID.fromString(hopDong);
+        String finalId = hopDong != null ? hopDong : hopDongIdParam;
+        if (finalId == null) throw new IllegalArgumentException("Required request parameter 'hopDong' is not present");
+        UUID hopDongId = UUID.fromString(finalId);
         return ResponseEntity.ok(ApiResponse.success(hoaDonService.getLatestReading(hopDongId, thang, nam)));
     }
 

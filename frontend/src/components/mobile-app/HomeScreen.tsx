@@ -26,6 +26,7 @@ import {
   Headphones,
   Layers3,
   MapPinned,
+  LayoutDashboard,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -707,12 +708,25 @@ export function HomeScreen({ onRoomSelect, onTabChange }: HomeScreenProps) {
               <Bell size={18} className="transition-transform duration-300 group-hover:rotate-[8deg]" />
             </button>
             {userProfile ? (
-              <button onClick={() => onTabChange?.("profile")} className="group flex items-center gap-2 rounded-full border border-[#E8DED1] bg-white p-1.5 pr-3 shadow-sm transition hover:border-[#4FA7A0]">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4FA7A0] text-xs font-black text-white transition-transform duration-300 group-hover:scale-105">
-                  {String(currentUserName).slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden max-w-28 truncate text-sm font-semibold text-[#243B5A] transition-colors group-hover:text-[#4FA7A0] sm:block">{currentUserName}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {(session?.user as any)?.role === 'TENANT' || (session?.user as any)?.role === 'khachThue' ? (
+                  <Link href="/khach-thue/dashboard" className="hidden items-center gap-2 rounded-full border border-[#E8DED1] bg-white px-3 py-1.5 text-sm font-semibold text-[#4FA7A0] shadow-sm transition hover:border-[#4FA7A0] hover:bg-[#4FA7A0]/5 sm:flex">
+                    <LayoutDashboard size={15} />
+                    <span className="hidden lg:inline">Bảng điều khiển</span>
+                  </Link>
+                ) : ['ADMIN', 'LANDLORD', 'STAFF', 'admin', 'chuNha', 'nhanVien'].includes((session?.user as any)?.role || '') ? (
+                  <Link href="/dashboard" className="hidden items-center gap-2 rounded-full border border-[#E8DED1] bg-white px-3 py-1.5 text-sm font-semibold text-[#4FA7A0] shadow-sm transition hover:border-[#4FA7A0] hover:bg-[#4FA7A0]/5 sm:flex">
+                    <LayoutDashboard size={15} />
+                    <span className="hidden lg:inline">Quản lý</span>
+                  </Link>
+                ) : null}
+                <button onClick={() => onTabChange?.("profile")} className="group flex items-center gap-2 rounded-full border border-[#E8DED1] bg-white p-1.5 pr-3 shadow-sm transition hover:border-[#4FA7A0]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4FA7A0] text-xs font-black text-white transition-transform duration-300 group-hover:scale-105">
+                    {String(currentUserName).slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="hidden max-w-28 truncate text-sm font-semibold text-[#243B5A] transition-colors group-hover:text-[#4FA7A0] sm:block">{currentUserName}</span>
+                </button>
+              </div>
             ) : (
               <Link href="/dang-nhap" className="group flex h-10 items-center gap-2 rounded-full bg-[#243B5A] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1b2e47]">
                 <LogIn size={16} className="transition-transform duration-300 group-hover:-translate-x-0.5" />

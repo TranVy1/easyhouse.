@@ -69,7 +69,7 @@ export const authTenantOptions: NextAuthOptions = {
     sessionToken: sessionCookie('easyhouse.tenant.session-token'),
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role;
         token.phone = user.phone;
@@ -80,6 +80,11 @@ export const authTenantOptions: NextAuthOptions = {
         token.accessTokenExpires = user.accessTokenExpires;
         token.sessionVersion = '2';
         token.requirePasswordChange = user.requirePasswordChange;
+      }
+      if (trigger === 'update' && session) {
+        if (typeof session.requirePasswordChange === 'boolean') {
+          token.requirePasswordChange = session.requirePasswordChange;
+        }
       }
       if (token.sessionVersion === '2'
           && typeof token.accessTokenExpires === 'number'

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -49,6 +50,7 @@ public class KhachThueDashboardResponse {
     @Data
     @Builder
     public static class TenantRoom {
+        private UUID id;
         private String maPhong;
         private BigDecimal giaThue;
         private TenantBuilding toaNha;

@@ -142,6 +142,8 @@ export default function ToaNhaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'AVAILABLE' | 'LOW' | 'RENTED' | 'ATTENTION'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingToaNha, setEditingToaNha] = useState<ToaNha | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -214,6 +216,12 @@ export default function ToaNhaPage() {
   };
 
   const filteredToaNha = toaNhaList.filter(b => {
+    if (statusFilter === 'active' && b.trangThai === 'INACTIVE') return false;
+    if (statusFilter === 'inactive' && b.trangThai !== 'INACTIVE') return false;
+    if (locationFilter !== 'all') {
+      const quan = b.diaChi?.quan || 'Kh?c';
+      if (quan !== locationFilter) return false;
+    }
     if (activeFilter === 'AVAILABLE') return (b.phongTrong || 0) > 0;
     if (activeFilter === 'LOW') return calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0) > 10 && calculateOccupancyRate(b.phongDangThue || 0, b.tongSoPhong || 0) <= 40;
     if (activeFilter === 'RENTED') return (b.phongDangThue || 0) > 0;
@@ -423,7 +431,7 @@ export default function ToaNhaPage() {
                 className="pl-9 text-sm w-full md:w-[200px]"
               />
             </div>
-            <Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px] text-sm text-gray-500">
                 <SelectValue placeholder="Trạng thái hoạt động" />
               </SelectTrigger>
@@ -433,13 +441,16 @@ export default function ToaNhaPage() {
                 <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
               <SelectTrigger className="w-[150px] text-sm text-gray-500 flex items-center gap-2">
                 <MapPin className="w-4 h-4 mr-1" />
-                <SelectValue placeholder="Khu vực" />
+                <SelectValue placeholder="Khu v?c" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="all">T?t c?</SelectItem>
+                {sortedAreas.map(([quan]) => (
+                  <SelectItem key={quan} value={quan}>{quan}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -477,7 +477,11 @@ export default function ThemMoiHopDongPage() {
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
-        const savedId = result.data?._id || result.data?.id || previewHopDongId;
+        // When converting from deposit, response is DatCocPhongResponse
+        // which has hopDongId (the newly created contract ID), not the deposit ID
+        const savedId = (!previewHopDongId && datCocId)
+          ? (result.data?.hopDongId || result.data?._id || result.data?.id)
+          : (result.data?._id || result.data?.id || previewHopDongId);
         setPreviewHopDongId(savedId);
         setOpenPreviewModal(true);
       } else {

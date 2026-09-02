@@ -171,6 +171,9 @@ export function DatCocForm({ datCoc, onClose, onSuccess }: { datCoc?: any, onClo
                         value={p.ten || p.maPhong}
                         onSelect={() => {
                           setValue('phongId', p._id || p.id);
+                          // Auto-fill deposit amount from room's default values
+                          const depositAmt = p.tienCoc || p.tienCocMacDinh || p.giaHienTai || p.giaThue || '';
+                          setValue('soTienCoc', depositAmt);
                           setOpenPhong(false);
                         }}
                       >
@@ -266,3 +269,4 @@ export function DatCocForm({ datCoc, onClose, onSuccess }: { datCoc?: any, onClo
     </div>
   );
 }
+

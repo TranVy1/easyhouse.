@@ -253,10 +253,11 @@ export default function ThanhToanPage() {
   useEffect(() => {
     if (preselectedInvoiceConsumed.current || invoices.length === 0) return
     const invoiceId = new URLSearchParams(window.location.search).get("hoaDonId")
-    if (!invoiceId || !invoices.some((invoice) => (invoice._id || invoice.id) === invoiceId)) return
+    const preselectedInvoice = invoices.find((invoice) => (invoice._id || invoice.id) === invoiceId)
+    if (!invoiceId || !preselectedInvoice) return
     preselectedInvoiceConsumed.current = true
     setEditing(null)
-    setFormData({ ...blankForm(), hoaDonId: invoiceId })
+    setFormData({ ...blankForm(), hoaDonId: invoiceId, soTien: String(preselectedInvoice.tongTien || 0) })
     setFormOpen(true)
   }, [invoices])
 
@@ -740,7 +741,10 @@ export default function ThanhToanPage() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="payment-invoice">Hóa đơn</Label>
-              <Select value={formData.hoaDonId} onValueChange={(value) => setFormData((current) => ({ ...current, hoaDonId: value }))}>
+              <Select value={formData.hoaDonId} onValueChange={(value) => {
+                const selectedInvoice = invoices.find((invoice) => (invoice._id || invoice.id) === value)
+                setFormData((current) => ({ ...current, hoaDonId: value, soTien: selectedInvoice ? String(selectedInvoice.tongTien || 0) : "" }))
+              }}>
                 <SelectTrigger id="payment-invoice"><SelectValue placeholder="Chọn hóa đơn cần thu" /></SelectTrigger>
                 <SelectContent>
                   {invoices.map((invoice) => (

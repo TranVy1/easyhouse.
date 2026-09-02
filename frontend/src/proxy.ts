@@ -31,6 +31,8 @@ export default withAuth(
       ? tenantToken.role.replace(/^ROLE_/, '').toUpperCase()
       : '';
 
+    console.log('PROXY DEBUG: isTenantDashboard=', isTenantDashboard, 'tenantToken=', !!tenantToken, 'tenantRole=', tenantRole, 'SECRET_PREFIX=', (process.env.NEXTAUTH_SECRET || '').substring(0, 5));
+
     if (isTenantDashboard && (!tenantToken || tenantRole !== 'TENANT')) {
       return NextResponse.redirect(new URL('/khach-thue/dang-nhap', req.url));
     }

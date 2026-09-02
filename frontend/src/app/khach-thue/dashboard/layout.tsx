@@ -40,6 +40,7 @@ function TenantNavigation({
     { name: 'Tin nhắn', href: '/khach-thue/dashboard/tin-nhan', icon: MessageCircle, badge: soTinChuaDoc },
     { name: 'Thông báo', href: '/khach-thue/dashboard/thong-bao', icon: Bell, badge: data?.soThongBaoMoi || 0 },
     { name: 'Tài khoản', href: '/khach-thue/dashboard/thong-tin', icon: User, badge: 0 },
+    { name: 'Trang chủ', href: '/', icon: Building, badge: 0 },
   ];
 
   const getInitials = (name?: string) => {
@@ -57,12 +58,12 @@ function TenantNavigation({
       <header className="hidden lg:flex fixed top-0 left-0 right-0 z-40 h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border px-6 xl:px-8 items-center justify-between">
         <div className="flex items-center gap-6 xl:gap-8">
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="bg-primary p-1.5 rounded-lg flex items-center justify-center shadow-sm">
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
+            <div className="bg-primary p-1.5 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-primary/90 transition-colors">
                <Building className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl text-foreground tracking-tight font-['Be_Vietnam_Pro'] hidden xl:block">EasyHouse</span>
-          </div>
+            <span className="font-bold text-xl text-foreground tracking-tight font-['Be_Vietnam_Pro'] hidden xl:block group-hover:text-primary transition-colors">EasyHouse</span>
+          </Link>
 
           {/* Nav Links */}
           <nav className="flex items-center gap-1">

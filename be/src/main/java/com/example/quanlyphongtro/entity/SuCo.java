@@ -41,14 +41,17 @@ public class SuCo {
 
     @Convert(converter = LoaiSuCoConverter.class)
     @Column(nullable = false)
+    @Builder.Default
     private LoaiSuCo loaiSuCo = LoaiSuCo.KHAC;
 
     @Convert(converter = UuTienConverter.class)
     @Column(nullable = false)
+    @Builder.Default
     private UuTien uuTien = UuTien.TRUNG_BINH;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private TrangThaiSuCo trangThai = TrangThaiSuCo.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,9 +59,11 @@ public class SuCo {
     private NguoiDung nguoiPhuTrach;
 
     @Column(nullable = false)
+    @Builder.Default
     private BigDecimal chiPhiSuaChua = BigDecimal.ZERO;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean tinhVaoHoaDon = false;
 
     @Column(columnDefinition = "TEXT")
